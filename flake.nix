@@ -72,8 +72,6 @@
               home-manager.useUserPackages = true;
               home-manager.users.wangzi = { ... }: {
                 imports = [ ./home.nix ];
-                # home.username = "wangzi";
-                # home.homeDirectory = "/home/wangzi";
               };
               home-manager.users.root = { ... }: {
                 imports = [
@@ -84,8 +82,6 @@
                 ];
                 home.packages =
                   (with pkgs; [ autojump killall curl wget unzip ]);
-                # home.username = "root";
-                # home.homeDirectory = "/root";
               };
             })
           ];

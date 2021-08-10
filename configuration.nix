@@ -11,12 +11,6 @@ let
     export __VK_LAYER_NV_optimus=NVIDIA_only
     exec -a "$0" "$@"
   '';
-  edit-nixos = pkgs.writeShellScriptBin "nixos" ''
-    sudo sh -c 'cd /etc/nixos && nvim /etc/nixos/configuration.nix && nixos-rebuild switch'
-  '';
-  edit-nix-home = pkgs.writeShellScriptBin "nixhome" ''
-    cd ~/.config/nixpkgs && nvim ~/.config/nixpkgs/home.nix && home-manager switch -b /tmp
-  '';
 in {
   imports = [ # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -369,8 +363,8 @@ in {
   programs.ssh.askPassword = "${pkgs.gnome.seahorse}/libexec/seahorse/ssh-askpass";
   environment.systemPackages = with pkgs; [
     nvidia-run
-    edit-nixos
-    edit-nix-home
+    # edit-nixos
+    # edit-nix-home
     home-manager
     # nixos-install-tools
     # nixos-rebuild
