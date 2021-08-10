@@ -1,0 +1,77 @@
+{
+  "diagnostic.checkCurrentLine": true,
+  "diagnostic.messageTarget": "float",
+  "languageserver": {
+    "nix": {
+      "command": "rnix-lsp",
+      "filetypes": [
+        "nix"
+      ]
+    }
+  },
+  "coc.preferences.extensionUpdateCheck": "daily",
+  "suggest.noselect": true,
+  "suggest.completionItemKindLabels": {
+    "class": "",
+    "color": "",
+    "constant": "",
+    "default": "",
+    "enum": "",
+    "enumMember": "",
+    "event": "鬒",
+    "field": "綠",
+    "file": "",
+    "folder": "",
+    "function": "ƒ",
+    "interface": "",
+    "keyword": "",
+    "method": "",
+    "module": "",
+    "operator": "洛",
+    "property": "",
+    "reference": "渚",
+    "snippet": "",
+    "struct": "פּ",
+    "text": "",
+    "typeParameter": "",
+    "unit": "",
+    "value": "",
+    "variable": ""
+  },
+  "coc.preferences.formatOnSaveFiletypes": [
+    "javascript",
+    "typescript",
+    "html",
+    "css",
+    "json",
+    "python",
+    "vue",
+    "svelte",
+    "c",
+    "prisma",
+    "rs",
+    "h",
+    "cpp"
+  ],
+  "diagnostic.errorSign": "",
+  "diagnostic.warningSign": "",
+  "diagnostic.infoSign": "",
+  "diagnostic.hintSign": "",
+  "explorer.toggle": false,
+  "explorer.position": "right",
+  "explorer.width": 32,
+  "explorer.sources": [
+    {
+      "name": "buffer",
+      "expand": false
+    },
+    {
+      "name": "file",
+      "expand": true
+    }
+  ],
+  "explorer.file.column.indent.indentLine": true,
+  "explorer.file.showHiddenFiles": true,
+  "explorer.icon.enableNerdfont": true,
+  "explorer.buffer.showHiddenBuffers": false
+}

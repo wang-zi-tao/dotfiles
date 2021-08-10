@@ -1,0 +1,97 @@
+#=============================================================================
+# dark_powered.toml --- dark powered configuration example for SpaceVim
+# Copyright (c) 2016-2020 Wang Shidong & Contributors
+# Author: Wang Shidong < wsdjeg at 163.com >
+# URL: https://spacevim.org
+# License: GPLv3
+#=============================================================================
+# All SpaceVim option below [option] section
+[options]
+    # set spacevim theme. by default colorscheme layer is not loaded,
+    # if you want to use more colorscheme, please load the colorscheme
+    # layer
+    colorscheme = "one"
+    # colorscheme_bg = "dark"
+    # Disable guicolors in basic mode, many terminal do not support 24bit
+    # true colors
+    enable_guicolors = true
+    # Disable statusline separator, if you want to use other value, please
+    # install nerd fonts
+    project_rooter_patterns = ['.git/', '_darcs/', '.hg/', '.bzr/', '.svn/']
+    statusline_separator = "arrow"
+    statusline_iseparator = "arrow"
+    buffer_index_type = 4
+    enable_tabline_filetype_icon = true
+    enable_statusline_mode = false
+    filetree_direction = "right"
+    vim_help_language = "cn"
+    autocomplete_method = "coc"
+    filemanager = "defx"
+[[layers]]
+    name = "colorscheme"
+[[layers]]
+    name = 'autocomplete'
+    # auto_completion_return_key_behavior = "complete"
+    auto_completion_tab_key_behavior = "smart"
+    cycle = true
+[[layers]]
+  name = 'shell'
+[[layers]]
+  name = "lang#java"
+[[layers]]
+  name = "lang#python"
+[[layers]]
+  name = "format"
+[[layers]]
+   name = "debug"
+[[layers]]
+  name = "lang#go"
+[[layers]]
+  name = "lang#lua"
+[[layers]]
+  name = "lang#javascript"
+[[layers]]
+  name = "lang#xml"
+[[layers]]
+  name = "lang#zig"
+[[layers]]
+  name = "lang#c"
+  enable_clang_syntax_highlight = true
+[[layers]]
+  name = "lang#rust"
+[[layers]]
+  name = "lang#toml"
+[[layers]]
+  name = "test"
+[[layers]]
+  name = "tools#dash"
+[[layers]]
+  name = "lang#typescript"
+[[layers]]
+  name = "sudo"
+[[layers]]
+  name = "tmux"
+[[layers]]
+  name = "shell"
+[[layers]]
+  name = "git"
+[[layers]]
+  name = "chinese"
+[[layers]]
+  name = "fzf"
+[[layers]] 
+  name = 'lsp'
+  filetypes = [
+    'c',
+    'cpp',
+    # 'dart'
+  ]
+  # [layers.override_cmd]
+    # c = ['ccls', '--log-file=/tmp/ccls.log']
+    # cpp = ['ccls', '--log-file=/tmp/ccls.log']
+[[layers]]
+  name = "lang#nix"
+[[layers]]
+  name = "lang#markdown"
+[[layers]]
+  name = "lang#haskell"
