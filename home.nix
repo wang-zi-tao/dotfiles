@@ -166,6 +166,7 @@ in {
     gnomeExtensions.task-widget
     gnomeExtensions.x11-gestures
     gnomeExtensions.system-monitor
+    gnomeExtensions.quake-mode
 
     pkg-config
     ctags

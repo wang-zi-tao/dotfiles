@@ -8,9 +8,6 @@
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
     nur.url = "github:nix-community/NUR";
-    #emacs-ng.url = "github:emacs-ng/emacs-ng";
-    # emacs-overlay.url = "github:nix-community/emacs-overlay";
-
     nixpkgs.url = "github:nixos/nixpkgs/nixos-21.05";
     unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     master.url = "github:nixos/nixpkgs/master";
@@ -42,10 +39,6 @@
             pkgs = final.unstable;
           };
         };
-        # emacs-overlay = inputs.emacs-overlay.overlay;
-        # emacsNg = final: prev: {
-        #   emacsNg = inputs.emacs-ng.defaultPackage.${final.system};
-        # };
         unstable = final: prev: {
           unstable = import inputs.unstable {
             system = final.system;

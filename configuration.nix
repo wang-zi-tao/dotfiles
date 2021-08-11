@@ -125,7 +125,6 @@ in {
       modules = [
         pkgs.xorg.xf86videointel
         pkgs.xorg.xf86inputlibinput
-
       ];
     };
     fstrim.interval = "daily";
@@ -311,20 +310,15 @@ in {
   systemd.services.touchegg = {
     enable = true;
     description = "Touchégg. The daemon.";
-    wantedBy = [ "graphical-session.target" ];
-    partOf = [ "graphical-session.target" ];
+    wantedBy = [ "graphical.target" ];
     serviceConfig = {
       Type = "simple";
       Group = "input";
       Restart = "always";
       RestartSec = "5s";
-      wants = [ "graphical-session.target" ];
-      after = [ "graphical-session.target" ];
+      wants = [ "graphical.target" ];
+      after = [ "graphical.target" ];
       ExecStart = "${pkgs.touchegg}/bin/touchegg --daemon";
-    };
-    unitConfig = {
-      Wants = [ "graphical-session.target" ];
-      After = [ "graphical-session.target" ];
     };
   };
   systemd.services.n2n_edge = {
