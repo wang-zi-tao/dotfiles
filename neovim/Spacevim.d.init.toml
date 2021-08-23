@@ -10,8 +10,8 @@
     # set spacevim theme. by default colorscheme layer is not loaded,
     # if you want to use more colorscheme, please load the colorscheme
     # layer
-    colorscheme = "one"
-    # colorscheme_bg = "dark"
+    colorscheme = "onedark"
+    colorscheme_bg = "dark"
     # Disable guicolors in basic mode, many terminal do not support 24bit
     # true colors
     enable_guicolors = true
@@ -37,36 +37,11 @@
 [[layers]]
   name = 'shell'
 [[layers]]
-  name = "lang#java"
-[[layers]]
-  name = "lang#python"
-[[layers]]
   name = "format"
-[[layers]]
-   name = "debug"
-[[layers]]
-  name = "lang#go"
-[[layers]]
-  name = "lang#lua"
-[[layers]]
-  name = "lang#javascript"
 [[layers]]
   name = "lang#xml"
 [[layers]]
-  name = "lang#zig"
-[[layers]]
-  name = "lang#c"
-  enable_clang_syntax_highlight = true
-[[layers]]
-  name = "lang#rust"
-[[layers]]
-  name = "lang#toml"
-[[layers]]
-  name = "test"
-[[layers]]
   name = "tools#dash"
-[[layers]]
-  name = "lang#typescript"
 [[layers]]
   name = "sudo"
 [[layers]]
@@ -79,19 +54,3 @@
   name = "chinese"
 [[layers]]
   name = "fzf"
-[[layers]] 
-  name = 'lsp'
-  filetypes = [
-    'c',
-    'cpp',
-    # 'dart'
-  ]
-  # [layers.override_cmd]
-    # c = ['ccls', '--log-file=/tmp/ccls.log']
-    # cpp = ['ccls', '--log-file=/tmp/ccls.log']
-[[layers]]
-  name = "lang#nix"
-[[layers]]
-  name = "lang#markdown"
-[[layers]]
-  name = "lang#haskell"

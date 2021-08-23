@@ -1,9 +1,5 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
-{ config, pkgs,lib, ... }:
-let 
+{ config, pkgs, lib, ... }:
+let
   nvidia-run = pkgs.writeShellScriptBin "nvidia-run" ''
     export __NV_PRIME_RENDER_OFFLOAD=1
     export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
@@ -12,9 +8,10 @@ let
     exec -a "$0" "$@"
   '';
 in {
-  imports = [ # Include the results of the hardware scan.
+  imports = [ 
     ./hardware-configuration.nix
     ./etcfiles/default.nix
+    ./fs.nix
   ];
 
   hardware = {
@@ -24,7 +21,7 @@ in {
     opengl.setLdLibraryPath = true;
     nvidia.prime = {
       # sync.enable = true;
-      offload.enable=true;
+      offload.enable = true;
       nvidiaBusId = "PCI:1:0:0";
       intelBusId = "PCI:0:2:0";
     };
@@ -32,19 +29,23 @@ in {
   };
   boot.loader = {
     systemd-boot.enable = true;
-    systemd-boot.configurationLimit=5;
+    systemd-boot.configurationLimit = 5;
     efi = {
       canTouchEfiVariables = false;
-      efiSysMountPoint = "/boot/efi"; # ← use the same mount point here.
+      efiSysMountPoint = "/boot/efi"; 
     };
     timeout = 1;
   };
-  boot.plymouth.enable = false;
+  # boot.plymouth.enable = false;
   boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
-    virtualbox = super.virtualbox.override {
-      inherit (self) kernel;
-    };
+    virtualbox = super.virtualbox.override { inherit (self) kernel; };
   });
+  boot.extraModulePackages = with config.boot.kernelPackages; [
+    virtualbox
+    perf
+    acpi_call
+  ];
+  boot.kernelParams = [ "quite" ];
   nixpkgs.config.allowUnfree = true;
   networking.hostName = "wangzi-pc"; # Define your hostname.
   time.timeZone = "Asia/Shanghai";
@@ -53,23 +54,19 @@ in {
     firewall.enable = false;
     networkmanager = {
       enable = true;
-      
-      wifi = {
-        # backend = "iwd";
-      };
     };
-    wireguard={
-      enable = true;
-    };
-    proxy.default="http://127.0.0.1:8889";
+    wireguard = { enable = true; };
+    proxy.default = "http://127.0.0.1:8889";
   };
   i18n.defaultLocale = "zh_CN.UTF-8";
+  gtk = { iconCache.enable = true; };
   fonts = {
     fontconfig = {
       enable = true;
       defaultFonts.emoji = [ "Noto Color Emoji" ];
       defaultFonts.monospace = [ "Hack" "Sarasa Mono SC" ];
-      defaultFonts.sansSerif = [ "Inter" "Liberation Sans" "Soruce Han Sans SC" ];
+      defaultFonts.sansSerif =
+        [ "Inter" "Liberation Sans" "Soruce Han Sans SC" ];
       defaultFonts.serif = [ "Liberation Serif" "Source Han Serif SC" ];
     };
     fonts = with pkgs; [
@@ -99,7 +96,8 @@ in {
     fontDir.enable = true;
   };
   services = {
-    # tlp.enable = true;
+    power-profiles-daemon.enable = false;
+    tlp.enable = true;
     sshd.enable = true;
     flatpak.enable = true;
     xserver = {
@@ -112,198 +110,27 @@ in {
         # "nouveau"
       ];
       # deviceSection = ''
-        # Option "TearFree" "true"
+      # Option "TearFree" "true"
       # '';
       displayManager.gdm.enable = true;
       displayManager.gdm.wayland = false;
       # displayManager.lightdm.enable= true;
       desktopManager.gnome.enable = true;
       # desktopManager.plasma5.enable = true;
-      windowManager.xmonad.enable=true;
-      windowManager.i3.enable=true;
-      libinput.enable = true;
-      modules = [
-        pkgs.xorg.xf86videointel
-        pkgs.xorg.xf86inputlibinput
-      ];
-    };
-    fstrim.interval = "daily";
-    btrfs.autoScrub = {
-      enable = true;
+      windowManager.xmonad.enable = true;
+      windowManager.i3.enable = true;
+      libinput = {
+        enable = true;
+        mouse = { accelSpeed = "1.0"; };
+        touchpad = {
+          naturalScrolling = true;
+          horizontalScrolling = true;
+          accelSpeed = "1.0";
+        };
+      };
+      modules = [ pkgs.xorg.xf86videointel pkgs.xorg.xf86inputlibinput ];
     };
     # snapper.snapshotInterval = "daily";
-    snapper.configs = {
-      home = {
-        subvolume = "/home";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_config = {
-        subvolume = "/home/wangzi/.config";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_local = {
-        subvolume = "/home/wangzi/.local";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_cache = {
-        subvolume = "/home/wangzi/.cache";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_npm = {
-        subvolume = "/home/wangzi/.npm";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_m2 = {
-        subvolume = "/home/wangzi/.m2";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_gradle = {
-        subvolume = "/home/wangzi/.gradle";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_rustup = {
-        subvolume = "/home/wangzi/.rustup";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_download = {
-        subvolume = "/home/wangzi/下载";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_public = {
-        subvolume = "/home/wangzi/公共";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_picture = {
-        subvolume = "/home/wangzi/图片";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_video = {
-        subvolume = "/home/wangzi/视频";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_music = {
-        subvolume = "/home/wangzi/音乐";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_temp = {
-        subvolume = "/home/wangzi/Temp";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_vbox = {
-        subvolume = "/home/wangzi/VirtualBox VMs";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=0
-          TIMELINE_LIMIT_DAILY=3
-          TIMELINE_LIMIT_WEEKLY=1
-          TIMELINE_LIMIT_MONTHLY=0
-          TIMELINE_LIMIT_YEARLY=0
-        '';
-      };
-      home_document = {
-        subvolume = "/home/wangzi/文档";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=24
-          TIMELINE_LIMIT_DAILY=7
-          TIMELINE_LIMIT_WEEKLY=4
-          TIMELINE_LIMIT_MONTHLY=1
-          TIMELINE_LIMIT_YEARLY=1
-        '';
-      };
-      home_workspace = {
-        subvolume = "/home/wangzi/workspace";
-        extraConfig = ''
-          TIMELINE_LIMIT_HOURLY=24
-          TIMELINE_LIMIT_DAILY=7
-          TIMELINE_LIMIT_WEEKLY=4
-          TIMELINE_LIMIT_MONTHLY=1
-          TIMELINE_LIMIT_YEARLY=1
-        '';
-      };
-    };
     # NetworkManager-wait-online.enable = false;
   };
   systemd.services.NetworkManager-wait-online.enable = false;
@@ -329,7 +156,8 @@ in {
       Type = "simple";
       Restart = "always";
       RestartSec = "5s";
-      ExecStart = "${pkgs.unstable.n2n}/bin/edge -t 20000 -d n2n -a 192.168.0.3 -c n2n -A1 -l 139.9.235.87:49 -r -f";
+      ExecStart =
+        "${pkgs.unstable.n2n}/bin/edge -t 20000 -d n2n -a 192.168.0.3 -c n2n -A1 -l 139.9.235.87:49 -r -f";
     };
   };
   nixpkgs.overlays = (map (name: import (./overlays + "/${name}"))
@@ -349,22 +177,18 @@ in {
       RestartSec = "2s";
       wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
-      ExecStart = "${pkgs.k3s}/bin/k3s agent --node-taint mobile=true:NoSchedule --server https://139.9.235.87:6443 --token RvAN4PA/MRYqko6lTMGPnBGvx2kFNZ5yTTMnRy+IobwXbr2bSw8Ghe2RWqb9Jmtd ";
+      ExecStart =
+        "${pkgs.k3s}/bin/k3s agent --node-taint mobile=true:NoSchedule --server https://139.9.235.87:6443 --token RvAN4PA/MRYqko6lTMGPnBGvx2kFNZ5yTTMnRy+IobwXbr2bSw8Ghe2RWqb9Jmtd ";
     };
   };
   programs.dconf.enable = true;
   programs.zsh.enable = true;
-  programs.ssh.askPassword = "${pkgs.gnome.seahorse}/libexec/seahorse/ssh-askpass";
+  programs.ssh.askPassword =
+    "${pkgs.gnome.seahorse}/libexec/seahorse/ssh-askpass";
   environment.systemPackages = with pkgs; [
     nvidia-run
-    # edit-nixos
-    # edit-nix-home
     home-manager
-    # nixos-install-tools
-    # nixos-rebuild
-    # nixos-generators
     busybox
-    # xorg.xinit
     xorg.xhost
     glxinfo
     intel-gpu-tools
@@ -374,37 +198,41 @@ in {
     iftop
     appimage-run
     duperemove
+    config.boot.kernelPackages.perf
+    perf-tools
   ];
   i18n.inputMethod = {
-    enabled ="ibus";
-    ibus = {
-      engines=with pkgs.ibus-engines; [ libpinyin ];
-    };
+    enabled = "ibus";
+    ibus = { engines = with pkgs.ibus-engines; [ libpinyin ]; };
   };
   nix = {
     gc.automatic = true;
-    gc.dates = "daily";
+    gc.dates = "weekly";
     gc.options = "-d";
+    optimise.automatic = true;
     # binaryCaches = lib.mkForce [ ];
     package = pkgs.nixFlakes;
     extraOptions = lib.optionalString (config.nix.package == pkgs.nixFlakes)
       "experimental-features = nix-command flakes";
   };
   services.gnome.sushi.enable = true;
-  users.users.root = {
-    shell=pkgs.zsh;
-  };
-  users.groups.wangzi={
-    gid=1000;
-    name="wangzi";
+  users.users.root = { shell = pkgs.zsh; };
+  users.groups.wangzi = {
+    gid = 1000;
+    name = "wangzi";
   };
   users.users.wangzi = {
     isNormalUser = true;
-    uid=1000;
-    shell=pkgs.zsh;
-    group="wangzi";
+    uid = 1000;
+    shell = pkgs.zsh;
+    group = "wangzi";
     description = "王子陶";
-    extraGroups = [ "wheel" "networkmanager" "vboxusers" "docker" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+      "vboxusers"
+      "docker"
+    ]; # Enable ‘sudo’ for the user.
   };
 
   programs.gnupg.agent = {
@@ -413,19 +241,19 @@ in {
   };
   programs.gpaste.enable = true;
 
-  virtualisation={
-    virtualbox={
-      host={
-        enable=true;
-        enableHardening=true;
+  virtualisation = {
+    virtualbox = {
+      host = {
+        enable = true;
+        enableHardening = true;
         enableExtensionPack = true;
       };
     };
-    docker={
-      enable=true;
-      enableNvidia=true;
-      enableOnBoot=true;
-      storageDriver="btrfs";
+    docker = {
+      enable = true;
+      enableNvidia = true;
+      enableOnBoot = true;
+      storageDriver = "btrfs";
     };
   };
   environment.etc."docker/daemon.json".text = ''
@@ -438,7 +266,6 @@ in {
     }
   '';
 
-
-  system.stateVersion = "21.11"; # Did you read the comment?
+  # system.stateVersion = "21.11"; # Did you read the comment?
 
 }

@@ -1,14 +1,10 @@
 # This file is generated from "README.org"
 { pkgs, ... }:
 let
-  nur = import (builtins.fetchTarball
-    "https://github.com/nix-community/NUR/archive/master.tar.gz") {
-      inherit pkgs;
-    };
 in {
   services.picom = {
-    enable = false;
-    package = nur.repos.reedrw.picom-next-ibhagwan;
+    enable = true;
+    package = pkgs.nur.repos.reedrw.picom-next-ibhagwan;
     backend = "glx";
     experimentalBackends = true;
     opacityRule = [
@@ -37,10 +33,12 @@ in {
           "_NET_WM_STATE@:32a *= '_NET_WM_STATE_FULLSCREEN'",
           "_NET_WM_WINDOW_TYPE@:32a *= '_NET_WM_WINDOW_TYPE_DESKTOP'",
           "class_g = 'keynav'",
+          "class_g = 'rofi'",
       ];
       round-borders = 1;
       round-borders-exclude = [
           "class_g = 'keynav'",
+          "class_g = 'rofi'",
       ];
       fading = true;
       fade-out-step = 0.03;

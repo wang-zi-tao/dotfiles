@@ -1,5 +1,11 @@
 {pks,...}:
 {
+  imports = [
+    ./picom.nix
+    ./rofi.nix
+    ./polybar.nix
+    ./dunst.nix
+  ];
   xsession = {
     windowManager.xmonad = {
       enable = true;

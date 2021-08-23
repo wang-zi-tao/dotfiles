@@ -51,7 +51,8 @@
     "prisma",
     "rs",
     "h",
-    "cpp"
+    "cpp",
+    "rs"
   ],
   "diagnostic.errorSign": "",
   "diagnostic.warningSign": "",

@@ -1,15 +1,4 @@
-"source ~/.nix-profile/SpaceVim/init.vim
-
-"===defx==========================================================================
-" init.vim --- Entry file for neovim
-" Copyright (c) 2016-2020 Wang Shidong & Contributors
-" Author: Wang Shidong < wsdjeg@outlook.com >
-" URL: https://spacevim.org
-" License: GPLv3
-"=============================================================================
-
-
-" set timeoutlen=200
+set timeoutlen=200
 
 map <leader>h <C-w>h
 map <leader>j <C-w>j
@@ -22,9 +11,9 @@ map <leader>qq :wqa!<CR>
 map <leader>n :n<CR>
 map <leader>N :N<CR>
 map <leader>w :w<CR>
-map [SPC]lf :Cocfix<CR>
+map <leader>ft :Tags<CR>
 call SpaceVim#custom#SPC('nnoremap', ['e', 'f'], 'CocFix & w', 'fix', 1)
-hi Pmenu ctermfg=15 ctermbg=16  guibg=#444444
+" hi Pmenu ctermfg=15 ctermbg=16  guibg=#444444
 " hi PmenuSel ctermfg=7 ctermbg=4 guibg=#daf0f4 guifg=#ffffff
 
 
@@ -48,20 +37,16 @@ set autowriteall
 let g:auto_save = 0
 let g:auto_save_events = ["InsertLeave", "TextChanged"]
 " install third-party plugins
-call dein#add('ryanoasis/vim-devicons')
-call dein#add('tiagofumo/vim-nerdtree-syntax-highlight')
-call dein#add('scrooloose/nerdtree-project-plugin')
-call dein#add('PhilRunninger/nerdtree-visual-selection')
+" call dein#add('scrooloose/nerdtree-project-plugin')
+" call dein#add('PhilRunninger/nerdtree-visual-selection')
 
-call dein#add('luochen1990/rainbow')
-call dein#add('junegunn/fzf.vim')
 let g:rainbow_active = 1
 
 " call dein#add('h-youhei/vim-ibus')
 " let g:ibus#layout = 'xkb:us::eng'
 " let g:ibus#engine = 'libpinyin'
 
-call dein#add('glacambre/firenvim', { 'hook_post_update': { _ -> firenvim#install(0) } })
+" call dein#add('glacambre/firenvim', { 'hook_post_update': { _ -> firenvim#install(0) } })
 
 " coc
 " inoremap <silent><expr> <TAB>
@@ -75,6 +60,7 @@ nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 call SpaceVim#custom#SPC('nnoremap', ['f', 't'], 'CocCommand explorer', 'explorer', 1)
+call SpaceVim#custom#SPC('nnoremap', ['f', 'T'], 'Tags', 'fzf tags', 1)
 
 nnoremap <silent> <space>y  :<C-u>CocList -A --normal yank<cr>
 
@@ -97,15 +83,16 @@ set foldmethod=syntax
 " autocmd BufLeave  :wa<CR>
 function! s:on_start() abort
   if argc() == 0
-    Defx
     " if filereadable(".vim/session.vim")
       " source .vim/session.vim
     " endif
     " if filereadable(".vim/viminfo.viminfo")
       " rviminfo .vim/viminfo.viminfo
     " endif
-    execute "CocCommand explorer"
   endif
+  " close Defx
+  Defx -close
+  execute "CocCommand explorer"
 endfunction
 autocmd VimEnter * call s:on_start()
 function! s:on_add_buffer() abort
@@ -147,3 +134,6 @@ if (empty($TMUX))
 endif
 
 let t:is_transparent = 1
+" coc-explorer auto refresh
+autocmd User CocDiagnosticChange,CocGitStatusChange
+    \ call CocActionAsync('runCommand', 'explorer.doAction', 'closest', ['refresh'])

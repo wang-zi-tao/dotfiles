@@ -3,6 +3,7 @@
 let
   python3-env = pkgs.python3.withPackages (ps:
     with ps; [
+      pynvim
       numpy
       # pytorchWithCuda
       # tensorflowWithCuda
@@ -15,6 +16,13 @@ let
       jedi
       pip
       pylint-django
+    ]);
+  python2-env = pkgs.python2.withPackages (ps:
+    with ps;
+    [
+      # ipython
+      # pylint
+      pip
     ]);
   haskell-env = pkgs.haskellPackages.ghcWithHoogle (hp:
     with hp; [
@@ -34,45 +42,48 @@ let
     # ./dconf/home.nix
     ./alacritty/home.nix
     ./xmonad/home.nix
-    ./xmonad/picom.nix
   ];
 in {
   programs.home-manager.enable = true;
 
   neovim.IDE = true;
-  # home.stateVersion = "21.11";
-  # nixpkgs.config.allowUnfree = true;
   programs.command-not-found.enable = true;
   programs.firefox = { enableGnomeExtensions = true; };
+  services.unclutter.enable = true;
   xresources.properties = { "Xft.dpi" = 96; };
   qt = {
     enable = true;
     platformTheme = "gtk";
   };
-  home.file.".envrc".text = ''
-    use_nix
-  '';
   home.file.".pip/pip.conf".text = ''
     [global]
     index-url = https://pypi.mirrors.ustc.edu.cn/simple
   '';
-  xsession.profileExtra = ''
-    export XMODIFIERS=@im=ibus
-    export GTK_IM_MODULE="ibus"
-    export JAVA_8_HOME=${pkgs.jdk8}
-  '';
+  home.sessionVariables = {
+    XMODIFIERS = "@im=ibus";
+    GTK_IM_MODULE = "ibus";
+    JAVA_8_HOME = "${pkgs.jdk8}";
+    EDITOR = "${pkgs.neovim}/bin/nvim";
+    http_proxy = "http://127.0.0.1:8889";
+    https_proxy = "http://127.0.0.1:8889";
+    HTTP_PROXY = "http://127.0.0.1:8889";
+    HTTPS_PROXY = "http://127.0.0.1:8889";
+    ALL_PROXY = "socks5://127.0.0.1:1089";
+    NO_PROXY =
+      "localhost,127.0.0.1,10.96.0.0/12,192.168.99.0/24,192.168.39.0/24";
+    CURL_NIX_FLAGS = "-x $http_proxy";
+    RUSTUP_DIST_SERVER = "http://mirrors.ustc.edu.cn/rust-static";
+    RUSTUP_UPDATE_ROOT = "http://mirrors.ustc.edu.cn/rust-static/rustup";
+    RUST_BACKTRACE = "1";
+    GOPATH = "~/工作空间/Go";
+    NIX_AUTO_RUN = "1";
+    PKG_CONFIG_PATH = "/usr/local/lib64/pkgconfig/";
+    PATH = "$HOME/.local/bin:$HOME/.cargo/bin:$PATH";
+  };
   inherit imports;
-  # nixpkgs.overlays = (map (name: import (./overlays + "/${name}"))
-    # (builtins.attrNames (builtins.readDir ./overlays))) ++ [
-      # (final: prev: rec {
-        # touchegg = prev.callPackage ./packages/touchegg { };
-      # })
-    # ];
   home.packages = with pkgs; [
 
     haskell-env
-    # picom
-    # nur.repos.reedrw.picom-next-ibhagwan
     feh
     pfetch
     neofetch
@@ -81,8 +92,6 @@ in {
     dconf2nix
     xclip
     xdotool
-    rofi
-    polybar
     xorg.xbacklight
 
     direnv
@@ -97,7 +106,6 @@ in {
     sudo
     curl
     wget
-    autojump
     zip
     unzip
     rnix-lsp
@@ -108,6 +116,8 @@ in {
     kubernetes-helm
     pandoc
     graphviz
+    ffmpeg
+    meld
 
     orchis
     qv2ray
@@ -137,10 +147,12 @@ in {
     octant
     octant-desktop
     gitkraken
-    jetbrains.clion
-    jetbrains.webstorm
-    jetbrains.idea-community
-    jetbrains.pycharm-community
+    # wine
+    # winetricks
+    # jetbrains.clion
+    # jetbrains.webstorm
+    # jetbrains.idea-community
+    # jetbrains.pycharm-community
 
     tela-icon-theme
 
@@ -174,12 +186,12 @@ in {
     gnumake
     ninja
     cmake
-    clang
+    clang_12
     clang-tools
     libcxx
     clang-analyzer
     ccls
-    # gcc
+    # gcc-unwrapped
     llvm
     rustup
     rust-analyzer
@@ -194,8 +206,9 @@ in {
     # stylish-haskell
     go
     nodejs
+    nodePackages.typescript
     python3-env
-    # python27Full
+    python2-env
     lua
     rnix-lsp
     perl

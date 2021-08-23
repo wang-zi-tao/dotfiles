@@ -7,6 +7,9 @@ import           XMonad.Actions.Navigation2D        (Direction2D (L, R),
                                                      windowGo,
                                                      withNavigation2DConfig)
 
+import qualified Codec.Binary.UTF8.String           as UTF8
+import qualified DBus                               as D
+import qualified DBus.Client                        as D
 import           XMonad.Actions.GridSelect
 import           XMonad.Actions.GroupNavigation
 import           XMonad.Actions.ShowText
@@ -15,6 +18,7 @@ import           XMonad.Hooks.DynamicLog
 import           XMonad.Hooks.EwmhDesktops          (ewmh, fullscreenEventHook)
 import           XMonad.Hooks.ManageDocks           (avoidStruts, docks)
 import           XMonad.Hooks.ManageHelpers         (doFullFloat, isFullscreen)
+import           XMonad.Layout.AutoMaster
 import           XMonad.Layout.BinarySpacePartition (Rotate (Rotate),
                                                      Swap (Swap), emptyBSP)
 import           XMonad.Layout.Fullscreen           (fullscreenFull,
@@ -27,7 +31,9 @@ import           XMonad.Layout.ResizableTile        (ResizableTall (..))
 import           XMonad.Layout.Spacing              (Border (Border),
                                                      spacingRaw)
 import           XMonad.Layout.Spiral               (spiral)
+import           XMonad.Layout.StateFull
 import           XMonad.Layout.Tabbed               (simpleTabbed)
+import           XMonad.Layout.ThreeColumns
 import           XMonad.Layout.TwoPane              (TwoPane (..))
 import           XMonad.Prompt
 import           XMonad.Prompt.ConfirmPrompt        (confirmPrompt)
@@ -41,12 +47,14 @@ import           XMonad.Util.EZConfig               (additionalKeysP)
 import           XMonad.Util.NamedScratchpad
 import           XMonad.Util.Run                    (hPutStrLn, spawnPipe)
 import           XMonad.Util.SpawnOnce              (spawnOnce)
-myLayout = avoidStruts $ smartBorders
+-- import XMonad.Layout.WindowNavigation
+myLayout =  avoidStruts $ smartBorders
   (
   spiralgaps
+  ||| threeCol
   ||| bspgaps
   ||| tiledgaps
-  ||| Full
+  ||| StateFull
   -- ||| TwoPane 15/100 55/100
   -- ||| Mirror (Tall 1 10/100 60/100)
   ||| Grid
@@ -54,6 +62,7 @@ myLayout = avoidStruts $ smartBorders
   ||| Mirror tiledgaps
   )
  where
+  threeCol   = myGaps $ ThreeCol 1 (3/100) (1/2)
   tiledgaps  = myGaps $ Tall nmaster delta ratio
   -- window number in master pane
   nmaster    = 1
@@ -147,7 +156,7 @@ myKeys =
   , ("M-p", spawn "gpaste-client ui")
   , ("M-e", spawn "~/.emacs_anywhere/bin/run")
 
-  -- , ("M-C-t", namedScratchpadAction myScratchPads "terminal")
+  , ("M-x", namedScratchpadAction myScratchPads "terminal")
   -- , ("M-C-s", namedScratchpadAction myScratchPads "mixer")
   -- , ("M-C-h", namedScratchpadAction myScratchPads "bottom")
   -- , ("M-C-n", namedScratchpadAction myScratchPads "vifm")
@@ -155,8 +164,8 @@ myKeys =
   -- , ("M-d", shellPrompt myXPConfig)
   ,("M-d", spawn "rofi -combi-modi window,run,drun -show combi -modi combi")
   , ("C-M-d", spawn "rofi -show run")
-  , ("M-<Tab>", nextMatch History (return True))
-  , ("M-C-m", manPrompt myXPConfig)
+  , ("M-<Esc>", nextMatch Forward isOnAnyVisibleWS)
+
 
   , ("<XF86MonBrightnessUp>", spawn "xbacklight -inc 5")
   , ("<XF86MonBrightnessDown>", spawn "xbacklight -dec 5")
@@ -285,9 +294,9 @@ myScratchPads =
   findTerm   = title =? "terminalScratchpad"
   manageTerm = customFloating $ W.RationalRect l t w h
    where
-    h = 0.3
-    w = 1
-    t = 0
+    h = 0.6
+    w = 0.9
+    t = 0.05
     l = (1 - w) / 2
 
   spawnMixer = myTerminal ++ " --title=mixerScratchpad" ++ " -e ncpamixer"
@@ -318,6 +327,7 @@ myStartupHook = do
   spawnOnce "qv2ray"
   spawnOnce "sleep 1 && ibus-daemon --xim"
   spawnOnce "nm-applet"
+  spawnOnce "polybar main"
   spawnOnce "gnome-power-manager"
   spawnOnce "gnome-volume-control-applet"
   spawnOnce "kdeconnect-indicator"
@@ -339,15 +349,53 @@ myLogHook h = dynamicLogWithPP xmobarPP
   , ppSep             = " | "
   , ppTitle           = mempty
   }
+myPolybarLogHook dbus = dynamicLogWithPP (polybarHook dbus)
 myEventHook = handleEventHook def <+> fullscreenEventHook
 getActiveLayoutDescription :: X String
 getActiveLayoutDescription = do
   workspaces <- gets windowset
   return $ description . W.layout . W.workspace . W.current $ workspaces
+mkDbusClient :: IO D.Client
+mkDbusClient = do
+  dbus <- D.connectSession
+  D.requestName dbus (D.busName_ "org.xmonad.log") opts
+  return dbus
+ where
+  opts = [D.nameAllowReplacement, D.nameReplaceExisting, D.nameDoNotQueue]
+
+-- Emit a DBus signal on log updates
+dbusOutput :: D.Client -> String -> IO ()
+dbusOutput dbus str =
+  let opath  = D.objectPath_ "/org/xmonad/Log"
+      iname  = D.interfaceName_ "org.xmonad.Log"
+      mname  = D.memberName_ "Update"
+      signal = (D.signal opath iname mname)
+      body   = [D.toVariant $ UTF8.decodeString str]
+  in  D.emit dbus $ signal { D.signalBody = body }
+
+polybarHook :: D.Client -> PP
+polybarHook dbus =
+  let wrapper c s | s /= "NSP" = wrap ("%{F" <> c <> "} ") " %{F-}" s
+                  | otherwise  = mempty
+      blue   = "#2E9AFE"
+      gray   = "#7F7F7F"
+      orange = "#ea4300"
+      purple = "#9058c7"
+      red    = "#722222"
+  in  def { ppOutput          = dbusOutput dbus
+          , ppCurrent         = wrapper blue
+          , ppVisible         = wrapper gray
+          , ppUrgent          = wrapper orange
+          , ppHidden          = wrapper gray
+          , ppHiddenNoWindows = wrapper red
+          , ppTitle           = shorten 100 . wrapper purple
+          }
 
 main :: IO ()
-main = do
-  h <- spawnPipe "xmobar ~/.xmonad/xmobar.hs"
+main = mkDbusClient >>= main'
+main' :: D.Client -> IO ()
+main' dbus = do
+  -- h <- spawnPipe "xmobar --recompile ~/.xmonad/xmobar.hs"
   xmonad $ docks $ withNavigation2DConfig def $ ewmh
     def { handleEventHook = handleEventHook def <+> fullscreenEventHook }
       {
@@ -367,6 +415,6 @@ main = do
       , layoutHook         = myLayout
       , manageHook         = myManageHook
       , handleEventHook    = myEventHook
-      , logHook            = myLogHook h
+      , logHook            = (myPolybarLogHook dbus)
       , startupHook        = myStartupHook
       } `additionalKeysP` myKeys

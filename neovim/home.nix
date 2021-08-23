@@ -15,7 +15,7 @@ in {
       vimAlias = true;
       withNodeJs = true;
       withPython3 = true;
-      plugins = with pkgs.vimPlugins;
+      plugins = with pkgs.unstable.vimPlugins;
         ([
           coc-spell-checker
           coc-highlight
@@ -24,9 +24,10 @@ in {
           coc-yaml
           coc-json
           coc-explorer
-          onedark-vim
+          # onedark-vim
+          fzf-vim
+          direnv-vim
         ] ++ (if cfg.IDE then [
-          #pkgs.vimPlugins.spacevim
           coc-tabnine
           coc-go
           coc-nvim
@@ -39,15 +40,49 @@ in {
           coc-snippets
           coc-rust-analyzer
           vim-cpp-enhanced-highlight
+          vim-devicons
+          vim-nerdtree-syntax-highlight
+          rainbow
+          vimspector
         ] else
           [ ]));
       extraConfig = ''
-        execute 'source' '${pkgs.spacevim}/SpaceVim/init.vim'
+        execute 'source' '${pkgs.unstable.spacevim}/SpaceVim/init.vim'
       '' + builtins.readFile ./init.vim;
-
     };
     home.file.".SpaceVim.d/init.toml".text =
-      builtins.readFile ./Spacevim.d.init.toml;
+      (builtins.readFile ./Spacevim.d.init.toml) + (if cfg.IDE then ''
+        [[layers]]
+          name = "lang#toml"
+        [[layers]]
+          name = "lang#markdown"
+        [[layers]]
+          name = "test"
+        [[layers]]
+          name = "lang#java"
+        [[layers]]
+          name = "lang#python"
+        [[layers]]
+           name = "debug"
+        [[layers]]
+          name = "lang#go"
+        [[layers]]
+          name = "lang#lua"
+        [[layers]]
+          name = "lang#javascript"
+        [[layers]]
+          name = "lang#c"
+          enable_clang_syntax_highlight = true
+        [[layers]]
+          name = "lang#rust"
+        [[layers]]
+          name = "lang#typescript"
+        [[layers]]
+          name = "lang#nix"
+        [[layers]]
+          name = "lang#haskell"
+      '' else
+        "");
     home.file."coc-settings" = {
       source = ./coc-settings.json;
       target = ".config/nvim/coc-settings.json";

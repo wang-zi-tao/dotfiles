@@ -3,19 +3,24 @@
     enable = true;
     enableCompletion = true;
     #enableAutosuggestions = false;
+    enableVteIntegration = true;
     # enableSyntaxHighlighting = true;
     oh-my-zsh = {
       enable = true;
-      theme = "agnoster";
+      # theme = "agnoster";
       plugins = [
         "git"
         "extract"
         "colored-man-pages"
-        "command-not-found"
+        "sudo"
+        # "command-not-found"
         "python"
         "vi-mode"
-        "autojump"
+        # "autojump"
         "colorize"
+        "tmux"
+        "gitignore"
+        "safe-paste"
       ];
     };
     plugins = [
@@ -46,26 +51,26 @@
     shellAliases = {
       v = "${pkgs.neovim}/bin/nvim";
       r = "${pkgs.ranger}/bin/ranger";
-      # nvidia-run =
-      # "__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia";
-      # nvidia = "sudo mhwd-gpu --setxorg /etc/X11/xorg.conf.nvidia";
-      # intel = "sudo mhwd-gpu --setxorg /etc/X11/xorg.conf.intel";
-      # intel-nvidia-prime =
-      # "sudo mhwd-gpu --setxorg /etc/X11/xorg.conf.intel-nvidia-prime";
       grep = "${pkgs.busybox}/bin/grep --color=auto";
       screenfetch =
         "${pkgs.screenfetch}/bin/screenfetch|${pkgs.lolcat}/bin/lolcat";
-      # vi = "nvim";
-      # vim = "nvim";
       xclip = "${pkgs.xclip}/bin/xclip -selection c";
       ls = "${pkgs.lsd}/bin/lsd --group-dirs first";
       top = "${pkgs.htop}/bin/htop";
       htop = "${pkgs.htop}/bin/htop";
       rm = "${pkgs.rmtrash}/bin/rmtrash";
       rm-without-trash = "${pkgs.busybox}/bin/rm";
+      s = "sudo su";
+      gita = "${pkgs.git}/bin/git add .";
+      gitc = "${pkgs.git}/bin/git commit";
+      tmuxt = "${pkgs.tmux}/bin/tmux split -p 10";
     };
+    initExtraFirst = "source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
     initExtra = builtins.readFile ./zshrc.zsh + ''
-      export EDITOR=${pkgs.neovim}/bin/nvim
+      eval "$(${pkgs.direnv}/bin/direnv hook zsh)"
+      export FZF_DEFAULT_COMMAND='${pkgs.ag}/bin/ag -p ~/.gitignore -g ""'
     '';
   };
+  home.file.".p10k.zsh".source = ./p10k.zsh;
+  programs.autojump.enable = true;
 }
