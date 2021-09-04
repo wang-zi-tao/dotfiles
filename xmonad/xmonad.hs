@@ -1,53 +1,59 @@
 -- This file is generated from "README.org"
-import           Control.Arrow                      (first)
-import qualified Data.Map                           as M
-import           System.Exit                        (exitSuccess)
-import           XMonad                             hiding ((|||))
-import           XMonad.Actions.Navigation2D        (Direction2D (L, R),
-                                                     windowGo,
-                                                     withNavigation2DConfig)
+import           Control.Arrow                        (first)
+import qualified Data.Map                             as M
+import           System.Exit                          (exitSuccess)
+import           XMonad                               hiding ((|||))
+import           XMonad.Actions.Navigation2D          (Direction2D (L, R),
+                                                       windowGo,
+                                                       withNavigation2DConfig)
 
-import qualified Codec.Binary.UTF8.String           as UTF8
-import qualified DBus                               as D
-import qualified DBus.Client                        as D
+import qualified Codec.Binary.UTF8.String             as UTF8
+import qualified DBus                                 as D
+import qualified DBus.Client                          as D
+import           XMonad.Actions.CycleWS
+import qualified XMonad.Actions.DynamicWorkspaceOrder as DO
 import           XMonad.Actions.GridSelect
 import           XMonad.Actions.GroupNavigation
 import           XMonad.Actions.ShowText
 import           XMonad.Config.Kde
 import           XMonad.Hooks.DynamicLog
-import           XMonad.Hooks.EwmhDesktops          (ewmh, fullscreenEventHook)
-import           XMonad.Hooks.ManageDocks           (avoidStruts, docks)
-import           XMonad.Hooks.ManageHelpers         (doFullFloat, isFullscreen)
+import           XMonad.Hooks.EwmhDesktops
+import           XMonad.Hooks.EwmhDesktops            (ewmh,
+                                                       fullscreenEventHook)
+import           XMonad.Hooks.ManageDocks             (avoidStruts, docks)
+import           XMonad.Hooks.ManageHelpers           (doFullFloat,
+                                                       isFullscreen)
 import           XMonad.Layout.AutoMaster
-import           XMonad.Layout.BinarySpacePartition (Rotate (Rotate),
-                                                     Swap (Swap), emptyBSP)
-import           XMonad.Layout.Fullscreen           (fullscreenFull,
-                                                     fullscreenSupport)
-import           XMonad.Layout.Grid                 (Grid (..))
-import           XMonad.Layout.LayoutCombinators    (JumpToLayout (JumpToLayout),
-                                                     (|||))
-import           XMonad.Layout.NoBorders            (noBorders, smartBorders)
-import           XMonad.Layout.ResizableTile        (ResizableTall (..))
-import           XMonad.Layout.Spacing              (Border (Border),
-                                                     spacingRaw)
-import           XMonad.Layout.Spiral               (spiral)
+import           XMonad.Layout.BinarySpacePartition   (Rotate (Rotate),
+                                                       Swap (Swap), emptyBSP)
+import           XMonad.Layout.Fullscreen             (fullscreenFull,
+                                                       fullscreenSupport)
+import           XMonad.Layout.Grid                   (Grid (..))
+import           XMonad.Layout.LayoutCombinators      (JumpToLayout (JumpToLayout),
+                                                       (|||))
+import           XMonad.Layout.NoBorders              (noBorders, smartBorders)
+import           XMonad.Layout.ResizableTile          (ResizableTall (..))
+import           XMonad.Layout.Spacing                (Border (Border),
+                                                       spacingRaw)
+import           XMonad.Layout.Spiral                 (spiral)
 import           XMonad.Layout.StateFull
-import           XMonad.Layout.Tabbed               (simpleTabbed)
+import           XMonad.Layout.Tabbed                 (simpleTabbed)
 import           XMonad.Layout.ThreeColumns
-import           XMonad.Layout.TwoPane              (TwoPane (..))
+import           XMonad.Layout.TwoPane                (TwoPane (..))
 import           XMonad.Prompt
-import           XMonad.Prompt.ConfirmPrompt        (confirmPrompt)
-import           XMonad.Prompt.FuzzyMatch           (fuzzyMatch)
-import           XMonad.Prompt.Man                  (manPrompt)
-import           XMonad.Prompt.Shell                (shellPrompt)
-import           XMonad.Prompt.Unicode              (mkUnicodePrompt)
-import qualified XMonad.StackSet                    as W
-import           XMonad.Util.Cursor                 (setDefaultCursor)
-import           XMonad.Util.EZConfig               (additionalKeysP)
+import           XMonad.Prompt.ConfirmPrompt          (confirmPrompt)
+import           XMonad.Prompt.FuzzyMatch             (fuzzyMatch)
+import           XMonad.Prompt.Man                    (manPrompt)
+import           XMonad.Prompt.Shell                  (shellPrompt)
+import           XMonad.Prompt.Unicode                (mkUnicodePrompt)
+import qualified XMonad.StackSet                      as W
+import           XMonad.Util.Cursor                   (setDefaultCursor)
+import           XMonad.Util.EZConfig                 (additionalKeysP)
 import           XMonad.Util.NamedScratchpad
-import           XMonad.Util.Run                    (hPutStrLn, spawnPipe)
-import           XMonad.Util.SpawnOnce              (spawnOnce)
+import           XMonad.Util.Run                      (hPutStrLn, spawnPipe)
+import           XMonad.Util.SpawnOnce                (spawnOnce)
 -- import XMonad.Layout.WindowNavigation
+-- import XMonad.Actions.GroupNavigation
 myLayout =  avoidStruts $ smartBorders
   (
   spiralgaps
@@ -57,7 +63,7 @@ myLayout =  avoidStruts $ smartBorders
   ||| StateFull
   -- ||| TwoPane 15/100 55/100
   -- ||| Mirror (Tall 1 10/100 60/100)
-  ||| Grid
+  ||| myThinGaps Grid
   ||| simpleTabbed
   ||| Mirror tiledgaps
   )
@@ -83,25 +89,26 @@ myEmojiFont :: String
 myEmojiFont = "xft:Apple Color Emoji:size=11"
 myWorkspaces :: [String]
 myWorkspaces =
-  [ "1:\xe7c5"
-  , "2:\xf269"
-  , "3:\xf489"
-  , "4:\xf795"
-  , "5:\xf126"
-  , "6:\xf121"
-  , "7:\xf313"
-  , "8:\xfcb3"
-  , "9:\xf872"
+  [ "1:\xf269 "
+  , "2:\xf120 "
+  , "3:\xe7a8 "
+  , "4:\xf48a "
+  , "5:\xf126 "
+  , "6:\xf121 "
+  , "7:\xf313 "
+  , "8:\xf308 "
+  , "9:\xf872 "
   ]
 myBorderWidth :: Dimension
-myBorderWidth = 1
+myBorderWidth = 2
 myPromptHeight :: Dimension
 myPromptHeight = 30
 myNormalBorderColor :: String
-myNormalBorderColor = "#2b2a3e"
+myNormalBorderColor = "#00A1FF"
 myFocusedBorderColor :: String
-myFocusedBorderColor = "#c792ea"
+myFocusedBorderColor = "#00E3FF"
 myGaps = spacingRaw False (Border 4 4 4 4) True (Border 4 4 4 4) True
+myThinGaps = spacingRaw False (Border 2 2 2 2) True (Border 2 2 2 2) True
 myNavigation :: TwoD a (Maybe a)
 myNavigation = makeXEventhandler $ shadowWithKeymap navKeyMap navDefaultHandler
  where navKeyMap = M.fromList [
@@ -142,16 +149,16 @@ myWinColorizer = colorRangeFromClassName
 myKeys :: [(String, X ())]
 myKeys =
   [
-    ("M-t", spawn "firefox" )
-  , ("M-<Return>", spawn myTerminal)
+    ("M-<Return>", spawn myTerminal)
   , ("M-S-c", kill) -- Close focused application
   , ("M-o", spawn "light-locker-command -l") -- lock screen
   , ("M-S-q", confirmPrompt myXPConfig "exit" $ io exitSuccess) -- prompt to kill xmonad
   , ("M-q", spawn "xmonad --recompile; xmonad --restart") -- Recompile and restart xmonad
 
   , ("M-v", spawn $ myTerminal ++ " -e nvim")
-  , ("M-z", spawn "emacsclient -c -a emacs ~/")
-  , ("M-w", spawn "emacsclient -c -a emacs")
+  , ("M-z", spawn $ myTerminal ++ " -e zsh")
+  , ("M-r", spawn $ myTerminal ++ " -e ranger")
+  -- , ("M-w", spawn "emacsclient -c -a emacs")
   , ("M-b", spawn "firefox")
   , ("M-p", spawn "gpaste-client ui")
   , ("M-e", spawn "~/.emacs_anywhere/bin/run")
@@ -164,7 +171,9 @@ myKeys =
   -- , ("M-d", shellPrompt myXPConfig)
   ,("M-d", spawn "rofi -combi-modi window,run,drun -show combi -modi combi")
   , ("C-M-d", spawn "rofi -show run")
+  , ("C-M-l", spawn "i3lock")
   , ("M-<Esc>", nextMatch Forward isOnAnyVisibleWS)
+  , ("M-<Tab>", nextMatch History (return True))
 
 
   , ("<XF86MonBrightnessUp>", spawn "xbacklight -inc 5")
@@ -184,11 +193,15 @@ myKeys =
 
   , ("M-S-t", withFocused $ windows . W.sink) -- unfloat window
 
-  , ("M-r", refresh)
+  -- , ("M-r", refresh)
 
   -- focus horizontally like i3wm
   , ("M-h", windowGo L False)
   , ("M-l", windowGo R False)
+  , ("M-<R>", moveTo Next NonEmptyWS)
+  , ("M-<L>", moveTo Prev NonEmptyWS)
+  , ("M-S-<R>", shiftToNext >> nextWS)
+  , ("M-S-<L>", shiftToPrev >> prevWS)
 
   , ("M-j", windows W.focusDown)
   , ("M-k", windows W.focusUp)
@@ -269,7 +282,9 @@ myMouseBindings XConfig { XMonad.modMask = modm } = M.fromList
     )
 
     -- mod-button2, Raise the window to the top of the stack
-  , ((modm, button2), \w -> focus w >> windows W.shiftMaster)
+  , ((modm, button2)
+    , \w -> focus w >> kill
+    )
 
     -- mod-button3, Set the window to floating mode and resize by dragging
   , ( (modm, button3)
@@ -323,14 +338,17 @@ myManageHook =
     <+> namedScratchpadManageHook myScratchPads
 myStartupHook = do
   spawnOnce "feh --bg-fill ~/图片/大鱼海棠16.png"
-  spawnOnce "picom"
+  spawn "killall picom; picom --dbus --experimental-backend"
   spawnOnce "qv2ray"
   spawnOnce "sleep 1 && ibus-daemon --xim"
   spawnOnce "nm-applet"
-  spawnOnce "polybar main"
+  -- spawnOnce "polybar main"
+  spawn "killall polybar; polybar left; polybar right;"
   spawnOnce "gnome-power-manager"
   spawnOnce "gnome-volume-control-applet"
   spawnOnce "kdeconnect-indicator"
+  spawnOnce "amixer set Master 0"
+  spawn "gpaste-client start"
   -- setDefaultCursor xC_left_ptr
   -- spawn Japanese IME
   -- spawnOnce "fcitx -d &"
@@ -349,7 +367,7 @@ myLogHook h = dynamicLogWithPP xmobarPP
   , ppSep             = " | "
   , ppTitle           = mempty
   }
-myPolybarLogHook dbus = dynamicLogWithPP (polybarHook dbus)
+myPolybarLogHook dbus = dynamicLogWithPP (polybarHook dbus) <+> historyHook
 myEventHook = handleEventHook def <+> fullscreenEventHook
 getActiveLayoutDescription :: X String
 getActiveLayoutDescription = do
@@ -381,14 +399,14 @@ polybarHook dbus =
       gray   = "#7F7F7F"
       orange = "#ea4300"
       purple = "#9058c7"
-      red    = "#722222"
+      red    = "#ff0000"
   in  def { ppOutput          = dbusOutput dbus
           , ppCurrent         = wrapper blue
-          , ppVisible         = wrapper gray
+          , ppVisible         = wrapper "#ffffff"
           , ppUrgent          = wrapper orange
-          , ppHidden          = wrapper gray
-          , ppHiddenNoWindows = wrapper red
-          , ppTitle           = shorten 100 . wrapper purple
+          , ppHidden          = wrapper "#eeeeee"
+          , ppHiddenNoWindows = wrapper "#cccccc"
+          , ppTitle           = mempty
           }
 
 main :: IO ()

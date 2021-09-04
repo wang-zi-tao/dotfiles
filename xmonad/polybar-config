@@ -18,7 +18,50 @@
 [global/wm]
 margin-bottom = 0
 margin-top = 0
+[bar/right]
+enable-ipc=true
+offset-x = 67.5%
+width = 32%
+offset-y = 8
+modules-right = cpu memory backlight battery volume network date
+module-margin = 1
+font-0 = "Liga SFMono Nerd Font:size=13;3"
+font-1 = "LiterationMono Nerd Font:size=12;3"
+font-2 = NotoColorEmoji:pixelsize=8;1:fontformat=truetype:scale=10:antialias=true;3
+font-3 = Weather Icons:style=Regular:size=10;3
+font-4 = Sarasa UI SC:size=12;2
+background = ${color.BACKGROUND}
+foreground = ${color.FOREGROUND}
+radius-top = 8.0
+radius-bottom = 8.0
+border-size = 0
+padding=3
+tray-offset-x = 5
+tray-position = left
+tray-maxsize = 20
+tray-detached = true
+tray-transparent = true
+tray-scale = 1.0
+tray-padding = 3
 
+[bar/left]
+enable-ipc=true
+offset-x = 0.5%
+width = 32%
+offset-y = 8
+font-0 = "Liga SFMono Nerd Font:size=13;3"
+font-1 = "LiterationMono Nerd Font:size=12;3"
+font-2 = NotoColorEmoji:pixelsize=8;1:fontformat=truetype:scale=10:antialias=true;3
+font-3 = Weather Icons:style=Regular:size=10;3
+font-4 = Sarasa UI SC:size=12;2
+background = ${color.BACKGROUND}
+foreground = ${color.FOREGROUND}
+radius-top = 8.0
+radius-bottom = 8.0
+module-margin = 2
+border-size = 0
+padding=3
+modules-left = xmonad
 
 [bar/main]
 monitor =
@@ -128,7 +171,7 @@ format-background = ${color.BACKGROUND}
 ;   %percentage-sum% - Cumulative load on all cores
 ;   %percentage-cores% - load percentage for each core
 ;   %percentage-core[1-9]% - load percentage for specific core
-label = " %percentage:2%%"
+label = " %percentage:2%"
 
 ; ramps for ramp-load
 ramp-load-0 = ▁
@@ -192,7 +235,7 @@ format-prefix-foreground = ${color.BLUE}
 ;   %gb_swap_free%
 ;   %gb_swap_used%
 
-label = " %percentage_used%%"
+label = " %percentage_used%"
 
 ramp-used-0 = ▁
 ramp-used-1 = ▂
@@ -223,14 +266,14 @@ ramp-free-7 = █
 ;;; }}}
 ;; _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 
-[module/title]
-type = internal/xwindow
-format-foreground = ${color.WHITE}
-format-background = ${color.BACKGROUND}
-format-padding = 2
-
-label-maxlen = 30
-label-empty =
+; [module/title]
+; type = internal/xwindow
+; format-foreground = ${color.WHITE}
+; format-background = ${color.BACKGROUND}
+; format-padding = 2
+;
+; label-maxlen = 30
+; label-empty =
 
 [module/volume]
 type = internal/pulseaudio
@@ -254,8 +297,8 @@ format-muted-prefix = 婢
 format-muted-prefix-font = 2
 format-muted-prefix-foreground = ${color.RED}
 
-label-volume = %percentage%%
-label-muted = " Muted"
+label-volume = %percentage%
+label-muted = "🔇 "
 label-muted-foreground = #757575
 
 ramp-volume-0 = 奄
@@ -273,7 +316,6 @@ ramp-volume-foreground = ${color.BLUE}
 
 ramp-headphones-0 = 
 ramp-headphones-1 = 
-
 ;; _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 
 [module/backlight]
@@ -285,7 +327,7 @@ enable-scroll = true
 
 format = <ramp> <label>
 
-label = %percentage%%
+label = %percentage%
 
 ramp-0 = 
 ramp-1 = 
@@ -319,13 +361,14 @@ format-charging-prefix =
 format-discharging = <ramp-capacity> <label-discharging>
 
 format-full = <label-full>
-format-full-prefix = "  "
+format-full-prefix = "   "
 format-full-prefix-font = 2
 format-full-prefix-foreground = ${color.RED}
 
-label-charging = %percentage%%
-label-discharging = %percentage%%
-label-full = %percentage%%
+label-charging = %percentage%
+label-discharging = %percentage%
+label-full = %percentage%
+
 
 ramp-capacity-0 = 
 ramp-capacity-1 = 

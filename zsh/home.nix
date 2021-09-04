@@ -61,11 +61,17 @@
       rm = "${pkgs.rmtrash}/bin/rmtrash";
       rm-without-trash = "${pkgs.busybox}/bin/rm";
       s = "sudo su";
-      gita = "${pkgs.git}/bin/git add .";
-      gitc = "${pkgs.git}/bin/git commit";
-      tmuxt = "${pkgs.tmux}/bin/tmux split -p 10";
+
+      perf = "sudo perf";
+      powertop = "sudo ${pkgs.powertop}/bin/powertop";
+      iotop = "sudo ${pkgs.iotop}/bin/iotop";
+      iftop = "sudo ${pkgs.iftop}/bin/iftop";
+      nix-gc = "sudo nix-collect-garbage -d";
+
+      tt = "${pkgs.tmux}/bin/tmux split -p 10";
     };
-    initExtraFirst = "source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
+    initExtraFirst =
+      "source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
     initExtra = builtins.readFile ./zshrc.zsh + ''
       eval "$(${pkgs.direnv}/bin/direnv hook zsh)"
       export FZF_DEFAULT_COMMAND='${pkgs.ag}/bin/ag -p ~/.gitignore -g ""'

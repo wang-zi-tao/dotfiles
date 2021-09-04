@@ -17,7 +17,7 @@
         };
         use_thin_strokes = true;
       };
-      background_opacity = 0.8;
+      background_opacity = 0.64;
       colors = {
         primary = {
           background = "0x000000";

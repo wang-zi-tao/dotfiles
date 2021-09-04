@@ -27,6 +27,9 @@ in {
           # onedark-vim
           fzf-vim
           direnv-vim
+          vim-tmux-clipboard
+          vim-tmux-focus-events
+          vim-tmux-navigator
         ] ++ (if cfg.IDE then [
           coc-tabnine
           coc-go

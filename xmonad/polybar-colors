@@ -2,10 +2,15 @@
 
 [color]
 
+font-0 = "Liga SFMono Nerd Font:size=13;3"
+font-1 = "LiterationMono Nerd Font:size=12;3"
+font-2 = NotoColorEmoji:pixelsize=8;1:fontformat=truetype:scale=10:antialias=true;3
+font-3 = Weather Icons:style=Regular:size=10;3
+font-4 = Sarasa UI SC:size=12;2
 ; BACKGROUND = #fdf6e3
 ; FOREGROUND = #2E3440
 
-BACKGROUND = #cc222222
+BACKGROUND = #40222222
 FOREGROUND = #FFFFFF
 
 BLACK = #2E3440

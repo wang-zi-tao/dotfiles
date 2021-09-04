@@ -8,11 +8,7 @@ let
     exec -a "$0" "$@"
   '';
 in {
-  imports = [ 
-    ./hardware-configuration.nix
-    ./etcfiles/default.nix
-    ./fs.nix
-  ];
+  imports = [ ./hardware-configuration.nix ./etcfiles/default.nix ./fs.nix ];
 
   hardware = {
     opengl.driSupport32Bit = true;
@@ -32,17 +28,17 @@ in {
     systemd-boot.configurationLimit = 5;
     efi = {
       canTouchEfiVariables = false;
-      efiSysMountPoint = "/boot/efi"; 
+      efiSysMountPoint = "/boot/efi";
     };
     timeout = 1;
   };
   # boot.plymouth.enable = false;
-  boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
+  boot.kernelPackages = pkgs.linuxPackages_5_13.extend (self: super: {
     virtualbox = super.virtualbox.override { inherit (self) kernel; };
   });
   boot.extraModulePackages = with config.boot.kernelPackages; [
     virtualbox
-    perf
+    # perf
     acpi_call
   ];
   boot.kernelParams = [ "quite" ];
@@ -52,9 +48,7 @@ in {
   networking = {
     #useDHCP = true;
     firewall.enable = false;
-    networkmanager = {
-      enable = true;
-    };
+    networkmanager = { enable = true; };
     wireguard = { enable = true; };
     proxy.default = "http://127.0.0.1:8889";
   };
@@ -96,8 +90,8 @@ in {
     fontDir.enable = true;
   };
   services = {
-    power-profiles-daemon.enable = false;
-    tlp.enable = true;
+    # power-profiles-daemon.enable = false;
+    # tlp.enable = true;
     sshd.enable = true;
     flatpak.enable = true;
     xserver = {
@@ -118,7 +112,7 @@ in {
       desktopManager.gnome.enable = true;
       # desktopManager.plasma5.enable = true;
       windowManager.xmonad.enable = true;
-      windowManager.i3.enable = true;
+      # windowManager.i3.enable = true;
       libinput = {
         enable = true;
         mouse = { accelSpeed = "1.0"; };
@@ -148,6 +142,21 @@ in {
       ExecStart = "${pkgs.touchegg}/bin/touchegg --daemon";
     };
   };
+  systemd.services.snapper-snapshot = {
+    serviceConfig.Type = "oneshot";
+    script =''
+        for i in `ls /etc/snapper/configs/`
+        do
+          ${pkgs.snapper}/bin/snapper -c $i create -c timeline -d timeline
+          ${pkgs.snapper}/bin/snapper -c $i cleanup timeline
+        done
+      '';
+  };
+  systemd.timers.snapper-snapshot = {
+    wantedBy = [ "timers.target" ];
+    partOf = [ "snapper-snapshot.service" ];
+    timerConfig.OnCalendar = [ "*-*-* *:00:00" ];
+  };
   systemd.services.n2n_edge = {
     enable = true;
     description = "wangzi n2n network";
@@ -165,6 +174,7 @@ in {
       (final: prev: rec {
         touchegg = prev.callPackage ./packages/touchegg { };
       })
+      # pkgs.fenix.overlay
     ];
   systemd.services.k3s = {
     enable = false;
@@ -192,14 +202,11 @@ in {
     xorg.xhost
     glxinfo
     intel-gpu-tools
-    powertop
-    htop
-    iotop
-    iftop
     appimage-run
     duperemove
-    config.boot.kernelPackages.perf
+    # config.boot.kernelPackages.perf
     perf-tools
+    btrfs-progs
   ];
   i18n.inputMethod = {
     enabled = "ibus";
@@ -209,6 +216,7 @@ in {
     gc.automatic = true;
     gc.dates = "weekly";
     gc.options = "-d";
+    buildCores = 10;
     optimise.automatic = true;
     # binaryCaches = lib.mkForce [ ];
     package = pkgs.nixFlakes;

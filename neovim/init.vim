@@ -11,8 +11,6 @@ map <leader>qq :wqa!<CR>
 map <leader>n :n<CR>
 map <leader>N :N<CR>
 map <leader>w :w<CR>
-map <leader>ft :Tags<CR>
-call SpaceVim#custom#SPC('nnoremap', ['e', 'f'], 'CocFix & w', 'fix', 1)
 " hi Pmenu ctermfg=15 ctermbg=16  guibg=#444444
 " hi PmenuSel ctermfg=7 ctermbg=4 guibg=#daf0f4 guifg=#ffffff
 
@@ -60,9 +58,11 @@ nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 call SpaceVim#custom#SPC('nnoremap', ['f', 't'], 'CocCommand explorer', 'explorer', 1)
-call SpaceVim#custom#SPC('nnoremap', ['f', 'T'], 'Tags', 'fzf tags', 1)
+call SpaceVim#custom#SPC('nnoremap', ['e', 'f'], 'CocFix & w', 'fix', 1)
 
-nnoremap <silent> <space>y  :<C-u>CocList -A --normal yank<cr>
+" nnoremap <silent> <space>y    :<C-u>CocList -A --normal yank<cr>
+nnoremap <silent> <Leader>fT :Tags<CR>
+vnoremap <silent> <Leader>fT y:Tags <C-r>"<cr>
 
 noremap ;a 1
 noremap ;s 2

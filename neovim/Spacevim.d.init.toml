@@ -17,7 +17,7 @@
     enable_guicolors = true
     # Disable statusline separator, if you want to use other value, please
     # install nerd fonts
-    project_rooter_patterns = ['.git/', '_darcs/', '.hg/', '.bzr/', '.svn/']
+    project_rooter_patterns = ['Cargo.toml', '.git/', '_darcs/', '.hg/', '.bzr/', '.svn/']
     statusline_separator = "arrow"
     statusline_iseparator = "arrow"
     buffer_index_type = 4

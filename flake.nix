@@ -3,17 +3,19 @@
   description = "NixOS configuration for all machines";
 
   inputs = {
-    home-manager = {
-      url = "github:rycee/home-manager/release-21.05";
-      inputs = { nixpkgs.follows = "nixpkgs"; };
-    };
+    home-manager.url = "github:nix-community/home-manager";
     nur.url = "github:nix-community/NUR";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-21.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     master.url = "github:nixos/nixpkgs/master";
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
-  outputs = inputs@{ self, home-manager, nur, nixpkgs, ... }:
+  outputs = inputs@{ self, home-manager, nur, fenix, nixpkgs, ... }:
     let
       inherit (builtins) listToAttrs attrValues attrNames readDir;
       inherit (nixpkgs) lib;
@@ -33,6 +35,7 @@
           value = import (./overlays + "/${name}");
         }) (attrNames (readDir ./overlays)));
       in overlayFiles // {
+        fenix = fenix.overlay;
         nur = final: prev: {
           nur = import inputs.nur {
             nurpkgs = final.unstable;

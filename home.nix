@@ -1,6 +1,19 @@
 { config, pkgs, lib, ... }:
 
 let
+  rust-env = pkgs.fenix.combine (with pkgs.fenix.complete; [
+    cargo
+    clippy-preview
+    rust-std
+    rustc
+    rustfmt-preview
+    rust-src
+    rust-docs
+    rust-analyzer-preview
+    rust-analysis
+    miri-preview
+    rls-preview
+  ]);
   python3-env = pkgs.python3.withPackages (ps:
     with ps; [
       pynvim
@@ -77,8 +90,12 @@ in {
     RUST_BACKTRACE = "1";
     GOPATH = "~/工作空间/Go";
     NIX_AUTO_RUN = "1";
-    PKG_CONFIG_PATH = "/usr/local/lib64/pkgconfig/";
+    PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
     PATH = "$HOME/.local/bin:$HOME/.cargo/bin:$PATH";
+    __NV_PRIME_RENDER_OFFLOAD = "1";
+    __NV_PRIME_RENDER_OFFLOAD_PROVIDER = "NVIDIA-G0";
+    __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+    __VK_LAYER_NV_optimus = "NVIDIA_only";
   };
   inherit imports;
   home.packages = with pkgs; [
@@ -179,6 +196,11 @@ in {
     gnomeExtensions.x11-gestures
     gnomeExtensions.system-monitor
     gnomeExtensions.quake-mode
+    gnomeExtensions.runcat
+    gnomeExtensions.middle-click-to-close-in-overview
+    gnomeExtensions.proxy-switcher
+    gnomeExtensions.appindicator
+    gnomeExtensions.gnome-40-ui-improvements
 
     pkg-config
     ctags
@@ -193,9 +215,10 @@ in {
     ccls
     # gcc-unwrapped
     llvm
-    rustup
-    rust-analyzer
-    rustracer
+    # rustup
+    # rust-analyzer
+    # rustracer
+    rust-env
 
     fzf
     ptags

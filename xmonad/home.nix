@@ -1,21 +1,11 @@
-{pks,...}:
-{
-  imports = [
-    ./picom.nix
-    ./rofi.nix
-    ./polybar.nix
-    ./dunst.nix
-  ];
+{ pkgs, ... }: {
+  imports = [ ./picom.nix ./rofi.nix ./polybar.nix ./dunst.nix ];
+  home.packages = [ pkgs.lxappearance ];
   xsession = {
     windowManager.xmonad = {
       enable = true;
       enableContribAndExtras = true;
-      extraPackages = hp: with hp; [
-        dbus
-        monad-logger
-        xmonad-contrib
-        xmobar
-      ];
+      extraPackages = hp: with hp; [ dbus monad-logger xmonad-contrib xmobar ];
       config = ./xmonad.hs;
     };
   };

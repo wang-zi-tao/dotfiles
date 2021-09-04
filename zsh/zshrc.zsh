@@ -15,10 +15,18 @@ function sudo() {
   then
     command sudo tmux
   else
-    command sudo "$@"
+    command sudo $@
   fi
 }
-
+function wo() {
+  cd `autojump $1`
+  command tmux split -p 10
+  command vim
+}
+systemctl()
+{
+  command sudo systemctl "$@"
+}
 cdUndoKey() {
   popd      > /dev/null
   zle       reset-prompt
