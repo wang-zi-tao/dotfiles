@@ -89,24 +89,24 @@ myEmojiFont :: String
 myEmojiFont = "xft:Apple Color Emoji:size=11"
 myWorkspaces :: [String]
 myWorkspaces =
-  [ "1:\xf269 "
-  , "2:\xf120 "
-  , "3:\xe7a8 "
-  , "4:\xf48a "
-  , "5:\xf126 "
-  , "6:\xf121 "
-  , "7:\xf313 "
-  , "8:\xf308 "
-  , "9:\xf872 "
+  [ "1:\xf269"
+  , "2:\xf120"
+  , "3:\xe7a8"
+  , "4:\xf48a"
+  , "5:\xf126"
+  , "6:\xf121"
+  , "7:\xf313"
+  , "8:\xf308"
+  , "9:\xf872"
   ]
 myBorderWidth :: Dimension
 myBorderWidth = 2
 myPromptHeight :: Dimension
 myPromptHeight = 30
 myNormalBorderColor :: String
-myNormalBorderColor = "#00A1FF"
+myNormalBorderColor = "#d6778c"
 myFocusedBorderColor :: String
-myFocusedBorderColor = "#00E3FF"
+myFocusedBorderColor = "#de766c"
 myGaps = spacingRaw False (Border 4 4 4 4) True (Border 4 4 4 4) True
 myThinGaps = spacingRaw False (Border 2 2 2 2) True (Border 2 2 2 2) True
 myNavigation :: TwoD a (Maybe a)
@@ -156,7 +156,6 @@ myKeys =
   , ("M-q", spawn "xmonad --recompile; xmonad --restart") -- Recompile and restart xmonad
 
   , ("M-v", spawn $ myTerminal ++ " -e nvim")
-  , ("M-z", spawn $ myTerminal ++ " -e zsh")
   , ("M-r", spawn $ myTerminal ++ " -e ranger")
   -- , ("M-w", spawn "emacsclient -c -a emacs")
   , ("M-b", spawn "firefox")
@@ -164,6 +163,7 @@ myKeys =
   , ("M-e", spawn "~/.emacs_anywhere/bin/run")
 
   , ("M-x", namedScratchpadAction myScratchPads "terminal")
+  , ("M-z", spawn "~/.config/eww/scripts/trigger")
   -- , ("M-C-s", namedScratchpadAction myScratchPads "mixer")
   -- , ("M-C-h", namedScratchpadAction myScratchPads "bottom")
   -- , ("M-C-n", namedScratchpadAction myScratchPads "vifm")
@@ -171,7 +171,7 @@ myKeys =
   -- , ("M-d", shellPrompt myXPConfig)
   ,("M-d", spawn "rofi -combi-modi window,run,drun -show combi -modi combi")
   , ("C-M-d", spawn "rofi -show run")
-  , ("C-M-l", spawn "i3lock")
+  , ("C-M-l", spawn "light-locker")
   , ("M-<Esc>", nextMatch Forward isOnAnyVisibleWS)
   , ("M-<Tab>", nextMatch History (return True))
 
@@ -246,7 +246,7 @@ myXPConfig = def { font              = myFont
                  , fgColor           = "#A6ACCD"
                  , bgHLight          = "#444267"
                  , fgHLight          = "#A6ACCD"
-                 , borderColor       = "#2b2a3e"
+                 , borderColor       = "#de766c"
                  , promptKeymap      = myXPKeymap
                  , promptBorderWidth = 0
                  , position          = Top
@@ -260,7 +260,7 @@ myEmojiXPConfig = def { font              = myEmojiFont
                       , fgColor           = "#A6ACCD"
                       , bgHLight          = "#444267"
                       , fgHLight          = "#A6ACCD"
-                      , borderColor       = "#2b2a3e"
+                      , borderColor       = "#d6778c"
                       , promptKeymap      = myXPKeymap
                       , promptBorderWidth = 0
                       , position          = Top
@@ -332,6 +332,10 @@ myScratchPads =
 myManageHook =
   composeAll
       [ className =? "Gimp" --> doFloat
+      , className =? "qv2ray" --> doFloat
+      , className =? "feh" --> doFloat
+      , className =? "Gnome-system-monitor" --> doFloat
+      , className =? "kdeconnect-app" --> doFloat
       , resource =? "desktop_window" --> doIgnore
       , isFullscreen --> doFullFloat
       ]
@@ -343,11 +347,10 @@ myStartupHook = do
   spawnOnce "sleep 1 && ibus-daemon --xim"
   spawnOnce "nm-applet"
   -- spawnOnce "polybar main"
-  spawn "killall polybar; polybar left; polybar right;"
-  spawnOnce "gnome-power-manager"
-  spawnOnce "gnome-volume-control-applet"
+  -- spawn "killall polybar; polybar left & polybar center & polybar right &"
+  spawn "killall eww; eww open bar"
   spawnOnce "kdeconnect-indicator"
-  spawnOnce "amixer set Master 0"
+  spawnOnce "sleep 1 ; amixer set Master 0%"
   spawn "gpaste-client start"
   -- setDefaultCursor xC_left_ptr
   -- spawn Japanese IME
@@ -393,7 +396,7 @@ dbusOutput dbus str =
 
 polybarHook :: D.Client -> PP
 polybarHook dbus =
-  let wrapper c s | s /= "NSP" = wrap ("%{F" <> c <> "} ") " %{F-}" s
+  let wrapper c s | s /= "NSP" = wrap ("(label :style \"color:" <> c <> ";\" :text \"") "\")" s
                   | otherwise  = mempty
       blue   = "#2E9AFE"
       gray   = "#7F7F7F"
@@ -406,8 +409,28 @@ polybarHook dbus =
           , ppUrgent          = wrapper orange
           , ppHidden          = wrapper "#eeeeee"
           , ppHiddenNoWindows = wrapper "#cccccc"
+          , ppLayout          = wrapper "#ffffff"
           , ppTitle           = mempty
+          , ppSep             = ""
+          , ppOrder           = \(ws:_:t:_) -> [ws]
           }
+-- polybarHook :: D.Client -> PP
+-- polybarHook dbus =
+  -- let wrapper c s | s /= "NSP" = wrap ("%{F" <> c <> "} ") " %{F-}" s
+                  -- | otherwise  = mempty
+      -- blue   = "#2E9AFE"
+      -- gray   = "#7F7F7F"
+      -- orange = "#ea4300"
+      -- purple = "#9058c7"
+      -- red    = "#ff0000"
+  -- in  def { ppOutput          = dbusOutput dbus
+          -- , ppCurrent         = wrapper blue
+          -- , ppVisible         = wrapper "#ffffff"
+          -- , ppUrgent          = wrapper orange
+          -- , ppHidden          = wrapper "#eeeeee"
+          -- , ppHiddenNoWindows = wrapper "#cccccc"
+          -- , ppTitle           = mempty
+          -- }
 
 main :: IO ()
 main = mkDbusClient >>= main'

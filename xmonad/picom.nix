@@ -4,14 +4,21 @@ let
 in {
   home.packages = [
     # pkgs.picom
-    pkgs.nur.repos.reedrw.picom-next-ibhagwan
+    # pkgs.nur.repos.reedrw.picom-next-ibhagwan
+    pkgs.nur.repos.xeals.picom-animations
     # pkgs.nur.repos.arc.packages.picom-next
   ];
   home.file.".config/picom.conf".text = ''
     active-opacity   = 1.0;
     inactive-opacity = 0.9;
     inactive-dim     = 0.0;
-    opacity-rule     = ["90:class_g  = 'Zathura'","90:class_g  = 'TelegramDesktop'","90:class_g  = 'Discord'","100:class_g = 'keynav'"];
+    opacity-rule     = [
+      "90:class_g  = 'Zathura'",
+      "90:class_g  = 'TelegramDesktop'",
+      "90:class_g  = 'Discord'",
+      "100:class_g = 'keynav'",
+      "100:class_g = 'i3lock'",
+    ];
 
     wintypes:
     {
@@ -36,7 +43,9 @@ in {
     };
     blur-background-exclude = [
         "class_g = 'keynav'",
-        "class_g = 'Polybar'"
+        "class_g = 'Polybar'",
+        "class_g = 'i3lock'",
+        "class_g ^= 'eww'",
     ];
     corner-radius = 12;
     rounded-corners-exclude = [
@@ -45,6 +54,7 @@ in {
         "_NET_WM_WINDOW_TYPE@:32a *= '_NET_WM_WINDOW_TYPE_DESKTOP'",
         "class_g = 'keynav'",
         "class_g = 'rofi'",
+        "class_g = 'i3lock'",
     ];
     round-borders = 1;
     round-borders-exclude = [
@@ -52,7 +62,7 @@ in {
         "class_g = 'rofi'",
     ];
     fading = true;
-    fade-out-step = 0.1;
-    fade-in-step = 0.1;
+    fade-out-step = 0.05;
+    fade-in-step = 0.05;
   '';
 }

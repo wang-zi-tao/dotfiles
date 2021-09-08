@@ -113,6 +113,7 @@ in {
 
     direnv
     ranger
+    pistol
     atool
     poppler
     highlight

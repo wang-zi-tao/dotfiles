@@ -59,6 +59,7 @@ nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 call SpaceVim#custom#SPC('nnoremap', ['f', 't'], 'CocCommand explorer', 'explorer', 1)
 call SpaceVim#custom#SPC('nnoremap', ['e', 'f'], 'CocFix & w', 'fix', 1)
+call SpaceVim#custom#SPC('nnoremap', ['f', 'g'], 'RangerTab', 'ranger', 1)
 
 " nnoremap <silent> <space>y    :<C-u>CocList -A --normal yank<cr>
 nnoremap <silent> <Leader>fT :Tags<CR>
@@ -137,3 +138,7 @@ let t:is_transparent = 1
 " coc-explorer auto refresh
 autocmd User CocDiagnosticChange,CocGitStatusChange
     \ call CocActionAsync('runCommand', 'explorer.doAction', 'closest', ['refresh'])
+
+let g:UltiSnipsExpandTrigger="<c-e>"
+let g:UltiSnipsJumpForwardTrigger="<c-j>"
+let g:UltiSnipsJumpBackwardTrigger="<c-k>"

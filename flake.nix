@@ -12,10 +12,22 @@
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
+    naersk = {
+      url = "github:nmattia/naersk";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
+    eww = {
+      url = "github:elkowar/eww";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = inputs@{ self, home-manager, nur, fenix, nixpkgs, ... }:
+  outputs = inputs@{ self, home-manager, nur, fenix, nixpkgs, flake-compat
+    , naersk, ... }:
     let
       inherit (builtins) listToAttrs attrValues attrNames readDir;
       inherit (nixpkgs) lib;
@@ -36,6 +48,14 @@
         }) (attrNames (readDir ./overlays)));
       in overlayFiles // {
         fenix = fenix.overlay;
+        other = final: prev: {
+          # flake-compat = import inputs.flake-compat { };
+          flake-compat = inputs.flake-compat;
+          naersk = inputs.naersk;
+          # eww = pkgs.callPackage(import inputs.eww){};
+          # fenix = inputs.fenix;
+          eww = inputs.eww;
+        };
         nur = final: prev: {
           nur = import inputs.nur {
             nurpkgs = final.unstable;

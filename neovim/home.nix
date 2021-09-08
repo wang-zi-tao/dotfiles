@@ -27,6 +27,7 @@ in {
           # onedark-vim
           fzf-vim
           direnv-vim
+          ranger-vim
           vim-tmux-clipboard
           vim-tmux-focus-events
           vim-tmux-navigator

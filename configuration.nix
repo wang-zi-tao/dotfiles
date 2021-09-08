@@ -8,7 +8,7 @@ let
     exec -a "$0" "$@"
   '';
 in {
-  imports = [ ./hardware-configuration.nix ./etcfiles/default.nix ./fs.nix ];
+  imports = [ ./hardware-configuration.nix ./fs.nix ];
 
   hardware = {
     opengl.driSupport32Bit = true;
@@ -83,6 +83,7 @@ in {
       hack-font
       powerline-fonts
       powerline-symbols
+      iosevka
       # terminus_font
       # terminus-nerdfont
       # terminus_font_ttf
@@ -111,6 +112,7 @@ in {
       # displayManager.lightdm.enable= true;
       desktopManager.gnome.enable = true;
       # desktopManager.plasma5.enable = true;
+      # desktopManager.mate.enable = true;
       windowManager.xmonad.enable = true;
       # windowManager.i3.enable = true;
       libinput = {
