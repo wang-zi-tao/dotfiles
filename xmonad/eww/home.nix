@@ -1,7 +1,8 @@
 { pkgs, ... }:
 let
 in {
-  home.packages = [ (pkgs.callPackage ../../packages/eww/default.nix { }) ];
+  home.packages =
+    [ (pkgs.callPackage ../../packages/eww/default.nix { }) pkgs.jq pkgs.i3lock ];
   home.file.".config/eww/eww.scss" = { source = ./eww.scss; };
   home.file.".config/eww/scripts/weather_info" = {
     source = ./scripts/weather_info;
@@ -13,7 +14,7 @@ in {
   };
   home.file.".config/eww/eww.yuck".text = builtins.readFile ./eww.yuck + ''
     (deflisten music :initial ""
-      "${pkgs.playerctl}/bin/playerctl --follow metadata --format '{{ title }}' || true")
+      "${pkgs.playerctl}/bin/playerctl --follow metadata --format ' {{ artist }} - {{ title }}' || true")
     (deflisten workspaces :initial ""
       "${pkgs.xmonad-log}/bin/xmonad-log")
 

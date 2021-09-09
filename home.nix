@@ -111,6 +111,7 @@ in {
     xdotool
     xorg.xbacklight
 
+    jq
     direnv
     ranger
     pistol
@@ -136,6 +137,7 @@ in {
     graphviz
     ffmpeg
     meld
+    devtodo
 
     orchis
     qv2ray

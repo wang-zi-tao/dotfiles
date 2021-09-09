@@ -1,38 +1,26 @@
-function open(){
-  eww open-many weather profile system clock uptime music github reddit twitter youtube apps mail logout sleep reboot poweroff folders
-}
-function close(){
-  eww close eww &
-  eww close open-many &
-  eww close open-many &
-  eww close weather &
-  eww close profile &
-  eww close system &
-  eww close clock &
-  eww close uptime &
-  eww close music &
-  eww close github &
-  eww close reddit &
-  eww close twitter &
-  eww close youtube &
-  eww close apps &
-  eww close mail &
-  eww close logout &
-  eww close sleep &
-  eww close reboot &
-  eww close poweroff &
-  eww close folders&
-}
-if [[ $1 == open ]];
+if xdotool search --class 'eww-folders'
 then
-  open
-elif [[ $1 == close ]];
-then
-  close
-elif xdotool search --class 'eww-folders';
-then
-  close
+ eww close eww &
+ eww close open-many &
+ eww close open-many &
+ eww close weather &
+ eww close profile &
+ eww close system &
+ eww close clock &
+ eww close uptime &
+ eww close music &
+ eww close web1 &
+ eww close web2 &
+ eww close web3 &
+ eww close web4 &
+ eww close todo &
+ eww close mail &
+ eww close logout &
+ eww close sleep &
+ eww close reboot &
+ eww close poweroff &
+ eww close folders&
 else
-  open
+ eww open-many weather profile system clock uptime music web1 web2 web3 web4 todo mail logout sleep reboot poweroff folders
 fi
 

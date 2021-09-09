@@ -155,18 +155,13 @@ myKeys =
   , ("M-S-q", confirmPrompt myXPConfig "exit" $ io exitSuccess) -- prompt to kill xmonad
   , ("M-q", spawn "xmonad --recompile; xmonad --restart") -- Recompile and restart xmonad
 
-  , ("M-v", spawn $ myTerminal ++ " -e nvim")
   , ("M-r", spawn $ myTerminal ++ " -e ranger")
-  -- , ("M-w", spawn "emacsclient -c -a emacs")
   , ("M-b", spawn "firefox")
   , ("M-p", spawn "gpaste-client ui")
   , ("M-e", spawn "~/.emacs_anywhere/bin/run")
 
   , ("M-x", namedScratchpadAction myScratchPads "terminal")
   , ("M-z", spawn "~/.config/eww/scripts/trigger")
-  -- , ("M-C-s", namedScratchpadAction myScratchPads "mixer")
-  -- , ("M-C-h", namedScratchpadAction myScratchPads "bottom")
-  -- , ("M-C-n", namedScratchpadAction myScratchPads "vifm")
 
   -- , ("M-d", shellPrompt myXPConfig)
   ,("M-d", spawn "rofi -combi-modi window,run,drun -show combi -modi combi")
@@ -294,10 +289,7 @@ myMouseBindings XConfig { XMonad.modMask = modm } = M.fromList
     -- you may also bind events to the mouse scroll wheel (button4 and button5)
   ]
 myScratchPads =
-  [ NS "terminal" spawnTerm   findTerm   manageTerm
-  , NS "mixer"    spawnMixer  findMixer  manageMixer
-  , NS "bottom"   spawnbottom findbottom managebottom
-  , NS "vifm"     spawnvifm   findvifm   managevifm
+  [ NS "terminal" spawnTerm    findTerm   manageTerm
   ]
  where
   centralh   = 0.9
@@ -305,28 +297,15 @@ myScratchPads =
   centralt   = 0.95 - centralh
   centrall   = 0.95 - centralw
 
-  spawnTerm  = myTerminal ++ " --title=terminalScratchpad"
+  spawnTerm  = myTerminal ++ " --title=terminalScratchpad --config-file=${HOME}/.config/alacritty/alacritty-drop.yml "
   findTerm   = title =? "terminalScratchpad"
   manageTerm = customFloating $ W.RationalRect l t w h
    where
-    h = 0.6
+    h = 0.9
     w = 0.9
     t = 0.05
     l = (1 - w) / 2
 
-  spawnMixer = myTerminal ++ " --title=mixerScratchpad" ++ " -e ncpamixer"
-  findMixer  = title =? "mixerScratchpad"
-  manageMixer =
-    customFloating $ W.RationalRect centrall centralt centralw centralh
-
-  spawnbottom = myTerminal ++ " --title=bottomScratchpad" ++ " -e btm"
-  findbottom  = title =? "bottomScratchpad"
-  managebottom =
-    customFloating $ W.RationalRect centrall centralt centralw centralh
-
-  spawnvifm =
-    myTerminal ++ " --title=vifmScratchpad" ++ " -e bash -c 'vifmrun'"
-  findvifm = title =? "vifmScratchpad"
   managevifm =
     customFloating $ W.RationalRect centrall centralt centralw centralh
 myManageHook =

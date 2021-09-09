@@ -58,7 +58,7 @@ in {
     fontconfig = {
       enable = true;
       defaultFonts.emoji = [ "Noto Color Emoji" ];
-      defaultFonts.monospace = [ "Hack" "Sarasa Mono SC" ];
+      defaultFonts.monospace = [ "Iosevka Terminal" "Source Code Pro Medium" "Hack" "Sarasa Mono SC" ];
       defaultFonts.sansSerif =
         [ "Inter" "Liberation Sans" "Soruce Han Sans SC" ];
       defaultFonts.serif = [ "Liberation Serif" "Source Han Serif SC" ];

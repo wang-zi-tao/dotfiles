@@ -1,6 +1,6 @@
 { pkgs, ... }: {
   imports = [ ./picom.nix ./rofi.nix ./polybar.nix ./dunst.nix ./eww/home.nix ];
-  home.packages = [ pkgs.lxappearance pkgs.lightlocker pkgs.flashfocus ];
+  home.packages = [ pkgs.lxappearance pkgs.lightlocker pkgs.flashfocus pkgs.playerctl ];
   xsession = {
     windowManager.xmonad = {
       enable = true;

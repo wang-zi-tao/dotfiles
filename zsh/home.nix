@@ -47,11 +47,15 @@
           sha256 = "0z6i9wjjklb4lvr7zjhbphibsyx51psv50gm07mbb0kj9058j6kc";
         };
       }
+      {
+        name = "zsh-history-substring-search";
+        src = pkgs.zsh-history-substring-search;
+      }
     ];
     shellAliases = {
       v = "${pkgs.neovim}/bin/nvim";
       r = "${pkgs.ranger}/bin/ranger";
-      grep = "${pkgs.busybox}/bin/grep --color=auto";
+      grep = "${pkgs.ripgrep}/bin/rg --color=auto";
       screenfetch =
         "${pkgs.screenfetch}/bin/screenfetch|${pkgs.lolcat}/bin/lolcat";
       xclip = "${pkgs.xclip}/bin/xclip -selection c";
