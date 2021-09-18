@@ -10,7 +10,7 @@ in {
   ];
   home.file.".config/picom.conf".text = ''
     active-opacity   = 1.0;
-    inactive-opacity = 0.9;
+    inactive-opacity = 0.90;
     inactive-dim     = 0.0;
     opacity-rule     = [
       "90:class_g  = 'Zathura'",
@@ -36,7 +36,7 @@ in {
     blur:
     {
         method = "dual_kawase";
-        strength = 8;
+        strength = 4;
         background = true;
         background-frame = false;
         background-fixed = false;

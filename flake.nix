@@ -3,26 +3,22 @@
   description = "NixOS configuration for all machines";
 
   inputs = {
-    home-manager.url = "github:nix-community/home-manager";
+    home-manager.url = "github:nix-community/home-manager/release-21.05";
     nur.url = "github:nix-community/NUR";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/release-21.05";
     unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     master.url = "github:nixos/nixpkgs/master";
     fenix = {
       url = "github:nix-community/fenix";
-      inputs.nixpkgs.follows = "nixpkgs";
+      # inputs.nixpkgs.follows = "unstable";
     };
     naersk = {
       url = "github:nmattia/naersk";
-      inputs.nixpkgs.follows = "nixpkgs";
+      # inputs.nixpkgs.follows = "unstable";
     };
     flake-compat = {
       url = "github:edolstra/flake-compat";
       flake = false;
-    };
-    eww = {
-      url = "github:elkowar/eww";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -33,8 +29,9 @@
       inherit (nixpkgs) lib;
       inherit (lib) removeSuffix;
 
+      system = "x86_64-linux";
       pkgs = (import nixpkgs) {
-        system = "x86_64-linux";
+        inherit system;
         config = { allowUnfree = true; };
         overlays = attrValues self.overlays;
       };
@@ -52,16 +49,13 @@
           # flake-compat = import inputs.flake-compat { };
           flake-compat = inputs.flake-compat;
           naersk = inputs.naersk;
-          # eww = pkgs.callPackage(import inputs.eww){};
-          # fenix = inputs.fenix;
-          eww = inputs.eww;
-        };
-        nur = final: prev: {
+          system = system;
           nur = import inputs.nur {
             nurpkgs = final.unstable;
             pkgs = final.unstable;
           };
         };
+        nur = nur.overlay;
         unstable = final: prev: {
           unstable = import inputs.unstable {
             system = final.system;
@@ -78,7 +72,7 @@
 
       nixosConfigurations = {
         wangzi-pc = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
+          system = system;
           modules = [
             defaults
             ./configuration.nix

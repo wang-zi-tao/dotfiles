@@ -61,7 +61,9 @@ in {
 
   neovim.IDE = true;
   programs.command-not-found.enable = true;
-  programs.firefox = { enableGnomeExtensions = true; };
+  programs.firefox = {
+    enable = true;
+  };
   services.unclutter.enable = true;
   xresources.properties = { "Xft.dpi" = 96; };
   qt = {
@@ -147,7 +149,6 @@ in {
     postman
     gnome.gnome-nettool
     gnome.gnome-todo
-    firefox
     google-chrome
     dconf
     gnome.dconf-editor
@@ -167,6 +168,7 @@ in {
     octant
     octant-desktop
     gitkraken
+    nur.repos.linyinfeng.icalingua
     # wine
     # winetricks
     # jetbrains.clion
@@ -204,6 +206,7 @@ in {
     gnomeExtensions.proxy-switcher
     gnomeExtensions.appindicator
     gnomeExtensions.gnome-40-ui-improvements
+    gnomeExtensions.night-theme-switcher
 
     pkg-config
     ctags

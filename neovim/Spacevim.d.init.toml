@@ -28,6 +28,23 @@
     vim_help_language = "cn"
     autocomplete_method = "coc"
     filemanager = "defx"
+    statusline_left_sections = [
+       'winnr',
+       'major mode',
+       'filename',
+       'version control info',
+       'search status'
+    ]
+    # right sections of statusline
+    statusline_right_sections = [
+       'fileformat',
+       'minor mode lighters',
+       'cursorpos',
+       'percentage',
+       'input method',
+       'date',
+       'time'
+    ]
 [[layers]]
     name = "colorscheme"
 [[layers]]
@@ -35,8 +52,6 @@
     # auto_completion_return_key_behavior = "complete"
     auto_completion_tab_key_behavior = "smart"
     cycle = true
-[[layers]]
-  name = 'shell'
 [[layers]]
   name = "format"
 [[layers]]
@@ -49,6 +64,7 @@
   name = "tmux"
 [[layers]]
   name = "shell"
+  default_position = "top"
 [[layers]]
   name = "git"
 [[layers]]

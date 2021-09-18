@@ -18,7 +18,7 @@
       scala-lang.scala
       # python
       ms-toolsai.jupyter
-      ms-python.python
+      # ms-python.python
       ms-python.vscode-pylance
       # rust
       matklad.rust-analyzer

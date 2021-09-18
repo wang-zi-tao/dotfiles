@@ -9,7 +9,8 @@
   boot.initrd.availableKernelModules =
     [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" ];
+  boot.kernelModules = [ "kvm-intel" "nvidia" ];
+  boot.kernelParams = [ ];
   boot.extraModulePackages = [ ];
 
   # powerManagement.cpuFreqGovernor = lib.mkDefault "performance";

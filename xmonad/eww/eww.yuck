@@ -2,56 +2,53 @@
 ;; ** Widgets config for EWW
 ;; ** Created by : @adi1090x
 ;; ** 
-
-
-    
-
         ;;  Profile vars 
         (defvar IMAGE "file:///home/wangzi/.config/eww/images/profile.jpg")
         (defvar NAME "wangzi")
-		(defpoll UNAME :interval "5m"  "whoami")
+		(defpoll UNAME :run-while control-center-enable :interval "5m"  "whoami")
 
         ;;  System vars 
-		(defpoll HOST :interval "5s"  "hostname")
-		(defpoll CPU_USAGE :interval "1s"  "~/.config/eww/scripts/sys_info --cpu")
-		(defpoll MEM_USAGE :interval "1s"  "~/.config/eww/scripts/sys_info --mem")
-		(defpoll BLIGHT :interval "1s"  "~/.config/eww/scripts/sys_info --blight")
-		(defpoll BATTERY :interval "5s"  "~/.config/eww/scripts/sys_info --bat")
+		(defpoll HOST :run-while control-center-enable :interval "5s"  "hostname")
+		(defpoll CPU_USAGE :run-while control-center-enable :interval "1s"  "~/.config/eww/scripts/sys_info --cpu")
+		(defpoll MEM_USAGE :run-while control-center-enable :interval "1s"  "~/.config/eww/scripts/sys_info --mem")
+		(defpoll BLIGHT :run-while control-center-enable :interval "1s"  "~/.config/eww/scripts/sys_info --blight")
+		(defpoll BATTERY :run-while control-center-enable :interval "5s"  "~/.config/eww/scripts/sys_info --bat")
 
         ;;  Time vars 
-		(defpoll HOUR :interval "5s"  "date +\"%I\"")
-		(defpoll SEC :interval "1s"  "date +\"%S\"")
-		(defpoll MIN :interval "5s"  "date +\"%M\"")
-		(defpoll MER :interval "5s"  "date +\"%p\"")
-		(defpoll DAY :interval "5s"  "date +\"%A\"")
+		(defpoll HOUR :run-while control-center-enable :interval "5s"  "date +\"%I\"")
+		(defpoll SEC :run-while control-center-enable :interval "1s"  "date +\"%S\"")
+		(defpoll MIN :run-while control-center-enable :interval "5s"  "date +\"%M\"")
+		(defpoll MER :run-while control-center-enable :interval "5s"  "date +\"%p\"")
+		(defpoll DAY :run-while control-center-enable :interval "5s"  "date +\"%A\"")
 
         ;;  Uptime vars 
-		(defpoll UPHOUR :interval "5s"  "cat /proc/uptime | awk -F. '{printf(\"%d hours\",($1/3600))}'")
-		(defpoll UPMIN :interval "5s"  "cat /proc/uptime | awk -F. '{printf(\"%d minutes\",($1 % 3600)/60%60)}'")
+		(defpoll UPHOUR :run-while control-center-enable :interval "5s"  "cat /proc/uptime | awk -F. '{printf(\"%d hours\",($1/3600))}'")
+		(defpoll UPMIN :run-while control-center-enable :interval "5s"  "cat /proc/uptime | awk -F. '{printf(\"%d minutes\",($1 % 3600)/60%60)}'")
 
         ;;  Music vars 
-		(deflisten SONG :interval ""  "playerctl --follow metadata --format '{{ title }}'")
-		(deflisten ARTIST :interval ""  "playerctl --follow metadata --format '{{ artist }}'")
-		(defpoll STATUS :interval "1s"  "playerctl status || true")
-		(defpoll CURRENT :interval "1s"  "playerctl position || true")
-		(defpoll COVER :interval "1s"  "")
-		(defpoll CTIME :interval "1s"  "~/.config/eww/scripts/music_info --ctime")
-		(defpoll TTIME :interval "1s"  "")
+    (deflisten SONG :interval ""  "playerctl metadata --format '{{ title }}';playerctl --follow metadata --format '{{ title }}'")
+		(deflisten ARTIST :interval ""  "playerctl metadata --format '{{ artist }}';playerctl --follow metadata --format '{{ artist }}'")
+		(defpoll STATUS :run-while control-center-enable :interval "1s"  "playerctl status || true")
+		(defpoll MUSIC_LENGTH :run-while control-center-enable :interval "5s"  "playerctl metadata|grep length|tail -n 1|awk '{print $3}'")
+		(defpoll CURRENT :run-while control-center-enable :interval "1s"  "playerctl position || true")
+		(defpoll COVER :run-while control-center-enable :interval "1s"  "")
+		(defpoll CTIME :run-while control-center-enable :interval "1s"  "~/.config/eww/scripts/music_info --ctime")
+		(defpoll TTIME :run-while control-center-enable :interval "1s"  "")
 
 		;; Weather vars
-		(defpoll ICON :interval "15m"  "~/.config/eww/scripts/weather_info --icon")
-		(defpoll STAT :interval "15m"  "~/.config/eww/scripts/weather_info --stat")
-		(defpoll TEMP :interval "15m"  "~/.config/eww/scripts/weather_info --temp")
-		(defpoll WEATHER :interval "15m"  "~/.config/eww/scripts/weather_info --getdata")
-		(defpoll HEX :interval "15m"  "~/.config/eww/scripts/weather_info --hex")
-		(defpoll QUOTE :interval "15m"  "~/.config/eww/scripts/weather_info --quote")
-		(defpoll QUOTE2 :interval "15m"  "~/.config/eww/scripts/weather_info --quote2")
+		(defpoll ICON :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --icon")
+		(defpoll STAT :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --stat")
+		(defpoll TEMP :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --temp")
+		(defpoll WEATHER :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --getdata")
+		(defpoll HEX :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --hex")
+		(defpoll QUOTE :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --quote")
+		(defpoll QUOTE2 :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --quote2")
 
         ;;  Apps vars 
-		(defpoll MAILS :interval "5m"  "echo 0")
+		(defpoll MAILS :run-while control-center-enable :interval "5m"  "echo 0")
 
         ;;  Files vars 
-		(defpoll FREE :interval "5s"  "df -h / | awk '{print $4}' | tail -n 1 | sed 's/G/GB/'")
+		(defpoll FREE :run-while control-center-enable :interval "5s"  "df -h / | awk '{print $4}' | tail -n 1 | sed 's/G/GB/'")
 
     
 
@@ -65,14 +62,14 @@
 
 		;;  profile 
 		(defwidget user [] 
-			(box :class "genwin" :orientation "v" :spacing 35 :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(box :class "genwin user" :orientation "v" :spacing 35 :space-evenly "false" :vexpand "false" :hexpand "false" 
 				(box :class "face" :halign "center")
 				(label :class "fullname" :halign "center" :wrap "true" :limit-width 25 :text NAME)
     ))
 
 		;;  system 
 		(defwidget system [] 
-			(box :class "genwin" :vexpand "false" :hexpand "false" 
+			(box :class "genwin system" :vexpand "false" :hexpand "false" 
 				(box :orientation "v" :spacing 35 :halign "center" :valign "center" :space-evenly "false" :vexpand "false" :hexpand "false" 
 					(box :class "cpu_bar" :orientation "h" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false" 
 						(label :class "iconcpu" :text "")
@@ -89,7 +86,7 @@
 
 		;;  clock 
 		(defwidget clock [] 
-			(box :class "genwin" :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(box :class "genwin clock" :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
 				(label :class "time_hour" :valign "start" :wrap "true" :limit-width 25 :text HOUR)
 				(label :class "time_min" :valign "end" :wrap "true" :limit-width 25 :text MIN)
 				(box :orientation "v" :spacing 25 :space-evenly "false" :vexpand "false" :hexpand "false" 
@@ -98,7 +95,7 @@
 
 		;;  uptime 
 		(defwidget uptime [] 
-			(box :class "genwin" 
+			(box :class "genwin uptime" 
 				(box :orientation "h" :halign "center" :spacing 40 :space-evenly "false" :vexpand "false" :hexpand "false" 
 					(label :class "icontimer" :valign "center" :text "祥")
 					(box :orientation "v" :valign "center" :spacing 0 :space-evenly "false" :vexpand "false" :hexpand "false" 
@@ -107,7 +104,7 @@
 
 		;;  Music 
 		(defwidget music [] 
-			(box :class "genwin" :orientation "v" :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(box :class "genwin music" :orientation "v" :space-evenly "false" :vexpand "false" :hexpand "false" 
 				;;(box :class "album_art" :vexpand "false" :hexpand "false" :style "background-image: url('{{COVER}}');")
 				(box :orientation "v" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false" 
 					(label :halign "center" :class "song" :wrap "true" :limit-width 15 :text SONG)
@@ -117,11 +114,11 @@
 						(button :class "btn_play" :onclick "playerctl play-pause" {STATUS != "Playing" ? "" : "" })
 						(button :class "btn_next" :onclick "playerctl next" "怜"))
 					(box :class "music_bar" :halign "center" :vexpand "false" :hexpand "false" 
-						(scale :onscroll "playerctl position 1 +" :min 0 :active "true" :max 100 :value CURRENT)))))
+						(scale :onscroll "playerctl position 1 +" :min 0 :active "true" :max {MUSIC_LENGTH/1000000} :value CURRENT)))))
 
 		(defwidget web1 [] 
 			(box :class "web1" :vexpand "false" :hexpand "false" 
-				(button :class "iconweb" :onclick "~/.config/eww/scripts/trigger close;firefox --new-tab https://github.com" "")))
+				(button :class "iconweb" :onclick "eww set control-center-enable=false;firefox --new-tab https://github.com" "")))
 
 		(defwidget web2 [] 
 			(box :class "web2" :vexpand "false" :hexpand "false" 
@@ -129,11 +126,11 @@
 
 		(defwidget web3 [] 
 			(box :class "web3" :vexpand "false" :hexpand "false" 
-				(button :class "iconweb" :onclick "~/.config/eww/scripts/trigger close;firefox --new-tab http://139.9.235.87:30003/zh-cn/" "ﲳ")))
+				(button :class "iconweb" :onclick "eww set control-center-enable=false;firefox --new-tab http://139.9.235.87:30003/zh-cn/" "ﲳ")))
 
 		(defwidget web4 [] 
 			(box :class "web4" :vexpand "false" :hexpand "false" 
-				(button :class "iconweb" :onclick "~/.config/eww/scripts/trigger close;firefox --new-tab https://search.nixos.org/packages" "")))
+				(button :class "iconweb" :onclick "eww set control-center-enable=false;firefox --new-tab https://search.nixos.org/packages" "")))
 
 		;;  mail 
 		(defwidget mail [] 
@@ -145,7 +142,7 @@
 
 		;;  weather 
 		(defwidget weather [] 
-			(box :class "genwin" 
+			(box :class "genwin weather" 
 				(box :orientation "v" :spacing 10 :space-evenly "false" :vexpand "false" :hexpand "false" 
 					(box :orientation "h" :vexpand "false" :hexpand "false" 
 						(label :class "iconweather" :halign "start" :style "color: ${HEX};" :text ICON)
@@ -174,10 +171,10 @@
 		;;  power buttons 
 		(defwidget logout [] 
 			(box :class "genwin" :vexpand "false" :hexpand "false" 
-				(button :class "btn_logout" :onclick "openbox --exit" "﫼")))
+				(button :class "btn_logout" :onclick "i3lock -c '#000000' -n -u & /run/current-system/sw/bin/systemctl suspend && fg && sleep 2 && amixer set Master 0%" "﫼")))
 		(defwidget sleep [] 
 			(box :class "genwin" :vexpand "false" :hexpand "false" 
-				(button :class "btn_sleep" :onclick "~/.config/eww/scripts/trigger close; i3lock -c '#000000' -u" "⏾")))
+				(button :class "btn_sleep" :onclick "eww set control-center-enable=false; i3lock -c '#000000' -u -n && amixer set Master 0%" "⏾")))
 		(defwidget reboot [] 
 			(box :class "genwin" :vexpand "false" :hexpand "false" 
 				(button :class "btn_reboot" :onclick "systemctl reboot" "")))
@@ -193,7 +190,7 @@
 
 		;;  folders 
 		(defwidget folders [] 
-			(box :class "genwin" :orientation "v" :space-evenly "false" :vexpand "false" :hexpand "false"			(box :class "hddbox" :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(box :class "genwin folders" :orientation "v" :space-evenly "false" :vexpand "false" :hexpand "false"			(box :class "hddbox" :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
 					(box :space-evenly "false" :vexpand "false" :hexpand "false"
 						(button :class "hddicon" :onclick "~/.config/eww/scripts/open_apps --fm" ""))
 					(label :class "fs_sep" :text "|")
@@ -238,6 +235,7 @@
 			    :geometry (geometry :x 515 :y 320 :width 350 :height 155)
 			     				(uptime))
 
+
 		;;  music 
 		(defwindow music :stacking "fg" :focusable "false" :screen 1 
 			    :geometry (geometry :x 515 :y 490 :width 350 :height 280)
@@ -273,10 +271,10 @@
 			    :geometry (geometry :x 1140 :y 490 :width 290 :height 280)
 			     				(apps))
 
-		(defpoll TODO :interval "5s"  "todo --database ~/.todo --mono --use-format display=eww | tail -n 5")
+		(defpoll TODO :run-while control-center-enable :interval "5s"  "todo --database ~/.todo --mono --use-format display=eww | tail -n 5")
 		(defwidget todo [] 
-			(box :class "genwin" :orientation "v" :space-evenly "false" :spacing 10 :vexpand "false" :hexpand "false" 
-       (centerbox :class "todo" :orientation "v"
+			(box :class "genwin todo" :orientation "v" :space-evenly "false" :spacing 10 :vexpand "false" :hexpand "false" 
+       (centerbox :class "todo_box" :orientation "v"
         (box :orientation "h" :class "todo_add_panel" :vexpand "false" :hexpand true :spacing 10 :space-evenly false
           (input :value "add todos" :onchange "echo" :hexpand true :class "todo_input" )
           ;;(combo-box-text :items ["veryhigh" "high" "medium" "default" "low" "verylow"])
@@ -321,7 +319,7 @@
 			     				(folders))
     
 (defwidget bar []
-  (centerbox :orientation "h"
+  (centerbox :class "bar" :orientation "h"
     (box (workspaces))
     (box time)
     (box (sidestuff))
@@ -364,7 +362,7 @@
        :orientation "h"
        :space-evenly false
        :halign "center"
-    music))
+       " ${ARTIST} - ${SONG}"))
 
 
 (defwidget metric [label value onchange]
@@ -390,6 +388,63 @@
                       :anchor "top center")
   :reserve (struts :side "top" :distance "3%")
   (bar))
+(defvar control-center-enable false)
+(defwindow control-center
+  :monitor 0
+  :windowtype "dock"
+  :wm-ignore true
+  :stacking "fg"
+  :focusable control-center-enable
+  :screen 1 
+  :geometry (geometry :x "0%"
+                      :y "0%"
+                      :anchor "center center")
+  (revealer :transition "crossfade" :duration "0.5s" :reveal control-center-enable
+   (box :orientation "h" :spacing 15 :space-evenly false
+    (box :orientation "v" :spacing 15 :space-evenly false
+     (user)
+     (system)
+    )
+    (box :orientation "v" :spacing 15 :space-evenly false
+     (box :orientation "h" :spacing 15 :space-evenly false
+      (box :orientation "v" :spacing 15 :space-evenly false
+       (clock)
+       (uptime)
+      )
+      (weather)
+     )
+     (box :orientation "h" :spacing 15 :space-evenly false
+      (music)
+      (todo)
+     )
+     (box :orientation "h" :spacing 15 :space-evenly false
+      (box :orientation "h" :spacing 15 :space-evenly false
+       (web1)
+       (web2)
+       (web3)
+       (web4)
+      )
+      (mail)
+     )
+     )
+     (box :orientation "v" :spacing 15 :space-evenly false
+      (box :orientation "h" :spacing 15 
+       (logout)
+       (sleep)
+      )
+      (box :orientation "h" :spacing 15 
+       (reboot)
+       (poweroff)
+      )
+      (folders)
+     )
+     )
+     )
+  )
+
+		(defwindow profile :stacking "fg" :focusable "false" :screen 1 
+			    :geometry (geometry :x 150 :y 150 :width 350 :height 440)
+			     				(user))
 
 (defwindow animation :stacking "fg" :focusable "false" :screen 1 
       :geometry (geometry :x 515 :y 785 :width 141 :height 145)
@@ -397,5 +452,5 @@
 (defwidget animation [] 
    (revealer :transition "crossfade" :duration 0.1 :style "background=#fff;" :reveal true
     (box :class "web1" :vexpand "false" :hexpand "false" 
-      (button :class "iconweb" :onclick "~/.config/eww/scripts/trigger close;firefox --new-tab https://github.com" "${SEC}")))
+      (button :class "iconweb" :onclick "eww set control-center-enable=false;firefox --new-tab https://github.com" "${SEC}")))
 )

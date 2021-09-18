@@ -51,6 +51,9 @@ rg() {
         exit
     fi
 }
+killall(){
+  killall `which $1`
+}
 
 zle -N                 cdParentKey
 zle -N                 cdUndoKey

@@ -10,19 +10,14 @@ let
 in {
   imports = [ ./hardware-configuration.nix ./fs.nix ];
 
-  hardware = {
-    opengl.driSupport32Bit = true;
-    opengl.enable = true;
-    opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
-    opengl.setLdLibraryPath = true;
-    nvidia.prime = {
-      # sync.enable = true;
-      offload.enable = true;
-      nvidiaBusId = "PCI:1:0:0";
-      intelBusId = "PCI:0:2:0";
-    };
-    # nvidia.package=config.boot.kernelPackages.nvidiaPackages.vulkan_beta;
-  };
+  # specialisation = {
+  # external-display.configuration = {
+  # system.nixos.tags = [ "external-display" ];
+  # hardware.nvidia.prime.offload.enable = lib.mkForce false;
+  # hardware.nvidia.powerManagement.enable = lib.mkForce false;
+  # };
+  # };
+
   boot.loader = {
     systemd-boot.enable = true;
     systemd-boot.configurationLimit = 5;
@@ -33,7 +28,7 @@ in {
     timeout = 1;
   };
   # boot.plymouth.enable = false;
-  boot.kernelPackages = pkgs.linuxPackages_5_13.extend (self: super: {
+  boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
     virtualbox = super.virtualbox.override { inherit (self) kernel; };
   });
   boot.extraModulePackages = with config.boot.kernelPackages; [
@@ -58,7 +53,8 @@ in {
     fontconfig = {
       enable = true;
       defaultFonts.emoji = [ "Noto Color Emoji" ];
-      defaultFonts.monospace = [ "Iosevka Terminal" "Source Code Pro Medium" "Hack" "Sarasa Mono SC" ];
+      defaultFonts.monospace =
+        [ "Iosevka Terminal" "Source Code Pro Medium" "Hack" "Sarasa Mono SC" ];
       defaultFonts.sansSerif =
         [ "Inter" "Liberation Sans" "Soruce Han Sans SC" ];
       defaultFonts.serif = [ "Liberation Serif" "Source Han Serif SC" ];
@@ -90,26 +86,83 @@ in {
     ];
     fontDir.enable = true;
   };
+    hardware = {
+      opengl.driSupport32Bit = true;
+      opengl.enable = true;
+      opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
+      opengl.extraPackages = with pkgs; [
+        vaapiIntel
+        libvdpau-va-gl
+        vaapiVdpau
+        intel-ocl
+      ];
+      opengl.setLdLibraryPath = true;
+      opengl.driSupport = true;
+      nvidia.prime = {
+        sync.enable = true;
+        sync.allowExternalGpu = true;
+        # offload.enable = true;
+        nvidiaBusId = "PCI:1:0:0";
+        intelBusId = "PCI:0:2:0";
+      };
+      # nvidia.package=config.boot.kernelPackages.nvidiaPackages.vulkan_beta;
+    };
   services = {
-    # power-profiles-daemon.enable = false;
-    # tlp.enable = true;
-    sshd.enable = true;
-    flatpak.enable = true;
     xserver = {
+      modules = [ pkgs.xorg.xf86videointel pkgs.xorg.xf86inputlibinput ];
+      videoDrivers = [
+        "nvidia"
+        # "modesetting"
+        # "nouveau"
+        # "intel"
+      ];
+ #     config = ''
+ #       Section "Monitor"
+ #         Identifier "monitor"
+ #       EndSection
+ #       Section "Device"
+ #           Identifier  "intel"
+ #           Driver      "intel"
+ #           #Option      "AccelMethod"  "sna" # default
+ #           #Option      "AccelMethod"  "uxa" # fallback
+ #           Option      "TearFree"        "true"
+ #           Option      "SwapbuffersWait" "true"
+ #           BusID       "PCI:0:2:0"
+ #           #Option      "DRI" "2"             # DRI3 is now default
+ #       EndSection
+ #       Section "Screen"
+ #         Identifier "Screen-intel"
+ #         Device "intel"
+ #         Monitor "monitor"
+ #       EndSection
+
+ #       Section "Device"
+ #           Identifier "nvidia"
+ #           Driver "nvidia"
+ #           BusID "PCI:1:0:0"
+ #           Option "AllowEmptyInitialConfiguration"
+ #       EndSection
+ #       Section "Monitor"
+ #         Identifier "monitor1"
+ #       EndSection
+ #       Section "Screen"
+ #         Identifier "Screen-nvidia"
+ #         Device "nvidia"
+ #         Monitor "monitor1"
+ #       EndSection
+
+ #       Section "ServerLayout"
+ #         Identifier "DupScreen"
+ #         Option "AllowNVIDIAGPUScreens" "true"
+ #         Screen "Screen-intel"
+ #         Screen "Screen-nvidia"
+ #       EndSection
+ #     '';
       enable = true;
       exportConfiguration = true;
-      videoDrivers = [
-        # "intel"
-        # "modesetting"
-        "nvidia"
-        # "nouveau"
-      ];
-      # deviceSection = ''
-      # Option "TearFree" "true"
-      # '';
-      displayManager.gdm.enable = true;
-      displayManager.gdm.wayland = false;
-      # displayManager.lightdm.enable= true;
+      # displayManager.gdm.enable = true;
+      # displayManager.gdm.wayland = false;
+      displayManager.lightdm.enable= true;
       desktopManager.gnome.enable = true;
       # desktopManager.plasma5.enable = true;
       # desktopManager.mate.enable = true;
@@ -124,10 +177,13 @@ in {
           accelSpeed = "1.0";
         };
       };
-      modules = [ pkgs.xorg.xf86videointel pkgs.xorg.xf86inputlibinput ];
     };
     # snapper.snapshotInterval = "daily";
     # NetworkManager-wait-online.enable = false;
+    # power-profiles-daemon.enable = false;
+    # tlp.enable = true;
+    sshd.enable = true;
+    flatpak.enable = true;
   };
   systemd.services.NetworkManager-wait-online.enable = false;
   systemd.services.touchegg = {
@@ -146,13 +202,13 @@ in {
   };
   systemd.services.snapper-snapshot = {
     serviceConfig.Type = "oneshot";
-    script =''
-        for i in `ls /etc/snapper/configs/`
-        do
-          ${pkgs.snapper}/bin/snapper -c $i create -c timeline -d timeline
-          ${pkgs.snapper}/bin/snapper -c $i cleanup timeline
-        done
-      '';
+    script = ''
+      for i in `ls /etc/snapper/configs/`
+      do
+        ${pkgs.snapper}/bin/snapper -c $i create -c timeline -d timeline
+        ${pkgs.snapper}/bin/snapper -c $i cleanup timeline
+      done
+    '';
   };
   systemd.timers.snapper-snapshot = {
     wantedBy = [ "timers.target" ];
@@ -209,6 +265,8 @@ in {
     # config.boot.kernelPackages.perf
     perf-tools
     btrfs-progs
+    criu
+    docker-compose
   ];
   i18n.inputMethod = {
     enabled = "ibus";
@@ -256,7 +314,7 @@ in {
       host = {
         enable = true;
         enableHardening = true;
-        enableExtensionPack = true;
+        # enableExtensionPack = true;
       };
     };
     docker = {

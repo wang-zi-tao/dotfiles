@@ -3,8 +3,9 @@ import           Control.Arrow                        (first)
 import qualified Data.Map                             as M
 import           System.Exit                          (exitSuccess)
 import           XMonad                               hiding ((|||))
-import           XMonad.Actions.Navigation2D          (Direction2D (L, R),
+import           XMonad.Actions.Navigation2D          (Direction2D (D, L, R, U),
                                                        windowGo,
+                                                       windowSwap,
                                                        withNavigation2DConfig)
 
 import qualified Codec.Binary.UTF8.String             as UTF8
@@ -58,14 +59,12 @@ myLayout =  avoidStruts $ smartBorders
   (
   spiralgaps
   ||| threeCol
-  ||| bspgaps
-  ||| tiledgaps
+  -- ||| bspgaps
+  -- ||| tiledgaps
   ||| StateFull
-  -- ||| TwoPane 15/100 55/100
-  -- ||| Mirror (Tall 1 10/100 60/100)
   ||| myThinGaps Grid
-  ||| simpleTabbed
-  ||| Mirror tiledgaps
+  -- ||| simpleTabbed
+  -- ||| Mirror tiledgaps
   )
  where
   threeCol   = myGaps $ ThreeCol 1 (3/100) (1/2)
@@ -104,9 +103,10 @@ myBorderWidth = 2
 myPromptHeight :: Dimension
 myPromptHeight = 30
 myNormalBorderColor :: String
-myNormalBorderColor = "#d6778c"
+-- myNormalBorderColor = "#d6778c"
+myNormalBorderColor = "#D35D6E"
 myFocusedBorderColor :: String
-myFocusedBorderColor = "#de766c"
+myFocusedBorderColor = "#ffffff"
 myGaps = spacingRaw False (Border 4 4 4 4) True (Border 4 4 4 4) True
 myThinGaps = spacingRaw False (Border 2 2 2 2) True (Border 2 2 2 2) True
 myNavigation :: TwoD a (Maybe a)
@@ -132,7 +132,8 @@ myNavigation = makeXEventhandler $ shadowWithKeymap navKeyMap navDefaultHandler
        -- The navigation handler ignores unknown key symbols
        navDefaultHandler = const myNavigation
 myGsconfig colorizer = (buildDefaultGSConfig colorizer)
-        {gs_cellheight = 50
+        {gs_cellheight = 200
+        ,gs_cellpadding = 10
         ,gs_cellwidth = 200
         ,gs_navigate = myNavigation
         ,gs_font = "xft:SpaceMono Nerd Font-11"
@@ -153,12 +154,15 @@ myKeys =
   , ("M-S-c", kill) -- Close focused application
   , ("M-o", spawn "light-locker-command -l") -- lock screen
   , ("M-S-q", confirmPrompt myXPConfig "exit" $ io exitSuccess) -- prompt to kill xmonad
-  , ("M-q", spawn "xmonad --recompile; xmonad --restart") -- Recompile and restart xmonad
+  , ("M-q", spawn "xmonad --restart") 
 
   , ("M-r", spawn $ myTerminal ++ " -e ranger")
   , ("M-b", spawn "firefox")
   , ("M-p", spawn "gpaste-client ui")
   , ("M-e", spawn "~/.emacs_anywhere/bin/run")
+  , ("M-v", spawn "qv2ray")
+  , ("M-n", spawn "nautilus")
+  , ("M-S-z", spawn "alacritty -e zsh")
 
   , ("M-x", namedScratchpadAction myScratchPads "terminal")
   , ("M-z", spawn "~/.config/eww/scripts/trigger")
@@ -176,6 +180,9 @@ myKeys =
   , ("<XF86AudioRaiseVolume>", spawn "amixer set Master 5%+")
   , ("<XF86AudioLowerVolume>", spawn "amixer set Master 5%-")
 
+  , ("<Print>", spawn "scrot '截图_%Y%m%d_%H%M%S.png' -e 'mkdir -p ~/图片 && mv $f ~/图片 && xclip -selection clipboard -t image/png -i ~/图片/`ls -1 -t ~/图片 | head -1`'")
+  , ("S-<Print>", spawn "scrot -s '截图_%Y%m%d_%H%M%S.png' -e 'mkdir -p ~/图片 && mv $f ~/图片 && xclip -selection clipboard -t image/png -i ~/图片/`ls -1 -t ~/图片 | head -1`' # Area selection")
+
   , ("M-<Space>", sendMessage NextLayout) -- Change to next layout in order
 
   -- , ("M-t", sendMessage $ JumpToLayout "Spacing Tall")
@@ -185,19 +192,15 @@ myKeys =
   -- , ("M-s", sendMessage $ JumpToLayout "Spacing Spiral")
   , ("M-f", goToSelected $ myGsconfig defaultColorizer)
 
-
   , ("M-S-t", withFocused $ windows . W.sink) -- unfloat window
 
-  -- , ("M-r", refresh)
+  , ("M-<Page_Down>", moveTo Next NonEmptyWS)
+  , ("M-<Page_Up>", moveTo Prev NonEmptyWS)
+  , ("M-S-<Page_Down>", shiftToNext >> nextWS)
+  , ("M-S-<Page_Up>", shiftToPrev >> prevWS)
 
-  -- focus horizontally like i3wm
   , ("M-h", windowGo L False)
   , ("M-l", windowGo R False)
-  , ("M-<R>", moveTo Next NonEmptyWS)
-  , ("M-<L>", moveTo Prev NonEmptyWS)
-  , ("M-S-<R>", shiftToNext >> nextWS)
-  , ("M-S-<L>", shiftToPrev >> prevWS)
-
   , ("M-j", windows W.focusDown)
   , ("M-k", windows W.focusUp)
   , ("M-g", windows W.focusMaster)
@@ -207,6 +210,18 @@ myKeys =
 
   , ("M-S-h", sendMessage Shrink)
   , ("M-S-l", sendMessage Expand)
+
+   -- Directional navigation of windows
+   , ("M-<R>", windowGo R False)
+   , ("M-<L>", windowGo L False)
+   , ("M-<U>", windowGo U False)
+   , ("M-<D>", windowGo D False)
+
+   -- Swap adjacent windows
+   , ("M-S-<R>", windowSwap R False)
+   , ("M-S-<L>", windowSwap L False)
+   , ("M-S-<U>", windowSwap U False)
+   , ("M-S-<D>", windowSwap D False)
 
   , ("M-,", do
         layout <- getActiveLayoutDescription
@@ -267,7 +282,7 @@ myEmojiXPConfig = def { font              = myEmojiFont
 myFocusFollowsMouse :: Bool
 myFocusFollowsMouse = True
 myClickJustFocuses :: Bool
-myClickJustFocuses = False
+myClickJustFocuses = True
 
 myMouseBindings XConfig { XMonad.modMask = modm } = M.fromList
 
@@ -310,9 +325,11 @@ myScratchPads =
     customFloating $ W.RationalRect centrall centralt centralw centralh
 myManageHook =
   composeAll
-      [ className =? "Gimp" --> doFloat
+      [ title =? "GIMP 启动" --> doFloat
       , className =? "qv2ray" --> doFloat
+      , className =? "Org.gnome.Nautilus" --> doFloat
       , className =? "feh" --> doFloat
+      , className =? "VirtualBox Manager" --> doFloat
       , className =? "Gnome-system-monitor" --> doFloat
       , className =? "kdeconnect-app" --> doFloat
       , resource =? "desktop_window" --> doIgnore
@@ -327,10 +344,11 @@ myStartupHook = do
   spawnOnce "nm-applet"
   -- spawnOnce "polybar main"
   -- spawn "killall polybar; polybar left & polybar center & polybar right &"
-  spawn "killall eww; eww open bar"
+  spawn "killall eww; eww open-many bar bar1"
   spawnOnce "kdeconnect-indicator"
   spawnOnce "sleep 1 ; amixer set Master 0%"
   spawn "gpaste-client start"
+  spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080 --rotate normal --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal"
   -- setDefaultCursor xC_left_ptr
   -- spawn Japanese IME
   -- spawnOnce "fcitx -d &"
@@ -437,4 +455,7 @@ main' dbus = do
       , handleEventHook    = myEventHook
       , logHook            = (myPolybarLogHook dbus)
       , startupHook        = myStartupHook
+      -- clientMask
+      -- rootMask
+      -- handleExtraArgs
       } `additionalKeysP` myKeys

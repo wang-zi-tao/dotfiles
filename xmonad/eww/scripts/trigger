@@ -1,26 +1,19 @@
-if xdotool search --class 'eww-folders'
+if xdotool search --class 'eww-control-center'
 then
- eww close eww &
- eww close open-many &
- eww close open-many &
- eww close weather &
- eww close profile &
- eww close system &
- eww close clock &
- eww close uptime &
- eww close music &
- eww close web1 &
- eww close web2 &
- eww close web3 &
- eww close web4 &
- eww close todo &
- eww close mail &
- eww close logout &
- eww close sleep &
- eww close reboot &
- eww close poweroff &
- eww close folders&
+ eww close control-center
 else
- eww open-many weather profile system clock uptime music web1 web2 web3 web4 todo mail logout sleep reboot poweroff folders
+ eww update control-center-enable=true
+ eww open control-center
 fi
 
+#STATE=`eww state|grep control-center`
+#if [[ $STATE == 'control-center-enable: false' ]] 
+#then
+#  eww update control-center-enable=true
+#elif [[ $STATE == 'control-center-enable: true' ]] 
+#then
+#  eww update control-center-enable=false
+#else
+#  eww open control-center
+#  eww update control-center-enable=true
+#fi

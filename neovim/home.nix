@@ -15,7 +15,7 @@ in {
       vimAlias = true;
       withNodeJs = true;
       withPython3 = true;
-      plugins = with pkgs.unstable.vimPlugins;
+      plugins = with pkgs.vimPlugins;
         ([
           coc-spell-checker
           coc-highlight
@@ -51,7 +51,7 @@ in {
         ] else
           [ ]));
       extraConfig = ''
-        execute 'source' '${pkgs.unstable.spacevim}/SpaceVim/init.vim'
+        execute 'source' '${pkgs.spacevim}/SpaceVim/init.vim'
       '' + builtins.readFile ./init.vim;
     };
     home.file.".SpaceVim.d/init.toml".text =

@@ -2,14 +2,14 @@
 , naersk, system, pango, glib, ... }:
 
 let
-  rust-env = pkgs.fenix.combine (with pkgs.fenix.minimal; [
-    cargo
-    rust-std
-    rustc
-  ]);
+  rust-env = pkgs.fenix.toolchainOf {
+    channel = "nightly";
+    date = "2021-08-29";
+    sha256 = "sha256:04p16i813mib6i7srysirqrgh6yrqhz231nldllcxxbbhf9ck090";
+  };
   naersk-lib = (naersk.lib."${system}".override {
-    cargo = rust-env;
-    rustc = rust-env;
+    cargo = rust-env.cargo;
+    rustc = rust-env.rustc;
   });
 in naersk-lib.buildPackage rec {
   pname = "eww";
@@ -22,7 +22,6 @@ in naersk-lib.buildPackage rec {
     sha256 = "sha256-jweiNNW1XHo6PhUu+EI83yXzhB3L/C2F8E+C/KH6Crw=";
   };
 
-  cargoSha256 = "sha256-jDCLalMENNXAFo0iLWDeuXglnfOzDoQmGwlQPv+ndbw=";
   PKG_CONFIG_PATH = pkgs.lib.concatStrings (map (x: "${x.dev}/lib/pkgconfig:")
     (with pkgs; [ gtk3 glib pango cairo harfbuzz atk gdk-pixbuf ]));
   nativeBuildInputs = with pkgs; [ pkg-config gtk3 glib ];

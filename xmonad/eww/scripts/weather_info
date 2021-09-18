@@ -9,7 +9,7 @@ cache_weather_icon=${cache_dir}/weather-icon
 
 ## Weather data
 KEY="fb99bcdaeab53d643557bf4fc227679b"
-CITY="chongqing,CN"
+CITY="kunming,CN"
 UNIT="metric"	# Available options : 'metric' or 'imperial'
 
 ## Make cache dir
