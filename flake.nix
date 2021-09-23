@@ -36,7 +36,19 @@
         overlays = attrValues self.overlays;
       };
 
-      defaults = { pkgs, ... }: { imports = [ ]; };
+      defaults = { pkgs, ... }: {
+        imports = [ ];
+        inherit pkgs;
+        nix = {
+          extraOptions = "experimental-features = nix-command flakes";
+          package = pkgs.nixFlakes;
+          gc.automatic = true;
+          gc.dates = "weekly";
+          gc.options = "-d";
+        };
+        optimise.automatic = true;
+        time.timeZone = "Asia/Shanghai";
+      };
     in {
       overlays = let
         overlayFiles = listToAttrs (map (name: {
@@ -103,19 +115,16 @@
           inherit pkgs;
         };
       };
-      huawei-cloud-ecs-623a=home-manager.lib.homeManagerConfiguration {
+      huawei-cloud-ecs-623a = home-manager.lib.homeManagerConfiguration {
         configuration = {
-                imports = [
-                  ./zsh/home.nix
-                  ./tmux/home.nix
-                  ./git/home.nix
-                  ./neovim/home.nix
-                ];
-                home.packages =
-                  (with pkgs; [ autojump killall curl wget unzip ]);
+          imports =
+            [ ./zsh/home.nix ./tmux/home.nix ./git/home.nix ./neovim/home.nix ];
+          nixpkgs.config = { modules = [ defaults ]; };
+          home.packages = (with pkgs; [ killall curl wget unzip ]);
         };
-        system = "x86_64";
+        system = "x86_64-linux";
         username = "root";
+        homeDirectory = "/root/";
       };
     };
-
+}
