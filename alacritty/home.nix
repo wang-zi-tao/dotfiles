@@ -2,27 +2,40 @@
 let
   setting = ''
     colors:
-      bright:
-        black: '0x198388'
-        blue: '0x277FFF'
-        cyan: '0x05A1F7'
-        green: '0x47D4B9'
-        magenta: '0x962AC3'
-        red: '0xEC0101'
-        white: '0xFFFFFF'
-        yellow: '0xFF8A18'
       normal:
-        black: '0x1F2229'
-        blue: '0x367BF0'
-        cyan: '0x49AEE6'
-        green: '0x5EBDAB'
-        magenta: '0x9755B3'
-        red: '0xD41919'
-        white: '0xE6E6E6'
-        yellow: '0xFEA44C'
+        black:   '#1e2127'
+        red:     '#e06c75'
+        green:   '#98c379'
+        yellow:  '#d19a66'
+        blue:    '#61afef'
+        magenta: '#c678dd'
+        cyan:    '#56b6c2'
+        white:   '#828791'
+
+      # Bright colors
+      bright:
+        black:   '#5c6370'
+        red:     '#e06c75'
+        green:   '#98c379'
+        yellow:  '#d19a66'
+        blue:    '#61afef'
+        magenta: '#c678dd'
+        cyan:    '#56b6c2'
+        white:   '#e6efff'
+
+      # Dim colors
+      dim:
+        black:   '#1e2127'
+        red:     '#e06c75'
+        green:   '#98c379'
+        yellow:  '#d19a66'
+        blue:    '#61afef'
+        magenta: '#c678dd'
+        cyan:    '#56b6c2'
+        white:   '#828791'
       primary:
-        background: '0x000000'
-        foreground: '0xFFFFFF'
+        background: '#000000'
+        foreground: '#FFFFFF'
     font:
       glyph_offset:
         x: 0
@@ -38,9 +51,9 @@ let
 in {
   programs.alacritty = { enable = true; };
   home.file.".config/alacritty/alacritty.yml".text = setting + ''
-    background_opacity: 0.45
+    background_opacity: 0.16
   '';
   home.file.".config/alacritty/alacritty-drop.yml".text = setting + ''
-    background_opacity: 0.75
+    background_opacity: 0.64
   '';
 }

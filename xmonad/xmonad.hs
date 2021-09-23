@@ -4,8 +4,7 @@ import qualified Data.Map                             as M
 import           System.Exit                          (exitSuccess)
 import           XMonad                               hiding ((|||))
 import           XMonad.Actions.Navigation2D          (Direction2D (D, L, R, U),
-                                                       windowGo,
-                                                       windowSwap,
+                                                       windowGo, windowSwap,
                                                        withNavigation2DConfig)
 
 import qualified Codec.Binary.UTF8.String             as UTF8
@@ -16,19 +15,16 @@ import qualified XMonad.Actions.DynamicWorkspaceOrder as DO
 import           XMonad.Actions.GridSelect
 import           XMonad.Actions.GroupNavigation
 import           XMonad.Actions.ShowText
-import           XMonad.Config.Kde
 import           XMonad.Hooks.DynamicLog
-import           XMonad.Hooks.EwmhDesktops
-import           XMonad.Hooks.EwmhDesktops            (ewmh,
-                                                       fullscreenEventHook)
+import           XMonad.Hooks.EwmhDesktops            (ewmh)
 import           XMonad.Hooks.ManageDocks             (avoidStruts, docks)
 import           XMonad.Hooks.ManageHelpers           (doFullFloat,
                                                        isFullscreen)
+import           XMonad.Hooks.Place
 import           XMonad.Layout.AutoMaster
 import           XMonad.Layout.BinarySpacePartition   (Rotate (Rotate),
                                                        Swap (Swap), emptyBSP)
-import           XMonad.Layout.Fullscreen             (fullscreenFull,
-                                                       fullscreenSupport)
+import           XMonad.Layout.Fullscreen
 import           XMonad.Layout.Grid                   (Grid (..))
 import           XMonad.Layout.LayoutCombinators      (JumpToLayout (JumpToLayout),
                                                        (|||))
@@ -41,6 +37,7 @@ import           XMonad.Layout.StateFull
 import           XMonad.Layout.Tabbed                 (simpleTabbed)
 import           XMonad.Layout.ThreeColumns
 import           XMonad.Layout.TwoPane                (TwoPane (..))
+import           XMonad.Operations
 import           XMonad.Prompt
 import           XMonad.Prompt.ConfirmPrompt          (confirmPrompt)
 import           XMonad.Prompt.FuzzyMatch             (fuzzyMatch)
@@ -55,60 +52,6 @@ import           XMonad.Util.Run                      (hPutStrLn, spawnPipe)
 import           XMonad.Util.SpawnOnce                (spawnOnce)
 -- import XMonad.Layout.WindowNavigation
 -- import XMonad.Actions.GroupNavigation
-myLayout =  avoidStruts $ smartBorders
-  (
-  spiralgaps
-  ||| threeCol
-  -- ||| bspgaps
-  -- ||| tiledgaps
-  ||| StateFull
-  ||| myThinGaps Grid
-  -- ||| simpleTabbed
-  -- ||| Mirror tiledgaps
-  )
- where
-  threeCol   = myGaps $ ThreeCol 1 (3/100) (1/2)
-  tiledgaps  = myGaps $ Tall nmaster delta ratio
-  -- window number in master pane
-  nmaster    = 1
-  -- percent of screen to increment by when resizing panes
-  delta      = 2 / 100
-  -- default proportion of screen occupied by master pane
-  ratio      = 0.618
-
-  bspgaps    = myGaps emptyBSP
-  spiralgaps = myGaps $ spiral (6 / 7)
-myModMask :: KeyMask
-myModMask = mod4Mask
-myTerminal :: String
-myTerminal = "alacritty"
-myFont :: String
-myFont = "xft:Noto Sans:size=10"
-myEmojiFont :: String
-myEmojiFont = "xft:Apple Color Emoji:size=11"
-myWorkspaces :: [String]
-myWorkspaces =
-  [ "1:\xf269"
-  , "2:\xf120"
-  , "3:\xe7a8"
-  , "4:\xf48a"
-  , "5:\xf126"
-  , "6:\xf121"
-  , "7:\xf313"
-  , "8:\xf308"
-  , "9:\xf872"
-  ]
-myBorderWidth :: Dimension
-myBorderWidth = 2
-myPromptHeight :: Dimension
-myPromptHeight = 30
-myNormalBorderColor :: String
--- myNormalBorderColor = "#d6778c"
-myNormalBorderColor = "#D35D6E"
-myFocusedBorderColor :: String
-myFocusedBorderColor = "#ffffff"
-myGaps = spacingRaw False (Border 4 4 4 4) True (Border 4 4 4 4) True
-myThinGaps = spacingRaw False (Border 2 2 2 2) True (Border 2 2 2 2) True
 myNavigation :: TwoD a (Maybe a)
 myNavigation = makeXEventhandler $ shadowWithKeymap navKeyMap navDefaultHandler
  where navKeyMap = M.fromList [
@@ -151,14 +94,16 @@ myKeys :: [(String, X ())]
 myKeys =
   [
     ("M-<Return>", spawn myTerminal)
-  , ("M-S-c", kill) -- Close focused application
+  , ("M-S-c", kill)
+  , ("M-Delete", kill)
   , ("M-o", spawn "light-locker-command -l") -- lock screen
   , ("M-S-q", confirmPrompt myXPConfig "exit" $ io exitSuccess) -- prompt to kill xmonad
-  , ("M-q", spawn "xmonad --restart") 
+  , ("M-q", spawn "xmonad --restart")
 
   , ("M-r", spawn $ myTerminal ++ " -e ranger")
   , ("M-b", spawn "firefox")
   , ("M-p", spawn "gpaste-client ui")
+  , ("M-o", spawn "kdeconnect-app")
   , ("M-e", spawn "~/.emacs_anywhere/bin/run")
   , ("M-v", spawn "qv2ray")
   , ("M-n", spawn "nautilus")
@@ -168,7 +113,7 @@ myKeys =
   , ("M-z", spawn "~/.config/eww/scripts/trigger")
 
   -- , ("M-d", shellPrompt myXPConfig)
-  ,("M-d", spawn "rofi -combi-modi window,run,drun -show combi -modi combi")
+  , ("M-d", spawn "rofi -combi-modi window,run,drun -show combi -modi combi")
   , ("C-M-d", spawn "rofi -show run")
   , ("C-M-l", spawn "light-locker")
   , ("M-<Esc>", nextMatch Forward isOnAnyVisibleWS)
@@ -186,18 +131,24 @@ myKeys =
   , ("M-<Space>", sendMessage NextLayout) -- Change to next layout in order
 
   -- , ("M-t", sendMessage $ JumpToLayout "Spacing Tall")
-  -- , ("M-f", sendMessage $ JumpToLayout "Full")
+  , ("M-f", sendMessage $ JumpToLayout "StateFull")
   -- , ("M-m", sendMessage $ JumpToLayout "Mirror Spacing Tall")
   -- , ("M-n", sendMessage $ JumpToLayout "Spacing BSP")
   -- , ("M-s", sendMessage $ JumpToLayout "Spacing Spiral")
-  , ("M-f", goToSelected $ myGsconfig defaultColorizer)
+  -- , ("M-f", goToSelected $ myGsconfig defaultColorizer)
 
   , ("M-S-t", withFocused $ windows . W.sink) -- unfloat window
+  , ("M-a", placeFocused $ underMouse (0,0))
 
   , ("M-<Page_Down>", moveTo Next NonEmptyWS)
   , ("M-<Page_Up>", moveTo Prev NonEmptyWS)
   , ("M-S-<Page_Down>", shiftToNext >> nextWS)
   , ("M-S-<Page_Up>", shiftToPrev >> prevWS)
+
+  , ("M-<KP_Page_Down>", moveTo Next NonEmptyWS)
+  , ("M-<KP_Page_Up>", moveTo Prev NonEmptyWS)
+  , ("M-S-<KP_Page_Down>", shiftToNext >> nextWS)
+  , ("M-S-<KP_Page_Up>", shiftToPrev >> prevWS)
 
   , ("M-h", windowGo L False)
   , ("M-l", windowGo R False)
@@ -206,7 +157,7 @@ myKeys =
   , ("M-g", windows W.focusMaster)
   , ("M-S-j", windows W.swapDown)
   , ("M-S-k", windows W.swapUp)
-  , ("M-S-g", windows W.swapMaster)
+  , ("M-S-<Return>", windows W.swapMaster)
 
   , ("M-S-h", sendMessage Shrink)
   , ("M-S-l", sendMessage Expand)
@@ -329,9 +280,11 @@ myManageHook =
       , className =? "qv2ray" --> doFloat
       , className =? "Org.gnome.Nautilus" --> doFloat
       , className =? "feh" --> doFloat
+      , className =? "kdeconnect.app" --> doFloat
       , className =? "VirtualBox Manager" --> doFloat
       , className =? "Gnome-system-monitor" --> doFloat
       , className =? "kdeconnect-app" --> doFloat
+      , className =? "org.jackhuang.hmcl.Launcher" --> doFloat
       , resource =? "desktop_window" --> doIgnore
       , isFullscreen --> doFullFloat
       ]
@@ -342,32 +295,69 @@ myStartupHook = do
   spawnOnce "qv2ray"
   spawnOnce "sleep 1 && ibus-daemon --xim"
   spawnOnce "nm-applet"
-  -- spawnOnce "polybar main"
-  -- spawn "killall polybar; polybar left & polybar center & polybar right &"
-  spawn "killall eww; eww open-many bar bar1"
+  spawn "killall eww; eww open-many bar"
   spawnOnce "kdeconnect-indicator"
   spawnOnce "sleep 1 ; amixer set Master 0%"
   spawn "gpaste-client start"
   spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080 --rotate normal --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal"
-  -- setDefaultCursor xC_left_ptr
-  -- spawn Japanese IME
-  -- spawnOnce "fcitx -d &"
-  -- start screen locker
+  spawn "xhost +"
   -- spawnOnce "light-locker --lock-on-suspend &"
-  -- window animation
-  -- spawnOnce "flashfocus &"
-myLogHook h = dynamicLogWithPP xmobarPP
-  { ppOutput          = hPutStrLn h
-  , ppSort            = fmap (namedScratchpadFilterOutWorkspace .) (ppSort def) -- hide nsp
-  , ppCurrent         = xmobarColor "#03befc" "" -- Current workspace
-  , ppVisible         = xmobarColor "#03fcfc" ""
-  , ppHidden          = xmobarColor "#bfffff" ""
-  , ppHiddenNoWindows = xmobarColor "#FFFFFF" ""
-  , ppLayout          = xmobarColor "#82aaff" ""
-  , ppSep             = " | "
-  , ppTitle           = mempty
-  }
-myPolybarLogHook dbus = dynamicLogWithPP (polybarHook dbus) <+> historyHook
+myLayout =  avoidStruts $ smartBorders
+  (
+  spiralgaps
+  ||| threeCol
+  -- ||| bspgaps
+  -- ||| tiledgaps
+  -- ||| StateFull
+  ||| (noBorders $ fullscreenFull StateFull)
+  ||| myThinGaps Grid
+  -- ||| simpleTabbed
+  -- ||| Mirror tiledgaps
+  )
+ where
+  threeCol   = myGaps $ ThreeCol 1 (3/100) (1/2)
+  tiledgaps  = myGaps $ Tall nmaster delta ratio
+  -- window number in master pane
+  nmaster    = 1
+  -- percent of screen to increment by when resizing panes
+  delta      = 2 / 100
+  -- default proportion of screen occupied by master pane
+  ratio      = 0.618
+
+  bspgaps    = myGaps emptyBSP
+  spiralgaps = myGaps $ spiral (6 / 7)
+myModMask :: KeyMask
+myModMask = mod4Mask
+myTerminal :: String
+myTerminal = "alacritty"
+myFont :: String
+myFont = "xft:Noto Sans:size=10"
+myEmojiFont :: String
+myEmojiFont = "xft:Apple Color Emoji:size=11"
+myWorkspaces :: [String]
+myWorkspaces =
+  [ "1:\xf269"
+  , "2:\xf120"
+  , "3:\xe7a8"
+  , "4:\xf48a"
+  , "5:\xf126"
+  , "6:\xf121"
+  , "7:\xf313"
+  , "8:\xf308"
+  , "9:\xf872"
+  ]
+myBorderWidth :: Dimension
+myBorderWidth = 2
+myPromptHeight :: Dimension
+myPromptHeight = 30
+myNormalBorderColor :: String
+-- myNormalBorderColor = "#d6778c"
+myNormalBorderColor = "#D35D6E"
+myFocusedBorderColor :: String
+myFocusedBorderColor = "#ffffff"
+myGaps = spacingRaw False (Border 4 4 4 4) True (Border 4 4 4 4) True
+myThinGaps = spacingRaw False (Border 2 2 2 2) True (Border 2 2 2 2) True
+myPolybarLogHook dbus = dynamicLogWithPP (barHook dbus) <+> historyHook
 myEventHook = handleEventHook def <+> fullscreenEventHook
 getActiveLayoutDescription :: X String
 getActiveLayoutDescription = do
@@ -391,28 +381,29 @@ dbusOutput dbus str =
       body   = [D.toVariant $ UTF8.decodeString str]
   in  D.emit dbus $ signal { D.signalBody = body }
 
-polybarHook :: D.Client -> PP
-polybarHook dbus =
-  let wrapper c s | s /= "NSP" = wrap ("(label :style \"color:" <> c <> ";\" :text \"") "\")" s
+barHook :: D.Client -> PP
+barHook dbus =
+  let wrapper c s | s /= "NSP" = wrap ("(ws :type \"" <> c <> "\" :text \"") "\")" s
                   | otherwise  = mempty
-      blue   = "#2E9AFE"
-      gray   = "#7F7F7F"
-      orange = "#ea4300"
-      purple = "#9058c7"
-      red    = "#ff0000"
+      wrapper_layout s = wrap ("(layout :text \"") "\")" s
+      layout_map x | x == "Spacing Spiral" = wrapper_layout "\xfa6d"
+                   | x == "Spacing ThreeCol" = wrapper_layout "\xfc26"
+                   | x == "StateFull" = wrapper_layout "\xf792"
+                   | x == "Spacing Grid" = wrapper_layout "\xfa6f"
+                   | otherwise             = wrapper_layout x
   in  def { ppOutput          = dbusOutput dbus
-          , ppCurrent         = wrapper blue
-          , ppVisible         = wrapper "#ffffff"
-          , ppUrgent          = wrapper orange
-          , ppHidden          = wrapper "#eeeeee"
-          , ppHiddenNoWindows = wrapper "#cccccc"
-          , ppLayout          = wrapper "#ffffff"
+          , ppCurrent         = wrapper "highlight-workspace"
+          , ppVisible         = wrapper "normal-workspace"
+          , ppUrgent          = wrapper "normal-workspace"
+          , ppHidden          = wrapper "normal-workspace"
+          , ppHiddenNoWindows = wrapper "normal-workspace"
+          , ppLayout          = layout_map
           , ppTitle           = mempty
           , ppSep             = ""
-          , ppOrder           = \(ws:_:t:_) -> [ws]
+          , ppOrder           = reverse
           }
--- polybarHook :: D.Client -> PP
--- polybarHook dbus =
+-- barHook :: D.Client -> PP
+-- barHook dbus =
   -- let wrapper c s | s /= "NSP" = wrap ("%{F" <> c <> "} ") " %{F-}" s
                   -- | otherwise  = mempty
       -- blue   = "#2E9AFE"
@@ -434,7 +425,7 @@ main = mkDbusClient >>= main'
 main' :: D.Client -> IO ()
 main' dbus = do
   -- h <- spawnPipe "xmobar --recompile ~/.xmonad/xmobar.hs"
-  xmonad $ docks $ withNavigation2DConfig def $ ewmh
+  xmonad $ fullscreenSupport $ docks $ withNavigation2DConfig def $ ewmh
     def { handleEventHook = handleEventHook def <+> fullscreenEventHook }
       {
       -- simple stuff

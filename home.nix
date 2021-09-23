@@ -63,6 +63,7 @@ in {
   programs.command-not-found.enable = true;
   programs.firefox = {
     enable = true;
+    # package = pkgs.unstable.firefox;
   };
   services.unclutter.enable = true;
   xresources.properties = { "Xft.dpi" = 96; };

@@ -78,7 +78,6 @@ noremap ;; 10
 
 colorscheme onedark
 
-
 set foldmethod=syntax
 " autocmd BufLeave  :wa<CR>
 " autocmd BufLeave  :wa<CR>

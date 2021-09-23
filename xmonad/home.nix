@@ -1,59 +1,40 @@
 { pkgs, lib, config, ... }:
-with lib; {
-  options.theme = {
-
-    foreground = mkOption {
-      type = types.str;
-      default = "#ffffff";
-    };
-    foreground1 = mkOption {
-      type = types.str;
-      default = "#D8DEE9";
-    };
-    background = mkOption {
-      type = types.str;
-      default = "#1c1b22";
-    };
-    background1 = mkOption {
-      type = types.str;
-      default = "#2B2A33";
-    };
-    background2 = mkOption {
-      type = types.str;
-      default = "#3C3B47";
-    };
-    pink = mkOption {
-      type = types.str;
-      default = "#D35D6E";
-    };
-    red = mkOption {
-      type = types.str;
-      default = "#BF616A";
-    };
-    yellow = mkOption {
-      type = types.str;
-      default = "#EBCB8B";
-    };
-    green = mkOption {
-      type = types.str;
-      default = "#A3BE8C";
-    };
-    sky = mkOption {
-      type = types.str;
-      default = "#88C0D0";
-    };
-    blue = mkOption {
-      type = types.str;
-      default = "#81A1C1";
-    };
-    purple = mkOption {
-      type = types.str;
-      default = "#B48EAD";
-    };
+let
+  dark = {
+    foreground = "#ffffff";
+    foreground1 = "#D8DEE9";
+    foreground2 = "#C8CED9";
+    background = "#1c1b22";
+    background1 = "#282c34";
+    background2 = "#3C3B47";
   };
+  light = {
+    foreground = "#000000";
+    foreground1 = "#181c14";
+    foreground2 = "#888888";
+    background = "#EDEFF1";
+    background1 = "#DDDFE1";
+    background2 = "#CDCFD1";
+  };
+  theme = light // {
+    pink = "#D35D6E";
+    red = "#BF616A";
+    yellow = "#EBCB8B";
+    green = "#A3BE8C";
+    sky = "#88C0D0";
+    blue = "#81A1C1";
+    purple = "#B48EAD";
+  };
+in with lib; {
+  options.theme = mapAttrs (name: value:
+    mkOption {
+      type = types.str;
+      default = value;
+    }) theme;
   imports = [ ./picom.nix ./rofi.nix ./dunst.nix ./eww/home.nix ];
   config = {
-    home.packages = [ pkgs.lxappearance pkgs.lightlocker pkgs.playerctl pkgs.scrot ];
+    home.packages =
+      [ pkgs.lxappearance pkgs.lightlocker pkgs.playerctl pkgs.scrot ];
     xsession = {
       windowManager.xmonad = {
         enable = true;

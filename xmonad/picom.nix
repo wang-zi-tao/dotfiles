@@ -56,6 +56,7 @@ in {
         "class_g = 'rofi'",
         "class_g = 'i3lock'",
     ];
+    frame-opacity = 0.5;
     round-borders = 1;
     round-borders-exclude = [
         "class_g = 'keynav'",

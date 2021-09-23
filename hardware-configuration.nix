@@ -12,6 +12,7 @@
   boot.kernelModules = [ "kvm-intel" "nvidia" ];
   boot.kernelParams = [ ];
   boot.extraModulePackages = [ ];
+  boot.supportedFilesystems = [ "btrfs" "ext4" "fat32" "ntfs" ];
 
   # powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 

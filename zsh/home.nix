@@ -56,13 +56,10 @@
       v = "${pkgs.neovim}/bin/nvim";
       r = "${pkgs.ranger}/bin/ranger";
       grep = "${pkgs.ripgrep}/bin/rg --color=auto";
-      screenfetch =
-        "${pkgs.screenfetch}/bin/screenfetch|${pkgs.lolcat}/bin/lolcat";
       xclip = "${pkgs.xclip}/bin/xclip -selection c";
-      ls = "${pkgs.lsd}/bin/lsd --group-dirs first";
       top = "${pkgs.htop}/bin/htop";
       htop = "${pkgs.htop}/bin/htop";
-      rm = "${pkgs.rmtrash}/bin/rmtrash";
+      rm = "${pkgs.rmtrash}/bin/rmtrash -I";
       rm-without-trash = "${pkgs.busybox}/bin/rm";
       s = "sudo su";
 
@@ -71,6 +68,19 @@
       iotop = "sudo ${pkgs.iotop}/bin/iotop";
       iftop = "sudo ${pkgs.iftop}/bin/iftop";
       nix-gc = "sudo nix-collect-garbage -d";
+
+      cp = "${pkgs.busybox}/bin/cp -v";
+      bat = "${pkgs.bat}/bin/bat --theme=Coldark-Dark";
+      cat = "${pkgs.bat}/bin/bat --theme=Coldark-Dark --pager=never";
+      less = "${pkgs.bat}/bin/bat --theme=Coldark-Dark";
+      bar-git-diff =
+        "{$pkgs.bat}/bin/bat --theme=Coldark-Dark --diff `git diff --name-only --diff-filter=d`";
+      man = ''
+        MANPAGER="sh -c 'col -bx | ${pkgs.bat}/bin/bat --theme=Coldark-Dark -l man -p'" man'';
+
+      ls = "${pkgs.exa}/bin/exa --icons";
+      l = "${pkgs.exa}/bin/exa -la --icons";
+      ll = "${pkgs.exa}/bin/exa -l --icons";
 
       tt = "${pkgs.tmux}/bin/tmux split -p 10";
     };
@@ -83,4 +93,5 @@
   };
   home.file.".p10k.zsh".source = ./p10k.zsh;
   programs.autojump.enable = true;
+  home.packages = with pkgs; [ bat fd exa ];
 }

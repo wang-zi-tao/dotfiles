@@ -63,6 +63,7 @@ in {
       # wqy_zenhei
       # wqy_microhei
       nerdfonts
+      # inconsolata-nerdfont
       # ubuntu_font_family
       noto-fonts
       noto-fonts-cjk
@@ -86,83 +87,41 @@ in {
     ];
     fontDir.enable = true;
   };
-    hardware = {
-      opengl.driSupport32Bit = true;
-      opengl.enable = true;
-      opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
-      opengl.extraPackages = with pkgs; [
-        vaapiIntel
-        libvdpau-va-gl
-        vaapiVdpau
-        intel-ocl
-      ];
-      opengl.setLdLibraryPath = true;
-      opengl.driSupport = true;
-      nvidia.prime = {
-        sync.enable = true;
-        sync.allowExternalGpu = true;
-        # offload.enable = true;
-        nvidiaBusId = "PCI:1:0:0";
-        intelBusId = "PCI:0:2:0";
-      };
-      # nvidia.package=config.boot.kernelPackages.nvidiaPackages.vulkan_beta;
+  hardware = {
+    opengl.driSupport32Bit = true;
+    opengl.enable = true;
+    opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
+    opengl.extraPackages = with pkgs; [
+      vaapiIntel
+      libvdpau-va-gl
+      vaapiVdpau
+      intel-ocl
+    ];
+    opengl.setLdLibraryPath = true;
+    opengl.driSupport = true;
+    nvidia.prime = {
+      sync.enable = true;
+      sync.allowExternalGpu = true;
+      # offload.enable = true;
+      nvidiaBusId = "PCI:1:0:0";
+      intelBusId = "PCI:0:2:0";
     };
+    # nvidia.package=config.boot.kernelPackages.nvidiaPackages.vulkan_beta;
+  };
   services = {
     xserver = {
-      modules = [ pkgs.xorg.xf86videointel pkgs.xorg.xf86inputlibinput ];
+      modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput ];
       videoDrivers = [
         "nvidia"
         # "modesetting"
         # "nouveau"
         # "intel"
       ];
- #     config = ''
- #       Section "Monitor"
- #         Identifier "monitor"
- #       EndSection
- #       Section "Device"
- #           Identifier  "intel"
- #           Driver      "intel"
- #           #Option      "AccelMethod"  "sna" # default
- #           #Option      "AccelMethod"  "uxa" # fallback
- #           Option      "TearFree"        "true"
- #           Option      "SwapbuffersWait" "true"
- #           BusID       "PCI:0:2:0"
- #           #Option      "DRI" "2"             # DRI3 is now default
- #       EndSection
- #       Section "Screen"
- #         Identifier "Screen-intel"
- #         Device "intel"
- #         Monitor "monitor"
- #       EndSection
-
- #       Section "Device"
- #           Identifier "nvidia"
- #           Driver "nvidia"
- #           BusID "PCI:1:0:0"
- #           Option "AllowEmptyInitialConfiguration"
- #       EndSection
- #       Section "Monitor"
- #         Identifier "monitor1"
- #       EndSection
- #       Section "Screen"
- #         Identifier "Screen-nvidia"
- #         Device "nvidia"
- #         Monitor "monitor1"
- #       EndSection
-
- #       Section "ServerLayout"
- #         Identifier "DupScreen"
- #         Option "AllowNVIDIAGPUScreens" "true"
- #         Screen "Screen-intel"
- #         Screen "Screen-nvidia"
- #       EndSection
- #     '';
       enable = true;
       exportConfiguration = true;
       # displayManager.gdm.enable = true;
       # displayManager.gdm.wayland = false;
-      displayManager.lightdm.enable= true;
+      # displayManager.lightdm.enable = true;
       desktopManager.gnome.enable = true;
       # desktopManager.plasma5.enable = true;
       # desktopManager.mate.enable = true;
@@ -180,8 +139,18 @@ in {
     };
     # snapper.snapshotInterval = "daily";
     # NetworkManager-wait-online.enable = false;
-    # power-profiles-daemon.enable = false;
-    # tlp.enable = true;
+    power-profiles-daemon.enable = false;
+    tlp = {
+      enable = true;
+      settings = {
+        USB_BLACKLIST = "248a:8368";
+        # PLATFORM_PROFILE_ON_BAT = "banlanced";
+        PLATFORM_PROFILE_ON_BAT = "low-power";
+        CPU_SCALING_GOVERNOR_ON_BAT="powersave";
+        CPU_ENERGY_PERF_POLICY_ON_BAT="power";
+        DEVICES_TO_DISABLE_ON_BAT_NOT_IN_USE="bluetooth wifi wwan";
+      };
+    };
     sshd.enable = true;
     flatpak.enable = true;
   };
@@ -229,9 +198,13 @@ in {
   };
   nixpkgs.overlays = (map (name: import (./overlays + "/${name}"))
     (builtins.attrNames (builtins.readDir ./overlays))) ++ [
-      (final: prev: rec {
-        touchegg = prev.callPackage ./packages/touchegg { };
-      })
+      (final: prev:
+        builtins.listToAttrs (map (name: {
+          name = name;
+          value = prev.callPackage (./packages + "/${name}") { };
+        }) (builtins.attrNames (builtins.readDir ./packages))))
+    ] ++ [
+      (final: prev: rec { })
       # pkgs.fenix.overlay
     ];
   systemd.services.k3s = {
@@ -267,6 +240,8 @@ in {
     btrfs-progs
     criu
     docker-compose
+
+    unstable.seaweedfs
   ];
   i18n.inputMethod = {
     enabled = "ibus";
@@ -324,12 +299,13 @@ in {
       storageDriver = "btrfs";
     };
   };
+  systemd.enableUnifiedCgroupHierarchy = false;
   environment.etc."docker/daemon.json".text = ''
     {
       "registry-mirrors": [
-        "https://registry.cn-hangzhou.aliyuncs.com",
+        "https://registry.docker-cn.com",
         "https://mirror.ccs.tencentyun.com",
-        "https://registry.docker-cn.com"
+        "https://registry.cn-hangzhou.aliyuncs.com"
       ]
     }
   '';

@@ -64,7 +64,7 @@
 		(defwidget user [] 
 			(box :class "genwin user" :orientation "v" :spacing 35 :space-evenly "false" :vexpand "false" :hexpand "false" 
 				(box :class "face" :halign "center")
-				(label :class "fullname" :halign "center" :wrap "true" :limit-width 25 :text NAME)
+				(label :class "fullname" :halign "center" :wrap "true" :limit-width 25 :text UNAME)
     ))
 
 		;;  system 
@@ -76,7 +76,7 @@
 						(scale :min 0 :max 100 :value {EWW_CPU["avg"]} :active "false"))
 					(box :class "mem_bar" :orientation "h" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false" 
 						(label :class "iconmem" :text "ﲮ")
-						(scale :min 0 :max {EWW_RAM.total_mem} :value {EWW_RAM.used_mem} :active "false"))
+						(scale :min 0 :max 100 :value {EWW_RAM.used_mem_perc} :active "false"))
 					(box :class "disk_bar" :orientation "h" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false" 
 						(label :class "icondisk" :text "")
 						(scale :min 0 :max 100 :value {EWW_DISK["/"].used_perc} :active "false"))
@@ -320,7 +320,7 @@
     
 (defwidget bar []
   (centerbox :class "bar" :orientation "h"
-    (box (workspaces))
+    (box :space-evenly false (label :class "os" :text "") (workspaces))
     (box time)
     (box (sidestuff))
   )
@@ -330,46 +330,56 @@
   (box :halign "end" :space-evenly false :spacing 10
     (bar-music)
     (box :class "sidestuff" :orientation "h" :space-evenly false :halign "end"
-      (metric :label ""
-              :value volume
-              :onchange "amixer set Master {}%"))
-    (box
- ;;     (label :text {"${EWW_NET.wlo1.NET_DOWN}K ${EWW_NET.wlo1.NET_UP}K"})
-      (label :text {"${ EWW_NET.wlo1.NET_DOWN < 3000000 ? "${round(EWW_NET.wlo1.NET_DOWN/3000000,1)}M" : "${round(EWW_NET.wlo1.NET_DOWN/3000,1)}K"} ${ EWW_NET.wlo1.NET_UP < 1000000 ? "${round(EWW_NET.wlo1.NET_UP/1000000,1)}M" : "${round(EWW_NET.wlo1.NET_UP/1000,1)}K"}"})
-    )
+      (box :orientation "h"
+           :space-evenly false
+        (label :class "volume" :text "")
+        (scale :min 0
+               :max 101
+               :class "volume"
+               :value volume
+               :onchange  "amixer set Master {}%")))
     (box :class "bar-system" 
          :orientation "v"
          :space-evenly true
         (box :class "color_red"
           (scale :min 0 :max 100 :value {EWW_CPU["avg"]} :active "false"))
         (box :class "color_yellow"
-          (scale :min 0 :max {EWW_RAM.total_mem} :value {EWW_RAM.used_mem} :active "false"))
+          (scale :min 0 :max 100 :value {EWW_RAM.used_mem_perc} :active "false"))
         (box :class "color_green"
           (scale :min 0 :max 100 :value {EWW_TEMPS.PACKAGE_ID_0} :active "false"))
         (box :class "color_sky" 
          (scale :min 0 :max 100 :value {EWW_BATTERY.total_avg} :active "false"))
     )
+    (box
+ ;;     (label :text {"${EWW_NET.wlo1.NET_DOWN}K ${EWW_NET.wlo1.NET_UP}K"})
+      (label :text {"${ EWW_NET.wlo1.NET_DOWN < 3000000 ? "${round(EWW_NET.wlo1.NET_DOWN/3000000,1)}M" : "${round(EWW_NET.wlo1.NET_DOWN/3000,1)}K"} ${ EWW_NET.wlo1.NET_UP < 1000000 ? "${round(EWW_NET.wlo1.NET_UP/1000000,1)}M" : "${round(EWW_NET.wlo1.NET_UP/1000,1)}K"}"})
+    )
   )
 )
 
+(defwidget ws [type text]
+ (box :class "workspace ${type}" (label :hexpand true :text text))
+)
+(defwidget layout [text]
+ (box :class "workspace layout" :vexpand false (label :hexpand true :text text))
+)
 (defwidget workspaces []
-  (literal :content "(box :spacing 10 :class \"workspaces\" :space-evenly false ${workspaces})")
-    
+  (literal :valign "center" :content "(box :class \"workspaces\" :space-evenly false ${workspaces})")
 )
 
 (defwidget bar-music []
   (box :class "bar-music"
        :orientation "h"
        :space-evenly false
-       :halign "center"
-       " ${ARTIST} - ${SONG}"))
+       :valign "center"
+       (label :limit-width 20 :text "${SONG} ${ARTIST}")))
 
 
 (defwidget metric [label value onchange]
   (box :orientation "h"
        :class "metric"
        :space-evenly false
-    (box :class "label" label)
+    (label :class "label" label)
     (scale :min 0
            :max 101
            :active {onchange != ""}
@@ -386,7 +396,7 @@
                       :width "100%"
                       :height "0px"
                       :anchor "top center")
-  :reserve (struts :side "top" :distance "3%")
+  :reserve (struts :side "top" :distance "36px")
   (bar))
 (defvar control-center-enable false)
 (defwindow control-center
@@ -414,8 +424,8 @@
       (weather)
      )
      (box :orientation "h" :spacing 15 :space-evenly false
-      (music)
       (todo)
+      (music)
      )
      (box :orientation "h" :spacing 15 :space-evenly false
       (box :orientation "h" :spacing 15 :space-evenly false

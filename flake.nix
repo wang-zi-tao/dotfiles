@@ -44,6 +44,11 @@
           value = import (./overlays + "/${name}");
         }) (attrNames (readDir ./overlays)));
       in overlayFiles // {
+        packages = (final: prev:
+          builtins.listToAttrs (map (name: {
+            name = name;
+            value = prev.callPackage (./packages + "/${name}") { };
+          }) (builtins.attrNames (builtins.readDir ./packages))));
         fenix = fenix.overlay;
         other = final: prev: {
           # flake-compat = import inputs.flake-compat { };
@@ -98,5 +103,19 @@
           inherit pkgs;
         };
       };
+      huawei-cloud-ecs-623a=home-manager.lib.homeManagerConfiguration {
+        configuration = {
+                imports = [
+                  ./zsh/home.nix
+                  ./tmux/home.nix
+                  ./git/home.nix
+                  ./neovim/home.nix
+                ];
+                home.packages =
+                  (with pkgs; [ autojump killall curl wget unzip ]);
+        };
+        system = "x86_64";
+        username = "root";
+      };
     };
-}
+

@@ -28,13 +28,13 @@
     vim_help_language = "cn"
     autocomplete_method = "coc"
     filemanager = "defx"
-    statusline_left_sections = [
-       'winnr',
-       'major mode',
-       'filename',
-       'version control info',
-       'search status'
-    ]
+    # statusline_left_sections = [
+       # 'winnr',
+       # 'major mode',
+       # 'filename',
+       # 'version control info',
+       # 'search status'
+    # ]
     # right sections of statusline
     statusline_right_sections = [
        'fileformat',
@@ -64,10 +64,14 @@
   name = "tmux"
 [[layers]]
   name = "shell"
-  default_position = "top"
+  default_position = "bottom"
+  default_height = 16
 [[layers]]
   name = "git"
 [[layers]]
   name = "chinese"
 [[layers]]
   name = "fzf"
+[[layers]]
+  name = "tools"
+

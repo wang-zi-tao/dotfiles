@@ -7,18 +7,37 @@ in {
     pkgs.i3lock
   ];
   home.file.".config/eww/eww.scss".text = builtins.readFile ./eww.scss + ''
-    .bar,
-    .genwin {
-      background-color: ${theme.background};
+    .highlight-workspace {
+      color: ${theme.background};
     }
-    .sidestuff scale trough highlight {
-      background-color: ${theme.pink};
-    }
+    .todo_bax,
+    .hddbox,
     .bar-system scale trough ,
     .sidestuff scale trough ,
-    .music_bar scale trough ,
-    .hddbox{
+    .music_bar scale trough {
+      background-color: ${theme.background1};
+    }
+    .todo_input,
+    .cpu_bar scale trough ,
+    .mem_bar scale trough ,
+    .disk_bar scale trough ,
+    .bat_bar scale trough {
       background-color: ${theme.background2};
+    }
+    .todo_input,
+    .todo_item{
+      color: ${theme.foreground};
+    }
+    .hdd_label,
+    .uphour,
+    .bar,
+    .upmin{
+      color: ${theme.foreground1};
+    }
+    .bar-music,
+    .volume,
+    .label_quote{
+      color: ${theme.foreground2};
     }
     .iconcpu ,
     .color_red ,
@@ -48,6 +67,7 @@ in {
     .time_mer {
     	color: ${theme.green};
     }
+    .layout,
     .iconbat,
     .color_sky ,
     .label_folder6 ,
@@ -71,28 +91,50 @@ in {
     .icontimer {
     	color: ${theme.purple};
     }
+    .genwin,
+    .bar,
+    {
+      background-color: ${theme.background};
+    }
+    .normal-workspace,
+    {
+      background-color: ${theme.background1};
+    }
+    .highlight-workspace:nth-child(6),
     .cpu_bar scale trough highlight,
     .color_red scale trough highlight{
     	background-color: ${theme.red};
     }
+    .highlight-workspace:nth-child(5),
     .disk_bar scale trough highlight ,
     .color_yellow scale trough highlight{
       background-color: ${theme.yellow};
     }
+    .highlight-workspace:nth-child(10),
+    .highlight-workspace:nth-child(3),
     .mem_bar scale trough highlight ,
     .color_green scale trough highlight{
       background-color: ${theme.green};
     }
+    .highlight-workspace:nth-child(9),
+    .highlight-workspace:nth-child(2),
     .color_sky scale trough highlight{
       background-color: ${theme.sky};
     }
+    .highlight-workspace:nth-child(7),
     .music_bar scale trough highlight ,
     .bat_bar scale trough highlight ,
     .color_blue scale trough highlight{
       background-color: ${theme.blue};
     }
+    .highlight-workspace:nth-child(8),
     .color_purple scale trough highlight{
       background-color: ${theme.purple};
+    }
+    .highlight-workspace:nth-child(8),
+    .highlight-workspace:nth-child(4),
+    .sidestuff scale trough highlight {
+      background-color: ${theme.pink};
     }
         '';
   home.file.".config/eww/scripts/weather_info" = {

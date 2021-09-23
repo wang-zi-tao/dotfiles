@@ -68,6 +68,7 @@ let
       spacing = mkLiteral "2px";
       scrollbar = mkLiteral "true";
       padding = mkLiteral "2px 0px 0px";
+      columns = mkLiteral "2";
     };
 
     "#element" = {
@@ -160,14 +161,18 @@ let
       spacing = mkLiteral "0";
       text-color = mkLiteral "@normal-foreground";
     };
-    element-icon = { size = mkLiteral "3ch"; };
+    "#element-icon" = {
+      size = mkLiteral "45px";
+      margin = mkLiteral "0 12px 0 0";
+      background-color = mkLiteral "inherit";
+    };
     "*" = {
       active-background = mkLiteral "${theme.yellow}";
       urgent-background = mkLiteral "${theme.blue}";
-      selected-active-background = mkLiteral "${theme.background1}";
+      selected-active-background = mkLiteral "${theme.background}";
       selected-normal-background = mkLiteral "${theme.background2}";
       selected-urgent-background = mkLiteral "${theme.pink}";
-      background = mkLiteral "${theme.background}";
+      background = mkLiteral "${theme.background1}";
       foreground = mkLiteral "${theme.foreground1}";
     };
   };

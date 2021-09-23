@@ -1,7 +1,7 @@
 source ${HOME}/.p10k.zsh
-if [[ $TMUX != "" ]] then
-    export TERM="tmux-256color"
-fi
+# if [[ $TMUX != "" ]] then
+    # export TERM="tmux-256color"
+# fi
 function find() {
   if [ $# = 1 ];
   then
@@ -20,7 +20,8 @@ function sudo() {
 }
 function wo() {
   cd `autojump $1`
-  command tmux split -p 10
+  command tmux rename-window ${PWD##*/}
+  # command tmux split -p 10
   command vim
 }
 systemctl()
