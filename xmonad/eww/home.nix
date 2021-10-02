@@ -67,8 +67,8 @@ in {
     .time_mer {
     	color: ${theme.green};
     }
-    .layout,
     .iconbat,
+    .layout,
     .color_sky ,
     .label_folder6 ,
     .iconfolder6 ,
@@ -136,7 +136,7 @@ in {
     .sidestuff scale trough highlight {
       background-color: ${theme.pink};
     }
-        '';
+  '';
   home.file.".config/eww/scripts/weather_info" = {
     source = ./scripts/weather_info;
     executable = true;
@@ -145,14 +145,18 @@ in {
     source = ./scripts/trigger;
     executable = true;
   };
+  home.file.".config/eww/images/profile.jpg" = {
+    source = ../../static/profile.png;
+    executable = true;
+  };
   home.file.".config/eww/eww.yuck".text = builtins.readFile ./eww.yuck + ''
     (deflisten workspaces :initial ""
       "${pkgs.xmonad-log}/bin/xmonad-log")
 
     (defpoll volume :interval "1s"
-      "${pkgs.alsaUtils}/bin/amixer get Master | grep 'Left:' | awk -F'[][]' '{ print $2 }' | tr -d '%' | head -1")
+      "${pkgs.alsaUtils}/bin/amixer get Master | grep 'Left:' | awk -F'[][]' '{ print $2 }' | tr -d '%' | head -1 || echo 0")
 
     (defpoll time :interval "1s"
-      "date '+%H:%M:%S %b %d'")
+      "date '+%m-%d %H:%M:%S'")
   '';
 }

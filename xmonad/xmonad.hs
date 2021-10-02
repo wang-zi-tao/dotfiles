@@ -113,7 +113,7 @@ myKeys =
   , ("M-z", spawn "~/.config/eww/scripts/trigger")
 
   -- , ("M-d", shellPrompt myXPConfig)
-  , ("M-d", spawn "rofi -combi-modi window,run,drun -show combi -modi combi")
+  , ("M-d", spawn "rofi -no-lazy-grab -show drun -modi drun -theme ~/.config/rofi/apps.css")
   , ("C-M-d", spawn "rofi -show run")
   , ("C-M-l", spawn "light-locker")
   , ("M-<Esc>", nextMatch Forward isOnAnyVisibleWS)
@@ -125,8 +125,9 @@ myKeys =
   , ("<XF86AudioRaiseVolume>", spawn "amixer set Master 5%+")
   , ("<XF86AudioLowerVolume>", spawn "amixer set Master 5%-")
 
-  , ("<Print>", spawn "scrot '截图_%Y%m%d_%H%M%S.png' -e 'mkdir -p ~/图片 && mv $f ~/图片 && xclip -selection clipboard -t image/png -i ~/图片/`ls -1 -t ~/图片 | head -1`'")
-  , ("S-<Print>", spawn "scrot -s '截图_%Y%m%d_%H%M%S.png' -e 'mkdir -p ~/图片 && mv $f ~/图片 && xclip -selection clipboard -t image/png -i ~/图片/`ls -1 -t ~/图片 | head -1`' # Area selection")
+  , ("<Print>", spawn "scrot -b '截图_%Y%m%d_%H%M%S.png' -e 'mkdir -p ~/图片 && mv $f ~/图片 && xclip -selection clipboard -t image/png -i ~/图片/`ls -1 -t ~/图片 | head -1`'")
+  , ("S-<Print>", spawn "scrot -b -s '截图_%Y%m%d_%H%M%S.png' -e 'mkdir -p ~/图片 && mv $f ~/图片 && xclip -selection clipboard -t image/png -i ~/图片/`ls -1 -t ~/图片 | head -1`'")
+  , ("M1-<Print>", spawn "scrot -b -u '截图_%Y%m%d_%H%M%S.png' -e 'mkdir -p ~/图片 && mv $f ~/图片 && xclip -selection clipboard -t image/png -i ~/图片/`ls -1 -t ~/图片 | head -1`'")
 
   , ("M-<Space>", sendMessage NextLayout) -- Change to next layout in order
 
@@ -267,7 +268,7 @@ myScratchPads =
   findTerm   = title =? "terminalScratchpad"
   manageTerm = customFloating $ W.RationalRect l t w h
    where
-    h = 0.9
+    h = 0.905
     w = 0.9
     t = 0.05
     l = (1 - w) / 2
@@ -293,11 +294,11 @@ myStartupHook = do
   spawnOnce "feh --bg-fill ~/图片/大鱼海棠16.png"
   spawn "killall picom; picom --dbus --experimental-backend"
   spawnOnce "qv2ray"
-  spawnOnce "sleep 1 && ibus-daemon --xim"
+  spawnOnce "sleep 1 && ibus-daemon"
   spawnOnce "nm-applet"
   spawn "killall eww; eww open-many bar"
   spawnOnce "kdeconnect-indicator"
-  spawnOnce "sleep 1 ; amixer set Master 0%"
+  -- spawnOnce "sleep 1 ; amixer set Master 0%"
   spawn "gpaste-client start"
   spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080 --rotate normal --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal"
   spawn "xhost +"
@@ -310,7 +311,7 @@ myLayout =  avoidStruts $ smartBorders
   -- ||| tiledgaps
   -- ||| StateFull
   ||| (noBorders $ fullscreenFull StateFull)
-  ||| myThinGaps Grid
+  ||| (myThinGaps Grid)
   -- ||| simpleTabbed
   -- ||| Mirror tiledgaps
   )
@@ -355,8 +356,8 @@ myNormalBorderColor :: String
 myNormalBorderColor = "#D35D6E"
 myFocusedBorderColor :: String
 myFocusedBorderColor = "#ffffff"
-myGaps = spacingRaw False (Border 4 4 4 4) True (Border 4 4 4 4) True
-myThinGaps = spacingRaw False (Border 2 2 2 2) True (Border 2 2 2 2) True
+myGaps = spacingRaw False (Border 3 3 3 3) True (Border 3 3 3 3) True
+myThinGaps = spacingRaw False (Border 3 3 3 3) True (Border 3 3 3 3) True
 myPolybarLogHook dbus = dynamicLogWithPP (barHook dbus) <+> historyHook
 myEventHook = handleEventHook def <+> fullscreenEventHook
 getActiveLayoutDescription :: X String
@@ -389,6 +390,7 @@ barHook dbus =
       layout_map x | x == "Spacing Spiral" = wrapper_layout "\xfa6d"
                    | x == "Spacing ThreeCol" = wrapper_layout "\xfc26"
                    | x == "StateFull" = wrapper_layout "\xf792"
+                   | x == "Mirror Spacing Grid" = wrapper_layout "\xfa6f"
                    | x == "Spacing Grid" = wrapper_layout "\xfa6f"
                    | otherwise             = wrapper_layout x
   in  def { ppOutput          = dbusOutput dbus

@@ -3,10 +3,7 @@
 let
 in {
   home.packages = [
-    # pkgs.picom
-    # pkgs.nur.repos.reedrw.picom-next-ibhagwan
-    pkgs.nur.repos.xeals.picom-animations
-    # pkgs.nur.repos.arc.packages.picom-next
+    pkgs.picom
   ];
   home.file.".config/picom.conf".text = ''
     active-opacity   = 1.0;
@@ -65,5 +62,6 @@ in {
     fading = true;
     fade-out-step = 0.05;
     fade-in-step = 0.05;
+    fade-delta = 4;
   '';
 }

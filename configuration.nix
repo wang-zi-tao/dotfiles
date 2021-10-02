@@ -1,13 +1,4 @@
-{ config, pkgs, lib, ... }:
-let
-  nvidia-run = pkgs.writeShellScriptBin "nvidia-run" ''
-    export __NV_PRIME_RENDER_OFFLOAD=1
-    export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
-    export __GLX_VENDOR_LIBRARY_NAME=nvidia
-    export __VK_LAYER_NV_optimus=NVIDIA_only
-    exec -a "$0" "$@"
-  '';
-in {
+{ config, pkgs, lib, ... }: {
   imports = [ ./hardware-configuration.nix ./fs.nix ];
 
   # specialisation = {
@@ -28,7 +19,7 @@ in {
     timeout = 1;
   };
   # boot.plymouth.enable = false;
-  boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
+  boot.kernelPackages = pkgs.linuxPackages_xanmod.extend (self: super: {
     virtualbox = super.virtualbox.override { inherit (self) kernel; };
   });
   boot.extraModulePackages = with config.boot.kernelPackages; [
@@ -37,18 +28,20 @@ in {
     acpi_call
   ];
   boot.kernelParams = [ "quite" ];
-  nixpkgs.config.allowUnfree = true;
   networking.hostName = "wangzi-pc"; # Define your hostname.
   time.timeZone = "Asia/Shanghai";
   networking = {
     #useDHCP = true;
-    firewall.enable = false;
+    # firewall.enable = true;
     networkmanager = { enable = true; };
     wireguard = { enable = true; };
     proxy.default = "http://127.0.0.1:8889";
   };
   i18n.defaultLocale = "zh_CN.UTF-8";
-  gtk = { iconCache.enable = true; };
+  gtk = { 
+    iconCache.enable = true;
+    
+  };
   fonts = {
     fontconfig = {
       enable = true;
@@ -106,9 +99,12 @@ in {
       nvidiaBusId = "PCI:1:0:0";
       intelBusId = "PCI:0:2:0";
     };
-    # nvidia.package=config.boot.kernelPackages.nvidiaPackages.vulkan_beta;
+    bluetooth.enable = true;
   };
+  sound.enable = true;
+  xdg.portal.enable = true;
   services = {
+    pipewire = { enable = true; };
     xserver = {
       modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput ];
       videoDrivers = [
@@ -121,9 +117,22 @@ in {
       exportConfiguration = true;
       # displayManager.gdm.enable = true;
       # displayManager.gdm.wayland = false;
-      # displayManager.lightdm.enable = true;
-      desktopManager.gnome.enable = true;
+      displayManager.lightdm = {
+        enable = true;
+        greeter.enable = true;
+        greeters.gtk.theme.package = pkgs.unstable.orchis-theme;
+        greeters.gtk.theme.name = "Orchis-light";
+        greeters.gtk.iconTheme.package = pkgs.tela-icon-theme;
+        greeters.gtk.iconTheme.name = "Tela";
+        # greeters.gtk.cursorTheme.package = pkgs.unstable.quintom-cursor-theme;
+        # greeters.gtk.cursorTheme.name = "Quintom_Snow";
+        greeters.gtk.cursorTheme.package = pkgs.layan-cursor-theme;
+        greeters.gtk.cursorTheme.name = "Layan-white Cursors";
+        background = ./static/login-background.png;
+      };
+      # desktopManager.gnome.enable = true;
       # desktopManager.plasma5.enable = true;
+      # displayManager.sddm.enable = true;
       # desktopManager.mate.enable = true;
       windowManager.xmonad.enable = true;
       # windowManager.i3.enable = true;
@@ -137,6 +146,7 @@ in {
         };
       };
     };
+    gnome.core-os-services.enable = true;
     # snapper.snapshotInterval = "daily";
     # NetworkManager-wait-online.enable = false;
     power-profiles-daemon.enable = false;
@@ -146,9 +156,9 @@ in {
         USB_BLACKLIST = "248a:8368";
         # PLATFORM_PROFILE_ON_BAT = "banlanced";
         PLATFORM_PROFILE_ON_BAT = "low-power";
-        CPU_SCALING_GOVERNOR_ON_BAT="powersave";
-        CPU_ENERGY_PERF_POLICY_ON_BAT="power";
-        DEVICES_TO_DISABLE_ON_BAT_NOT_IN_USE="bluetooth wifi wwan";
+        CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+        CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+        DEVICES_TO_DISABLE_ON_BAT_NOT_IN_USE = "bluetooth wifi wwan";
       };
     };
     sshd.enable = true;
@@ -196,17 +206,6 @@ in {
         "${pkgs.unstable.n2n}/bin/edge -t 20000 -d n2n -a 192.168.0.3 -c n2n -A1 -l 139.9.235.87:49 -r -f";
     };
   };
-  nixpkgs.overlays = (map (name: import (./overlays + "/${name}"))
-    (builtins.attrNames (builtins.readDir ./overlays))) ++ [
-      (final: prev:
-        builtins.listToAttrs (map (name: {
-          name = name;
-          value = prev.callPackage (./packages + "/${name}") { };
-        }) (builtins.attrNames (builtins.readDir ./packages))))
-    ] ++ [
-      (final: prev: rec { })
-      # pkgs.fenix.overlay
-    ];
   systemd.services.k3s = {
     enable = false;
     description = "k3s.wangzicloud.cn";
@@ -224,11 +223,10 @@ in {
   };
   programs.dconf.enable = true;
   programs.zsh.enable = true;
-  programs.ssh.askPassword =
-    "${pkgs.gnome.seahorse}/libexec/seahorse/ssh-askpass";
+  # programs.ssh.askPassword =
+  # "${pkgs.gnome.seahorse}/libexec/seahorse/ssh-askpass";
   environment.systemPackages = with pkgs; [
-    nvidia-run
-    home-manager
+    nix-direnv
     busybox
     xorg.xhost
     glxinfo
@@ -247,18 +245,8 @@ in {
     enabled = "ibus";
     ibus = { engines = with pkgs.ibus-engines; [ libpinyin ]; };
   };
-  nix = {
-    gc.automatic = true;
-    gc.dates = "weekly";
-    gc.options = "-d";
-    buildCores = 10;
-    optimise.automatic = true;
-    # binaryCaches = lib.mkForce [ ];
-    package = pkgs.nixFlakes;
-    extraOptions = lib.optionalString (config.nix.package == pkgs.nixFlakes)
-      "experimental-features = nix-command flakes";
-  };
-  services.gnome.sushi.enable = true;
+  nix = { buildCores = 10; };
+  # services.gnome.sushi.enable = true;
   users.users.root = { shell = pkgs.zsh; };
   users.groups.wangzi = {
     gid = 1000;
@@ -275,6 +263,7 @@ in {
       "networkmanager"
       "vboxusers"
       "docker"
+      "audio"
     ]; # Enable ‘sudo’ for the user.
   };
 
@@ -289,7 +278,7 @@ in {
       host = {
         enable = true;
         enableHardening = true;
-        # enableExtensionPack = true;
+        enableExtensionPack = true;
       };
     };
     docker = {
@@ -303,8 +292,8 @@ in {
   environment.etc."docker/daemon.json".text = ''
     {
       "registry-mirrors": [
-        "https://registry.docker-cn.com",
         "https://mirror.ccs.tencentyun.com",
+        "https://registry.docker-cn.com",
         "https://registry.cn-hangzhou.aliyuncs.com"
       ]
     }

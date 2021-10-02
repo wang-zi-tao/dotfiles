@@ -52,8 +52,14 @@
   min-width: 350px;
 	min-height: 325px;
 }
-.iconcpu, .iconmem, .icondisk, .iconbat {
+.iconcpu, .iconmem, .icondisk,  {
+  min-width : 32px;
 	font-size : 32px;
+	font-weight : normal;
+}
+.iconbat {
+  min-width : 32px;
+	font-size : 28px;
 	font-weight : normal;
 }
 
@@ -362,7 +368,7 @@
 }
 .bar {
   padding: 0px 10px 0px 0px;
-  margin: 8px 8px;
+  margin: 6px 6px;
   min-height: 27px;
   border-radius: 32px;
   border-width: 5px;

@@ -60,3 +60,5 @@ zle -N                 cdParentKey
 zle -N                 cdUndoKey
 bindkey '^[[1;3A'      cdParentKey
 bindkey '^[0d'      cdUndoKey
+
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"

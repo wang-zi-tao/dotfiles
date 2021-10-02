@@ -22,9 +22,7 @@ in naersk-lib.buildPackage rec {
     sha256 = "sha256-jweiNNW1XHo6PhUu+EI83yXzhB3L/C2F8E+C/KH6Crw=";
   };
 
-  PKG_CONFIG_PATH = pkgs.lib.concatStrings (map (x: "${x.dev}/lib/pkgconfig:")
-    (with pkgs; [ gtk3 glib pango cairo harfbuzz atk gdk-pixbuf ]));
-  nativeBuildInputs = with pkgs; [ pkg-config gtk3 glib ];
+  nativeBuildInputs = with pkgs; [ pkg-config gtk3.dev glib.dev ];
   postPatch = ''
     cargo version
   '';

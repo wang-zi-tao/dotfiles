@@ -59,8 +59,8 @@
       xclip = "${pkgs.xclip}/bin/xclip -selection c";
       top = "${pkgs.htop}/bin/htop";
       htop = "${pkgs.htop}/bin/htop";
-      rm = "${pkgs.rmtrash}/bin/rmtrash -I";
-      rm-without-trash = "${pkgs.busybox}/bin/rm";
+      rm = "${pkgs.rmtrash}/bin/rmtrash -Iv";
+      del = "${pkgs.unstable.rmtrash}/bin/rmtrash -Iv --no-trash";
       s = "sudo su";
 
       perf = "sudo perf";
@@ -93,5 +93,5 @@
   };
   home.file.".p10k.zsh".source = ./p10k.zsh;
   programs.autojump.enable = true;
-  home.packages = with pkgs; [ bat fd exa ];
+  home.packages = with pkgs; [ bat fd exa direnv ];
 }

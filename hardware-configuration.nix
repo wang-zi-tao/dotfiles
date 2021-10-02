@@ -9,6 +9,7 @@
   boot.initrd.availableKernelModules =
     [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" ];
   boot.initrd.kernelModules = [ ];
+  # boot.blacklistedKernelModules = [ "uvcvideo" ];
   boot.kernelModules = [ "kvm-intel" "nvidia" ];
   boot.kernelParams = [ ];
   boot.extraModulePackages = [ ];
@@ -17,4 +18,8 @@
   # powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 
   hardware.bluetooth.enable = true;
+  hardware.pulseaudio = {
+    enable = true;
+    # configFile = ./audio.pa;
+  };
 }

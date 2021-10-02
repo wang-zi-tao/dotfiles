@@ -171,10 +171,10 @@
 		;;  power buttons 
 		(defwidget logout [] 
 			(box :class "genwin" :vexpand "false" :hexpand "false" 
-				(button :class "btn_logout" :onclick "i3lock -c '#000000' -n -u & /run/current-system/sw/bin/systemctl suspend && fg && sleep 2 && amixer set Master 0%" "﫼")))
+				(button :class "btn_logout" :onclick "betterlockscreen -l blur & /run/current-system/sw/bin/systemctl suspend && fg && sleep 2 && amixer set Master 0%" "﫼")))
 		(defwidget sleep [] 
 			(box :class "genwin" :vexpand "false" :hexpand "false" 
-				(button :class "btn_sleep" :onclick "eww set control-center-enable=false; i3lock -c '#000000' -u -n && amixer set Master 0%" "⏾")))
+				(button :class "btn_sleep" :onclick "eww set control-center-enable=false; betterlockscreen -l blur && amixer set Master 0%" "⏾")))
 		(defwidget reboot [] 
 			(box :class "genwin" :vexpand "false" :hexpand "false" 
 				(button :class "btn_reboot" :onclick "systemctl reboot" "")))
@@ -396,7 +396,7 @@
                       :width "100%"
                       :height "0px"
                       :anchor "top center")
-  :reserve (struts :side "top" :distance "36px")
+  :reserve (struts :side "top" :distance "34px")
   (bar))
 (defvar control-center-enable false)
 (defwindow control-center
@@ -409,7 +409,7 @@
   :geometry (geometry :x "0%"
                       :y "0%"
                       :anchor "center center")
-  (revealer :transition "crossfade" :duration "0.5s" :reveal control-center-enable
+  (revealer :transition "slidedown" :duration "0.5s" :reveal control-center-enable
    (box :orientation "h" :spacing 15 :space-evenly false
     (box :orientation "v" :spacing 15 :space-evenly false
      (user)

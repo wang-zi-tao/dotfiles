@@ -34,7 +34,7 @@ in with lib; {
   imports = [ ./picom.nix ./rofi.nix ./dunst.nix ./eww/home.nix ];
   config = {
     home.packages =
-      [ pkgs.lxappearance pkgs.lightlocker pkgs.playerctl pkgs.scrot ];
+      [ pkgs.lxappearance pkgs.lightlocker pkgs.betterlockscreen pkgs.playerctl pkgs.scrot ];
     xsession = {
       windowManager.xmonad = {
         enable = true;
@@ -43,6 +43,5 @@ in with lib; {
         config = ./xmonad.hs;
       };
     };
-    home.file.".xmonad/xmobar.hs" = { source = ./xmobar.hs; };
   };
 }

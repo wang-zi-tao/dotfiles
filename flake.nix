@@ -38,18 +38,17 @@
 
       defaults = { pkgs, ... }: {
         imports = [ ];
-        inherit pkgs;
         nix = {
           extraOptions = "experimental-features = nix-command flakes";
           package = pkgs.nixFlakes;
           gc.automatic = true;
           gc.dates = "weekly";
           gc.options = "-d";
+          optimise.automatic = true;
         };
-        optimise.automatic = true;
+        nixpkgs.config.allowUnfree = true;
         time.timeZone = "Asia/Shanghai";
       };
-    in {
       overlays = let
         overlayFiles = listToAttrs (map (name: {
           name = removeSuffix ".nix" name;
@@ -86,6 +85,8 @@
           };
         };
       };
+    in {
+      inherit overlays;
 
       nixosConfigurations = {
         wangzi-pc = nixpkgs.lib.nixosSystem {
@@ -124,7 +125,7 @@
         };
         system = "x86_64-linux";
         username = "root";
-        homeDirectory = "/root/";
+        homeDirectory = "/root";
       };
     };
 }

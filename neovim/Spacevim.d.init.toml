@@ -68,6 +68,7 @@
   default_height = 16
 [[layers]]
   name = "git"
+  git_plugin = 'fugitive'
 [[layers]]
   name = "chinese"
 [[layers]]

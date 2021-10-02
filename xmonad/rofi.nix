@@ -1,5 +1,6 @@
 { config, pkgs, ... }:
 let
+  theme-cfg = config.theme;
   inherit (config.lib.formats.rasi) mkLiteral;
   theme = config.theme;
   rofi-theme = {
@@ -180,7 +181,7 @@ in {
   programs.rofi = {
     enable = true;
     terminal = "${pkgs.alacritty}/bin/alacritty";
-    theme = rofi-theme;
+    # theme = rofi-theme;
     # plugins = with pkgs.unstable; [
     # rofi-vpn
     # rofi-mpd
@@ -194,5 +195,14 @@ in {
       drun-icon-theme = "Tela blue";
     };
   };
+  home.file.".config/rofi/apps.css".text = builtins.readFile ./rofi/apps.css + ''
+    * {
+      al:  ${theme-cfg.background}00;
+      bg:  ${theme-cfg.background}ff;
+      se: ${theme-cfg.background1}ff;
+      fg:  ${theme-cfg.foreground}ff;
+      ac:  #42A5F5;
+    }
+  '';
   home.packages = with pkgs; [ rofi-power-menu ];
 }

@@ -12,14 +12,6 @@
     plugins = (with pkgs.unstable.tmuxPlugins;
       with pkgs.tmuxPlugins; [
         {
-          plugin = power-theme;
-          extraConfig = ''
-            # set -g @tmux_power_show_upload_speed true
-            # set -g @tmux_power_show_download_speed true
-            set -g @tmux_power_theme 'sky'
-          '';
-        }
-        {
           plugin = resurrect;
           extraConfig = "set -g @resurrect-strategy-nvim 'session'";
         }
@@ -29,6 +21,14 @@
         logging
         # sysstat
         yank
+        {
+          plugin = power-theme;
+          extraConfig = ''
+            # set -g @tmux_power_show_upload_speed true
+            # set -g @tmux_power_show_download_speed true
+            set -g @tmux_power_theme 'sky'
+          '';
+        }
         # net-speed
         better-mouse-mode
         # sidebar

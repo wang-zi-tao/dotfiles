@@ -31,6 +31,7 @@ in {
           vim-tmux-clipboard
           vim-tmux-focus-events
           vim-tmux-navigator
+          surround
         ] ++ (if cfg.IDE then [
           coc-tabnine
           coc-go
@@ -52,8 +53,23 @@ in {
           [ ]));
       extraConfig = ''
         execute 'source' '${pkgs.spacevim}/SpaceVim/init.vim'
-      '' + builtins.readFile ./init.vim;
+      '' + (if cfg.IDE then
+        let
+          lombok = builtins.fetchurl {
+            url =
+              "https://projectlombok.org/downloads/lombok.jar";
+            sha256 =
+              "sha256:1c3lvz7315id7w0z2lw8ik4i9y15d0mv9wwfpvxmkrzvqbk7p56f";
+          };
+        in ''
+          " let $JAVA_TOOL_OPTIONS="-javaagent:${lombok} -Xbootclasspath/a:${lombok}"
+        ''
+      else
+        "") + builtins.readFile ./init.vim;
     };
+    home.packages = with pkgs; [
+      neovim-remote
+    ];
     home.file.".SpaceVim.d/init.toml".text =
       (builtins.readFile ./Spacevim.d.init.toml) + (if cfg.IDE then ''
         [[layers]]
@@ -64,6 +80,14 @@ in {
           name = "test"
         [[layers]]
           name = "lang#java"
+          java_formatter_jar = "${
+            builtins.fetchurl {
+              url =
+                "https://github.com/google/google-java-format/releases/download/v1.11.0/google-java-format-1.11.0-all-deps.jar";
+              sha256 =
+                "sha256:1ixpg8ljg819fq94mxyypknmslva3rkifphbnq3ic71b7iip6lia";
+            }
+          }"
         [[layers]]
           name = "lang#python"
         [[layers]]

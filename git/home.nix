@@ -1,4 +1,6 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+let nvr = "${pkgs.neovim-remote}/bin/nvr";
+in {
   programs.git = {
     enable = true;
     lfs.enable = true;
@@ -6,16 +8,24 @@
     userName = "wang-zi-tao";
     aliases = { diff = "diff --word-diff"; };
     extraConfig = {
-      merge = { tool = "vimdiff"; };
-      mergetool = {
-        prompt = true;
-        vimdiff = {
+      diff = { tool = "nvr"; };
+      difftool = {
+        promt = true;
+        nvr = {
           cmd = ''
-            nvim -d $LOCAL $MERGED $BASE $REMOTE -c 'wincmd w' -c 'wincmd J'
+            ${nvr} -s -d $LOCAL $REMOTE
           '';
         };
       };
-      diff = { tool = "vimdiff"; };
+      merge = { tool = "nvr"; };
+      mergetool = {
+        prompt = true;
+        nvr = {
+          cmd = ''
+            ${nvr} -s -d $LOCAL $MERGED $BASE $REMOTE -c 'wincmd w' -c 'wincmd J|wincmd ='
+          '';
+        };
+      };
     };
   };
 }

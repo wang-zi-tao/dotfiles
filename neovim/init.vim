@@ -30,6 +30,14 @@ let g:NERDTreeHidden=1
 " Plugin 'ryanoasis/vim-devicons'
 set guifont=DroidSansMono_Nerd_Font:h11
 set autoread
+fun! s:checktime(timer_id)
+    for buf in filter(map(getbufinfo(), {_, v -> v.bufnr}), {_, v -> buflisted(v)})
+        " echom buf
+        exe 'checktime' buf
+    endfor
+    call timer_start(3000, function('s:checktime'))
+endfun
+call timer_start(3000, function('s:checktime'))
 set autowrite
 set autowriteall
 let g:auto_save = 0
@@ -60,6 +68,8 @@ nmap <silent> gr <Plug>(coc-references)
 call SpaceVim#custom#SPC('nnoremap', ['f', 't'], 'CocCommand explorer', 'explorer', 1)
 call SpaceVim#custom#SPC('nnoremap', ['e', 'f'], 'CocFix & w', 'fix', 1)
 call SpaceVim#custom#SPC('nnoremap', ['f', 'g'], 'RangerTab', 'ranger', 1)
+call SpaceVim#custom#SPC('nnoremap', ['g', 'a'], 'Git add', 'git add', 1)
+call SpaceVim#custom#SPC('nnoremap', ['g', 'r'], '!git restore %', 'git restore', 1)
 
 " nnoremap <silent> <space>y    :<C-u>CocList -A --normal yank<cr>
 nnoremap <silent> <Leader>fT :Tags<CR>
@@ -115,7 +125,7 @@ nnoremap <silent><nowait> <space>a  :<C-u>CocList diagnostics<cr>
 " Use `[g` and `]g` to navigate diagnostics
 " Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
 nmap <silent> [g <Plug>(coc-diagnostic-prev)
-nmap <silent> ]g <Plug>(coc-diagnostic-next
+nmap <silent> ]g <Plug>(coc-diagnostic-next)
 
 "Use 24-bit (true-color) mode in Vim/Neovim when outside tmux.
 "If you're using tmux version 2.2 or later, you can remove the outermost $TMUX check and use tmux's 24-bit color support
