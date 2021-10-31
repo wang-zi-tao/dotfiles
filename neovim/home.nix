@@ -32,6 +32,7 @@ in {
           vim-tmux-focus-events
           vim-tmux-navigator
           surround
+          vim-fugitive
         ] ++ (if cfg.IDE then [
           coc-tabnine
           coc-go
@@ -62,13 +63,14 @@ in {
               "sha256:1c3lvz7315id7w0z2lw8ik4i9y15d0mv9wwfpvxmkrzvqbk7p56f";
           };
         in ''
-          " let $JAVA_TOOL_OPTIONS="-javaagent:${lombok} -Xbootclasspath/a:${lombok}"
+          let $JAVA_TOOL_OPTIONS="-javaagent:${lombok} -Xbootclasspath/a:${lombok}"
         ''
       else
         "") + builtins.readFile ./init.vim;
     };
     home.packages = with pkgs; [
       neovim-remote
+      python2
     ];
     home.file.".SpaceVim.d/init.toml".text =
       (builtins.readFile ./Spacevim.d.init.toml) + (if cfg.IDE then ''

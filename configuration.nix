@@ -32,22 +32,21 @@
   time.timeZone = "Asia/Shanghai";
   networking = {
     #useDHCP = true;
-    # firewall.enable = true;
+    firewall.enable = false;
     networkmanager = { enable = true; };
     wireguard = { enable = true; };
     proxy.default = "http://127.0.0.1:8889";
   };
   i18n.defaultLocale = "zh_CN.UTF-8";
-  gtk = { 
+  gtk = {
     iconCache.enable = true;
-    
+
   };
   fonts = {
     fontconfig = {
       enable = true;
       defaultFonts.emoji = [ "Noto Color Emoji" ];
-      defaultFonts.monospace =
-        [ "Iosevka Terminal" "Source Code Pro Medium" "Hack" "Sarasa Mono SC" ];
+      defaultFonts.monospace = [ "Iosevka Custom Medium" ];
       defaultFonts.sansSerif =
         [ "Inter" "Liberation Sans" "Soruce Han Sans SC" ];
       defaultFonts.serif = [ "Liberation Serif" "Source Han Serif SC" ];
@@ -74,6 +73,7 @@
       powerline-fonts
       powerline-symbols
       iosevka
+      fira-code-symbols
       # terminus_font
       # terminus-nerdfont
       # terminus_font_ttf
@@ -102,10 +102,17 @@
     bluetooth.enable = true;
   };
   sound.enable = true;
-  xdg.portal.enable = true;
+  xdg = {
+    # autostart.enable = false;
+    portal.enable = true;
+  };
   services = {
     pipewire = { enable = true; };
     xserver = {
+      enable = true;
+      exportConfiguration = true;
+      # displayManager.gdm.enable = true;
+      # displayManager.gdm.wayland = false;
       modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput ];
       videoDrivers = [
         "nvidia"
@@ -113,10 +120,7 @@
         # "nouveau"
         # "intel"
       ];
-      enable = true;
-      exportConfiguration = true;
-      # displayManager.gdm.enable = true;
-      # displayManager.gdm.wayland = false;
+      xkbOptions = "ctrl:nocaps";
       displayManager.lightdm = {
         enable = true;
         greeter.enable = true;

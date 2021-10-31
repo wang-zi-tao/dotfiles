@@ -11,7 +11,9 @@ configuration {
 	font:							"Iosevka Nerd Font 10";
     show-icons:                     true;
 	icon-theme: 					"Papirus";
-    display-drun: 					" Applications";
+    display-drun: 					"";
+    display-combi: 					" Applications";
+    display-window: 					"";
     drun-display-format:            "{name}";
     disable-history:                false;
 	sidebar-mode: 					false;

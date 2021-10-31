@@ -18,14 +18,14 @@ import           XMonad.Actions.ShowText
 import           XMonad.Hooks.DynamicLog
 import           XMonad.Hooks.EwmhDesktops            (ewmh)
 import           XMonad.Hooks.ManageDocks             (avoidStruts, docks)
-import           XMonad.Hooks.ManageHelpers           (doFullFloat,
-                                                       isFullscreen)
+import           XMonad.Hooks.ManageHelpers
 import           XMonad.Hooks.Place
 import           XMonad.Layout.AutoMaster
 import           XMonad.Layout.BinarySpacePartition   (Rotate (Rotate),
                                                        Swap (Swap), emptyBSP)
 import           XMonad.Layout.Fullscreen
 import           XMonad.Layout.Grid                   (Grid (..))
+import qualified XMonad.Layout.IndependentScreens     as LIS
 import           XMonad.Layout.LayoutCombinators      (JumpToLayout (JumpToLayout),
                                                        (|||))
 import           XMonad.Layout.NoBorders              (noBorders, smartBorders)
@@ -95,26 +95,27 @@ myKeys =
   [
     ("M-<Return>", spawn myTerminal)
   , ("M-S-c", kill)
+  , ("M-c", kill)
   , ("M-Delete", kill)
-  , ("M-o", spawn "light-locker-command -l") -- lock screen
+  , ("M-o", spawn "betterlockscreen -l blur & /run/current-system/sw/bin/systemctl suspend && fg") -- lock screen
   , ("M-S-q", confirmPrompt myXPConfig "exit" $ io exitSuccess) -- prompt to kill xmonad
   , ("M-q", spawn "xmonad --restart")
 
   , ("M-r", spawn $ myTerminal ++ " -e ranger")
   , ("M-b", spawn "firefox")
   , ("M-p", spawn "gpaste-client ui")
-  , ("M-o", spawn "kdeconnect-app")
-  , ("M-e", spawn "~/.emacs_anywhere/bin/run")
+  , ("M-i", spawn "kdeconnect-app")
   , ("M-v", spawn "qv2ray")
   , ("M-n", spawn "nautilus")
+  , ("M-S-n", spawn "dolphin")
   , ("M-S-z", spawn "alacritty -e zsh")
 
   , ("M-x", namedScratchpadAction myScratchPads "terminal")
   , ("M-z", spawn "~/.config/eww/scripts/trigger")
 
   -- , ("M-d", shellPrompt myXPConfig)
-  , ("M-d", spawn "rofi -no-lazy-grab -show drun -modi drun -theme ~/.config/rofi/apps.css")
-  , ("C-M-d", spawn "rofi -show run")
+  , ("M-d", spawn "rofi -combi-modi window,drun -show combi -modi combi -theme ~/.config/rofi/apps.css")
+  , ("M-f", spawn "rofi -combi-modi window -show combi -modi combi -theme ~/.config/rofi/apps.css")
   , ("C-M-l", spawn "light-locker")
   , ("M-<Esc>", nextMatch Forward isOnAnyVisibleWS)
   , ("M-<Tab>", nextMatch History (return True))
@@ -125,14 +126,12 @@ myKeys =
   , ("<XF86AudioRaiseVolume>", spawn "amixer set Master 5%+")
   , ("<XF86AudioLowerVolume>", spawn "amixer set Master 5%-")
 
-  , ("<Print>", spawn "scrot -b '截图_%Y%m%d_%H%M%S.png' -e 'mkdir -p ~/图片 && mv $f ~/图片 && xclip -selection clipboard -t image/png -i ~/图片/`ls -1 -t ~/图片 | head -1`'")
-  , ("S-<Print>", spawn "scrot -b -s '截图_%Y%m%d_%H%M%S.png' -e 'mkdir -p ~/图片 && mv $f ~/图片 && xclip -selection clipboard -t image/png -i ~/图片/`ls -1 -t ~/图片 | head -1`'")
-  , ("M1-<Print>", spawn "scrot -b -u '截图_%Y%m%d_%H%M%S.png' -e 'mkdir -p ~/图片 && mv $f ~/图片 && xclip -selection clipboard -t image/png -i ~/图片/`ls -1 -t ~/图片 | head -1`'")
+  , ("<Print>", spawn "gnome-screenshot -a -c")
 
   , ("M-<Space>", sendMessage NextLayout) -- Change to next layout in order
 
   -- , ("M-t", sendMessage $ JumpToLayout "Spacing Tall")
-  , ("M-f", sendMessage $ JumpToLayout "StateFull")
+  -- , ("M-f", sendMessage $ JumpToLayout "StateFull")
   -- , ("M-m", sendMessage $ JumpToLayout "Mirror Spacing Tall")
   -- , ("M-n", sendMessage $ JumpToLayout "Spacing BSP")
   -- , ("M-s", sendMessage $ JumpToLayout "Spacing Spiral")
@@ -275,32 +274,39 @@ myScratchPads =
 
   managevifm =
     customFloating $ W.RationalRect centrall centralt centralw centralh
-myManageHook =
-  composeAll
-      [ title =? "GIMP 启动" --> doFloat
-      , className =? "qv2ray" --> doFloat
+myManageHook = composeAll
+      [ className =? "qv2ray" --> doFloat
+      , ((className =? "Gimp-2.10") <&&> (title /=? "GNU 图像处理程序")) <||> (title =? "GIMP 启动") --> doFloat
+      , className =? "dolphin" --> doFloat
       , className =? "Org.gnome.Nautilus" --> doFloat
       , className =? "feh" --> doFloat
       , className =? "kdeconnect.app" --> doFloat
-      , className =? "VirtualBox Manager" --> doFloat
+      , className =? "VirtualBox Manager" --> doFloat <+> doShift "8"
       , className =? "Gnome-system-monitor" --> doFloat
       , className =? "kdeconnect-app" --> doFloat
       , className =? "org.jackhuang.hmcl.Launcher" --> doFloat
       , resource =? "desktop_window" --> doIgnore
-      , isFullscreen --> doFullFloat
+      , fullscreenManageHook
+      , title /=? "terminalScratchpad" --> placeHook (withGaps (100,100,100,100) (underMouse (0,0)))
       ]
     <+> namedScratchpadManageHook myScratchPads
+-- toggleHDMI = do
+  -- screencount <- LIS.countScreens
+  -- if screencount > 1
+   -- then spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080 --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal"
+   -- else spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080"
 myStartupHook = do
   spawnOnce "feh --bg-fill ~/图片/大鱼海棠16.png"
   spawn "killall picom; picom --dbus --experimental-backend"
   spawnOnce "qv2ray"
-  spawnOnce "sleep 1 && ibus-daemon"
+  spawn "ibus-daemon -x -r"
   spawnOnce "nm-applet"
   spawn "killall eww; eww open-many bar"
   spawnOnce "kdeconnect-indicator"
   -- spawnOnce "sleep 1 ; amixer set Master 0%"
   spawn "gpaste-client start"
-  spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080 --rotate normal --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal"
+  spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080 --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal"
+  -- toggleHDMI
   spawn "xhost +"
   -- spawnOnce "light-locker --lock-on-suspend &"
 myLayout =  avoidStruts $ smartBorders
@@ -337,15 +343,15 @@ myEmojiFont :: String
 myEmojiFont = "xft:Apple Color Emoji:size=11"
 myWorkspaces :: [String]
 myWorkspaces =
-  [ "1:\xf269"
-  , "2:\xf120"
-  , "3:\xe7a8"
-  , "4:\xf48a"
-  , "5:\xf126"
-  , "6:\xf121"
-  , "7:\xf313"
-  , "8:\xf308"
-  , "9:\xf872"
+  [ "1"
+  , "2"
+  , "3"
+  , "4"
+  , "5"
+  , "6"
+  , "7"
+  , "8"
+  , "9"
   ]
 myBorderWidth :: Dimension
 myBorderWidth = 2
@@ -384,7 +390,17 @@ dbusOutput dbus str =
 
 barHook :: D.Client -> PP
 barHook dbus =
-  let wrapper c s | s /= "NSP" = wrap ("(ws :type \"" <> c <> "\" :text \"") "\")" s
+  let symbol w | w == "1" = "1:\xf269"
+               | w == "2" = "2:\xf120"
+               | w == "3" = "3:\xe7a8"
+               | w == "4" = "4:\xf48a"
+               | w == "5" = "5:\xf126"
+               | w == "6" = "6:\xf121"
+               | w == "7" = "7:\xf313"
+               | w == "8" = "8:\xf308"
+               | w == "9" = "9:\xf872"
+               | otherwise = w
+      wrapper c s | s /= "NSP" = wrap ("(ws :type \"" <> c <> "\" :text \"") "\")" $ symbol s
                   | otherwise  = mempty
       wrapper_layout s = wrap ("(layout :text \"") "\")" s
       layout_map x | x == "Spacing Spiral" = wrapper_layout "\xfa6d"

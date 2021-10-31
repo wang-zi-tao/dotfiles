@@ -59,7 +59,7 @@
 }
 .iconbat {
   min-width : 32px;
-	font-size : 28px;
+	font-size : 26px;
 	font-weight : normal;
 }
 
@@ -245,30 +245,6 @@
 	font-weight : normal;
 }
 
-/** Applications ***************************************/
-.appbox {
-	margin : 15px 0px 0px 25px;
-}
-
-.app_fox, .app_telegram, .app_discord, .app_terminal,
-.app_files, .app_geany, .app_code, .app_gimp, .app_vbox {
-  background-repeat: no-repeat;
-	background-size: 64px;
-	min-height: 64px;
-	min-width: 64px;
-	margin: 8px 8px 0px 8px;
-}
-
-.app_fox {background-image: url("file:///home/wangzi/.config/eww/images/icons/firefox.svg");}
-.app_telegram {background-image: url("file:///home/wangzi/.config/eww/images/icons/telegram.svg");}
-.app_discord {background-image: url("file:///home/wangzi/.config/eww/images/icons/discord.svg");}
-.app_terminal {background-image: url("file:///home/wangzi/.config/eww/images/icons/terminal.svg");}
-.app_files {background-image: url("file:///home/wangzi/.config/eww/images/icons/files.svg");}
-.app_geany {background-image: url("file:///home/wangzi/.config/eww/images/icons/geany.svg");}
-.app_code {background-image: url("file:///home/wangzi/.config/eww/images/icons/code.svg");}
-.app_gimp {background-image: url("file:///home/wangzi/.config/eww/images/icons/code.svg");}
-.app_vbox {background-image: url("file:///home/wangzi/.config/eww/images/icons/virtualbox.svg");}
-
 /** Links ***************************************/
 .iconweb, .iconmail {
 	color: #FFFFFF;
@@ -370,7 +346,7 @@
   padding: 0px 10px 0px 0px;
   margin: 6px 6px;
   min-height: 27px;
-  border-radius: 32px;
+  border-radius: 8px;
   border-width: 5px;
   font-size:16px;
   font-family: feather;

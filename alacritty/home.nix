@@ -44,7 +44,19 @@ let
         x: 0
         y: 0
       size: 11
-      use_thin_strokes: true
+      # use_thin_strokes: true
+      normal:
+        family: Iosevka Custom
+        style: Medium
+      bold:
+        family: Iosevka Custom
+        style: Bold
+      italic:
+        family: Iosevka Custom
+        style: Italic
+      bold_italic:
+        family: Iosevka Custom
+        style: Bold Italic
     shell:
       program: "${pkgs.tmux}/bin/tmux"
   '';

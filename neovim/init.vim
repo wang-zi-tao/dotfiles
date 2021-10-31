@@ -52,7 +52,7 @@ let g:rainbow_active = 1
 " let g:ibus#layout = 'xkb:us::eng'
 " let g:ibus#engine = 'libpinyin'
 
-" call dein#add('glacambre/firenvim', { 'hook_post_update': { _ -> firenvim#install(0) } })
+call dein#add('glacambre/firenvim', { 'hook_post_update': { _ -> firenvim#install(0) } })
 
 " coc
 " inoremap <silent><expr> <TAB>
@@ -68,7 +68,7 @@ nmap <silent> gr <Plug>(coc-references)
 call SpaceVim#custom#SPC('nnoremap', ['f', 't'], 'CocCommand explorer', 'explorer', 1)
 call SpaceVim#custom#SPC('nnoremap', ['e', 'f'], 'CocFix & w', 'fix', 1)
 call SpaceVim#custom#SPC('nnoremap', ['f', 'g'], 'RangerTab', 'ranger', 1)
-call SpaceVim#custom#SPC('nnoremap', ['g', 'a'], 'Git add', 'git add', 1)
+call SpaceVim#custom#SPC('nnoremap', ['g', 'a'], 'Git add %', 'git add', 1)
 call SpaceVim#custom#SPC('nnoremap', ['g', 'r'], '!git restore %', 'git restore', 1)
 
 " nnoremap <silent> <space>y    :<C-u>CocList -A --normal yank<cr>

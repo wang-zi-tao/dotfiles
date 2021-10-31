@@ -1,36 +1,51 @@
 final: prev: rec {
   iosevka = prev.iosevka.override {
     privateBuildPlan = ''
-      [buildPlans.iosevka-terminal]
-      family = "Iosevka Terminal"
-      spacing = "normal"
+      [buildPlans.iosevka-custom]
+      family = "Iosevka Custom"
+      spacing = "term"
       serifs = "sans"
       no-cv-ss = true
 
-        [buildPlans.iosevka-terminal.ligations]
-        inherits = "dlig"
+        [buildPlans.iosevka-custom.ligations]
+        inherits = "haskell"
 
-      [buildPlans.iosevka-terminal.weights.regular]
+      [buildPlans.iosevka-custom.weights.regular]
       shape = 400
       menu = 400
       css = 400
 
-      [buildPlans.iosevka-terminal.weights.medium]
+      [buildPlans.iosevka-custom.weights.medium]
       shape = 500
       menu = 500
       css = 500
 
-      [buildPlans.iosevka-terminal.weights.semibold]
+      [buildPlans.iosevka-custom.weights.semibold]
       shape = 600
       menu = 600
       css = 600
 
-      [buildPlans.iosevka-terminal.widths.normal]
+      [buildPlans.iosevka-custom.weights.bold]
+      shape = 700
+      menu = 700
+      css = 700
+
+      [buildPlans.iosevka-custom.weights.extrabold]
+      shape = 800
+      menu = 800
+      css = 800
+
+      [buildPlans.iosevka-custom.weights.heavy]
+      shape = 900
+      menu = 900
+      css = 900
+
+      [buildPlans.iosevka-custom.widths.normal]
       shape = 600
       menu = 5
       css = "normal"
     '';
-    set = "term";
+    set = "custom";
   };
 
 }

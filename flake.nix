@@ -10,11 +10,11 @@
     master.url = "github:nixos/nixpkgs/master";
     fenix = {
       url = "github:nix-community/fenix";
-      # inputs.nixpkgs.follows = "unstable";
+      inputs.nixpkgs.follows = "unstable";
     };
     naersk = {
       url = "github:nmattia/naersk";
-      # inputs.nixpkgs.follows = "unstable";
+      inputs.nixpkgs.follows = "unstable";
     };
     flake-compat = {
       url = "github:edolstra/flake-compat";

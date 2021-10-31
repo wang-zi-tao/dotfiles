@@ -60,7 +60,7 @@
       subvolume = "/home/wangzi";
       extraConfig = ''
         ALLOW_USERS="wangzi"
-        TIMELINE_LIMIT_HOURLY=0
+        TIMELINE_LIMIT_HOURLY=6
         TIMELINE_LIMIT_DAILY=3
         TIMELINE_LIMIT_WEEKLY=1
         TIMELINE_LIMIT_MONTHLY=0

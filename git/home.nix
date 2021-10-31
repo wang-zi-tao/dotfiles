@@ -28,4 +28,5 @@ in {
       };
     };
   };
+  home.packages = with pkgs; [ delta ];
 }

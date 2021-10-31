@@ -32,16 +32,6 @@ let
       jedi
       pip
       setuptools
-      pylint-django
-    ]);
-  haskell-env = pkgs.haskellPackages.ghcWithHoogle (hp:
-    with hp; [
-      apply-refact
-      haskell-language-server
-      brittany
-      cabal-install
-      hlint
-      xmobar
     ]);
   imports = [
     ./zsh/home.nix
@@ -129,13 +119,13 @@ in {
   home.packages = with pkgs;
     scripts ++ [
 
-      haskell-env
+      rnix-lsp 
+      nixfmt
       feh
       pfetch
       neofetch
       killall
       x11docker
-      dconf2nix
       xclip
       xdotool
       xorg.xbacklight
@@ -157,9 +147,6 @@ in {
       wget
       zip
       unzip
-      rnix-lsp
-      nixfmt
-      nix-du
       kubectl
       k9s
       kubernetes-helm
@@ -184,85 +171,38 @@ in {
       gnome.gpaste
       gnome.sushi
       gnome.nautilus
+      gnome.seahorse
 
-      lxappearance
       libsForQt5.kdeconnect-kde
-      touchegg
-      gimp
-      slack
-      inkscape
-      krita
-      shotcut
+      # gimp
+      # slack
+      # inkscape
+      # krita
+      # shotcut
       drawio
-      hugo
-      lens
-      octant
-      octant-desktop
-      gitkraken
+      # lens
       nur.repos.linyinfeng.icalingua
 
-      # wine
-      # winetricks
-      # jetbrains.clion
-      # jetbrains.webstorm
-      # jetbrains.idea-community
-      # jetbrains.pycharm-community
-
-      tela-icon-theme
-
-      # gnomeExtensions.gtile
-      # gnomeExtensions.runcat
-      # gnomeExtensions.ddterm
-      # gjs
-      # gnome.zenity
-      # vte
-      # vte_290
-      # gnomeExtensions.arcmenu
-      # gnomeExtensions.kimpanel
-      # gnomeExtensions.gsconnect
-      # gnomeExtensions.task-widget
-      # gnomeExtensions.blur-my-shell
-      # gnomeExtensions.autohide-battery
-      # gnomeExtensions.gtk-title-bar
-      # gnomeExtensions.hot-edge
-      # gnomeExtensions.net-speed-simplified
-      # gnomeExtensions.panel-scroll
-      # gnomeExtensions.proxy-switcher
-      # gnomeExtensions.screenshot-tool
-      # gnomeExtensions.task-widget
-      # gnomeExtensions.x11-gestures
-      # gnomeExtensions.system-monitor
-      # gnomeExtensions.quake-mode
-      # gnomeExtensions.runcat
-      # gnomeExtensions.middle-click-to-close-in-overview
-      # gnomeExtensions.proxy-switcher
-      # gnomeExtensions.appindicator
-      # gnomeExtensions.gnome-40-ui-improvements
-      # gnomeExtensions.night-theme-switcher
       gnome.baobab
       gnome.cheese
-      gnome.eog
-      gnome.epiphany
       gnome.gedit
       gnome.gnome-calculator
       gnome.gnome-calendar
-      gnome.gnome-characters
+      # gnome.gnome-characters
       gnome.gnome-clocks
-      gnome.gnome-contacts
-      gnome.gnome-font-viewer
-      gnome.gnome-logs
-      gnome.gnome-maps
+      # gnome.gnome-contacts
+      # gnome.gnome-font-viewer
+      # gnome.gnome-logs
+      # gnome.gnome-maps
+      gthumb
       gnome.gnome-music
-      pkgs.gnome-photos
       gnome.gnome-screenshot
       gnome.gnome-system-monitor
-      gnome.gnome-weather
       gnome.nautilus
       pkgs.gnome-connections
-      gnome.simple-scan
       gnome.totem
-      gnome.yelp
       gnome.gnome-software
+      dolphin
 
       pkg-config
       ctags
@@ -288,23 +228,12 @@ in {
       llvmPackages.bintools-unwrapped
       file
 
-      # stylish-haskell
-      go
       nodejs
       nodePackages.typescript
       python3-env
-      lua
-      rnix-lsp
-      perl
-      # ocaml
-
-      openssl
-      cryptodev
 
       jdk
       maven
       gradle
-      kotlin
-      scala
     ];
 }
