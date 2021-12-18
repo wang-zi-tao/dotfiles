@@ -1,0 +1,8 @@
+---
+name: workspace-7
+project_root: "/home/wangzi"
+windows:
+- ssh:
+    layout: 61b3,105x55,0,0,33
+    panes:
+    - cd /home/wangzi
