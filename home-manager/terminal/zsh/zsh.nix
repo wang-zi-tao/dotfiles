@@ -1,12 +1,13 @@
 { pkgs, ... }: {
   programs.zsh = {
     enable = true;
+    autocd = true;
     enableCompletion = true;
     #enableAutosuggestions = false;
     enableVteIntegration = true;
     # enableSyntaxHighlighting = true;
     oh-my-zsh = {
-      enable = true;
+      enable = false;
       # theme = "agnoster";
       plugins = [
         "git"
@@ -22,6 +23,28 @@
         "gitignore"
         "safe-paste"
       ];
+    };
+    prezto = {
+      enable = true;
+      python.virtualenvAutoSwitch = true;
+      screen.autoStartLocal = true;
+      # syntaxHighlighting.highlighters = ["main" "brackets" "line"];
+      pmodules = [
+        "git"
+        "archive"
+        "directory"
+        "editor"
+        "history"
+        "docker"
+        "completion"
+        "command-not-found"
+        "syntax-highlighting"
+        "history-substring-search"
+      ];
+      editor.keymap = "vi";
+      editor.dotExpansion = true;
+      historySubstring.foundColor = "fg=blue";
+      historySubstring.notFoundColor = "dg=red";
     };
     plugins = [
       {
@@ -55,7 +78,6 @@
     shellAliases = {
       v = "${pkgs.neovim}/bin/nvim";
       grep = "${pkgs.ripgrep}/bin/rg --color=auto";
-      fd = "${pkgs.fd}/bin/fd --ignore-file='.snapshots'";
       xclip = "${pkgs.xclip}/bin/xclip -selection c";
       s = "sudo su";
       j = "z";
@@ -89,9 +111,9 @@
       man = ''
         MANPAGER="sh -c 'col -bx | ${pkgs.bat}/bin/bat --theme=Coldark-Dark -l man -p'" man'';
 
-      ls = "${pkgs.exa}/bin/exa --icons";
-      l = "${pkgs.exa}/bin/exa -la --icons";
-      ll = "${pkgs.exa}/bin/exa -l --icons";
+      ls = "${pkgs.exa}/bin/exa --git --icons";
+      l = "${pkgs.exa}/bin/exa --git -la --icons";
+      ll = "${pkgs.exa}/bin/exa --git -l --icons";
 
       du = "${pkgs.du-dust}/bin/dust";
       df = "${pkgs.duf}/bin/duf";
@@ -103,15 +125,24 @@
 
       mvn = "unset JAVA_TOOL_OPTIONS && ${pkgs.maven}/bin/mvn";
 
+      ".." = "cd ..";
+    };
+    sessionVariables = {
+      _ZO_EXCLUDE_DIRS = "/nix";
     };
     initExtraFirst =
       "source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
-    initExtra = builtins.readFile ./zshrc.zsh + ''
-      export FZF_DEFAULT_COMMAND="${pkgs.ag}/bin/ag -p ~/.gitignore -g """
+    initExtra = builtins.readFile ./p10k.zsh + builtins.readFile ./zshrc.zsh + ''
+      # export FZF_DEFAULT_COMMAND="${pkgs.ag}/bin/ag -p ~/.gitignore -g """
       source ${pkgs.tmuxinator}/share/zsh/site-functions/_tmuxinator
     '';
   };
-  home.file.".p10k.zsh".source = ./p10k.zsh;
+  # home.file.".p10k.zsh".source = ./p10k.zsh;
   # programs.autojump.enable = true;
   programs.command-not-found.enable = true;
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
 }

@@ -2,11 +2,17 @@
 name: dev
 project_root: "/home/wangzi/"
 windows:
-- JVM:
+- nixos:
+    layout: c163,211x55,0,0,6
+    root: /home/wangzi/workspace/nixos
+    panes:
+    - vim 
+- jvm:
     layout: c15e,211x55,0,0,1
     root: /home/wangzi/workspace/JVM/JVM
     panes:
     - vim
+    # - zsh
 - lua:
     layout: c15f,211x55,0,0,2
     root: /home/wangzi/workspace/lua
@@ -15,23 +21,15 @@ windows:
 - zsh:
     layout: c160,211x55,0,0,3
     root: /home/wangzi/workspace/JVM/JVM
-    panes:
-    - zsh
 - qt_project:
     layout: c161,211x55,0,0,4
     root: /home/wangzi/workspace/C++/qt_project
-    panes:
-    - vim
 - qt_project_run:
     layout: c162,211x55,0,0,5
     root: /home/wangzi/workspace/C++/qt_project
     panes:
-    - ./listen-and-run.sh
-- nixos:
-    layout: c163,211x55,0,0,6
-    root: /home/wangzi/workspace/nixos
-    panes:
-    - vim 
+    # - ./listen-and-run.sh
+    # - zsh
 - aliyun:
     layout: c164,211x55,0,0,7
     panes: 
@@ -39,8 +37,6 @@ windows:
 - zsh:
     layout: c165,211x55,0,0,8
     root: /home/wangzi/Temp
-    panes:
-    - zsh 
 - monitor:
     layout: c165,211x55,0,0,8
     panes:

@@ -2,7 +2,7 @@
 name: workspace-5
 project_root: "/home/wangzi"
 windows:
-- ssh:
+- zsh:
     layout: 61b3,105x55,0,0,33
     panes:
-    - cd /home/wangzi
+    - zsh

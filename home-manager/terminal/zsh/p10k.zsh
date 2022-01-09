@@ -31,10 +31,10 @@
 
   # The list of segments shown on the left. Fill it with the most important segments.
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
-    # os_icon                 # os identifier
+    os_icon                 # os identifier
     dir                     # current directory
     vcs                     # git status
-    # prompt_char           # prompt symbol
+    # prompt_char             # prompt symbol
   )
 
   # The list of segments shown on the right. Fill it with less important segments.
@@ -62,15 +62,15 @@
     # laravel_version       # laravel php framework version (https://laravel.com/)
     # java_version          # java version (https://www.java.com/)
     # package               # name@version from package.json (https://docs.npmjs.com/files/package.json)
-    rbenv                   # ruby version from rbenv (https://github.com/rbenv/rbenv)
-    rvm                     # ruby version from rvm (https://rvm.io)
-    fvm                     # flutter version management (https://github.com/leoafarias/fvm)
-    luaenv                  # lua version from luaenv (https://github.com/cehoffman/luaenv)
-    jenv                    # java version from jenv (https://github.com/jenv/jenv)
-    plenv                   # perl version from plenv (https://github.com/tokuhirom/plenv)
-    phpenv                  # php version from phpenv (https://github.com/phpenv/phpenv)
-    scalaenv                # scala version from scalaenv (https://github.com/scalaenv/scalaenv)
-    haskell_stack           # haskell version from stack (https://haskellstack.org/)
+    # rbenv                   # ruby version from rbenv (https://github.com/rbenv/rbenv)
+    # rvm                     # ruby version from rvm (https://rvm.io)
+    # fvm                     # flutter version management (https://github.com/leoafarias/fvm)
+    # luaenv                  # lua version from luaenv (https://github.com/cehoffman/luaenv)
+    # jenv                    # java version from jenv (https://github.com/jenv/jenv)
+    # plenv                   # perl version from plenv (https://github.com/tokuhirom/plenv)
+    # phpenv                  # php version from phpenv (https://github.com/phpenv/phpenv)
+    # scalaenv                # scala version from scalaenv (https://github.com/scalaenv/scalaenv)
+    # haskell_stack           # haskell version from stack (https://haskellstack.org/)
     kubecontext             # current kubernetes context (https://kubernetes.io/)
     terraform               # terraform workspace (https://www.terraform.io)
     # aws                     # aws profile (https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html)
@@ -173,10 +173,10 @@
 
   #################################[ os_icon: os identifier ]##################################
   # OS identifier color.
-  typeset -g POWERLEVEL9K_OS_ICON_FOREGROUND=232
-  typeset -g POWERLEVEL9K_OS_ICON_BACKGROUND=7
+  typeset -g POWERLEVEL9K_OS_ICON_FOREGROUND=4
+  typeset -g POWERLEVEL9K_OS_ICON_BACKGROUND=254
   # Custom icon.
-  typeset -g POWERLEVEL9K_OS_ICON_CONTENT_EXPANSION=''
+  typeset -g POWERLEVEL9K_OS_ICON_CONTENT_EXPANSION=''
 
   ################################[ prompt_char: prompt symbol ]################################
   # Transparent background.

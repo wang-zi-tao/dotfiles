@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 let theme = config.theme;
 in {
-  home.packages = [ pkgs.unstable.eww pkgs.jq pkgs.i3lock ];
+  home.packages = [ pkgs.unstable.eww pkgs.jq pkgs.i3lock pkgs.wmctrl ];
   home.file.".copnfig/betterlockscreenrc".text = ''
     blur_level=1
     #loginbox=${theme.background}
@@ -158,12 +158,12 @@ in {
       background-color: ${theme.pink};
     }
   '';
-  home.file.".config/eww/scripts/weather_info" = {
-    source = ./scripts/weather_info;
+  home.file.".config/eww/scripts/weather_info.sh" = {
+    source = ./scripts/weather_info.sh;
     executable = true;
   };
-  home.file.".config/eww/scripts/trigger" = {
-    source = ./scripts/trigger;
+  home.file.".config/eww/scripts/trigger.sh" = {
+    source = ./scripts/trigger.sh;
     executable = true;
   };
   home.file.".config/eww/images/profile.jpg" = {
@@ -210,13 +210,13 @@ in {
       		(defpoll TTIME :run-while control-center-enable :interval "1s"  "")
 
       		;; Weather vars
-      		(defpoll ICON :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --icon")
-      		(defpoll STAT :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --stat")
-      		(defpoll TEMP :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --temp")
-      		(defpoll WEATHER :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --getdata")
-      		(defpoll HEX :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --hex")
-      		(defpoll QUOTE :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --quote")
-      		(defpoll QUOTE2 :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info --quote2")
+      		(defpoll ICON :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info.sh --icon")
+      		(defpoll STAT :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info.sh --stat")
+      		(defpoll TEMP :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info.sh --temp")
+      		(defpoll WEATHER :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info.sh --getdata")
+      		(defpoll HEX :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info.sh --hex")
+      		(defpoll QUOTE :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info.sh --quote")
+      		(defpoll QUOTE2 :run-while control-center-enable :interval "15m"  "~/.config/eww/scripts/weather_info.sh --quote2")
 
               ;;  Apps vars 
       		(defpoll MAILS :run-while control-center-enable :interval "5m"  "echo 0")
@@ -290,7 +290,7 @@ in {
 
       		(defwidget web2 [] 
       			(box :class "web2" :vexpand "false" :hexpand "false" 
-      				(button :class "iconweb" :onclick "~/.config/eww/scripts/open_links --rd" "樓")))
+      				(button :class "iconweb" :onclick "~/.config/eww/scripts/open_links.sh --rd" "樓")))
 
       		(defwidget web3 [] 
       			(box :class "web3" :vexpand "false" :hexpand "false" 
@@ -304,9 +304,9 @@ in {
       		(defwidget mail [] 
       			(box :class "mail" 
       				(box :orientation "h" :halign "center" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false" 
-      					(button :class "iconmail" :onclick "~/.config/eww/scripts/open_links --mail" "")
+      					(button :class "iconmail" :onclick "~/.config/eww/scripts/open_links.sh --mail" "")
       					(box :class "mailbox" :space-evenly "false" :vexpand "false" :hexpand "false" 
-      						(button :class "label_mails" :onclick "~/.config/eww/scripts/open_links --mail" MAILS)))))
+      						(button :class "label_mails" :onclick "~/.config/eww/scripts/open_links.sh --mail" MAILS)))))
 
       		;;  weather 
       		(defwidget weather [] 
@@ -324,25 +324,25 @@ in {
       		(defwidget apps [] 
       			(box :class "genwin" :orientation "v" :space-evenly "false" :vexpand "false" :hexpand "false" 
       				(box :class "appbox" :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
-      					(button :class "app_fox" :onclick "~/.config/eww/scripts/open_apps --ff/")
-      					(button :class "app_telegram" :onclick "~/.config/eww/scripts/open_apps --tg")
-      					(button :class "app_discord" :onclick "~/.config/eww/scripts/open_apps --dc"))
+      					(button :class "app_fox" :onclick "~/.config/eww/scripts/open_apps.sh --ff/")
+      					(button :class "app_telegram" :onclick "~/.config/eww/scripts/open_apps.sh --tg")
+      					(button :class "app_discord" :onclick "~/.config/eww/scripts/open_apps.sh --dc"))
               (box :class "appbox" :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
-      					(button :class "app_terminal" :onclick "~/.config/eww/scripts/open_apps --tr")
-      					(button :class "app_files" :onclick "~/.config/eww/scripts/open_apps --fm")
-      					(button :class "app_geany" :onclick "~/.config/eww/scripts/open_apps --ge"))
+      					(button :class "app_terminal" :onclick "~/.config/eww/scripts/open_apps.sh --tr")
+      					(button :class "app_files" :onclick "~/.config/eww/scripts/open_apps.sh --fm")
+      					(button :class "app_geany" :onclick "~/.config/eww/scripts/open_apps.sh --ge"))
               (box :class "appbox" :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
-      					(button :class "app_code" :onclick "~/.config/eww/scripts/open_apps --cd")
-      					(button :class "app_gimp" :onclick "~/.config/eww/scripts/open_apps --gp")
+      					(button :class "app_code" :onclick "~/.config/eww/scripts/open_apps.sh --cd")
+      					(button :class "app_gimp" :onclick "~/.config/eww/scripts/open_apps.sh --gp")
       					(button :class "app_vbox" :onclick "~/.config/eww/scripts/open_apps --vb"))))
 
       		;;  power buttons 
       		(defwidget logout [] 
       			(box :class "genwin" :vexpand "false" :hexpand "false" 
-      				(button :class "btn_logout" :onclick "betterlockscreen -l & /run/current-system/sw/bin/systemctl suspend && fg" "﫼")))
+      				(button :class "btn_logout" :onclick "betterlockscreen -l -s" "﫼")))
       		(defwidget sleep [] 
       			(box :class "genwin" :vexpand "false" :hexpand "false" 
-      				(button :class "btn_sleep" :onclick "eww set control-center-enable=false; betterlockscreen -l && amixer set Master 0%" "⏾")))
+      				(button :class "btn_sleep" :onclick "eww set control-center-enable=false; betterlockscreen -l -s" "⏾")))
       		(defwidget reboot [] 
       			(box :class "genwin" :vexpand "false" :hexpand "false" 
       				(button :class "btn_reboot" :onclick "systemctl reboot" "")))
@@ -352,15 +352,15 @@ in {
 
       		(defwidget folder [ icon path index ] 
       				(box :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
-      					(button :class "iconfolder$${index}" :onclick "~/.config/eww/scripts/open_folders $${path}" icon)
-      					(button :class "label_folder$${index}" :onclick "~/.config/eww/scripts/open_folders $${path}" path))
+      					(button :class "iconfolder$${index}" :onclick "~/.config/eww/scripts/open_folders.sh $${path}" icon)
+      					(button :class "label_folder$${index}" :onclick "~/.config/eww/scripts/open_folders.sh $${path}" path))
            )
 
       		;;  folders 
       		(defwidget folders [] 
       			(box :class "genwin folders" :orientation "v" :space-evenly "false" :vexpand "false" :hexpand "false"			(box :class "hddbox" :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
       					(box :space-evenly "false" :vexpand "false" :hexpand "false"
-      						(button :class "hddicon" :onclick "~/.config/eww/scripts/open_apps --fm" ""))
+      						(button :class "hddicon" :onclick "~/.config/eww/scripts/open_apps.sh --fm" ""))
       					(label :class "fs_sep" :text "|")
       					(box :space-evenly "false" :vexpand "false" :hexpand "false" 
       						(label :class "hdd_label" :wrap "true" :limit-width 25 :text FREE)))
@@ -441,17 +441,19 @@ in {
                            :onchange  "amixer set Master {}%")))
                 (label :class "warn" :text "$${EWW_BATTERY.BAT0.capacity < 20 ? "$${EWW_BATTERY.BAT0.capacity}%" : ""}")
                 (label :class "warn" :text "$${EWW_TEMPS.PACKAGE_ID_0 > 80 ? "$${EWW_TEMPS.PACKAGE_ID_0}糖" : ""}")
-                (box :class "bar-system" 
-                     :orientation "v"
-                     :space-evenly true
-                    (box :class "color_red"
-                      (scale :min 0 :max 100 :value {EWW_CPU["avg"]} :active "false"))
-                    (box :class "color_yellow"
-                      (scale :min 0 :max 100 :value {EWW_RAM.used_mem_perc} :active "false"))
-                    (box :class "color_green"
-                      (scale :min 0 :max 100 :value {EWW_TEMPS.PACKAGE_ID_0} :active "false"))
-                    (box :class "color_sky" 
-                     (scale :min 0 :max 100 :value {EWW_BATTERY.BAT0.capacity} :active "false"))
+                (button :onclick "~/.config/eww/scripts/trigger.sh"
+                  (box :class "bar-system" 
+                       :orientation "v"
+                       :space-evenly true
+                      (box :class "color_red"
+                        (scale :min 0 :max 100 :value {EWW_CPU["avg"]} :active "false"))
+                      (box :class "color_yellow"
+                        (scale :min 0 :max 100 :value {EWW_RAM.used_mem_perc} :active "false"))
+                      (box :class "color_green"
+                        (scale :min 0 :max 100 :value {EWW_TEMPS.PACKAGE_ID_0} :active "false"))
+                      (box :class "color_sky" 
+                       (scale :min 0 :max 100 :value {EWW_BATTERY.BAT0.capacity} :active "false"))
+                  )
                 )
                 (box
              ;;     (label :text {"$${EWW_NET.wlo1.NET_DOWN}K $${EWW_NET.wlo1.NET_UP}K"})
@@ -460,14 +462,16 @@ in {
               )
             )
 
-            (defwidget ws [type text]
-             (box :class "workspace $${type}" (label :hexpand true :text text))
+            (defwidget ws [type text name]
+             (button :class "workspace $${type}" :onclick "${pkgs.wmctrl}/bin/wmctrl -s $$(( $${name} - 1 ))" (label :hexpand true :text text))
             )
             (defwidget layout [text]
              (box :class "workspace layout" :vexpand false (label :hexpand true :text text))
             )
             (defwidget workspaces []
-              (literal :valign "center" :content "(box :class \"workspaces\" :space-evenly false $${workspaces})")
+              (button :onclick "rofi -combi-modi window,drun -show combi -modi combi -theme ~/.config/rofi/apps.css&"
+                (literal :valign "center" :content "(box :class \"workspaces\" :space-evenly false $${workspaces})")
+              )
             )
 
             (defwidget bar-music []

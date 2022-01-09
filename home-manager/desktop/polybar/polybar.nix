@@ -1,28 +1,38 @@
 { config, pkgs, ... }:
 
 let
-  mypolybar = pkgs.polybar.override {
-    alsaSupport = true;
-    githubSupport = true;
-    mpdSupport = true;
-    pulseSupport = true;
-  };
-  colors = builtins.readFile ./polybar-colors;
-  xmonad = ''
-    [module/xmonad]
-    type = custom/script
-    exec = ${pkgs.xmonad-log}/bin/xmonad-log
-    tail = true
-  '';
+  theme = config.theme;
+  colors = builtins.readFile ./polybar-colors + ''
+    BACKGROUND = ${theme.background1}
+    FOREGROUND = ${theme.foreground}
+
+    BLACK = #2E3440
+    RED = ${theme.red}
+    GREEN = ${theme.green}
+    YELLOW = ${theme.yellow}
+    BLUE = ${theme.blue}
+    MAGENTA = ${theme.purple}
+    CYAN = ${theme.sky}
+    WHITE = ${theme.background1}
+    ALTBLACK = #2D2D2D
+    ALTRED = #99324B
+    ALTGREEN = #4F894C
+    ALTYELLOW = #9A7500
+    ALTBLUE = #8FBCBB
+    ALTMAGENTA = #97365B
+    ALTCYAN = #398EAC
+    ALTWHITE = #ECEFF4
+
+    foreground-alt = ${theme.red}
+      '';
 in {
   services.polybar = {
     enable = true;
-    package = mypolybar;
     config = ./polybar-config;
-    extraConfig = colors + xmonad;
+    extraConfig = colors;
     script = ''
-      polybar top &
-      polybar bottom &
+      # polybar icons &
     '';
   };
+  home.packages = with pkgs; [ xmonad-log ];
 }

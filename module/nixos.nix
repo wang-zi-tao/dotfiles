@@ -12,6 +12,7 @@
     gc.options = "-d";
     optimise.automatic = true;
   };
+  # environment.memoryAllocator.provider = "jemalloc";
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "Asia/Shanghai";
 }

@@ -1,8 +1,10 @@
 ---
 name: workspace-4
-project_root: "/home/wangzi"
+project_root: "/home/wangzi/workspace/blog"
 windows:
-- ssh:
+- hugo:
     layout: 61b3,105x55,0,0,33
+    root: "/home/wangzi/workspace/blog/content/zh-cn/posts/"
     panes:
-    - cd /home/wangzi
+      - vim 
+      - zsh

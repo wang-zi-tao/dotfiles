@@ -1,5 +1,6 @@
 { pkgs, nixpkgs, home-manager, ... }:
-nixpkgs.lib.nixosSystem {
+let hostname = "wangzi-pc";
+in nixpkgs.lib.nixosSystem {
   system = "x86_64-linux";
   modules = [
     ../../module/nixos.nix
@@ -31,9 +32,11 @@ nixpkgs.lib.nixosSystem {
           ../../home-manager/terminal/terminal.nix
           ../../home-manager/develop/develop.nix
         ];
+        inherit hostname;
       };
       home-manager.users.root = { ... }: {
         imports = [ ../../home-manager/terminal/terminal.nix ];
+        inherit hostname;
       };
     })
     ({ pkgs, ... }: {
@@ -48,7 +51,8 @@ nixpkgs.lib.nixosSystem {
         shell = pkgs.zsh;
         group = "wangzi";
         description = "王子陶";
-        extraGroups = [ "wheel" "networkmanager" "vboxusers" "docker" "audio" ];
+        extraGroups =
+          [ "wheel" "networkmanager" "vboxusers" "docker" "lxd" "audio" ];
       };
     })
   ];

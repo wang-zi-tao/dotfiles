@@ -7,7 +7,7 @@ in {
   ];
   home.file.".config/picom.conf".text = ''
     active-opacity   = 1.0;
-    inactive-opacity = 0.90;
+    inactive-opacity = 0.85;
     inactive-dim     = 0.0;
     opacity-rule     = [
       "90:class_g  = 'Zathura'",

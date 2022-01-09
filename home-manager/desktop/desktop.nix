@@ -3,6 +3,7 @@
     ./eww/eww.nix
     ./rofi/rofi.nix
     ./xmonad/xmonad.nix
+    ./polybar/polybar.nix
     ./dunst.nix
     ./picom.nix
   ];
@@ -45,10 +46,10 @@
     enable = true;
     platformTheme = "gtk";
   };
-  services.nextcloud-client = {
-    enable = true;
-    startInBackground = true;
-  };
+  # services.nextcloud-client = {
+    # enable = true;
+    # startInBackground = true;
+  # };
   services.kdeconnect = {
     enable = true;
     indicator = true;
@@ -78,7 +79,6 @@
     unstable.qv2ray
     v2ray
     wpsoffice
-    nextcloud-client
     # libreoffice
     libsForQt5.kdeconnect-kde
     # gimp
@@ -88,10 +88,16 @@
     # shotcut
     drawio
     lens
-    nur.repos.linyinfeng.icalingua
     feh
+
+    wewechat
+    # deepin-wine-tim
+    # icalingua
+    nur.repos.linyinfeng.icalingua
+
     xdotool
     meld
+    nextcloud-client
 
     gnome.baobab
     gnome.cheese
@@ -124,5 +130,9 @@
     gnome.sushi
     gnome.nautilus
     gnome.seahorse
+
+    adwaita-qt
+    gnome.adwaita-icon-theme
+    libadwaita
   ];
 }

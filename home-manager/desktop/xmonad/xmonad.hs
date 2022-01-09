@@ -16,6 +16,7 @@ import           XMonad.Actions.CycleWS
 import qualified XMonad.Actions.DynamicWorkspaceOrder as DO
 import           XMonad.Actions.GridSelect
 import           XMonad.Actions.GroupNavigation
+import           XMonad.Actions.Search
 import           XMonad.Actions.ShowText
 import           XMonad.Actions.UpdatePointer
 import           XMonad.Actions.WorkspaceNames        (getCurrentWorkspaceName)
@@ -57,6 +58,11 @@ import           XMonad.Util.PureX
 import           XMonad.Util.Run                      (hPutStrLn, spawnPipe)
 import           XMonad.Util.SpawnOnce                (spawnOnce)
 import           XMonad.Util.WindowProperties
+
+-- | q ^? x. if the result of x 'isPrefixOf' q, return True
+(<^?) :: (Eq a, Functor m) => m [a] -> [a] -> m Bool
+q <^? x = fmap (x `isPrefixOf`) q
+
 myKeys :: [(String, X ())]
 myKeys =
   [
@@ -74,22 +80,22 @@ myKeys =
   , ("M-S-c", kill)
   , ("M-c", kill)
   , ("M-Delete", kill)
-  , ("M-o", spawn "betterlockscreen -l & /run/current-system/sw/bin/systemctl suspend && fg") -- lock screen
-  , ("M-S-q", confirmPrompt myXPConfig "exit" $ io exitSuccess) -- prompt to kill xmonad
+  , ("M-o", spawn "betterlockscreen -l -s") -- lock screen
+  -- , ("M-S-q", confirmPrompt myXPConfig "exit" $ io exitSuccess) -- prompt to kill xmonad
   , ("M-q", spawn "xmonad --restart")
 
   , ("M-b", spawn "firefox")
   , ("M-p", spawn "gpaste-client ui")
   , ("M-i", spawn "kdeconnect-app")
+  -- , ("M-v", namedScratchpadAction myScratchPads "qv2ray")
   , ("M-v", spawn "qv2ray")
-  , ("M-n", spawn "nautilus")
+  , ("M-n", namedScratchpadAction myScratchPads "nautilus")
   , ("M-S-n", spawn "dolphin")
   , ("M-S-z", spawn "alacritty -e zsh")
 
   , ("M-x", namedScratchpadAction myScratchPads "terminal")
-  , ("M-z", spawn "~/.config/eww/scripts/trigger")
+  , ("M-z", spawn "~/.config/eww/scripts/trigger.sh")
 
-  -- , ("M-d", shellPrompt myXPConfig)
   , ("M-d", spawn "rofi -combi-modi window,drun -show combi -modi combi -theme ~/.config/rofi/apps.css")
   , ("M-f", spawn "rofi -combi-modi window -show combi -modi combi -theme ~/.config/rofi/apps.css")
   , ("M-r", spawn "rofi -combi-modi run -show combi -modi combi -theme ~/.config/rofi/apps.css")
@@ -161,82 +167,21 @@ myKeys =
           _             -> sendMessage $ IncMasterN (-1)
     )
   ]
-myXPKeymap =
-  M.fromList
-    $  map
-         (first $ (,) 0)
-         [ (xK_Return   , setSuccess True >> setDone True)
-         , (xK_KP_Enter , setSuccess True >> setDone True)
-         , (xK_BackSpace, deleteString Prev)
-         , (xK_Delete   , deleteString Prev)
-         , (xK_Left     , moveCursor Prev)
-         , (xK_Right    , moveCursor Next)
-         , (xK_Down     , moveHistory W.focusUp')
-         , (xK_Up       , moveHistory W.focusDown')
-         , (xK_Escape   , quit)
-         ]
-    ++ map (first $ (,) controlMask) [(xK_v, pasteString)]
-myXPConfig = def { font              = myFont
-                 , bgColor           = "#232635"
-                 , fgColor           = "#A6ACCD"
-                 , bgHLight          = "#444267"
-                 , fgHLight          = "#A6ACCD"
-                 , borderColor       = "#de766c"
-                 , promptKeymap      = myXPKeymap
-                 , promptBorderWidth = 0
-                 , position          = Top
-                 , height            = myPromptHeight
-                 , autoComplete      = Nothing
-                 , searchPredicate   = fuzzyMatch
-                 , alwaysHighlight   = True
-                 }
-myEmojiXPConfig = def { font              = myEmojiFont
-                      , bgColor           = "#232635"
-                      , fgColor           = "#A6ACCD"
-                      , bgHLight          = "#444267"
-                      , fgHLight          = "#A6ACCD"
-                      , borderColor       = "#d6778c"
-                      , promptKeymap      = myXPKeymap
-                      , promptBorderWidth = 0
-                      , position          = Top
-                      , height            = myPromptHeight
-                      , autoComplete      = Nothing
-                      , searchPredicate   = fuzzyMatch
-                      , alwaysHighlight   = True
-                      }
-myFocusFollowsMouse :: Bool
-myFocusFollowsMouse = True
-myClickJustFocuses :: Bool
-myClickJustFocuses = True
+  where
+    getActiveLayoutDescription = do
+      workspaces <- gets windowset
+      return $ description . W.layout . W.workspace . W.current $ workspaces
 
 myMouseBindings XConfig { XMonad.modMask = modm } = M.fromList
-
-    -- mod-button1, Set the window to floating mode and move by dragging
-  [ ( (modm, button1)
-    , \w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster
-    )
-
-    -- mod-button2, Raise the window to the top of the stack
-  , ((modm, button2)
-    , \w -> focus w >> kill
-    )
-
-    -- mod-button3, Set the window to floating mode and resize by dragging
-  , ( (modm, button3)
-    , \w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster
-    )
-
-    -- you may also bind events to the mouse scroll wheel (button4 and button5)
+  [ ((modm, button1) , \w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster )
+  , ((modm, button2) , \w -> focus w >> kill )
+  , ((modm, button3) , \w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster )
   ]
-myScratchPads =
-  [ NS "terminal" spawnTerm    findTerm   manageTerm
-  ]
+myScratchPads = [ NS "terminal" spawnTerm    findTerm   manageTerm 
+                , NS "nautilus" "nautilus" (className =? "Org.gnome.Nautilus") longManageTerm
+                , NS "qv2ray" "q2ray" (title =? "Qv2ray") smallManageTerm
+                ]
  where
-  centralh   = 0.9
-  centralw   = 0.9
-  centralt   = 0.95 - centralh
-  centrall   = 0.95 - centralw
-
   spawnTerm  = myTerminal ++ " --title=alacritty-drop --config-file=${HOME}/.config/alacritty/alacritty-drop.yml "
   findTerm   = title =? "alacritty-drop"
   manageTerm = customFloating $ W.RationalRect l t w h
@@ -245,106 +190,80 @@ myScratchPads =
     w = 0.9
     t = 0.05
     l = (1 - w) / 2
+  smallManageTerm = customFloating $ W.RationalRect l t w h
+   where
+    h = 0.6
+    w = 0.6
+    t = (1 - h) / 2
+    l = (1 - w) / 2
+  longManageTerm = customFloating $ W.RationalRect l t w h
+   where
+    h = 0.5
+    w = 0.7
+    t = (1 - h) / 2
+    l = (1 - w) / 2
 
-  managevifm =
-    customFloating $ W.RationalRect centrall centralt centralw centralh
-myManageHook = composeAll
-      [ className =? "qv2ray" --> doFloat
+myManageHook = namedScratchpadManageHook myScratchPads <+> composeAll
+      [ fullscreenManageHook
+      , className =? "qv2ray" --> doFloat 
       , ((className =? "Gimp-2.10") <&&> (title /=? "GNU 图像处理程序")) <||> (title =? "GIMP 启动") --> doFloat
       , className =? "dolphin" --> doFloat
-      , className =? "Org.gnome.Nautilus" --> doFloat
+      -- , className =? "Org.gnome.Nautilus" --> doFloat
       , className =? "Nextcloud" --> doFloat
       , className =? "feh" --> doFloat
       , className =? "kdeconnect.app" --> doFloat
       , className =? "VirtualBox Manager" --> doFloat <+> doShift "8"
+      , className =? "alacritty-workspace-2" --> doShift "2"
       , className =? "Gnome-system-monitor" --> doFloat
       , className =? "kdeconnect-app" --> doFloat
       , className =? "org.jackhuang.hmcl.Launcher" --> doFloat
       , resource =? "desktop_window" --> doIgnore
-      , className =? "gnome-screenshot" --> doFloat
-      , fullscreenManageHook
+      , className =? "icalingua" --> doShift "6"
+      , (className =? "gnome-screenshot") <||> (className =? "Gnome-screenshot") --> doFloat
+      , (className =? "Firefox") <&&> (title <^? "[项目/JVM]") --> doShift "1"
       , title /=? "alacritty-drop" --> placeHook (withGaps (100,100,100,100) (underMouse (0,0)))
+      , title =? "alacritty-workspace-1" --> doShift "1"
+      , title =? "alacritty-workspace-2" --> doShift "2"
+      , title =? "alacritty-workspace-3" --> doShift "3"
+      , title =? "alacritty-workspace-4" --> doShift "4"
+      , title =? "alacritty-workspace-5" --> doShift "5"
+      , title =? "alacritty-workspace-6" --> doShift "6"
+      , title =? "alacritty-workspace-7" --> doShift "7"
+      , title =? "alacritty-workspace-8" --> doShift "8"
+      , title =? "alacritty-workspace-9" --> doShift "9"
       ]
-    <+> namedScratchpadManageHook myScratchPads
 -- toggleHDMI = do
   -- screencount <- LIS.countScreens
   -- if screencount > 1
    -- then spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080 --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal"
    -- else spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080"
 myStartupHook = do
-  spawnOnce "feh --bg-fill ~/图片/大鱼海棠16.png"
+  spawn "feh --bg-fill ~/图片/大鱼海棠16.png"
   spawn "killall picom; picom --dbus --experimental-backend"
   spawnOnce "qv2ray"
   spawnOnce "ibus-daemon -x -r -R"
-  spawnOnce "nm-applet"
+  spawnOnce "sleep 4;nextcloud"
   spawn "killall eww; eww open-many bar"
-  -- spawnOnce "sleep 1 ; amixer set Master 0%"
+  spawn "killall polybar;sleep 4; polybar icons"
   spawn "gpaste-client start"
   spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080 --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal"
-  -- toggleHDMI
   spawn "xhost +"
-  -- spawnOnce "light-locker --lock-on-suspend &"
-myLayout =  avoidStruts $ smartBorders
-  (
-  spiralgaps
-  ||| threeCol
-  -- ||| bspgaps
-  -- ||| tiledgaps
-  -- ||| StateFull
-  ||| (noBorders $ fullscreenFull StateFull)
-  ||| (myThinGaps Grid)
-  -- ||| simpleTabbed
-  -- ||| Mirror tiledgaps
-  )
- where
-  threeCol   = myGaps $ ThreeCol 1 (3/100) (1/2)
-  tiledgaps  = myGaps $ Tall nmaster delta ratio
-  -- window number in master pane
-  nmaster    = 1
-  -- percent of screen to increment by when resizing panes
-  delta      = 2 / 100
-  -- default proportion of screen occupied by master pane
-  ratio      = 0.618
+  spawnOnce "alacritty --title=alacritty-workspace-2 -e tmuxinator s workspace-2"
+  spawnOnce "firefox"
+  spawnOnce "icalingua"
 
+myLayout =  avoidStruts $ smartBorders
+  ( spiralgaps ||| threeCol ||| (noBorders $ fullscreenFull StateFull) ||| (myThinGaps Grid) )
+ where
+  myThinGaps = spacingRaw False (Border 3 3 3 3) True (Border 3 3 3 3) True
+  myGaps = spacingRaw False (Border 3 3 3 3) True (Border 3 3 3 3) True
+  threeCol   = myGaps $ ThreeCol 1 (3/100) (1/3)
+  tiledgaps  = myGaps $ Tall 1 (2/100) (0.618)
   bspgaps    = myGaps emptyBSP
   spiralgaps = myGaps $ spiral (6 / 7)
-myModMask :: KeyMask
-myModMask = mod4Mask
 myTerminal :: String
 myTerminal = "alacritty"
-myFont :: String
-myFont = "xft:Noto Sans:size=10"
-myEmojiFont :: String
-myEmojiFont = "xft:Apple Color Emoji:size=11"
-myWorkspaces :: [String]
-myWorkspaces =
-  [ "1"
-  , "2"
-  , "3"
-  , "4"
-  , "5"
-  , "6"
-  , "7"
-  , "8"
-  , "9"
-  ]
-myBorderWidth :: Dimension
-myBorderWidth = 2
-myPromptHeight :: Dimension
-myPromptHeight = 30
-myNormalBorderColor :: String
--- myNormalBorderColor = "#d6778c"
-myNormalBorderColor = "#D35D6E"
-myFocusedBorderColor :: String
-myFocusedBorderColor = "#ffffff"
-myGaps = spacingRaw False (Border 3 3 3 3) True (Border 3 3 3 3) True
-myThinGaps = spacingRaw False (Border 3 3 3 3) True (Border 3 3 3 3) True
-myLogHook dbus = dynamicLogWithPP (barHook dbus) <+> historyHook <+> updatePointer (0.5, 0.5) (0, 0)
-myEventHook = handleEventHook def <+> fullscreenEventHook
-getActiveLayoutDescription :: X String
-getActiveLayoutDescription = do
-  workspaces <- gets windowset
-  return $ description . W.layout . W.workspace . W.current $ workspaces
+myLogHook dbus = dynamicLogWithPP (barHook dbus) <+> historyHook -- <+> updatePointer (0.5, 0.5) (0, 0)
 mkDbusClient :: IO D.Client
 mkDbusClient = do
   dbus <- D.connectSession
@@ -370,14 +289,14 @@ barHook dbus =
                | w == "3" = "3:\xe7a8"
                | w == "4" = "4:\xf48a"
                | w == "5" = "5:\xf126"
-               | w == "6" = "6:\xf121"
+               | w == "6" = "6:\xfb04"
                | w == "7" = "7:\xf313"
                | w == "8" = "8:\xf308"
                | w == "9" = "9:\xf872"
                | otherwise = w
-      wrapper c s | s /= "NSP" = wrap ("(ws :type \"" <> c <> "\" :text \"") "\")" $ symbol s
+      wrapper c s | s /= "NSP" = "(ws :type \"" ++ c ++ "\" :text \"" ++ (symbol s) ++ "\" :name \"" ++ s ++ "\")"
                   | otherwise  = mempty
-      wrapper_layout s = wrap ("(layout :text \"") "\")" s
+      wrapper_layout s = "(layout :text \"" ++ s ++ "\")"
       layout_map x | x == "Spacing Spiral" = wrapper_layout "\xfa6d"
                    | x == "Spacing ThreeCol" = wrapper_layout "\xfc26"
                    | x == "StateFull" = wrapper_layout "\xf792"
@@ -395,48 +314,28 @@ barHook dbus =
           , ppSep             = ""
           , ppOrder           = reverse
           }
--- barHook :: D.Client -> PP
--- barHook dbus =
-  -- let wrapper c s | s /= "NSP" = wrap ("%{F" <> c <> "} ") " %{F-}" s
-                  -- | otherwise  = mempty
-      -- blue   = "#2E9AFE"
-      -- gray   = "#7F7F7F"
-      -- orange = "#ea4300"
-      -- purple = "#9058c7"
-      -- red    = "#ff0000"
-  -- in  def { ppOutput          = dbusOutput dbus
-          -- , ppCurrent         = wrapper blue
-          -- , ppVisible         = wrapper "#ffffff"
-          -- , ppUrgent          = wrapper orange
-          -- , ppHidden          = wrapper "#eeeeee"
-          -- , ppHiddenNoWindows = wrapper "#cccccc"
-          -- , ppTitle           = mempty
-          -- }
-
 main :: IO ()
-main = mkDbusClient >>= main'
-main' :: D.Client -> IO ()
-main' dbus = do
-  -- h <- spawnPipe "xmobar --recompile ~/.xmonad/xmobar.hs"
+main = do
+  dbus <- mkDbusClient
   xmonad $ fullscreenSupport $ docks $ withNavigation2DConfig def $ ewmh
     def { handleEventHook = handleEventHook def <+> fullscreenEventHook }
       {
       -- simple stuff
         terminal           = (myTerminal++" -e tmux")
-      , focusFollowsMouse  = myFocusFollowsMouse
-      , clickJustFocuses   = myClickJustFocuses
-      , borderWidth        = myBorderWidth
-      , modMask            = myModMask
-      , workspaces         = myWorkspaces
-      , normalBorderColor  = myNormalBorderColor
-      , focusedBorderColor = myFocusedBorderColor
+      , focusFollowsMouse  = True
+      , clickJustFocuses   = True
+      , borderWidth        = 2
+      , modMask            = mod4Mask
+      , workspaces         = [ "1" , "2" , "3" , "4" , "5" , "6" , "7" , "8" , "9" ]
+      , normalBorderColor  = "#ffffff" -- "#d6778c"
+      , focusedBorderColor = "#5a9dd8"
       -- key bindings
       -- , keys               = myKeys
       , mouseBindings      = myMouseBindings
       -- hooks, layouts
       , layoutHook         = myLayout
       , manageHook         = myManageHook
-      , handleEventHook    = myEventHook
+      , handleEventHook    = handleEventHook def <+> fullscreenEventHook
       , logHook            = (myLogHook dbus)
       , startupHook        = myStartupHook
       -- clientMask

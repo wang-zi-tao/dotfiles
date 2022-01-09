@@ -1,0 +1,30 @@
+config:
+  core.https_address: wangzi-pc:8443
+  core.trust_password: "271828"
+networks: []
+storage_pools:
+- config:
+    source: /var/lib/lxd/storage-pools/local
+  description: ""
+  name: local
+  driver: btrfs
+profiles:
+- config: {}
+  description: ""
+  devices:
+    root:
+      path: /
+      pool: local
+      type: disk
+  name: default
+projects: []
+cluster:
+  server_name: wangzi-pc
+  enabled: true
+  member_config: []
+  cluster_address: ""
+  cluster_certificate: ""
+  server_address: ""
+  cluster_password: ""
+  cluster_certificate_path: ""
+  cluster_token: ""

@@ -11,6 +11,8 @@ map <leader>qq :wqa!<CR>
 map <leader>n :n<CR>
 map <leader>N :N<CR>
 map <leader>w :w<CR>
+vnoremap <leader>d "+d<CR>
+nnoremap <leader>d "+d<CR>
 " hi Pmenu ctermfg=15 ctermbg=16  guibg=#444444
 " hi PmenuSel ctermfg=7 ctermbg=4 guibg=#daf0f4 guifg=#ffffff
 
@@ -86,22 +88,25 @@ noremap ;k 8
 noremap ;l 9
 noremap ;; 10
 
-colorscheme onedark
+" colorscheme one
 
 set foldmethod=syntax
 " autocmd BufLeave  :wa<CR>
 " autocmd BufLeave  :wa<CR>
 function! s:on_start() abort
-  if filereadable(".vim")
-    source .vim
+  if filereadable(".vimrc")
+    source .vimrc
+  endif
+  if filereadable(".vim/vimrc")
+    source .vim/vimrc
   endif
   if argc() == 0
-    " if filereadable(".vim/session.vim")
-      " source .vim/session.vim
-    " endif
-    " if filereadable(".vim/viminfo.viminfo")
-      " rviminfo .vim/viminfo.viminfo
-    " endif
+    if filereadable(".vim/session.vim")
+      source .vim/session.vim
+    endif
+    if filereadable(".vim/viminfo.viminfo")
+      rviminfo .vim/viminfo.viminfo
+    endif
   endif
   " close Defx
   Defx -close
@@ -115,8 +120,9 @@ autocmd BufCreate * call s:on_add_buffer()
 set sessionoptions=buffers
 function! s:on_exit() abort
   if argc() == 0
-    " mksession .vim/session.vim
-    " wviminfo .vim/viminfo.viminfo
+    call mkdir('.vim',"p")
+    mksession .vim/session.vim
+    wviminfo .vim/viminfo.viminfo
   endif
 endfunction
 autocmd VimLeave * call s:on_exit()
@@ -124,7 +130,7 @@ autocmd VimLeave * call s:on_exit()
 
 " Mappings for CoCList
 " Show all diagnostics.
-nnoremap <silent><nowait> <space>a  :<C-u>CocList diagnostics<cr>
+" nnoremap <silent><nowait> <space>a  :<C-u>CocList diagnostics<cr>
 " Use `[g` and `]g` to navigate diagnostics
 " Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
 nmap <silent> [g <Plug>(coc-diagnostic-prev)
@@ -155,5 +161,28 @@ let g:UltiSnipsExpandTrigger="<c-e>"
 let g:UltiSnipsJumpForwardTrigger="<c-j>"
 let g:UltiSnipsJumpBackwardTrigger="<c-k>"
 
+function! s:make_tasks() abort
+    if filereadable('Makefile')
+        let subcmds = filter(readfile('Makefile', ''), "v:val=~#'^.PHONY'")
+        let conf = {}
+        for subcmd in subcmds
+            let commands = split(subcmd)[1:]
+            for cmd in commands
+                call extend(conf, {
+                            \ cmd : {
+                            \ 'command': 'make',
+                            \ 'args' : [cmd],
+                            \ 'isDetected' : 1,
+                            \ 'detectedName' : 'make:'
+                            \ }
+                            \ })
+            endfor
+        endfor
+        return conf
+    else
+        return {}
+    endif
+endfunction
+call SpaceVim#plugins#tasks#reg_provider(function('s:make_tasks'))
 
 call SpaceVim#layers#core#statusline#toggle_section("time")

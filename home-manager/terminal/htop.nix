@@ -54,14 +54,14 @@
       ];
     } // (with config.lib.htop;
       leftMeters [
-        (bar "LeftCPUs2")
+        (bar "LeftCPUs4")
         (bar "MemorySwap")
         (text "NetworkIO")
         (text "DiskIO")
         (text "PressureStallIOFull")
       ]) // (with config.lib.htop;
         rightMeters [
-          (bar "RightCPUs2")
+          (bar "RightCPUs4")
           (text "Tasks")
           (text "LoadAverage")
           (text "Systemd")

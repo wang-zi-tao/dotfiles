@@ -1,11 +1,10 @@
-source ${HOME}/.p10k.zsh
 # if [[ $TMUX != "" ]] then
     # export TERM="tmux-256color"
 # fi
 function sudo() {
   if [ $1 = "su" ];
   then
-    command sudo tmux
+    command sudo zsh
   else
     args="$@"
     command sudo -E zsh -c $args
@@ -60,7 +59,7 @@ wifi(){
   then
     command nmcli device wifi connect $@
   else
-    command nmcli device wifi list
+    command nmcli device wifi list --rescan yes
   fi
 }
 reload(){
@@ -76,8 +75,5 @@ bindkey '^[[1;3A'      cdParentKey
 bindkey '^[0d'      cdUndoKey
 bindkey '^[\' tmux split -h
 bindkey '^[-' tmux split -v
-
-eval "$(zoxide init zsh)"
-# eval "$(mcfly init zsh)"
 
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"

@@ -46,6 +46,8 @@
        'time'
     ]
 [[layers]]
+name = "incsearch"
+[[layers]]
     name = "colorscheme"
 [[layers]]
     name = 'autocomplete'

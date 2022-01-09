@@ -58,10 +58,12 @@
       exportConfiguration = true;
       displayManager.startx.enable = true;
       windowManager.xmonad.enable = true;
+      desktopManager.gnome.enable = true;
       xkbOptions = "ctrl:nocaps";
     };
   };
   programs.dconf.enable = true;
+  programs.gpaste.enable = true;
   environment.systemPackages = with pkgs; [
     appimage-run
     glxinfo

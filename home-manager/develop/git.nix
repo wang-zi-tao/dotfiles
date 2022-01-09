@@ -27,6 +27,7 @@ in {
         };
       };
     };
+    ignores = [ "build" "target" "node_module" ];
   };
   home.packages = with pkgs; [ delta ];
 }

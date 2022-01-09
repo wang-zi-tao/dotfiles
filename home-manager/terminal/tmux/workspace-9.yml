@@ -1,8 +1,13 @@
 ---
-name: workspace-9
-project_root: "/home/wangzi"
+name: MineCraft
+project_root: "/home/wangzi/.minecraft"
 windows:
-- ssh:
+- mc:
     layout: 61b3,105x55,0,0,33
     panes:
-    - cd /home/wangzi
+    - zsh
+- hmcl:
+    layout: 61b3,105x55,0,0,33
+    panes:
+    - "./hmcl.sh"
+    

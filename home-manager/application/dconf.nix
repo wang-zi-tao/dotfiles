@@ -145,7 +145,7 @@ in {
       enable-animations = true;
       font-antialiasing = "rgba";
       font-hinting = "slight";
-      font-name = "Sans 10";
+      # font-name = "Sans 10";
       gtk-im-module = "ibus";
       gtk-theme = "Orchis-light";
       icon-theme = "Tela-blue";

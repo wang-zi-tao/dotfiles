@@ -193,6 +193,7 @@ in {
       # show-icons = true;
       icon-theme = "Tela blue";
       drun-icon-theme = "Tela blue";
+
     };
   };
   home.file.".config/rofi/apps.css".text = builtins.readFile ./apps.css + ''
@@ -204,5 +205,5 @@ in {
       ac:  #42A5F5;
     }
   '';
-  home.packages = with pkgs; [ rofi-power-menu ];
+  home.packages = with pkgs; [ rofi-power-menu todofi-sh ];
 }

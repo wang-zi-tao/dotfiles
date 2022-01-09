@@ -13,6 +13,7 @@ in {
       enable = true;
       viAlias = true;
       vimAlias = true;
+      vimdiffAlias = true;
       withNodeJs = true;
       withPython3 = true;
       plugins = with pkgs.vimPlugins;
@@ -21,6 +22,7 @@ in {
           coc-highlight
           coc-git
           coc-fzf
+          coc-yank
           coc-yaml
           coc-json
           coc-explorer
@@ -33,9 +35,11 @@ in {
           vim-tmux-navigator
           surround
           vim-fugitive
+          indentLine
         ] ++ (if cfg.IDE then [
           coc-tabnine
           coc-go
+          coc-lua
           coc-nvim
           coc-java
           coc-html
@@ -43,8 +47,13 @@ in {
           coc-pyright
           coc-clangd
           coc-tsserver
+          coc-vimlsp
+          coc-smartf
+          coc-eslint
+          coc-tslint
           coc-snippets
           coc-rust-analyzer
+          coc-markdownlint
           vim-cpp-enhanced-highlight
           vim-devicons
           vim-nerdtree-syntax-highlight
@@ -72,9 +81,23 @@ in {
       neovim-remote
       python2
     ];
-    home.file.".SpaceVim.d/task.toml".text =''
+    home.file.".SpaceVim.d/tasks.toml".text =''
       [make]
         command = 'make'
+      [make-clean]
+        command = 'make clean'
+      [make-install]
+        command = 'make install'
+      [cmake]
+        command = "cmake .."
+      [ninja]
+        command = 'ninja'
+      [cargo-check]
+        command = 'cargo check'
+      [cargo-clean]
+        command = 'cargo clean'
+      [cargo-run]
+        command = 'cargo run'
     '';
     home.file.".SpaceVim.d/init.toml".text =
       (builtins.readFile ./Spacevim.d.init.toml) + (if cfg.IDE then ''

@@ -15,8 +15,22 @@
       enableOnBoot = true;
       storageDriver = "btrfs";
     };
+    lxd = {
+      enable = true;
+      package = pkgs.unstable.lxd;
+    };
+    lxc = {
+      enable = true;
+      lxcfs.enable = true;
+      defaultConfig = ''
+      '';
+    };
+    libvirtd = {
+      enable = true;
+    };
     containers.storage.settings = { driver = "btrfs"; };
   };
+  environment.systemPackages = with pkgs;[];
   # services.k3s = {
   # enable = false;
   # role = "agent";

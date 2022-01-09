@@ -2,7 +2,13 @@
 name: workspace-3
 project_root: "/home/wangzi"
 windows:
-- ssh:
+- zsh:
     layout: 61b3,105x55,0,0,33
+    root: "/home/wangzi/workspace/Rust"
     panes:
-    - cd /home/wangzi
+      - zsh 
+- rust_demo:
+    layout: 61b3,105x55,0,0,33
+    root: "/home/wangzi/workspace/JVM/Rust_Demo"
+    panes:
+      - vim 

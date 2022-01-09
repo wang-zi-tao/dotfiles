@@ -8,9 +8,10 @@
     };
     timeout = 1;
   };
-  boot.kernelPackages = pkgs.linuxPackages_xanmod.extend (self: super: {
-    virtualbox = super.virtualbox.override { inherit (self) kernel; };
-  });
+  boot.kernelPackages = pkgs.linuxPackages_xanmod.extend
+    (self: super: {
+      virtualbox = super.virtualbox.override { inherit (self) kernel; };
+    });
   # boot.kernelPackages = pkgs.linuxPackages_xanmod.extend (self: super: {
   # virtualbox = super.virtualbox.override { inherit (self) kernel; };
   # });
@@ -27,9 +28,13 @@
     bcache-tools
     bcachefs-tools
   ];
+  programs.criu.enable = true;
   boot.kernel.sysctl = { "fs.file-max" = 6553560; };
   environment.etc."security/limits.conf".text = ''
     * soft nofile 65535   
     * hard nofile 65535
+  '';
+  services.logind.extraConfig = ''
+    HandlePowerKey=suspend
   '';
 }

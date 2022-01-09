@@ -31,4 +31,3 @@ windows:
     layout: c165,211x55,0,0,8
     panes:
     - htop
-    - iotop
