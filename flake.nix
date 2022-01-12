@@ -5,20 +5,16 @@
     nur.url = "github:nix-community/NUR";
     nixpkgs-21-05.url = "github:nixos/nixpkgs/release-21.05";
     nixpkgs.url = "github:nixos/nixpkgs/release-21.11";
-    unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    master.url = "github:nixos/nixpkgs/master";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-master.url = "github:nixos/nixpkgs/master";
     fenix = { url = "github:nix-community/fenix"; };
-    naersk = {
-      url = "github:nmattia/naersk";
-      inputs.nixpkgs.follows = "unstable";
-    };
     flake-compat = {
       url = "github:edolstra/flake-compat";
       flake = false;
     };
   };
   outputs = inputs@{ self, home-manager, nur, fenix, nixpkgs, flake-compat
-    , naersk, ... }:
+    , ... }:
     let
       system = "x86_64-linux";
       pkgs = (import nixpkgs) {
@@ -32,17 +28,18 @@
               {
                 # flake-compat = import inputs.flake-compat { };
                 flake-compat = inputs.flake-compat;
-                naersk = inputs.naersk;
+                # naersk = inputs.naersk;
                 system = system;
+                home-manager = home-manager;
                 nur = import inputs.nur {
                   nurpkgs = final.unstable;
                   pkgs = final.unstable;
                 };
-                master = import inputs.master {
+                master = import inputs.nixpkgs-master {
                   system = final.system;
                   config = { allowUnfree = true; };
                 };
-                unstable = import inputs.unstable {
+                unstable = import inputs.nixpkgs-unstable {
                   system = final.system;
                   config = { allowUnfree = true; };
                 };

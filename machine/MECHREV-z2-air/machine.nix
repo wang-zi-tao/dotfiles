@@ -15,11 +15,15 @@ in nixpkgs.lib.nixosSystem {
     ../../services/container.nix
     ../../services/lightdm.nix
     ../../services/virtualbox.nix
+    ../../module/network.nix
 
     ./fs.nix
     ./power.nix
     ./network.nix
     ./hardware-configuration.nix
+
+    # ../../module/user/root.nix
+    # ../../module/user/wangzi.nix
 
     home-manager.nixosModules.home-manager
     ({
@@ -32,7 +36,6 @@ in nixpkgs.lib.nixosSystem {
           ../../home-manager/terminal/terminal.nix
           ../../home-manager/develop/develop.nix
         ];
-        inherit hostname;
       };
       home-manager.users.root = { ... }: {
         imports = [ ../../home-manager/terminal/terminal.nix ];

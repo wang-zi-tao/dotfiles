@@ -8,7 +8,7 @@
     ./ranger.nix
     ../develop/git.nix
     ../develop/neovim/neovim.nix
-    ../../secrecy/secrecy.nix
+    ../../secret/secret-home.nix
   ];
   config = {
     programs.direnv = {
@@ -19,16 +19,8 @@
       enable = true;
       enableZshIntegration = true;
     };
-    home.file.".ssh/id_rsa".source = config.srcrecy.ssh-private-key-of
-      (if config.home.username != "root" then
-        config.home.username
-      else
-        config.hostname);
-    home.file.".ssh/id_rsa.pub".source = config.srcrecy.ssh-private-key-of
-      (if config.home.username != "root" then
-        config.home.username
-      else
-        config.hostname);
+    home.file.".ssh/id_rsa".source = config.secret.ssh-private-key;
+    home.file.".ssh/id_rsa.pub".source = config.secret.ssh-public-key;
     manual.manpages.enable = true;
     home.packages = with pkgs;
       scripts ++ [
@@ -55,7 +47,6 @@
         ps
         ripgrep
         sudo
-        tldr-hs
         trash-cli
         wget
         xh

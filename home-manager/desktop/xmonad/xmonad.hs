@@ -177,7 +177,7 @@ myMouseBindings XConfig { XMonad.modMask = modm } = M.fromList
   , ((modm, button2) , \w -> focus w >> kill )
   , ((modm, button3) , \w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster )
   ]
-myScratchPads = [ NS "terminal" spawnTerm    findTerm   manageTerm 
+myScratchPads = [ NS "terminal" spawnTerm    findTerm   manageTerm
                 , NS "nautilus" "nautilus" (className =? "Org.gnome.Nautilus") longManageTerm
                 , NS "qv2ray" "q2ray" (title =? "Qv2ray") smallManageTerm
                 ]
@@ -203,9 +203,9 @@ myScratchPads = [ NS "terminal" spawnTerm    findTerm   manageTerm
     t = (1 - h) / 2
     l = (1 - w) / 2
 
-myManageHook = namedScratchpadManageHook myScratchPads <+> composeAll
+myManageHook = composeAll
       [ fullscreenManageHook
-      , className =? "qv2ray" --> doFloat 
+      , className =? "qv2ray" --> doFloat
       , ((className =? "Gimp-2.10") <&&> (title /=? "GNU 图像处理程序")) <||> (title =? "GIMP 启动") --> doFloat
       , className =? "dolphin" --> doFloat
       -- , className =? "Org.gnome.Nautilus" --> doFloat
@@ -220,7 +220,7 @@ myManageHook = namedScratchpadManageHook myScratchPads <+> composeAll
       , resource =? "desktop_window" --> doIgnore
       , className =? "icalingua" --> doShift "6"
       , (className =? "gnome-screenshot") <||> (className =? "Gnome-screenshot") --> doFloat
-      , (className =? "Firefox") <&&> (title <^? "[项目/JVM]") --> doShift "1"
+      , (stringProperty "WM_WINDOW_ROLE" =? "browser" <||> className =? "Firefox" )  --> doShift "1"
       , title /=? "alacritty-drop" --> placeHook (withGaps (100,100,100,100) (underMouse (0,0)))
       , title =? "alacritty-workspace-1" --> doShift "1"
       , title =? "alacritty-workspace-2" --> doShift "2"
@@ -231,7 +231,7 @@ myManageHook = namedScratchpadManageHook myScratchPads <+> composeAll
       , title =? "alacritty-workspace-7" --> doShift "7"
       , title =? "alacritty-workspace-8" --> doShift "8"
       , title =? "alacritty-workspace-9" --> doShift "9"
-      ]
+      ] <+> namedScratchpadManageHook myScratchPads
 -- toggleHDMI = do
   -- screencount <- LIS.countScreens
   -- if screencount > 1

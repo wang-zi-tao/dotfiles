@@ -1,14 +1,4 @@
-# { pkgs, home-manager, ... }:
-# home-manager.lib.homeManagerConfiguration {
-  # configuration = {
-    # imports = [ ../home-manager/terminal/terminal.nix ];
-    # nixpkgs.config = { modules = [ ../module/nixos.nix ]; };
-  # };
-  # system = "x86_64-linux";
-  # username = "root";
-  # homeDirectory = "/root";
-# }
-{ pkgs, nixpkgs, home-manager, ... }:
+{ pkgs, nixpkgs, home-manager,nixos, ... }:
 nixpkgs.lib.nixosSystem {
   system = "x86_64-linux";
   modules = [

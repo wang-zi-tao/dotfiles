@@ -1,5 +1,5 @@
 { config, pkgs, lib, ... }: {
-  imports = [ ../secrecy/secrecy.nix ];
+  imports = [ ../secret/secret.nix ];
   programs.ssh.forwardX11 = true;
   services.openssh = {
     enable = true;
@@ -7,7 +7,7 @@
     gatewayPorts = "yes";
     passwordAuthentication = true;
     startWhenNeeded = true;
-    authorizedKeysFiles = config.srcrecy.ssh-public-keys-file;
+    authorizedKeysFiles = config.secret.ssh-public-keys-file;
     extraConfig = "";
   };
   boot.initrd.network.ssh.enable = true;

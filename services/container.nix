@@ -11,7 +11,7 @@
   virtualisation = {
     docker = {
       enable = true;
-      enableNvidia = true;
+      enableNvidia = config.services.xserver.enable;
       enableOnBoot = true;
       storageDriver = "btrfs";
     };
@@ -22,26 +22,12 @@
     lxc = {
       enable = true;
       lxcfs.enable = true;
-      defaultConfig = ''
-      '';
+      defaultConfig = "";
     };
-    libvirtd = {
-      enable = true;
-    };
+    libvirtd = { enable = true; };
     containers.storage.settings = { driver = "btrfs"; };
   };
-  environment.systemPackages = with pkgs;[];
-  # services.k3s = {
-  # enable = false;
-  # role = "agent";
-  # serverAddr = "https://116.62.23.116:6443";
-  # token =
-  # "K1080728ddd8df3515ba3f9be378dbe1ff69f3a22f3d88bf3a67726e7885d53bf63::server:6608812d75e0de2af2fcfdb925a5f3f5";
-  # docker = true;
-  # extraFlags = ''
-  # --node-taint mobile=true:NoSchedule
-  # '';
-  # };
+  environment.systemPackages = with pkgs; [ criu ];
   systemd.services.k3s = {
     enable = false;
     description = "k3s.wangzicloud.cn";
