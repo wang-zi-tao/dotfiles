@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, config, ... }: {
+  imports=[ ../../develop/neovim/neovim.nix ];
   programs.zsh = {
     enable = true;
     autocd = true;
@@ -75,24 +76,16 @@
         src = pkgs.zsh-history-substring-search;
       }
     ];
-    shellAliases = {
+    shellAliases = (builtins.listToAttrs (builtins.map(name: {name=name;value="nix-shell -p ${name} --run ${name}";})
+    ["gimp" "kdenlive" "inkscape" "krita" "blender"]) )//{
       v = "${pkgs.neovim}/bin/nvim";
       grep = "${pkgs.ripgrep}/bin/rg --color=auto";
       xclip = "${pkgs.xclip}/bin/xclip -selection c";
       s = "sudo su";
       j = "z";
 
-      dc = "${pkgs.docker-compose}/bin/docker-compose";
-      dcl = "${pkgs.docker-compose}/bin/docker-compose logs";
-      dcb = "${pkgs.docker-compose}/bin/docker-compose build";
-      dcd = "${pkgs.docker-compose}/bin/docker-compose down";
-      dcu = "${pkgs.docker-compose}/bin/docker-compose up";
-      dcud = "${pkgs.docker-compose}/bin/docker-compose up -d";
-
       gclone = "${pkgs.git}/bin/git clone";
-      diff = "${pkgs.neovim-remote}/bin/nvr -s -d";
 
-      perf = "sudo perf";
       powertop = "sudo ${pkgs.powertop}/bin/powertop";
       iotop = "sudo ${pkgs.iotop}/bin/iotop";
       iftop = "sudo ${pkgs.iftop}/bin/iftop";
@@ -101,9 +94,12 @@
       htop = "${pkgs.htop}/bin/htop";
       ps = "${pkgs.procs}/bin/procs";
 
-      # rm = "${pkgs.rmtrash}/bin/rmtrash -Iv";
+      rm = "${pkgs.rmtrash}/bin/rmtrash -Iv";
       del = "${pkgs.busybox}/bin/rm -v ";
-      # cp = "${pkgs.busybox}/bin/cp -v";
+      cp = "${pkgs.rsync}/bin/rsync -avP";
+      cp-origin = "${pkgs.busybox}/bin/cp";
+      # mv = "${pkgs.rsync}/bin/rsync -avP --delete-delay";
+      # mv-origin = "${pkgs.busybox}/bin/mv";
       bat = "${pkgs.bat}/bin/bat --theme=Coldark-Dark";
       cat = "${pkgs.bat}/bin/bat --theme=Coldark-Dark --pager=never";
       cat-origin = "${pkgs.busybox}/bin/cat";
@@ -111,9 +107,9 @@
       man = ''
         MANPAGER="sh -c 'col -bx | ${pkgs.bat}/bin/bat --theme=Coldark-Dark -l man -p'" man'';
 
-      ls = "${pkgs.exa}/bin/exa --git --icons";
-      l = "${pkgs.exa}/bin/exa --git -la --icons";
-      ll = "${pkgs.exa}/bin/exa --git -l --icons";
+      ls = "${pkgs.exa}/bin/exa --icons";
+      l = "${pkgs.exa}/bin/exa -la --icons";
+      ll = "${pkgs.exa}/bin/exa --git -la --icons";
 
       du = "${pkgs.du-dust}/bin/dust";
       df = "${pkgs.duf}/bin/duf";
@@ -123,10 +119,20 @@
       tsh = "${pkgs.tmux}/bin/tmux split -h";
       tsv = "${pkgs.tmux}/bin/tmux split -v";
 
-      mvn = "unset JAVA_TOOL_OPTIONS && ${pkgs.maven}/bin/mvn";
 
       ".." = "cd ..";
-    };
+
+    } // (if config.neovim.IDE then {
+      mvn = "unset JAVA_TOOL_OPTIONS && ${pkgs.maven}/bin/mvn";
+      dc = "${pkgs.docker-compose}/bin/docker-compose";
+      dcl = "${pkgs.docker-compose}/bin/docker-compose logs";
+      dcb = "${pkgs.docker-compose}/bin/docker-compose build";
+      dcd = "${pkgs.docker-compose}/bin/docker-compose down";
+      dcu = "${pkgs.docker-compose}/bin/docker-compose up";
+      dcud = "${pkgs.docker-compose}/bin/docker-compose up -d";
+      perf = "sudo ${pkgs.perf-tools}/bin/perf";
+      diff = "${pkgs.neovim-remote}/bin/nvr -s -d";
+    } else {});
     sessionVariables = {
       _ZO_EXCLUDE_DIRS = "/nix";
     };

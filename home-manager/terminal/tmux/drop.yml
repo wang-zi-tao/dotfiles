@@ -2,6 +2,8 @@
 name: drop
 project_root: "/home/wangzi"
 windows:
+- zsh:
+    layout: 57d5,191x50,0,0,16
 - nixos:
     layout: af43,191x50,0,0,6
     root: /home/wangzi/workspace/nixos
@@ -9,24 +11,21 @@ windows:
     - vim
 - zsh:
     layout: 57d5,191x50,0,0,16
-    panes:
-    - cd /home/wangzi
 - Temp:
     layout: 57d8,191x50,0,0,19
     root: Temp
-    panes:
 - zsh:
     layout: d7d2,191x50,0,0,23
-    panes:
-    - cd /home/wangzi
 - zsh:
     layout: d7d3,191x50,0,0,24
-    panes:
-    - cd /home/wangzi
 - aliyun:
     layout: 57d6,191x50,0,0,36
     panes:
-    - ssh root@aliyun -X -Y
+    - ssh root@aliyun-ecs -X -Y
+- huawei-ecs:
+    layout: 57d6,191x50,0,0,36
+    panes:
+    - ssh root@huawei-ecs -X -Y
 - monitor:
     layout: c165,211x55,0,0,8
     panes:

@@ -5,8 +5,6 @@ windows:
 - zsh:
     layout: 61b3,105x55,0,0,33
     root: "/home/wangzi/workspace/Rust"
-    panes:
-      - zsh 
 - rust_demo:
     layout: 61b3,105x55,0,0,33
     root: "/home/wangzi/workspace/JVM/Rust_Demo"

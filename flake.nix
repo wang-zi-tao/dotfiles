@@ -2,6 +2,10 @@
   description = "NixOS configuration for all machines in wangzicloud.cn";
   inputs = {
     home-manager.url = "github:nix-community/home-manager/release-21.11";
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nur.url = "github:nix-community/NUR";
     nixpkgs-21-05.url = "github:nixos/nixpkgs/release-21.05";
     nixpkgs.url = "github:nixos/nixpkgs/release-21.11";
@@ -13,8 +17,8 @@
       flake = false;
     };
   };
-  outputs = inputs@{ self, home-manager, nur, fenix, nixpkgs, flake-compat
-    , ... }:
+  outputs =
+    inputs@{ self, home-manager, nur, fenix, nixpkgs, flake-compat, ... }:
     let
       system = "x86_64-linux";
       pkgs = (import nixpkgs) {
@@ -30,7 +34,6 @@
                 flake-compat = inputs.flake-compat;
                 # naersk = inputs.naersk;
                 system = system;
-                home-manager = home-manager;
                 nur = import inputs.nur {
                   nurpkgs = final.unstable;
                   pkgs = final.unstable;
@@ -64,5 +67,6 @@
         huawei-ecs = import ./machine/huawei-ecs.nix args;
         aliyun-ecs = import ./machine/aliyun-ecs.nix args;
       };
+      lxd = import ./machine/lxd.nix args;
     };
 }

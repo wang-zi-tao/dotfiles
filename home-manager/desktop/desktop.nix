@@ -13,6 +13,8 @@
   };
   xresources.properties = { "Xft.dpi" = 96; };
   services.betterlockscreen = { enable = true; };
+  home.file.".icons/default".source =
+    "${pkgs.layan-cursor-theme}/share/icons/Layan-white Cursors";
   gtk = {
     enable = true;
     theme.name = "Orchis-light";
@@ -47,8 +49,8 @@
     platformTheme = "gtk";
   };
   # services.nextcloud-client = {
-    # enable = true;
-    # startInBackground = true;
+  # enable = true;
+  # startInBackground = true;
   # };
   services.kdeconnect = {
     enable = true;

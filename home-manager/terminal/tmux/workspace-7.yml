@@ -4,5 +4,3 @@ project_root: "/home/wangzi"
 windows:
 - zsh:
     layout: 61b3,105x55,0,0,33
-    panes:
-    - zsh

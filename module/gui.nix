@@ -18,7 +18,7 @@
       noto-fonts-extra
       source-code-pro
       source-sans-pro
-      source-han-mono
+      # source-han-mono
       source-han-sans
       source-han-sans-simplified-chinese
       source-han-serif
@@ -46,6 +46,18 @@
     ibus = { engines = with pkgs.unstable.ibus-engines; [ libpinyin ]; };
     uim.toolbar = "qt4";
   };
+  # programs.xwayland.enable = true;
+  # programs.sway = {
+    # enable = true;
+    # extraPackages = with pkgs; [
+      # swaylock # lockscreen
+      # swayidle
+      # xwayland # for legacy apps
+      # waybar # status bar
+      # mako # notification daemon
+      # kanshi # autorandr
+    # ];
+  # };
   services = {
     mpd.enable = true;
     gnome.core-os-services.enable = true;
@@ -59,6 +71,7 @@
       displayManager.startx.enable = true;
       windowManager.xmonad.enable = true;
       desktopManager.gnome.enable = true;
+      # desktopManager.plasma5.enable = true;
       xkbOptions = "ctrl:nocaps";
     };
   };

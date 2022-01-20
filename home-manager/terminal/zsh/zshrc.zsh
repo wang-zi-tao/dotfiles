@@ -77,3 +77,22 @@ bindkey '^[\' tmux split -h
 bindkey '^[-' tmux split -v
 
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
+
+alias -s gz='tar -xzvf'
+alias -s tgz='tar -xzvf'
+alias -s zip='unzip'
+alias -s bz2='tar -xjvf'
+alias -s php=nvim
+alias -s py=nvim
+alias -s html=nvim
+alias -s java=nvim
+alias -s html=nvim
+alias -s css=nvim
+alias -s js=nvim
+alias -s ts=nvim
+alias -s rs=nvim
+alias -s c=nvim
+alias -s h=nvim
+alias -s cpp=nvim
+alias -s hpp=nvim

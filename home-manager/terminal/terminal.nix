@@ -28,6 +28,7 @@
 
         wcp
 
+        nload
         killall
         atool
         bat

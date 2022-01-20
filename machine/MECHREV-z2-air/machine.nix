@@ -22,7 +22,7 @@ in nixpkgs.lib.nixosSystem {
     ./network.nix
     ./hardware-configuration.nix
 
-    # ../../module/user/root.nix
+    # (import ../../module/user/root.nix { inherit home-manager; })
     # ../../module/user/wangzi.nix
 
     home-manager.nixosModules.home-manager
@@ -38,8 +38,8 @@ in nixpkgs.lib.nixosSystem {
         ];
       };
       home-manager.users.root = { ... }: {
-        imports = [ ../../home-manager/terminal/terminal.nix ];
-        inherit hostname;
+      imports = [ ../../home-manager/terminal/terminal.nix ];
+      inherit hostname;
       };
     })
     ({ pkgs, ... }: {

@@ -457,7 +457,7 @@ in {
                 )
                 (box
              ;;     (label :text {"$${EWW_NET.wlo1.NET_DOWN}K $${EWW_NET.wlo1.NET_UP}K"})
-                  (label :text {"$${ EWW_NET.wlo1.NET_DOWN < 3000000 ? "$${round(EWW_NET.wlo1.NET_DOWN/3000000,1)}M" : "$${round(EWW_NET.wlo1.NET_DOWN/3000,1)}K"} $${ EWW_NET.wlo1.NET_UP < 1000000 ? "$${round(EWW_NET.wlo1.NET_UP/1000000,1)}M" : "$${round(EWW_NET.wlo1.NET_UP/1000,1)}K"}"})
+                  (label :text {"$${ EWW_NET.wlo1.NET_DOWN > 3000000 ? "$${round(EWW_NET.wlo1.NET_DOWN/3000000,1)}M" : "$${round(EWW_NET.wlo1.NET_DOWN/3000,1)}K"} $${ EWW_NET.wlo1.NET_UP > 333333 ? "$${round(EWW_NET.wlo1.NET_UP/333333,1)}M" : "$${round(EWW_NET.wlo1.NET_UP/333,1)}K"}"})
                 )
               )
             )

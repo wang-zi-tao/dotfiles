@@ -30,10 +30,6 @@ windows:
     panes:
     # - ./listen-and-run.sh
     # - zsh
-- aliyun:
-    layout: c164,211x55,0,0,7
-    panes: 
-    - ssh root@aliyun -X -Y
 - zsh:
     layout: c165,211x55,0,0,8
     root: /home/wangzi/Temp

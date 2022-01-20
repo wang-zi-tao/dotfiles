@@ -7,17 +7,20 @@
       efiSysMountPoint = "/boot/efi";
     };
     timeout = 1;
+    # grub = {
+      # device = "nodev";
+      # efiSupport = true;
+      # efiInstallAsRemovable = true;
+      # theme = pkgs.nixos-grub2-theme;
+      # memtest86.enable = true;
+      # copyKernels = false;
+    # };
   };
-  boot.kernelPackages = pkgs.linuxPackages_xanmod.extend
-    (self: super: {
-      virtualbox = super.virtualbox.override { inherit (self) kernel; };
-    });
-  # boot.kernelPackages = pkgs.linuxPackages_xanmod.extend (self: super: {
-  # virtualbox = super.virtualbox.override { inherit (self) kernel; };
-  # });
+  boot.kernelPackages = pkgs.linuxPackages_xanmod.extend (self: super: {
+    virtualbox = super.virtualbox.override { inherit (self) kernel; };
+  });
   boot.extraModulePackages = with config.boot.kernelPackages; [
     virtualbox
-    # perf
     acpi_call
   ];
   boot.kernelParams = [ "quite" ];

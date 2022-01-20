@@ -100,7 +100,7 @@ function! s:on_start() abort
   if filereadable(".vim/vimrc")
     source .vim/vimrc
   endif
-  if argc() == 0
+  if argc() == 0 && !exists('b:nvr')
     if filereadable(".vim/session.vim")
       source .vim/session.vim
     endif
@@ -186,3 +186,10 @@ endfunction
 call SpaceVim#plugins#tasks#reg_provider(function('s:make_tasks'))
 
 call SpaceVim#layers#core#statusline#toggle_section("time")
+
+command! DisconnectClients
+    \  if exists('b:nvr')
+    \|   for client in b:nvr
+    \|     silent! call rpcnotify(client, 'Exit', 1)
+    \|   endfor
+    \| endif

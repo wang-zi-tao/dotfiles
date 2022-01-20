@@ -7,4 +7,3 @@ windows:
     root: "/home/wangzi/workspace/blog/content/zh-cn/posts/"
     panes:
       - vim 
-      - zsh

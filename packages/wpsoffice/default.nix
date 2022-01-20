@@ -1,8 +1,10 @@
-{ lib, stdenv, fetchurl, autoPatchelfHook, dpkg, wrapGAppsHook, libsForQt5
-, alsa-lib, atk, bzip2, cairo, cups, dbus, expat, ffmpeg, fontconfig, freetype
-, gdk-pixbuf, glib, gperftools, gtk2-x11, libpng12, libtool, libuuid, libxml2
-, xz, nspr, nss, openssl, pango, qt4, sqlite, unixODBC, xorg, zlib }:
-
+{ lib, stdenv, fetchurl, autoPatchelfHook, dpkg, wrapGAppsHook, libsForQt5, xorg
+, alsa-lib, alsaLib, atk, bzip2, cairo, cups, dbus, expat, ffmpeg, fontconfig
+, freetype, gdk-pixbuf, glib, glui, gperftools, gtk2-x11, libGLU, libICE
+, libpng12, libSM, libtool, libuuid, libX11, libxcb, libXcomposite, libXcursor
+, libXdamage, libXext, libXfixes, libXi, libxml2, libXrandr, libXrender
+, libXScrnSaver, libxslt, libXtst, lzma, nspr, nss, openssl, pango, qt4, sqlite
+, unixODBC, xz, zlib, zotero }:
 stdenv.mkDerivation rec {
   pname = "wpsoffice";
   version = "11.1.0.10702";
@@ -34,47 +36,55 @@ stdenv.mkDerivation rec {
 
   buildInputs = with xorg; [
     alsa-lib
+    alsaLib
     atk
     bzip2
     cairo
+    cups
+    dbus.daemon.lib
     dbus.lib
     expat
     ffmpeg
     fontconfig
+    fontconfig.lib
     freetype
     gdk-pixbuf
     glib
+    glui
     gperftools
     gtk2-x11
+    libGLU
     libICE
+    libpng12
+    libsForQt5.qt5.qtbase
     libSM
+    libtool
+    libuuid
     libX11
-    libX11
-    libXScrnSaver
+    libxcb
     libXcomposite
     libXcursor
     libXdamage
     libXext
     libXfixes
     libXi
+    libxml2
     libXrandr
     libXrender
+    libXScrnSaver
+    libxslt
     libXtst
-    libpng12
-    libtool
-    libuuid
-    libxcb
-    libxml2
-    xz
+    lzma
     nspr
     nss
     openssl
     pango
     qt4
-    libsForQt5.qt5.qtbase
     sqlite
     unixODBC
+    xz
     zlib
+    zotero
   ];
 
   dontPatchELF = true;
@@ -86,25 +96,61 @@ stdenv.mkDerivation rec {
   unvendoredLibraries = [
     # Have to use parts of the vendored qt4
     #"Qt"
-        # "SDL2"
-        # "bz2"
-        # "avcodec"
-        # "avdevice"
-        # "avformat"
-        # "avutil"
-        # "swresample"
-        # "swscale"
-        # "jpeg"
+    # "SDL2"
+    # "bz2"
+    # "avcodec"
+    # "avdevice"
+    # "avformat"
+    # "avutil"
+    # "swresample"
+    # "swscale"
+    # "jpeg"
     # "png"
-    # File saving breaks unless we are using vendored llvmPackages_8.libcxx
-    #"c++"
-        # "ssl"
-        # "crypto"
-        # "nspr"
-        # "nss"
-        # "odbc"
-        # "tcmalloc" # gperftools
+    # "c++"
+    # "ssl"
+    # "crypto"
+    # "nspr"
+    # "nss"
+    # "odbc"
+    # "tcmalloc" # gperftools
   ];
+  libPath = with xorg;
+    lib.makeLibraryPath [
+      libX11
+      libpng12
+      glib
+      libSM
+      libXext
+      fontconfig
+      zlib
+      freetype
+      libICE
+      cups
+      libXrender
+      libxcb
+
+      alsaLib
+      atk
+      cairo
+      dbus.daemon.lib
+      expat
+      fontconfig.lib
+      gdk-pixbuf
+      gtk2-x11
+      lzma
+      pango
+      zotero
+      sqlite
+      libuuid
+      libXcomposite
+      libXcursor
+      libXdamage
+      libXfixes
+      libXi
+      libXrandr
+      libXScrnSaver
+      libXtst
+    ];
 
   installPhase = ''
     prefix=$out/opt/kingsoft/wps-office
@@ -116,6 +162,10 @@ stdenv.mkDerivation rec {
         rm -v "$prefix/office6/lib$lib"*.so{,.*}
       done
       for i in wps wpp et wpspdf; do
+        patchelf \
+          --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+          --force-rpath --set-rpath "$(patchelf --print-rpath $prefix/office6/$i):${stdenv.cc.cc.lib}/lib64:${libPath}" \
+          $prefix/office6/$i
         substituteInPlace $out/bin/$i \
           --replace /opt/kingsoft/wps-office $prefix
       done

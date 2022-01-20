@@ -206,7 +206,7 @@ myScratchPads = [ NS "terminal" spawnTerm    findTerm   manageTerm
 myManageHook = composeAll
       [ fullscreenManageHook
       , className =? "qv2ray" --> doFloat
-      , ((className =? "Gimp-2.10") <&&> (title /=? "GNU 图像处理程序")) <||> (title =? "GIMP 启动") --> doFloat
+      , ((className =? "Gimp") <&&> (title /=? "GNU 图像处理程序")) <||> (title =? "GIMP 启动") --> doFloat
       , className =? "dolphin" --> doFloat
       -- , className =? "Org.gnome.Nautilus" --> doFloat
       , className =? "Nextcloud" --> doFloat
@@ -220,7 +220,7 @@ myManageHook = composeAll
       , resource =? "desktop_window" --> doIgnore
       , className =? "icalingua" --> doShift "6"
       , (className =? "gnome-screenshot") <||> (className =? "Gnome-screenshot") --> doFloat
-      , (stringProperty "WM_WINDOW_ROLE" =? "browser" <||> className =? "Firefox" )  --> doShift "1"
+      , (className =? "Firefox" )  --> doShift "1"
       , title /=? "alacritty-drop" --> placeHook (withGaps (100,100,100,100) (underMouse (0,0)))
       , title =? "alacritty-workspace-1" --> doShift "1"
       , title =? "alacritty-workspace-2" --> doShift "2"

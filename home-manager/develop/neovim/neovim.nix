@@ -36,6 +36,8 @@ in {
           surround
           vim-fugitive
           indentLine
+          plenary-nvim
+          diffview-nvim
         ] ++ (if cfg.IDE then [
           coc-tabnine
           coc-go

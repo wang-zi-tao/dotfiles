@@ -4,8 +4,6 @@ project_root: "/home/wangzi/.minecraft"
 windows:
 - mc:
     layout: 61b3,105x55,0,0,33
-    panes:
-    - zsh
 - hmcl:
     layout: 61b3,105x55,0,0,33
     panes:

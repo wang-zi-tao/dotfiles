@@ -18,11 +18,28 @@
     lxd = {
       enable = true;
       package = pkgs.unstable.lxd;
+      recommendedSysctlSettings = true;
     };
     lxc = {
       enable = true;
       lxcfs.enable = true;
-      defaultConfig = "";
+      defaultConfig = ''
+        lxc.net.0.type = veth
+        lxc.net.0.name = eth0
+        lxc.net.0.link = lxcbr0
+        lxc.net.0.flags = up
+        lxc.net.0.hwaddr = 00:16:3e:xx:xx:xx
+        lxc.net.1.name = cluster
+        lxc.net.1.type = veth
+        lxc.net.1.flags = up
+        lxc.net.1.link = lxcbr1
+        qwerfvs234
+        lxc.idmap = u 0 100000 10000
+        lxc.idmap = g 0 100000 10000
+        lxc.init.cmd = /sbin/init
+        lxc.mount.entry = proc mnt/proc proc create=dir 0 0
+      '';
+      usernetConfig = "";
     };
     libvirtd = { enable = true; };
     containers.storage.settings = { driver = "btrfs"; };

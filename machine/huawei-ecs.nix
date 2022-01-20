@@ -22,18 +22,25 @@ in nixpkgs.lib.nixosSystem {
         seaweedfs = {
           autoStart = true;
           nixpkgs = pkgs.path;
-          forwardPorts = builtins.map (port: {
-            containerPort = port;
-            hostPort = port;
-            protocal = "tcp";
-          }) [ 8080 18080 8888 18888 9333 19333 ];
+          forwardPorts = builtins.concatLists (builtins.map (port: [
+            {
+              containerPort = port;
+              hostPort = port;
+              protocal = "tcp";
+            }
+            {
+              containerPort = port;
+              hostPort = port;
+              protocal = "udp";
+            }
+          ]) [ 8080 18080 8888 18888 9333 19333 ]);
           bindMounts = {
             "/data" = {
               hostPath = "/srv/seaweedfs";
               isReadOnly = false;
             };
           };
-          config = { config, pkgs, ... }: {
+          config = { config, pkgs', ... }: {
             boot.isContainer = true;
             system.stateVersion = "21.05";
             systemd.services.seaweedfs = {
@@ -45,7 +52,7 @@ in nixpkgs.lib.nixosSystem {
                 Restart = "always";
                 RestartSec = "5s";
                 ExecStart =
-                  "${pkgs.seaweedfs}/bin/weed server -dir=/data/weed -master.dir=/data/master -master.defaultReplication=000 -master.volumePreallocate=false -volume.dir.idx=/data/volume -filer ";
+                  "${pkgs.seaweedfs}/bin/weed server -dir=/data/weed -master.dir=/data/master -master.defaultReplication=000 -master.volumePreallocate=false -volume.dir.idx=/data/volume -filer -volume.publicUrl=192.168.16.1:8080";
               };
             };
           };
