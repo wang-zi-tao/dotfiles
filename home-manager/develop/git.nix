@@ -26,6 +26,7 @@ in {
           '';
         };
       };
+      credential = { helper = "store"; };
     };
     ignores = [ "build" "target" "node_module" ];
   };

@@ -38,7 +38,6 @@
         direnv
         nix-direnv
         duf
-        dust
         exa
         fd
         jq
