@@ -64,12 +64,14 @@ in {
         ] else
           [ ]));
       extraConfig = ''
-        execute 'source' '${pkgs.unstable.spacevim}/SpaceVim/init.vim'
+        if !exists("g:reload")
+          execute 'source' '${pkgs.unstable.spacevim}/SpaceVim/init.vim'
+          let g:reload = 1
+        endif
       '' + (if cfg.IDE then
         let
           lombok = builtins.fetchurl {
-            url =
-              "https://projectlombok.org/downloads/lombok.jar";
+            url = "https://projectlombok.org/downloads/lombok.jar";
             sha256 =
               "sha256:0c8qqf8nqf9hhk1wyx5fb857qpdc1gp6f5i80k684yhx860ibvzc";
           };
@@ -79,11 +81,8 @@ in {
       else
         "") + builtins.readFile ./init.vim;
     };
-    home.packages = with pkgs; [
-      neovim-remote
-      python2
-    ];
-    home.file.".SpaceVim.d/tasks.toml".text =''
+    home.packages = with pkgs; [ neovim-remote python2 ];
+    home.file.".SpaceVim.d/tasks.toml".text = ''
       [make]
         command = 'make'
       [make-clean]

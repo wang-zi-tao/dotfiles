@@ -197,3 +197,4 @@ command! DisconnectClients
     \|     silent! call rpcnotify(client, 'Exit', 1)
     \|   endfor
     \| endif
+command! Reload :source ~/.config/nvim/init.vim

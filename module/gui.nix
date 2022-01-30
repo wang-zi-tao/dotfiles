@@ -71,6 +71,7 @@
         lutris
         virtualgl
         xpraWithNvenc
+        qrcodegen
         cups
       ];
     };

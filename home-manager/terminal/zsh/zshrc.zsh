@@ -41,19 +41,6 @@ r() {
         exit
     fi
 }
-gen-nix-shell(){
-  echo "{ pkgs ? import <nixpkgs> {} }:
-    pkgs.mkShell {
-      nativeBuildInputs = with pkgs; [
-        $@
-      ];
-  }" > shell.nix
-  echo use_nix >> .envrc
-  direnv allow .
-  IGNORE=".envrc\nshell.nix"
-  echo -e $IGNORE >> .gitignore
-  echo -e $IGNORE >> .dockerignore
-}
 wifi(){
   if [ $# = 1 ];
   then
@@ -96,3 +83,64 @@ alias -s c=nvim
 alias -s h=nvim
 alias -s cpp=nvim
 alias -s hpp=nvim
+
+ninja(){
+  local build_path="$(dirname "$(upfind "build.ninja")")"
+  command ninja -C "${build_path:-.}" "$@"
+}
+make(){
+  local build_path="$(dirname "$(upfind "Makefile")")"
+  command make -C "${build_path:-.}" "$@"
+}
+cargo(){
+  local build_path="$(dirname "$(upfind "Cargo.toml")")"
+  (
+    builtin cd "${build_path:-.}" >/dev/null || true
+    command cargo "$@"
+  )
+}
+retry() {
+  local n=0
+  local trys=${TRYS:-100000}
+  local sleep_time=${SLEEP:-1}
+  until ($1 "${@:2}") ; do
+      n=$(( n + 1 ))
+      [ $n -gt $trys ] && return 1
+      sleep $sleep_time
+  done
+}
+own() {
+  if [[ -n "${commands[sudo]}" ]]; then
+    sudo chown -R "$USER:$(id -gn)" "$@"
+  else
+    chown -R "$USER:$(id -gn)" "$@"
+  fi
+}
+mkcd() { mkdir -p "$1" && cd "$1"; }
+nixify() {
+  if [ ! -e ./.direnv ]; then
+    mkdir .direnv
+  fi
+  if [[ ! -e flake.nix ]]; then
+    cat > flake.nix <<'EOF'
+{
+  inputs.flake-utils.url = "github:numtide/flake-utils";
+  outputs = { self, nixpkgs, flake-utils }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let pkgs = nixpkgs.legacyPackages.${system};
+      in {
+        devShell = pkgs.mkShell {
+          buildInputs = with pkgs; [ 
+            $@
+          ];
+        };
+      });
+}
+EOF
+    ${EDITOR:-vim} default.nix
+  fi
+  if [ ! -e ./.envrc ]; then
+    echo "use flake" > .envrc
+    direnv allow
+  fi
+}
