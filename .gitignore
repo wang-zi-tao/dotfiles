@@ -3,3 +3,4 @@ tags
 shell.nix
 result
 .vim/
+.direnv

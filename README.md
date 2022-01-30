@@ -25,7 +25,7 @@
 长期在线的设备提供基于seaweedfs的高性能NAS存储服务，并且利用云服务器进行热备份。
 seaweedfs客户端使用fuse挂载文件系统，客户端有持久化缓存。
 <details><summary>性能测试 展开/收起</summary>
-```
+<pre><code> 
 $ fio -numjobs=2 -direct=1 -ioengine=libaio -sync=1 -rw=randread -bs=16k -size=64G -time_based -runtime=60 -name=Fio -directory=mount
 Jobs: 1 (f=1): [X(1),r(1)][100.0%][r=635MiB/s][r=40.6k IOPS][eta 00m:00s]
 Fio: (groupid=0, jobs=1): err= 5 (file:io_u.c:1841, func=io_u error, error=Input/output error): pid=25468: Mon Nov 15 17:46:16 2021
@@ -57,16 +57,14 @@ Fio: (groupid=0, jobs=1): err= 0: pid=25469: Mon Nov 15 17:46:16 2021
      complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
      issued rwts: total=2438088,0,0,0 short=0,0,0,0 dropped=0,0,0,0
      latency   : target=0, window=0, percentile=100.00%, depth=1
-```
+</code></pre>
 </details>
+
 ### 桌面环境
-基于xmonad框架编程定制平铺式桌面
-
-使用xpra访问远程应用程序
-
-使用eww编程定制桌面控件
-
-使用alacritty终端，内部使用tmux复用终端，使用zsh。
+- 基于xmonad框架编程定制平铺式桌面
+- 使用xpra访问远程应用程序
+- 使用eww编程定制桌面控件
+- 使用alacritty终端，内部使用tmux复用终端，使用zsh。
 ### 开发环境
 - neovim: 主要IDE
 - vscode: 次要IDE
