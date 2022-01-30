@@ -17,9 +17,10 @@
       flake = false;
     };
     sops-nix.url = "github:Mic92/sops-nix";
+    flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs =
-    inputs@{ self, home-manager, nur, fenix, nixpkgs, flake-compat, ... }:
+  outputs = inputs@{ self, home-manager, nur, fenix, nixpkgs, flake-compat
+    , flake-utils, ... }:
     let
       system = "x86_64-linux";
       pkgs = (import nixpkgs) {
@@ -74,6 +75,13 @@
         huawei-ecs = import ./machine/huawei-ecs.nix args;
         aliyun-ecs = import ./machine/aliyun-ecs.nix args;
         lxd = import ./machine/lxd.nix args;
+
       };
-    };
+    } // flake-utils.lib.eachDefaultSystem (system:
+      let pkgs = nixpkgs.legacyPackages.${system};
+      in {
+        devShell = pkgs.mkShell {
+          buildInputs = with pkgs; [ sops gnumake git rnix-lsp nixfmt nix-du ];
+        };
+      });
 }
