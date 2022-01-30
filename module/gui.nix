@@ -1,86 +1,91 @@
 { config, pkgs, lib, ... }: {
-  i18n.defaultLocale = "zh_CN.UTF-8";
-  gtk = { iconCache.enable = true; };
-  fonts = {
-    fontconfig = {
-      enable = true;
-      defaultFonts.emoji = [ "Noto Color Emoji" ];
-      defaultFonts.monospace = [ "Iosevka Custom Medium" ];
-      defaultFonts.sansSerif =
-        [ "Inter" "Liberation Sans" "Soruce Han Sans SC" ];
-      defaultFonts.serif = [ "Liberation Serif" "Source Han Serif SC" ];
-    };
-    fonts = with pkgs; [
-      nerdfonts
-      noto-fonts
-      noto-fonts-cjk
-      noto-fonts-emoji
-      noto-fonts-extra
-      source-code-pro
-      source-sans-pro
-      # source-han-mono
-      source-han-sans
-      source-han-sans-simplified-chinese
-      source-han-serif
-      source-han-serif-simplified-chinese
-      hack-font
-      powerline-fonts
-      powerline-symbols
-      iosevka
-      fira-code-symbols
-    ];
-    fontDir.enable = true;
-  };
-  sound.enable = true;
-  xdg = {
-    # autostart.enable = false;
-    portal.enable = true;
-    mime.defaultApplications = {
-      "application/pdf" = "firefox.desktop";
-      "image/png" = [ "gthumb.desktop" ];
-      "text/xml" = [ "nvim.desktop" ];
-    };
-  };
-  i18n.inputMethod = {
-    enabled = "ibus";
-    ibus = { engines = with pkgs.unstable.ibus-engines; [ libpinyin ]; };
-    uim.toolbar = "qt4";
-  };
-  # programs.xwayland.enable = true;
-  # programs.sway = {
-    # enable = true;
-    # extraPackages = with pkgs; [
+  config = lib.mkIf (config.cluster.nodeConfig.guiClient.enable
+    || config.cluster.nodeConfig.guiClient.enable) {
+      i18n.defaultLocale = "zh_CN.UTF-8";
+      gtk = { iconCache.enable = true; };
+      fonts = {
+        fontconfig = {
+          enable = true;
+          defaultFonts.emoji = [ "Noto Color Emoji" ];
+          defaultFonts.monospace = [ "Iosevka Custom Medium" ];
+          defaultFonts.sansSerif =
+            [ "Inter" "Liberation Sans" "Soruce Han Sans SC" ];
+          defaultFonts.serif = [ "Liberation Serif" "Source Han Serif SC" ];
+        };
+        fonts = with pkgs; [
+          # nerdfonts
+          noto-fonts
+          noto-fonts-cjk
+          noto-fonts-emoji
+          noto-fonts-extra
+          # source-code-pro
+          # source-sans-pro
+          # source-han-mono
+          source-han-sans
+          source-han-sans-simplified-chinese
+          source-han-serif
+          source-han-serif-simplified-chinese
+          hack-font
+          powerline-fonts
+          powerline-symbols
+          iosevka
+          fira-code-symbols
+        ];
+        fontDir.enable = true;
+      };
+      sound.enable = true;
+      xdg = {
+        # autostart.enable = false;
+        portal.enable = true;
+        mime.defaultApplications = {
+          "application/pdf" = "firefox.desktop";
+          "image/png" = [ "gthumb.desktop" ];
+          "text/xml" = [ "nvim.desktop" ];
+        };
+      };
+      i18n.inputMethod = {
+        enabled = "ibus";
+        ibus = { engines = with pkgs.unstable.ibus-engines; [ libpinyin ]; };
+        uim.toolbar = "qt4";
+      };
+      # programs.xwayland.enable = true;
+      # programs.sway = {
+      # enable = true;
+      # extraPackages = with pkgs; [
       # swaylock # lockscreen
       # swayidle
       # xwayland # for legacy apps
       # waybar # status bar
       # mako # notification daemon
       # kanshi # autorandr
-    # ];
-  # };
-  services = {
-    mpd.enable = true;
-    gnome.core-os-services.enable = true;
-    gnome.sushi.enable = true;
-    gvfs.enable = true;
-    udisks2.enable = true;
-    flatpak.enable = true;
-    xserver = {
-      enable = true;
-      exportConfiguration = true;
-      displayManager.startx.enable = true;
-      windowManager.xmonad.enable = true;
-      desktopManager.gnome.enable = true;
-      # desktopManager.plasma5.enable = true;
-      xkbOptions = "ctrl:nocaps";
+      # ];
+      # };
+      services = {
+        mpd.enable = true;
+        gnome.core-os-services.enable = true;
+        gnome.sushi.enable = true;
+        gvfs.enable = true;
+        udisks2.enable = true;
+        flatpak.enable = true;
+        xserver = {
+          enable = true;
+          exportConfiguration = true;
+          displayManager.startx.enable = true;
+          windowManager.xmonad.enable = true;
+          desktopManager.gnome.enable = true;
+          # desktopManager.plasma5.enable = true;
+          xkbOptions = "ctrl:nocaps";
+        };
+      };
+      programs.dconf.enable = true;
+      programs.gpaste.enable = true;
+      environment.systemPackages = with pkgs; [
+        appimage-run
+        glxinfo
+        xorg.xhost
+        xorg.xbacklight
+        vulkan-tools
+        lutris
+      ];
     };
-  };
-  programs.dconf.enable = true;
-  programs.gpaste.enable = true;
-  environment.systemPackages = with pkgs; [
-    appimage-run
-    glxinfo
-    xorg.xhost
-    xorg.xbacklight
-  ];
 }

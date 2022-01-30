@@ -7,11 +7,11 @@
 , unixODBC, xz, zlib, zotero }:
 stdenv.mkDerivation rec {
   pname = "wpsoffice";
-  version = "11.1.0.10702";
+  version = "11.1.0.10920";
   src = fetchurl {
     url =
-      "https://wdl1.cache.wps.cn/wps/download/ep/Linux2019/10702/wps-office_11.1.0.10702_amd64.deb";
-    sha256 = "189dc0cf621acaf84fcb92edcd9162685e552285e23d210c26b36de2ee53431d";
+      "https://wdl1.cache.wps.cn/wps/download/ep/Linux2019/10920/wps-office_11.1.0.10920_amd64.deb";
+    sha256 = "sha256-touWcXObCmsvxaQ64m7cJPiT+vt17YQIngz9G7FMMd4=";
   };
   unpackCmd = "dpkg -x $src .";
   sourceRoot = ".";

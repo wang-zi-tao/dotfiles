@@ -1,36 +1,42 @@
-{ pkgs, config, lib, ... }: {
-  imports = [ ../secret/secret.nix ];
+{ pkgs, config, lib, ... }:
+let nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
+in {
   networking = {
     firewall.enable = false;
-    hosts = (builtins.listToAttrs (builtins.map ({ host, ip }: {
-      name = ip;
-      value = [ host ("${host}.wangzicloud.cn") ];
-    }) (config.secret.network-configs))) // {
-      "127.0.0.1" = [
-        config.networking.hostName
-        "${config.networking.hostName}.wangzicloud.cn"
-      ];
-    };
+    hosts = (builtins.listToAttrs (builtins.map ({ hostname, publicIp, ... }: {
+      name = publicIp;
+      value = [ hostname ];
+    }) (builtins.filter ({ publicIp, ... }: publicIp != null)
+      (builtins.attrValues config.cluster.nodes)))) // (builtins.listToAttrs
+        (builtins.map ({ hostname, wireguard, ... }: {
+          name = wireguard.clusterIp;
+          value = [ "${hostname}.wg" ];
+        }) (builtins.filter ({ wireguard, ... }: wireguard.enable)
+          (builtins.attrValues config.cluster.nodes)))) // {
+            "127.0.0.1" = [ config.networking.hostName ];
+          };
   };
-  networking.wireguard = {
+  sops.secrets."wireguard/private-key" =
+    lib.mkIf nodeConfig.wireguard.enable { };
+  networking.wireguard = lib.mkIf nodeConfig.wireguard.enable {
     enable = true;
     interfaces = {
       wg0 = {
-        ips = [
-          "192.168.16.${
-            builtins.toString config.secret.wireguard-config.index
-          }/24"
-        ];
-        listenPort = config.secret.wireguard-config.port;
-        privateKey = config.secret.wireguard-config.private-key;
-        peers = map (w: {
-          allowedIPs = [ "192.168.16.0/24" ];
-          publicKey = w.public-key;
-          endpoint = if w.endpoint-ip != null then
-            "${w.endpoint-ip}:${builtins.toString w.port}"
-          else
-            null;
-        }) config.secret.wireguard-configs;
+        ips = [ nodeConfig.wireguard.clusterIp ];
+        listenPort = nodeConfig.wireguard.port;
+        privateKeyFile = config.sops.secrets."wireguard/private-key".path;
+        peers = map (node:
+          let w = node.wireguard;
+          in {
+            persistentKeepalive = 25;
+            allowedIPs = [ "192.168.16.0/24" ];
+            publicKey = w.publicKey;
+            endpoint = if node.publicIp != null then
+              "${node.publicIp}:${builtins.toString w.port}"
+            else
+              null;
+          }) (builtins.filter (node: node.wireguard.enable)
+            (builtins.attrValues config.cluster.nodes));
       };
     };
   };

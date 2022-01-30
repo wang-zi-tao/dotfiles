@@ -4,8 +4,7 @@ in nixos-generators.nixosGenerate {
   format = "lxc";
   # system = "x86_64-linux";
   modules = [
-    ../module/nixos.nix
-    ../module/terminal.nix
+    ../module/cluster.nix
     home-manager.nixosModules.home-manager
     ({
       home-manager.useGlobalPkgs = true;
@@ -31,7 +30,7 @@ in nixos-generators.nixosGenerate {
         xpra
         virtualgl
         firefox
-        google-chrome-stable
+        # google-chrome-stable
         # vscode
         nix-tree
         qt5ct

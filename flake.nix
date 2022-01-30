@@ -16,6 +16,7 @@
       url = "github:edolstra/flake-compat";
       flake = false;
     };
+    sops-nix.url = "github:Mic92/sops-nix";
   };
   outputs =
     inputs@{ self, home-manager, nur, fenix, nixpkgs, flake-compat, ... }:
@@ -30,10 +31,9 @@
             fenix.overlay
             (final: prev:
               {
-                # flake-compat = import inputs.flake-compat { };
                 flake-compat = inputs.flake-compat;
-                # naersk = inputs.naersk;
                 system = system;
+                flakes = inputs;
                 nur = import inputs.nur {
                   nurpkgs = final.unstable;
                   pkgs = final.unstable;
@@ -45,6 +45,13 @@
                 unstable = import inputs.nixpkgs-unstable {
                   system = final.system;
                   config = { allowUnfree = true; };
+                  overlays = [
+                    (final: prev:
+                      (listToAttrs (map (name: {
+                        inherit name;
+                        value = final.callPackage (./packages + "/${name}") { };
+                      }) (attrNames (readDir ./packages)))))
+                  ];
                 };
                 nixpkgs-21-05 = import inputs.nixpkgs-21-05 {
                   system = final.system;
@@ -66,7 +73,7 @@
         wangzi-pc = import ./machine/MECHREV-z2-air/machine.nix args;
         huawei-ecs = import ./machine/huawei-ecs.nix args;
         aliyun-ecs = import ./machine/aliyun-ecs.nix args;
+        lxd = import ./machine/lxd.nix args;
       };
-      lxd = import ./machine/lxd.nix args;
     };
 }

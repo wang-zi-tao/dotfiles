@@ -1,0 +1,25 @@
+keys:
+  - &admin_wangzi age1va7sf254n8uzl5d27sq253duaf8u47jrketpy2xwv9ala9ttncqqsjk5k0
+  - &server-wangzi-pc age10hg45sz8kgmhfcpna9qjqdfztguvn6xqfe8hfstna3wg6qvtzvjs506tdy
+  - &server-huawei-ecs age1en335kec3v9d2h3uzhas347j5xdye0ckafhv7m32edwnszrkguuqv69npm
+creation_rules:
+  - path_regex: secrets/public-key.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi
+      - *server-huawei-ecs
+      - *server-wangzi-pc
+  - path_regex: secrets/wangzi-pc.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi
+      - *server-wangzi-pc
+  - path_regex: secrets/huawei-ecs.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi
+      - *server-huawei-ecs
+  - path_regex: secrets/[^/]+\.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi

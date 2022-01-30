@@ -1,5 +1,4 @@
-{ pkgs, config, lib, ... }: {
-  options.hostname = lib.mkOption { type = lib.types.str; };
+{ nixosConfig, pkgs, config, lib, ... }: {
   imports = [
     ./tmux/tmux.nix
     ./zsh/zsh.nix
@@ -8,53 +7,53 @@
     ./ranger.nix
     ../develop/git.nix
     ../develop/neovim/neovim.nix
-    ../../secret/secret-home.nix
   ];
-  config = {
-    programs.direnv = {
-      enable = true;
-      enableZshIntegration = true;
-    };
-    programs.fzf = {
-      enable = true;
-      enableZshIntegration = true;
-    };
-    home.file.".ssh/id_rsa".source = config.secret.ssh-private-key;
-    home.file.".ssh/id_rsa.pub".source = config.secret.ssh-public-key;
-    manual.manpages.enable = true;
-    home.packages = with pkgs;
-      scripts ++ [
-        nix-index
-
-        wcp
-
-        nload
-        killall
-        atool
-        bat
-        choose
-        ctop
-        curl
-        direnv
-        nix-direnv
-        duf
-        exa
-        fd
-        jq
-        lsof
-        pistol
-        poppler
-        ps
-        ripgrep
-        sudo
-        trash-cli
-        wget
-        xh
-        zip
-        unzip
-        xclip
-        pfetch
-        neofetch
-      ];
+  programs.direnv = {
+    enable = true;
+    enableZshIntegration = true;
   };
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+  manual.manpages.enable = true;
+  home.sessionVariables = with pkgs; {
+    EDITOR = "${neovim}/bin/nvim";
+    NIX_AUTO_RUN = "1";
+    NIXPKGS_ALLOW_UNFREE = "1";
+  };
+  home.packages = with pkgs;
+    scripts ++ [
+
+      wcp
+
+      nload
+      killall
+      atool
+      bat
+      choose
+      ctop
+      curl
+      direnv
+      nix-prefetch
+      (nix-direnv.override { enableFlakes = true; })
+      duf
+      exa
+      fd
+      jq
+      lsof
+      pistol
+      poppler
+      ps
+      ripgrep
+      sudo
+      trash-cli
+      wget
+      xh
+      zip
+      unzip
+      xclip
+      pfetch
+      neofetch
+    ];
 }

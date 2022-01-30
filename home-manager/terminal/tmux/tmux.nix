@@ -24,6 +24,12 @@
         # sysstat
         yank
         {
+          plugin = yank;
+          extraConfig = ''
+            set -g @custom_copy_command '${pkgs.xclip}/bin/xclip'
+          '';
+        }
+        {
           plugin = power-theme;
           extraConfig = ''
             # set -g @tmux_power_show_upload_speed true
@@ -37,6 +43,7 @@
       ]);
     tmuxinator.enable = true;
   };
+  home.packages = with pkgs; [ xclip xsel ];
   home.file.".config/tmuxinator/drop.yml".source = ./drop.yml;
   home.file.".config/tmuxinator/workspace-1.yml".source = ./workspace-1.yml;
   home.file.".config/tmuxinator/workspace-2.yml".source = ./workspace-2.yml;

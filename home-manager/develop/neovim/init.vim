@@ -76,6 +76,10 @@ call SpaceVim#custom#SPC('nnoremap', ['g', 'r'], '!git restore %', 'git restore'
 " nnoremap <silent> <space>y    :<C-u>CocList -A --normal yank<cr>
 nnoremap <silent> <Leader>fT :Tags<CR>
 vnoremap <silent> <Leader>fT y:Tags <C-r>"<cr>
+nnoremap <silent> <Leader>ft :Tags<CR>
+vnoremap <silent> <Leader>ft y:Tags <C-r>"<cr>
+nnoremap <silent> <Leader>ff :Files<CR>
+vnoremap <silent> <Leader>ff y:Files <C-r>"<cr>
 
 noremap ;a 1
 noremap ;s 2

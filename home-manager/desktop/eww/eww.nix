@@ -32,6 +32,7 @@ in {
     }
     .todo_bax,
     .hddbox,
+    .layout,
     .bar-system scale trough ,
     .sidestuff scale trough ,
     .music_bar scale trough {
@@ -48,6 +49,7 @@ in {
     .todo_item{
       color: ${theme.foreground};
     }
+    .normal-workspace,
     .hdd_label,
     .uphour,
     .bar,
@@ -422,7 +424,7 @@ in {
             (defwidget bar []
               (centerbox :class "bar" :orientation "h"
                 (box :space-evenly false (label :class "os" :text "") (workspaces))
-                (box time)
+                (box :class "time" time)
                 (box (sidestuff))
               )
             )
@@ -455,9 +457,9 @@ in {
                        (scale :min 0 :max 100 :value {EWW_BATTERY.BAT0.capacity} :active "false"))
                   )
                 )
-                (box
+                (box :valign "center"
              ;;     (label :text {"$${EWW_NET.wlo1.NET_DOWN}K $${EWW_NET.wlo1.NET_UP}K"})
-                  (label :text {"$${ EWW_NET.wlo1.NET_DOWN > 3000000 ? "$${round(EWW_NET.wlo1.NET_DOWN/3000000,1)}M" : "$${round(EWW_NET.wlo1.NET_DOWN/3000,1)}K"} $${ EWW_NET.wlo1.NET_UP > 333333 ? "$${round(EWW_NET.wlo1.NET_UP/333333,1)}M" : "$${round(EWW_NET.wlo1.NET_UP/333,1)}K"}"})
+                  (label :class "network_speed" :text {"$${ EWW_NET.wlo1.NET_DOWN > 3000000 ? "$${round(EWW_NET.wlo1.NET_DOWN/3000000,1)}M" : "$${round(EWW_NET.wlo1.NET_DOWN/3000,1)}K"} $${ EWW_NET.wlo1.NET_UP > 333333 ? "$${round(EWW_NET.wlo1.NET_UP/333333,1)}M" : "$${round(EWW_NET.wlo1.NET_UP/333,1)}K"}"})
                 )
               )
             )
@@ -466,12 +468,14 @@ in {
              (button :class "workspace $${type}" :onclick "${pkgs.wmctrl}/bin/wmctrl -s $$(( $${name} - 1 ))" (label :hexpand true :text text))
             )
             (defwidget layout [text]
-             (box :class "workspace layout" :vexpand false (label :hexpand true :text text))
+             (box :class "workspace layout" :vexpand false
+               (button :onclick "rofi -combi-modi window,drun -show combi -modi combi -theme ~/.config/rofi/apps.css&"
+                 (label :hexpand true :text text)
+               )
+             )
             )
             (defwidget workspaces []
-              (button :onclick "rofi -combi-modi window,drun -show combi -modi combi -theme ~/.config/rofi/apps.css&"
-                (literal :valign "center" :content "(box :class \"workspaces\" :space-evenly false $${workspaces})")
-              )
+              (literal :valign "center" :content "(box :class \"workspaces\" :space-evenly false $${workspaces})")
             )
 
             (defwidget bar-music []

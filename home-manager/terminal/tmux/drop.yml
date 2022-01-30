@@ -25,7 +25,7 @@ windows:
 - huawei-ecs:
     layout: 57d6,191x50,0,0,36
     panes:
-    - ssh root@huawei-ecs -X -Y
+    - ssh root@huawei-ecs -X -Y -t "tmux attach-session"
 - monitor:
     layout: c165,211x55,0,0,8
     panes:

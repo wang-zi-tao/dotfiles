@@ -32,6 +32,11 @@ let
 in {
   imports = [ ./neovim/neovim.nix ./git.nix ./vscode.nix ];
   neovim.IDE = true;
+  programs.go = {
+    enable = true;
+    goBin = ".local/bin.go";
+    goPath = "工作空间/Go";
+  };
   home.file.".pip/pip.conf".text = ''
     [global]
     index-url = https://pypi.mirrors.ustc.edu.cn/simple
@@ -47,7 +52,6 @@ in {
     RUSTUP_DIST_SERVER = "http://mirrors.ustc.edu.cn/rust-static";
     RUSTUP_UPDATE_ROOT = "http://mirrors.ustc.edu.cn/rust-static/rustup";
     RUST_BACKTRACE = "1";
-    GOPATH = "$HOME/工作空间/Go";
     PKG_CONFIG_PATH = "${openssl.dev}/lib/pkgconfig";
     # PATH = "$HOME/.local/bin:$HOME/.cargo/bin:$PATH";
   };
@@ -85,6 +89,10 @@ in {
     global
     llvmPackages.bintools-unwrapped
     file
+
+    timewarrior
+    taskwarrior
+    taskwarrior-tui
 
     nodejs
     nodePackages.typescript

@@ -249,7 +249,7 @@
 .iconweb, .iconmail {
 	color: #FFFFFF;
 	font-family: Iosevka Nerd Font;
-	font-size : 70px;
+	font-size : 50px;
 	font-weight : normal;
 }
 .iconmail {
@@ -260,6 +260,7 @@
 	border-radius: 16px;
   min-width: 141px;
   min-height: 145px;
+	font-size : 32px;
 }
 .web1 {
 	background-color: #24292E;
@@ -296,7 +297,7 @@
 
 /** Power buttons ***************************************/
 .btn_logout, .btn_sleep, .btn_reboot, .btn_poweroff {
-	font-size : 80px;
+	font-size : 50px;
 	font-weight : bold;
   min-width: 155px;
   min-height: 155px;
@@ -370,14 +371,17 @@
   font-size:16px;
 }
 .layout {
-  font-size: 20px;
-  min-width: 20px;
+  font-size: 16px;
+  min-width: 28px;
+  min-height: 24px;
 }
-.normal-workspace , .highlight-workspace {
-  border-radius: 6px;
-  font-size:18px;
-  margin: 2px 4px;
+.normal-workspace , .highlight-workspace{
+  font-size:14px;
   min-width: 40px;
+}
+.layout , .normal-workspace , .highlight-workspace {
+  border-radius: 6px;
+  margin: 2px 4px;
 }
 
 // Styles on classes (see eww.yuck for more information)
@@ -418,4 +422,7 @@
   min-width: 96px;
 }
 .warn {
+}
+.time , .network_speed{
+  font-size:16px;
 }

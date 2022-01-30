@@ -29,7 +29,7 @@
       enable = true;
       python.virtualenvAutoSwitch = true;
       screen.autoStartLocal = true;
-      # syntaxHighlighting.highlighters = ["main" "brackets" "line"];
+      syntaxHighlighting.highlighters = ["main" "brackets" "line"];
       pmodules = [
         "git"
         "archive"
@@ -136,16 +136,23 @@
     sessionVariables = {
       _ZO_EXCLUDE_DIRS = "/nix";
     };
-    initExtraFirst =
-      "source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
-    initExtra = builtins.readFile ./p10k.zsh + builtins.readFile ./zshrc.zsh + ''
+    initExtraFirst = ''
+      if [[ -r "$HOME/.cache/p10k-instant-prompt-${config.home.username}.zsh" ]]; then
+        source "$HOME/.cache/p10k-instant-prompt-${config.home.username}.zsh"
+      fi
+      source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
+    '';
+    initExtra = builtins.readFile ./p10k.zsh +  builtins.readFile ./zshrc.zsh + ''
       # export FZF_DEFAULT_COMMAND="${pkgs.ag}/bin/ag -p ~/.gitignore -g """
       source ${pkgs.tmuxinator}/share/zsh/site-functions/_tmuxinator
+      export EDITOR=${config.programs.neovim.package}/bin/nvim
     '';
   };
-  # home.file.".p10k.zsh".source = ./p10k.zsh;
-  # programs.autojump.enable = true;
-  programs.command-not-found.enable = true;
+  # programs.command-not-found.enable = true;
+  programs.nix-index = {
+    enable=true;
+    enableZshIntegration=true;
+  };
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;

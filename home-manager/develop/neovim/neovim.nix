@@ -64,14 +64,14 @@ in {
         ] else
           [ ]));
       extraConfig = ''
-        execute 'source' '${pkgs.spacevim}/SpaceVim/init.vim'
+        execute 'source' '${pkgs.unstable.spacevim}/SpaceVim/init.vim'
       '' + (if cfg.IDE then
         let
           lombok = builtins.fetchurl {
             url =
               "https://projectlombok.org/downloads/lombok.jar";
             sha256 =
-              "sha256:1c3lvz7315id7w0z2lw8ik4i9y15d0mv9wwfpvxmkrzvqbk7p56f";
+              "sha256:0c8qqf8nqf9hhk1wyx5fb857qpdc1gp6f5i80k684yhx860ibvzc";
           };
         in ''
           let $JAVA_TOOL_OPTIONS="-javaagent:${lombok} -Xbootclasspath/a:${lombok}"

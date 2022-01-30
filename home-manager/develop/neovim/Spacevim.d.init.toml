@@ -19,8 +19,8 @@
     # install nerd fonts
     project_rooter_patterns = ['Cargo.toml', '.git/', '_darcs/', '.hg/', '.bzr/', '.svn/']
     # project_rooter_automatically = false
-    statusline_separator = "arrow"
-    statusline_iseparator = "arrow"
+    statusline_separator = "slant"
+    statusline_iseparator = "slant"
     buffer_index_type = 4
     enable_tabline_filetype_icon = true
     enable_statusline_mode = false

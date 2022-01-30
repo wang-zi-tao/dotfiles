@@ -1,4 +1,24 @@
 { config, lib, pkgs, modulesPath, ... }: {
+  boot.loader = {
+    systemd-boot.enable = true;
+    systemd-boot.configurationLimit = 5;
+    efi = {
+      canTouchEfiVariables = false;
+      efiSysMountPoint = "/boot/efi";
+    };
+    timeout = 1;
+    # grub = {
+    # device = "nodev";
+    # efiSupport = true;
+    # efiInstallAsRemovable = true;
+    # theme = pkgs.nixos-grub2-theme;
+    # memtest86.enable = true;
+    # copyKernels = false;
+    # };
+  };
+  boot.kernelPackages = pkgs.linuxPackages_xanmod.extend (self: super: {
+    virtualbox = super.virtualbox.override { inherit (self) kernel; };
+  });
   boot.initrd.availableKernelModules =
     [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" ];
   boot.initrd.kernelModules = [ ];
