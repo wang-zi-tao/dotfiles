@@ -42,6 +42,11 @@ endfun
 call timer_start(3000, function('s:checktime'))
 set autowrite
 set autowriteall
+set lazyredraw
+set title
+set ttyfast
+set noerrorbells
+set novisualbell
 let g:auto_save = 0
 let g:auto_save_events = ["InsertLeave", "TextChanged"]
 " install third-party plugins
