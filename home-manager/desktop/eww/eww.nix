@@ -61,6 +61,7 @@ in {
     .label_quote{
       color: ${theme.foreground2};
     }
+    .normal-workspace:nth-child(6),
     .iconcpu ,
     .color_red ,
     .label_folder1 ,
@@ -70,6 +71,7 @@ in {
     .label_stat {
     	color: ${theme.red};
     }
+    .normal-workspace:nth-child(5),
     .icondisk,
     .color_yellow ,
     .label_folder3 ,
@@ -81,6 +83,8 @@ in {
     .time_day{
     	color: ${theme.yellow};
     }
+    .normal-workspace:nth-child(10),
+    .normal-workspace:nth-child(3),
     .iconmem,
     .color_green,
     .label_folder2 ,
@@ -90,6 +94,8 @@ in {
     .time_mer {
     	color: ${theme.green};
     }
+    .normal-workspace:nth-child(9),
+    .normal-workspace:nth-child(2),
     .iconbat,
     .layout,
     .color_sky ,
@@ -101,6 +107,7 @@ in {
     .song {
     	color: ${theme.sky};
     }
+    .normal-workspace:nth-child(7),
     .color_blue ,
     .label_folder4 ,
     .iconfolder4 ,
@@ -111,8 +118,13 @@ in {
     .color_purple ,
     .label_folder5 ,
     .iconfolder5 ,
+    .normal-workspace:nth-child(8),
     .icontimer {
     	color: ${theme.purple};
+    }
+    .normal-workspace:nth-child(8),
+    .normal-workspace:nth-child(4) {
+      color: ${theme.pink};
     }
     .genwin,
     .bar,
@@ -430,20 +442,20 @@ in {
             )
 
             (defwidget sidestuff []
-              (box :halign "end" :space-evenly false 
-                (bar-music)
-                (box :class "sidestuff" :orientation "h" :space-evenly false :halign "end"
-                  (box :orientation "h"
-                       :space-evenly false
-                    (label :class "volume" :text "")
-                    (scale :min 0
-                           :max 101
-                           :class "volume"
-                           :value volume
-                           :onchange  "amixer set Master {}%")))
-                (label :class "warn" :text "$${EWW_BATTERY.BAT0.capacity < 20 ? "$${EWW_BATTERY.BAT0.capacity}%" : ""}")
-                (label :class "warn" :text "$${EWW_TEMPS.PACKAGE_ID_0 > 80 ? "$${EWW_TEMPS.PACKAGE_ID_0}糖" : ""}")
-                (button :onclick "~/.config/eww/scripts/trigger.sh"
+              (button :onclick "~/.config/eww/scripts/trigger.sh"
+                (box :halign "end" :space-evenly false 
+                  (bar-music)
+                  (box :class "sidestuff" :orientation "h" :space-evenly false :halign "end"
+                    (box :orientation "h"
+                         :space-evenly false
+                      (label :class "volume" :text "")
+                      (scale :min 0
+                             :max 101
+                             :class "volume"
+                             :value volume
+                             :onchange  "amixer set Master {}%")))
+                  (label :class "warn" :text "$${EWW_BATTERY.BAT0.capacity < 20 ? "$${EWW_BATTERY.BAT0.capacity}%" : ""}")
+                  (label :class "warn" :text "$${EWW_TEMPS.PACKAGE_ID_0 > 80 ? "$${EWW_TEMPS.PACKAGE_ID_0}糖" : ""}")
                   (box :class "bar-system" 
                        :orientation "v"
                        :space-evenly true
@@ -456,10 +468,10 @@ in {
                       (box :class "color_sky" 
                        (scale :min 0 :max 100 :value {EWW_BATTERY.BAT0.capacity} :active "false"))
                   )
-                )
-                (box :valign "center"
-             ;;     (label :text {"$${EWW_NET.wlo1.NET_DOWN}K $${EWW_NET.wlo1.NET_UP}K"})
-                  (label :class "network_speed" :text {"$${ EWW_NET.wlo1.NET_DOWN > 3000000 ? "$${round(EWW_NET.wlo1.NET_DOWN/3000000,1)}M" : "$${round(EWW_NET.wlo1.NET_DOWN/3000,1)}K"} $${ EWW_NET.wlo1.NET_UP > 333333 ? "$${round(EWW_NET.wlo1.NET_UP/333333,1)}M" : "$${round(EWW_NET.wlo1.NET_UP/333,1)}K"}"})
+                  (box :valign "center"
+               ;;     (label :text {"$${EWW_NET.wlo1.NET_DOWN}K $${EWW_NET.wlo1.NET_UP}K"})
+                    (label :class "network_speed" :text {"$${ EWW_NET.wlo1.NET_DOWN > 3000000 ? "$${round(EWW_NET.wlo1.NET_DOWN/3000000,1)}M" : "$${round(EWW_NET.wlo1.NET_DOWN/3000,1)}K"} $${ EWW_NET.wlo1.NET_UP > 333333 ? "$${round(EWW_NET.wlo1.NET_UP/333333,1)}M" : "$${round(EWW_NET.wlo1.NET_UP/333,1)}K"}"})
+                  )
                 )
               )
             )

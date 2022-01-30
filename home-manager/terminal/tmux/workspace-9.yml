@@ -1,6 +1,6 @@
 ---
 name: MineCraft
-project_root: "/home/wangzi/.minecraft"
+project_root: "/home/wangzi/MineCraft"
 windows:
 - mc:
     layout: 61b3,105x55,0,0,33

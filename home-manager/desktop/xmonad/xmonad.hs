@@ -284,15 +284,15 @@ dbusOutput dbus str =
 
 barHook :: D.Client -> PP
 barHook dbus =
-  let symbol w | w == "1" = "1:\xf269"
-               | w == "2" = "2:\xf120"
-               | w == "3" = "3:\xe7a8"
-               | w == "4" = "4:\xf48a"
-               | w == "5" = "5:\xf126"
-               | w == "6" = "6:\xfb04"
-               | w == "7" = "7:\xf313"
-               | w == "8" = "8:\xf308"
-               | w == "9" = "9:\xf872"
+  let symbol w | w == "1" = "\xf269"
+               | w == "2" = "\xf120"
+               | w == "3" = "\xe7a8"
+               | w == "4" = "\xf48a"
+               | w == "5" = "\xf126"
+               | w == "6" = "\xfb04"
+               | w == "7" = "\xf313"
+               | w == "8" = "\xf308"
+               | w == "9" = "\xf872"
                | otherwise = w
       wrapper c s | s /= "NSP" = "(ws :type \"" ++ c ++ "\" :text \"" ++ (symbol s) ++ "\" :name \"" ++ s ++ "\")"
                   | otherwise  = mempty

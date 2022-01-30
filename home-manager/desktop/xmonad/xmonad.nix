@@ -16,7 +16,7 @@ let
     background1 = "#DDDFE1";
     background2 = "#CDCFD1";
   };
-  theme = light // {
+  theme = dark // {
     pink = "#D35D6E";
     red = "#BF616A";
     yellow = "#EBCB8B";

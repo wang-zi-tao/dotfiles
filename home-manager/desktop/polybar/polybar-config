@@ -17,7 +17,7 @@
 
 [bar/icons]
 enable-ipc=true
-offset-x = 488
+offset-x = 344
 width = 10%
 offset-y = 8
 module-margin = 1
