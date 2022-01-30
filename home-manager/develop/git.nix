@@ -8,6 +8,7 @@ in {
     userName = "wang-zi-tao";
     aliases = { diff = "diff --word-diff"; };
     extraConfig = {
+      core = { editor = "vim"; };
       diff = { tool = "nvr"; };
       difftool = {
         promt = true;
