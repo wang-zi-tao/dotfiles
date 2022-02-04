@@ -11,139 +11,57 @@ in {
   config = {
     programs.neovim = {
       enable = true;
+      package = pkgs.unstable.neovim-unwrapped;
       viAlias = true;
       vimAlias = true;
       vimdiffAlias = true;
       withNodeJs = true;
       withPython3 = true;
-      plugins = with pkgs.vimPlugins;
-        ([
-          coc-spell-checker
-          coc-highlight
-          coc-git
-          coc-fzf
-          coc-yank
-          coc-yaml
-          coc-json
-          coc-explorer
-          # onedark-vim
-          fzf-vim
-          direnv-vim
-          ranger-vim
-          vim-tmux-clipboard
-          vim-tmux-focus-events
-          vim-tmux-navigator
-          surround
-          vim-fugitive
-          indentLine
-          plenary-nvim
-          diffview-nvim
-        ] ++ (if cfg.IDE then [
-          coc-tabnine
-          coc-go
-          coc-lua
-          coc-nvim
-          coc-java
-          coc-html
-          coc-cmake
-          coc-pyright
-          coc-clangd
-          coc-tsserver
-          coc-vimlsp
-          coc-smartf
-          coc-eslint
-          coc-tslint
-          coc-snippets
-          coc-rust-analyzer
-          coc-markdownlint
-          vim-cpp-enhanced-highlight
-          vim-devicons
-          vim-nerdtree-syntax-highlight
-          rainbow
-          vimspector
-        ] else
-          [ ]));
+      plugins = with pkgs.vimPlugins; [ packer-nvim pkgs.nvchad ];
       extraConfig = ''
-        if !exists("g:reload")
-          execute 'source' '${pkgs.unstable.spacevim}/SpaceVim/init.vim'
-          let g:reload = 1
-        endif
-      '' + (if cfg.IDE then
-        let
-          lombok = builtins.fetchurl {
-            url = "https://projectlombok.org/downloads/lombok.jar";
-            sha256 =
-              "sha256:0c8qqf8nqf9hhk1wyx5fb857qpdc1gp6f5i80k684yhx860ibvzc";
-          };
-        in ''
-          let $JAVA_TOOL_OPTIONS="-javaagent:${lombok} -Xbootclasspath/a:${lombok}"
-        ''
-      else
-        "") + builtins.readFile ./init.vim;
+        source ${pkgs.nvchad}/init.lua
+      '';
     };
-    home.packages = with pkgs; [ neovim-remote python2 ];
-    home.file.".SpaceVim.d/tasks.toml".text = ''
-      [make]
-        command = 'make'
-      [make-clean]
-        command = 'make clean'
-      [make-install]
-        command = 'make install'
-      [cmake]
-        command = "cmake .."
-      [ninja]
-        command = 'ninja'
-      [cargo-check]
-        command = 'cargo check'
-      [cargo-clean]
-        command = 'cargo clean'
-      [cargo-run]
-        command = 'cargo run'
+    home.packages = with pkgs; [ neovim-remote python2 zig ];
+    home.file.".config/nvim/lua/custom/nix-plugins.lua".text = with pkgs.unstable.vimPlugins; ''
+      return {
+        packer = "${packer-nvim}",
+        which_key = "${which-key-nvim}",
+        null_ls = "${null-ls-nvim}",
+        symbols_outline = "${symbols-outline-nvim}",
+        rust_tools = "${rust-tools-nvim}",
+        cmp_tabnine = "${cmp-tabnine}",
+        cmp_spell = "${cmp-spell}",
+        markdown_preview = "${markdown-preview-nvim}",
+        marks = "${marks-nvim}",
+        vim_surround = "${vim-surround}",
+        auto_save = "${pkgs.fetchgit {
+          url = "https://github.com/Pocco81/AutoSave.nvim/";
+          rev = "3d342d6fcebeede15b6511b13a38a522c6f33bf8";
+          sha256 = "sha256-1tAYnd4/hGgG2NG8n9hZi9zWM+v1OTh0YBlG8kEZeXI=";
+        }}",
+        undotreim = "${undotree}",
+        ts_rainbow = "${nvim-ts-rainbow}",
+        vim_repeat = "${vim-repeat}",
+        diffview = "${diffview-nvim}",
+        filetype = "${pkgs.fetchgit {
+          url = "https://github.com/nathom/filetype.nvim/";
+          rev = "4d2c0d4488a05f9b0d18a7e2004c0182e350bb45";
+          sha256 = "sha256-dzrJ8ddUnj7zRNLWlSoknXtSB0LT9VUuYnHSsBJpgGQ=";
+        }}",
+        navigator = "${pkgs.fetchgit {
+          url = "https://github.com/numToStr/Navigator.nvim/";
+          rev = "f7b689d72649e1d5132116c76ac2ad8b97c210d4";
+          sha256 = "sha256-OLQuIepNbCB+xog184Ist7Pb6ogbUL4bclT7pPVhzp8=";
+        }}",
+      }
     '';
-    home.file.".SpaceVim.d/init.toml".text =
-      (builtins.readFile ./Spacevim.d.init.toml) + (if cfg.IDE then ''
-        [[layers]]
-          name = "lang#toml"
-        [[layers]]
-          name = "lang#markdown"
-        [[layers]]
-          name = "test"
-        [[layers]]
-          name = "lang#java"
-          java_formatter_jar = "${
-            builtins.fetchurl {
-              url =
-                "https://github.com/google/google-java-format/releases/download/v1.11.0/google-java-format-1.11.0-all-deps.jar";
-              sha256 =
-                "sha256:1ixpg8ljg819fq94mxyypknmslva3rkifphbnq3ic71b7iip6lia";
-            }
-          }"
-        [[layers]]
-          name = "lang#python"
-        [[layers]]
-           name = "debug"
-        [[layers]]
-          name = "lang#go"
-        [[layers]]
-          name = "lang#lua"
-        [[layers]]
-          name = "lang#javascript"
-        [[layers]]
-          name = "lang#c"
-          enable_clang_syntax_highlight = true
-        [[layers]]
-          name = "lang#rust"
-        [[layers]]
-          name = "lang#typescript"
-        [[layers]]
-          name = "lang#nix"
-        [[layers]]
-          name = "lang#haskell"
-      '' else
-        "");
-    home.file."coc-settings" = {
-      source = ./coc-settings.json;
-      target = ".config/nvim/coc-settings.json";
+    home.file.".config/nvim/lua" = {
+      recursive = true;
+      source = ./lua;
+      # onChange = ''
+      #   nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerCompile'
+      # '';
     };
   };
 }

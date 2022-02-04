@@ -81,7 +81,7 @@
       let pkgs = nixpkgs.legacyPackages.${system};
       in {
         devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ sops gnumake git rnix-lsp nixfmt nix-du ];
+          buildInputs = with pkgs; [ sops gnumake git rnix-lsp nixfmt nix-du sumneko-lua-language-server ];
         };
       });
 }

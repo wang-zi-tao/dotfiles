@@ -94,9 +94,13 @@ in {
     taskwarrior
     taskwarrior-tui
 
+    sumneko-lua-language-server
+    nodePackages.typescript-language-server
     nodejs
     nodePackages.typescript
     python3-env
+    nodePackages.pyright
+    cmake-language-server
 
     jdk
     maven
