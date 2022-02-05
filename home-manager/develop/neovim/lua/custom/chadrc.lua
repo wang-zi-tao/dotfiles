@@ -58,7 +58,7 @@ M.plugins = {
 M.mappings = {
    terminal = {
       new_horizontal = "<leader>'",
-      esc_termmode = "<leader>'",
+      esc_termmode = "<ESC>",
    },
 }
 M.mappings.plugins = {
