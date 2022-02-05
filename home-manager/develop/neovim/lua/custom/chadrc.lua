@@ -37,6 +37,18 @@ M.plugins = {
             enable = true,
          },
       },
+      statusline = {
+         hidden = {
+            "help",
+            "dashboard",
+            "NvimTree",
+            "terminal",
+            "Undotree",
+            "SymbolsOutline",
+         },
+         shortline = true,
+         style = "default", -- default, round , slant , block , arrow
+      },
    },
    default_plugin_config_replace = {
       dashboard = "custom.plugins.dashboard",

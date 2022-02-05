@@ -14,7 +14,6 @@ return {
      -- "liuchengxu/vim-which-key",
      n.which_key,
      as = "vim-which-key",
-     cmd = "WhichKey",
      config = "require('custom.plugins.plugin-config').which_key()",
    },
    {
@@ -88,7 +87,6 @@ return {
       -- "Pocco81/AutoSave.nvim",
       n.auto_save,
       as = "AutoSave.nvim",
-      disable = true,
       config = "require('custom.plugins.plugin-config').auto_save()",
    },
    {
