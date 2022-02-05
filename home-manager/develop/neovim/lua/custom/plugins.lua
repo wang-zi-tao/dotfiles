@@ -126,5 +126,17 @@ return {
     n.navigator,
     as = "Navigator",
     config = "require('custom.plugins.plugin-config').navigator()",
-    },
+   },
+   {
+     -- "RRethy/vim-illuminate",
+     n.illuminate,
+     as = "vim-illuminate",
+   },
+   {
+     -- "kevinhwang91/nvim-hlslens",
+     n.hlslens,
+     as = "nvim-hlslens",
+     event = "BufRead",
+     config = "require('custom.plugins.plugin-config').hlslens()",
+   },
 }

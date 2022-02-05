@@ -54,14 +54,39 @@ in {
           rev = "f7b689d72649e1d5132116c76ac2ad8b97c210d4";
           sha256 = "sha256-OLQuIepNbCB+xog184Ist7Pb6ogbUL4bclT7pPVhzp8=";
         }}",
+        illuminate = "${vim-illuminate}",
+        hlslens = "${nvim-hlslens}",
       }
     '';
-    home.file.".config/nvim/lua" = {
+    home.file.".config/nvim/lua/custom/plugins" = {
       recursive = true;
-      source = ./lua;
-      # onChange = ''
-      #   nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerCompile'
-      # '';
+      source = ./lua/custom/plugins;
+      onChange = ''
+        nvim --headless -c 'autocmd User PackerComplete quitall' -c 'LuaCacheClear'
+      '';
     };
+    home.file.".config/nvim/lua/custom/chadrc.lua" = {
+      recursive = true;
+      source = ./lua/custom/chadrc.lua;
+      onChange = ''
+        nvim --headless -c 'autocmd User PackerComplete quitall' -c 'LuaCacheClear'
+      '';
+    };
+    home.file.".config/nvim/lua/custom/init.lua" = {
+      recursive = true;
+      source = ./lua/custom/init.lua;
+      onChange = ''
+        nvim --headless -c 'autocmd User PackerComplete quitall' -c 'LuaCacheClear'
+      '';
+    };
+    home.file.".config/nvim/lua/custom/plugins.lua" = {
+      recursive = true;
+      source = ./lua/custom/plugins.lua;
+      onChange = ''
+        nvim --headless -c 'autocmd User PackerComplete quitall' -c 'LuaCacheClear'
+        # nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerCompile'
+      '';
+    };
+    
   };
 }
