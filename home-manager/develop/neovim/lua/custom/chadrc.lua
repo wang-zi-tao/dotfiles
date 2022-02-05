@@ -6,7 +6,15 @@ local M = {}
 -- example of changing theme:
 
 M.ui = {
-   theme = "onedark",
+   -- theme = "onedark",
+}
+M.options = {
+     nvChad = {
+      copy_cut = false, -- copy cut text ( x key ), visual and normal mode
+      copy_del = false, -- copy deleted text ( dd key ), visual and normal mode
+      insert_nav = true, -- navigation in insertmode
+      window_nav = true,
+   },
 }
 
 -- NOTE: we heavily suggest using Packer's lazy loading (with the 'event','cmd' fields)
@@ -17,12 +25,23 @@ M.plugins = {
    install = userPlugins,
    status = {
       dashboard = true,
-      -- colorizer = true,
-      -- snippets = true,
+      colorizer = true,
+      snippets = true,
    },
    options = {
       lspconfig = {
          setup_lspconf = "custom.plugins.lspconfig",
+      },
+      cmp = {
+         lazy_load = true,
+         sources = {
+            { name = "nvim_lsp" },
+            { name = "nvim_lua" },
+            { name = "cmp_tabnine" },
+            { name = "spell" },
+            { name = "path" },
+            { name = "buffer" },
+         },
       },
       nvimtree = {
          view = {
@@ -53,6 +72,10 @@ M.plugins = {
    default_plugin_config_replace = {
       dashboard = "custom.plugins.dashboard",
       nvimtree = "custom.plugins.nvimtree",
+      nvim_cmp = "custom.plugins.cmp",
+   },
+   default_plugin_remove = {
+    "lewis6991/impatient.nvim",
    },
 }
 M.mappings = {

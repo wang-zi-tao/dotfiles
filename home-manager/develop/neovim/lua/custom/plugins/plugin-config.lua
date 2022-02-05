@@ -34,20 +34,7 @@ M.which_key = function()
 
   }
 end
-M.cmp = function()
-  require("cmp").setup {
-     sources = {
-        { name = "nvim_lsp" },
-        { name = "nvim_lua" },
-        { name = "cmp_tabnine" },
-        { name = "spell" },
-        { name = "path" },
-        { name = "buffer" },
-     },
-  }
-end
 M.cmp_tabnine = function()
-  M.cmp()
   require( "cmp_tabnine.config"):setup {
      max_lines = 1000,
      max_num_results = 20,

@@ -100,7 +100,7 @@ return {
       n.ts_rainbow,
       as = "ts-rainbow",
       after = "nvim-treesitter",
-      event = "BufRead",
+      requires = "nvim-treesitter",
       config = "require('custom.plugins.plugin-config').ts_rainbow()",
    },
    {
@@ -112,7 +112,7 @@ return {
       -- "sindrets/diffview.nvim",
       n.diffview,
       as = "diffview.nvim",
-      requires = "nvim-lua/plenary.nvim",
+      requires = "plenary.nvim",
       cmd = {
          "DiffviewOpen",
          "DiffviewClose",

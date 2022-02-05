@@ -9,6 +9,7 @@ local opt = vim.opt
 opt.lazyredraw = true
 opt.autowrite = true
 opt.relativenumber = true
+opt.swapfile = false
 
 vim.cmd [[
   augroup LspFormatting

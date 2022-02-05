@@ -58,35 +58,9 @@ in {
         hlslens = "${nvim-hlslens}",
       }
     '';
-    home.file.".config/nvim/lua/custom/plugins" = {
+    home.file.".config/nvim/lua" = {
       recursive = true;
-      source = ./lua/custom/plugins;
-      onChange = ''
-        nvim --headless -c 'autocmd User PackerComplete quitall' -c 'LuaCacheClear'
-      '';
+      source = ./lua;
     };
-    home.file.".config/nvim/lua/custom/chadrc.lua" = {
-      recursive = true;
-      source = ./lua/custom/chadrc.lua;
-      onChange = ''
-        nvim --headless -c 'autocmd User PackerComplete quitall' -c 'LuaCacheClear'
-      '';
-    };
-    home.file.".config/nvim/lua/custom/init.lua" = {
-      recursive = true;
-      source = ./lua/custom/init.lua;
-      onChange = ''
-        nvim --headless -c 'autocmd User PackerComplete quitall' -c 'LuaCacheClear'
-      '';
-    };
-    home.file.".config/nvim/lua/custom/plugins.lua" = {
-      recursive = true;
-      source = ./lua/custom/plugins.lua;
-      onChange = ''
-        nvim --headless -c 'autocmd User PackerComplete quitall' -c 'LuaCacheClear'
-        # nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerCompile'
-      '';
-    };
-    
   };
 }
