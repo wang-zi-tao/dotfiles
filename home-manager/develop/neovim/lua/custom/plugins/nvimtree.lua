@@ -26,23 +26,25 @@ g.nvim_tree_show_icons = {
 
 g.nvim_tree_icons = {
    default = "",
-   symlink = "",
+   symlink = "",
    git = {
-      deleted = "",
-      ignored = "◌",
+      deleted = "﯊",
+      ignored = "",
       renamed = "➜",
       staged = "✓",
       unmerged = "",
-      unstaged = "✗",
+      unstaged = "",
       untracked = "★",
    },
    folder = {
-      default = "",
-      empty = "",
-      empty_open = "",
-      open = "",
-      symlink = "",
-      symlink_open = "",
+      arrow_open= "",
+      arrow_closed= "",
+      default= "",
+      open= "",
+      empty= "",
+      empty_open= "",
+      symlink= "",
+      symlink_open= "",
    },
 }
 
@@ -82,14 +84,4 @@ local default = {
       },
    },
 }
-
-local M = {}
-
-M.setup = function(override_flag)
-   if override_flag then
-      default = require("core.utils").tbl_override_req("nvim_tree", default)
-   end
-   nvimtree.setup(default)
-end
-
-return M
+nvimtree.setup(default)

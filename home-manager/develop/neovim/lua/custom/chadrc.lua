@@ -43,19 +43,6 @@ M.plugins = {
             { name = "buffer" },
          },
       },
-      nvimtree = {
-         view = {
-            auto_resize = true,
-         },
-         git = {
-            enable = true,
-            ignore = true,
-            timeout = 500,
-         },
-         diagnostics = {
-            enable = true,
-         },
-      },
       statusline = {
          hidden = {
             "help",
@@ -71,7 +58,7 @@ M.plugins = {
    },
    default_plugin_config_replace = {
       dashboard = "custom.plugins.dashboard",
-      nvimtree = "custom.plugins.nvimtree",
+      nvim_tree = "custom.plugins.nvimtree",
       nvim_cmp = "custom.plugins.cmp",
    },
    default_plugin_remove = {
