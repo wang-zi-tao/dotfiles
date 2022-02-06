@@ -18,7 +18,7 @@
   };
   manual.manpages.enable = true;
   home.sessionVariables = with pkgs; {
-    EDITOR = "${neovim}/bin/nvim";
+    EDITOR = "${unstable.neovim}/bin/nvim";
     NIX_AUTO_RUN = "1";
     NIXPKGS_ALLOW_UNFREE = "1";
   };

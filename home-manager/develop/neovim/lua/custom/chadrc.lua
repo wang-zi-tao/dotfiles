@@ -11,7 +11,7 @@ M.ui = {
 M.options = {
      nvChad = {
       copy_cut = false, -- copy cut text ( x key ), visual and normal mode
-      copy_del = false, -- copy deleted text ( dd key ), visual and normal mode
+      copy_del = true, -- copy deleted text ( dd key ), visual and normal mode
       insert_nav = true, -- navigation in insertmode
       window_nav = true,
    },
@@ -54,6 +54,21 @@ M.plugins = {
          },
          shortline = true,
          style = "default", -- default, round , slant , block , arrow
+      },
+      treesitter = {
+        ensure_installed = {
+           "lua",
+           "vim",
+           "nix",
+           "rust",
+           "c",
+           "cpp",
+           "typescript",
+           "python",
+           "sql",
+           "llvm",
+           "go",
+        },
       },
    },
    default_plugin_config_replace = {

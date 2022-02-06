@@ -78,7 +78,7 @@
     ];
     shellAliases = (builtins.listToAttrs (builtins.map(name: {name=name;value="nix-shell -p ${name} --run ${name}";})
     ["gimp" "kdenlive" "inkscape" "krita" "blender"]) )//{
-      v = "${pkgs.neovim}/bin/nvim";
+      v = "${pkgs.unstable.neovim}/bin/nvim";
       grep = "${pkgs.ripgrep}/bin/rg --color=auto";
       xclip = "${pkgs.xclip}/bin/xclip -selection c";
       s = "sudo su";
