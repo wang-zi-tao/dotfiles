@@ -1,17 +1,18 @@
-{ pkgs, nixpkgs, nixos-generators, home-manager, ... }:
+{ pkgs, nixpkgs, nixos-generators, home-manager, sops-nix, ... }:
 let hostname = "lxd";
-in nixos-generators.nixosGenerate {
+in
+nixos-generators.nixosGenerate {
   format = "lxc";
   # system = "x86_64-linux";
   modules = [
     ../module/cluster.nix
     home-manager.nixosModules.home-manager
+    sops-nix.nixosModules.sops
     ({
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
       home-manager.users.root = { ... }: {
         imports = [ ../home-manager/terminal/terminal.nix ];
-        inherit hostname;
       };
     })
     ({ pkgs, lib, config, modulesPath, ... }: {
@@ -36,7 +37,10 @@ in nixos-generators.nixosGenerate {
         qt5ct
         glxinfo
       ];
-      networking = { interfaces.eth0.useDHCP = true; };
+      networking = {
+        interfaces.eth0.useDHCP = true;
+        hostName = hostname;
+      };
       nixpkgs.config.allowUnfree = true;
       i18n.defaultLocale = "zh_CN.UTF-8";
       gtk = { iconCache.enable = true; };
@@ -66,6 +70,13 @@ in nixos-generators.nixosGenerate {
         enabled = "ibus";
         ibus = { engines = with pkgs.unstable.ibus-engines; [ libpinyin ]; };
         uim.toolbar = "qt4";
+      };
+      services.xserver = {
+        displayManager.xpra = {
+          enable = true;
+          auth = "password:value=test";
+          pulseaudio = true;
+        };
       };
       hardware = {
         opengl.enable = true;
