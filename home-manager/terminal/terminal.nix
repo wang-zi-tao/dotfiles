@@ -4,7 +4,7 @@
     ./zsh/zsh.nix
     ./procs/procs.nix
     ./htop.nix
-    ./ranger.nix
+    ./ranger/ranger.nix
     ../develop/git.nix
     ../develop/neovim/neovim.nix
   ];
@@ -19,6 +19,7 @@
   manual.manpages.enable = true;
   home.sessionVariables = with pkgs; {
     EDITOR = "${unstable.neovim}/bin/nvim";
+    VISUAL = "${unstable.neovim}/bin/nvim";
     NIX_AUTO_RUN = "1";
     NIXPKGS_ALLOW_UNFREE = "1";
   };
