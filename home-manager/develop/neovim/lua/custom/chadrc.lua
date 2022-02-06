@@ -62,7 +62,7 @@ M.plugins = {
       nvim_cmp = "custom.plugins.cmp",
    },
    default_plugin_remove = {
-    "lewis6991/impatient.nvim",
+    -- "lewis6991/impatient.nvim",
    },
 }
 M.mappings = {

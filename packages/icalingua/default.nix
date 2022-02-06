@@ -43,4 +43,4 @@ in stdenv.mkDerivation rec {
     license = licenses.mit;
     platforms = [ "x86_64-linux" ];
   };
-}
+}https://github.com/MayuriNFC/icalingua

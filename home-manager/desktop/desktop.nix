@@ -93,7 +93,7 @@
     wewechat
     # deepin-wine-tim
     # icalingua
-    nur.repos.linyinfeng.icalingua
+    # nur.repos.linyinfeng.icalingua
 
     xdotool
     meld

@@ -102,7 +102,7 @@ in
         marks = "${marks-nvim}",
         vim_surround = "${vim-surround}",
         auto_save = "${auto-save}",
-        undotreim = "${undotree}",
+        undotree = "${undotree}",
         ts_rainbow = "${nvim-ts-rainbow}",
         vim_repeat = "${vim-repeat}",
         diffview = "${diffview-nvim}",
@@ -116,6 +116,7 @@ in
       recursive = true;
       source = ./lua;
       onChange = ''
+        echo nvim --headless -c 'autocmd User PackerComplete quitall' -c 'LuaCacheClear'
         echo nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerCompile'
       '';
     };

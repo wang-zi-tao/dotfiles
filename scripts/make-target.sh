@@ -4,7 +4,7 @@ if [[ $# != 1 ]]; then
 else 
   dirs=($PWD)
 fi
-for dir in dirs
+for dir in ${dirs[@]}
 do
   hash=$(echo $dir | sha1sum -)
   repository="${HOME}/.build/${hash:1:63}-$(basename $(realpath $dir))"
