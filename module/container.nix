@@ -13,15 +13,17 @@
       podman = {
         enable = true;
         dockerCompat = true;
-        enableNvidia = config.services.xserver.enable;
+        # enableNvidia = config.services.xserver.enable;
       };
       lxd = {
         enable = true;
         package = pkgs.unstable.lxd;
         recommendedSysctlSettings = true;
       };
-      libvirtd = { enable = true; };
+      lxc.lxcfs.enable = true;
+      libvirtd = { enable = !config.cluster.nodeConfig.inVM; };
     };
+    programs.criu.enable = true;
     environment.systemPackages = with pkgs; [ criu ];
     systemd.services.k3s = {
       enable = false;

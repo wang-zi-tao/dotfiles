@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }: {
+{ config, pkgs, lib, ... }:
+let formatMeters = side: meters: {
+  "column_meters_${side}" = builtins.concatMap (lib.attrsets.mapAttrsToList (x: _: x)) meters;
+  "column_meter_modes_${side}" = builtins.concatMap (lib.attrsets.mapAttrsToList (_: y: y)) meters;
+}; in
+{
   programs.htop = {
     enable = true;
     settings = {
@@ -12,7 +17,7 @@
       hide_userland_threads = 1;
       shadow_other_users = 0;
       show_thread_names = 1;
-      show_program_path = 1;
+      show_program_path = 0;
       highlight_base_name = 1;
       highlight_deleted_exe = 1;
       highlight_megabytes = 1;
@@ -26,7 +31,7 @@
       tree_view_always_by_pid = 0;
       all_branches_collapsed = 0;
       header_margin = 1;
-      detailed_cpu_time = 0;
+      detailed_cpu_time = 1;
       cpu_count_from_one = 1;
       show_cpu_usage = 1;
       show_cpu_frequency = 0;
@@ -38,7 +43,7 @@
       enable_mouse = 1;
       delay = 15;
       hide_function_bar = 0;
-      header_layout = "two_50_50";
+      header_layout = "three_33_34_33";
       fields = with config.lib.htop.fields; [
         PID
         123
@@ -47,25 +52,29 @@
         M_SIZE
         M_RESIDENT
         40
+        UTIME
+        STIME
         PERCENT_CPU
         PERCENT_MEM
         IO_READ_RATE
         COMM
       ];
     } // (with config.lib.htop;
-      leftMeters [
+      formatMeters "0" [
         (bar "LeftCPUs4")
-        (bar "MemorySwap")
-        (text "NetworkIO")
-        (text "DiskIO")
-        (text "PressureStallIOFull")
+        (bar "RightCPUs4")
       ]) // (with config.lib.htop;
-        rightMeters [
-          (bar "RightCPUs4")
-          (text "Tasks")
-          (text "LoadAverage")
-          (text "Systemd")
-          (text "Battery")
-        ]);
+      formatMeters "1" [
+        (bar "CPU")
+        (bar "MemorySwap")
+        (text "Systemd")
+        (text "Tasks")
+      ]) // (with config.lib.htop;
+      formatMeters "2" [
+        (text "DiskIO")
+        (text "NetworkIO")
+        (text "PressureStallCPUSome")
+        (text "LoadAverage")
+      ]);
   };
 }

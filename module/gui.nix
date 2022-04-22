@@ -1,16 +1,18 @@
 { config, pkgs, lib, ... }: {
-  config = lib.mkIf (config.cluster.nodeConfig.guiClient.enable
-    || config.cluster.nodeConfig.guiClient.enable) {
+  config = lib.mkIf
+    (config.cluster.nodeConfig.guiClient.enable
+      || config.cluster.nodeConfig.guiClient.enable)
+    {
       i18n.defaultLocale = "zh_CN.UTF-8";
       gtk = { iconCache.enable = true; };
       fonts = {
         fontconfig = {
           enable = true;
           defaultFonts.emoji = [ "Noto Color Emoji" ];
-          defaultFonts.monospace = [ "Iosevka Custom Medium" ];
+          defaultFonts.monospace = [ "Iosevka Custom Medium" "Powerline" ];
           defaultFonts.sansSerif =
-            [ "Inter" "Liberation Sans" "Soruce Han Sans SC" ];
-          defaultFonts.serif = [ "Liberation Serif" "Source Han Serif SC" ];
+            [ "Inter" "Liberation Sans" "Soruce Han Sans SC" "Powerline" ];
+          defaultFonts.serif = [ "Liberation Serif" "Source Han Serif SC" "Powerline" ];
         };
         fonts = with pkgs; [
           noto-fonts
@@ -57,6 +59,11 @@
           displayManager.startx.enable = true;
           windowManager.xmonad.enable = true;
           desktopManager.gnome.enable = true;
+          displayManager.xpra = {
+            enable = false;
+            bindTcp = "0.0.0.0:10000";
+            pulseaudio = true;
+          };
           xkbOptions = "ctrl:nocaps";
         };
       };
@@ -68,9 +75,9 @@
         xorg.xhost
         xorg.xbacklight
         vulkan-tools
-        lutris
         virtualgl
-        xpraWithNvenc
+        turbovnc
+        xpra
         qrcodegen
         cups
       ];

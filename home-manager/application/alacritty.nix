@@ -58,7 +58,8 @@ let
         family: Iosevka Custom
         style: Bold Italic
   '';
-in {
+in
+{
   programs.alacritty = { enable = true; };
   home.file.".config/alacritty/alacritty.yml".text = setting + ''
     background_opacity: 0.16
@@ -66,6 +67,6 @@ in {
   home.file.".config/alacritty/alacritty-drop.yml".text = setting + ''
     background_opacity: 0.64
     shell:
-      program: "${pkgs.writeScript "tmuxinator-s-drop" "${pkgs.tmuxinator}/bin/tmuxinator s drop"}"
+      program: "${pkgs.writeScript "tmuxinator-s-drop" "remote-shell.sh  drop"}"
   '';
 }

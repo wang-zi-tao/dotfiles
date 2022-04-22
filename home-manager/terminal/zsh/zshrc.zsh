@@ -83,6 +83,18 @@ alias -s c=nvim
 alias -s h=nvim
 alias -s cpp=nvim
 alias -s hpp=nvim
+upfind() {
+  folder="$(pwd)"
+  while [ "$folder" != "/" ]; do
+    for arg in "$@"; do
+      if [ -e "${folder}/$arg" ]; then
+        echo $folder/$arg
+        folder="/"
+      fi
+    done
+    folder="$(dirname "$folder")"
+  done
+}
 
 ninja(){
   local build_path="$(dirname "$(upfind "build.ninja")")"
@@ -91,13 +103,6 @@ ninja(){
 make(){
   local build_path="$(dirname "$(upfind "Makefile")")"
   command make -C "${build_path:-.}" "$@"
-}
-cargo(){
-  local build_path="$(dirname "$(upfind "Cargo.toml")")"
-  (
-    builtin cd "${build_path:-.}" >/dev/null || true
-    command cargo "$@"
-  )
 }
 retry() {
   local n=0
@@ -143,4 +148,10 @@ EOF
     echo "use flake" > .envrc
     direnv allow
   fi
+}
+function nrun() {
+  command nix run "nixpkgs#$1"
+}
+function nshell() {
+  command nix shell "nixpkgs#$1"
 }

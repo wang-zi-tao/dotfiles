@@ -29,9 +29,9 @@ let
       pip
       setuptools
     ]);
-in {
-  imports = [ ./neovim/neovim.nix ./git.nix ./vscode.nix ];
-  neovim.IDE = true;
+in
+{
+  imports = [ ./git.nix ./vscode.nix ];
   programs.go = {
     enable = true;
     goBin = ".local/bin.go";
@@ -76,7 +76,7 @@ in {
     ninja
     cmake
     unstable.clang-tools
-    clang
+    # clang
     libcxx
     clang-analyzer
     ccls
@@ -87,7 +87,6 @@ in {
     fzf
     ptags
     global
-    llvmPackages.bintools-unwrapped
     file
 
     timewarrior
@@ -98,9 +97,9 @@ in {
     nodePackages.typescript-language-server
     nodejs
     nodePackages.typescript
-    python3-env
     nodePackages.pyright
     cmake-language-server
+    lua5_4
 
     jdk
     maven
@@ -111,5 +110,30 @@ in {
     k9s
     kubectl
     kubernetes-helm
+
+    new-unstable.wangzi-neovim
+    neovim-remote
+    python2
+    luajitPackages.luacheck
+    google-java-format
+    stylua
+    shfmt
+    shellcheck
+    deno
+    nodePackages.live-server
+    nodePackages.yaml-language-server
+
+    (pkgs.buildEnv {
+      name = "cpp_compiler";
+      paths = with pkgs;[
+        clang
+        gcc
+        gdb
+        lldb
+        bintools-unwrapped
+        python3-env
+      ];
+      ignoreCollisions = true;
+    })
   ];
 }

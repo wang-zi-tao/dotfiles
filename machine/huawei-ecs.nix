@@ -1,6 +1,7 @@
 { pkgs, nixpkgs, home-manager, sops-nix, ... }:
 let hostname = "huawei-ecs";
-in nixpkgs.lib.nixosSystem {
+in
+nixpkgs.lib.nixosSystem {
   system = "x86_64-linux";
   modules = [
     ../module/cluster.nix
@@ -22,7 +23,7 @@ in nixpkgs.lib.nixosSystem {
         "9pnet_virtio"
       ];
       boot.initrd.kernelModules =
-        [ "virtio_balloon" "virtio_console" "virtio_rng" ];
+        [ "virtio_balloon" "virtio_console" "virtio_rng" "nvme" ];
 
       boot.initrd.postDeviceCommands = ''
         # Set the system time from the hardware clock to work around a
@@ -52,6 +53,8 @@ in nixpkgs.lib.nixosSystem {
         firewall.enable = false;
         dhcpcd.enable = true;
       };
+      boot.cleanTmpDir = true;
+      zramSwap.enable = true;
     })
   ];
   inherit pkgs;

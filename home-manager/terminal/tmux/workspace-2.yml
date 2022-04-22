@@ -5,8 +5,6 @@ windows:
 - nixos:
     layout: c163,211x55,0,0,6
     root: /home/wangzi/workspace/nixos
-    panes:
-    - vim 
 - jvm:
     layout: c15e,211x55,0,0,1
     root: /home/wangzi/workspace/JVM/JVM

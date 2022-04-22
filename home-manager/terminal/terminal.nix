@@ -6,7 +6,6 @@
     ./htop.nix
     ./ranger/ranger.nix
     ../develop/git.nix
-    ../develop/neovim/neovim.nix
   ];
   programs.direnv = {
     enable = true;
@@ -18,16 +17,24 @@
   };
   manual.manpages.enable = true;
   home.sessionVariables = with pkgs; {
-    EDITOR = "${unstable.neovim}/bin/nvim";
-    VISUAL = "${unstable.neovim}/bin/nvim";
+    EDITOR = "${new-unstable.wangzi-neovim}/bin/nvim";
+    VISUAL = "${new-unstable.wangzi-neovim}/bin/nvim";
     NIX_AUTO_RUN = "1";
     NIXPKGS_ALLOW_UNFREE = "1";
+    PATH = "$PATH:/$HOME/.cargo/bin";
   };
+  home.activation.neovim = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    rm $HOME/.cache/nvim/luacache $HOME/.cache/nvim/luacache_chunks $HOME/.cache/nvim/luacache_modpaths || true
+  '';
   home.packages = with pkgs;
     scripts ++ [
+      new-unstable.wangzi-neovim
+      distant
+      iperf2
 
       wcp
 
+      nix-tree
       nload
       killall
       atool

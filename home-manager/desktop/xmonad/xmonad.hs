@@ -74,13 +74,14 @@ myKeys =
       if new_terminal
          then spawn (myTerminal ++ " -e tmux")
          else if 0 == length alacritty_windows_workspace
-            then spawn (myTerminal ++ " --title=alacritty-workspace-" ++ w ++ " -e tmuxinator s workspace-" ++ w)
+            then spawn (myTerminal ++ " --title=alacritty-workspace-" ++ w ++ " -e remote-shell.sh 'workspace-" ++ w ++ "'")
             else windows $ (W.focusWindow $ alacritty_windows_workspace !! 0)
     )
+  , ("M-S-<Return>", spawn "alacritty -e tmux")
   , ("M-S-c", kill)
   , ("M-c", kill)
   , ("M-Delete", kill)
-  , ("M-o", spawn "betterlockscreen -l -s") -- lock screen
+  , ("M-o", spawn "betterlockscreen -l -s && systemctl suspend") -- lock screen
   -- , ("M-S-q", confirmPrompt myXPConfig "exit" $ io exitSuccess) -- prompt to kill xmonad
   , ("M-q", spawn "xmonad --restart")
 
@@ -240,7 +241,7 @@ myManageHook = composeAll
 myStartupHook = do
   spawn "feh --bg-fill ~/图片/大鱼海棠16.png"
   spawn "killall picom; picom --dbus --experimental-backend"
-  spawnOnce "qv2ray"
+  -- spawnOnce "qv2ray"
   spawnOnce "ibus-daemon -x -r -R"
   spawnOnce "sleep 4;nextcloud"
   spawn "killall eww; eww open-many bar"
@@ -250,7 +251,7 @@ myStartupHook = do
   spawn "xhost +"
   spawnOnce "alacritty --title=alacritty-workspace-2 -e tmuxinator s workspace-2"
   spawnOnce "firefox"
-  spawnOnce "icalingua"
+  -- spawnOnce "icalingua"
 
 myLayout =  avoidStruts $ smartBorders
   ( spiralgaps ||| threeCol ||| (noBorders $ fullscreenFull StateFull) ||| (myThinGaps Grid) )

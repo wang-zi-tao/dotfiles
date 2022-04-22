@@ -1,0 +1,17 @@
+{
+  "Option":{
+    "prefix": "Option",
+    "body": ["Option<${1}>"],
+    "description": "Option<…>"
+  },
+  "Arc":{
+    "prefix": "Arc",
+    "body": ["Arc<${1}>"],
+    "description": "Arc<…>"
+  },
+  "Vec":{
+    "prefix": "Vec",
+    "body": ["Vec<${1}>"],
+    "description": "Vec<…>"
+  },
+}

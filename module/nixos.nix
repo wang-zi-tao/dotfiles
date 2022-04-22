@@ -3,9 +3,10 @@ with pkgs.flakes; {
   nix = {
     binaryCaches = [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
+      "https://mirrors.ustc.edu.cn/nix-channels/store"
+      "https://mirror.sjtu.edu.cn/nix-channels/store"
       "https://cache.nixos.org/"
     ];
-    buildCores = 10;
     extraOptions = "experimental-features = nix-command flakes";
     package = pkgs.nixFlakes;
     gc.automatic = true;
@@ -23,4 +24,10 @@ with pkgs.flakes; {
   nix.registry.u.flake = nixpkgs-unstable;
   nix.registry.unstable.flake = nixpkgs-unstable;
   nix.registry.nur.flake = nur;
+  system.autoUpgrade = {
+    enable = true;
+    flake = "ssh://wangzi@wangzi-nuc.wg/home/wangzi/workspace/nixos/";
+    randomizedDelaySec = "30min";
+    dates = "12:00";
+  };
 }

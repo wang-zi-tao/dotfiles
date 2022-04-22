@@ -1,5 +1,5 @@
-{ pkgs, config, ... }: {
-  imports=[ ../../develop/neovim/neovim.nix ];
+{ pkgs, config,nixosConfig, ... }: {
+  imports=[];
   programs.zsh = {
     enable = true;
     autocd = true;
@@ -78,7 +78,6 @@
     ];
     shellAliases = (builtins.listToAttrs (builtins.map(name: {name=name;value="nix-shell -p ${name} --run ${name}";})
     ["gimp" "kdenlive" "inkscape" "krita" "blender"]) )//{
-      v = "${pkgs.unstable.neovim}/bin/nvim";
       grep = "${pkgs.ripgrep}/bin/rg --color=auto";
       xclip = "${pkgs.xclip}/bin/xclip -selection c";
       s = "sudo su";
@@ -96,8 +95,6 @@
 
       rm = "${pkgs.rmtrash}/bin/rmtrash -Iv";
       del = "${pkgs.busybox}/bin/rm -v ";
-      cp = "${pkgs.rsync}/bin/rsync -avP";
-      cp-origin = "${pkgs.busybox}/bin/cp";
       # mv = "${pkgs.rsync}/bin/rsync -avP --delete-delay";
       # mv-origin = "${pkgs.busybox}/bin/mv";
       bat = "${pkgs.bat}/bin/bat --theme=Coldark-Dark";
@@ -122,7 +119,7 @@
 
       ".." = "cd ..";
 
-    } // (if config.neovim.IDE then {
+    } // (if nixosConfig.cluster.nodeConfig.develop.enable then {
       mvn = "unset JAVA_TOOL_OPTIONS && ${pkgs.maven}/bin/mvn";
       dc = "${pkgs.docker-compose}/bin/docker-compose";
       dcl = "${pkgs.docker-compose}/bin/docker-compose logs";
@@ -145,7 +142,6 @@
     initExtra = builtins.readFile ./p10k.zsh +  builtins.readFile ./zshrc.zsh + ''
       # export FZF_DEFAULT_COMMAND="${pkgs.ag}/bin/ag -p ~/.gitignore -g """
       source ${pkgs.tmuxinator}/share/zsh/site-functions/_tmuxinator
-      export EDITOR=${config.programs.neovim.package}/bin/nvim
     '';
   };
   # programs.command-not-found.enable = true;

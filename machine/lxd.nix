@@ -48,13 +48,12 @@ nixos-generators.nixosGenerate {
         fontconfig = {
           enable = true;
           defaultFonts.emoji = [ "Noto Color Emoji" ];
-          defaultFonts.monospace = [ "Iosevka Custom Medium" ];
+          defaultFonts.monospace = [ "Iosevka Custom Medium" "Nerd Mono" ];
           defaultFonts.sansSerif =
-            [ "Inter" "Liberation Sans" "Soruce Han Sans SC" ];
-          defaultFonts.serif = [ "Liberation Serif" "Source Han Serif SC" ];
+            [ "Iosevka Custom Medium" "Nerd Mono" "Inter" "Liberation Sans" "Soruce Han Sans SC" ];
+          defaultFonts.serif = [ "Iosevka Custom Medium" "Nerd Mono" "Liberation Serif" "Source Han Serif SC" ];
         };
         fonts = with pkgs; [
-          noto-fonts
           source-code-pro
           source-sans-pro
           source-han-sans

@@ -1,6 +1,7 @@
 { pkgs, nixpkgs, home-manager, sops-nix, ... }@inputs:
 let hostname = "wangzi-pc";
-in nixpkgs.lib.nixosSystem {
+in
+nixpkgs.lib.nixosSystem {
   system = "x86_64-linux";
   modules = [
     ../../module/cluster.nix
@@ -10,9 +11,6 @@ in nixpkgs.lib.nixosSystem {
     ./network.nix
     ./hardware-configuration.nix
 
-    # ../../module/user.nix
-   # ({ config, ... }@input:
-      # import ../../module/user.nix { inherit pkgs config; })
     sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
     ({ pkgs, ... }: {

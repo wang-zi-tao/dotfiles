@@ -21,7 +21,7 @@
         tmux-fzf
         fzf-tmux-url
         logging
-        # sysstat
+        sysstat
         yank
         {
           plugin = yank;
@@ -37,9 +37,10 @@
             set -g @tmux_power_theme 'sky'
           '';
         }
-        # net-speed
+        net-speed
         better-mouse-mode
         # sidebar
+        cpu
       ]);
     tmuxinator.enable = true;
   };

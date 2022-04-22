@@ -7,16 +7,8 @@
       efiSysMountPoint = "/boot/efi";
     };
     timeout = 1;
-    # grub = {
-    # device = "nodev";
-    # efiSupport = true;
-    # efiInstallAsRemovable = true;
-    # theme = pkgs.nixos-grub2-theme;
-    # memtest86.enable = true;
-    # copyKernels = false;
-    # };
   };
-  boot.kernelPackages = pkgs.linuxPackages_xanmod.extend (self: super: {
+  boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_16.extend (self: super: {
     virtualbox = super.virtualbox.override { inherit (self) kernel; };
   });
   boot.initrd.availableKernelModules =
@@ -29,7 +21,6 @@
   boot.supportedFilesystems = [ "btrfs" "ext4" "fat32" "ntfs" "f2fs" ];
   hardware.enableAllFirmware = true;
 
-  # powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
   hardware = {
     opengl.driSupport32Bit = true;
     opengl.enable = true;

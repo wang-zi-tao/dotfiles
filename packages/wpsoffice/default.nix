@@ -1,10 +1,59 @@
-{ lib, stdenv, fetchurl, autoPatchelfHook, dpkg, wrapGAppsHook, libsForQt5, xorg
-, alsa-lib, alsaLib, atk, bzip2, cairo, cups, dbus, expat, ffmpeg, fontconfig
-, freetype, gdk-pixbuf, glib, glui, gperftools, gtk2-x11, libGLU, libICE
-, libpng12, libSM, libtool, libuuid, libX11, libxcb, libXcomposite, libXcursor
-, libXdamage, libXext, libXfixes, libXi, libxml2, libXrandr, libXrender
-, libXScrnSaver, libxslt, libXtst, lzma, nspr, nss, openssl, pango, qt4, sqlite
-, unixODBC, xz, zlib, zotero }:
+{ lib
+, stdenv
+, fetchurl
+, autoPatchelfHook
+, dpkg
+, wrapGAppsHook
+, libsForQt5
+, xorg
+, alsa-lib
+, alsaLib
+, atk
+, bzip2
+, cairo
+, cups
+, dbus
+, expat
+, ffmpeg
+, fontconfig
+, freetype
+, gdk-pixbuf
+, glib
+, glui
+, gperftools
+, gtk2-x11
+, libGLU
+, libICE
+, libpng12
+, libSM
+, libtool
+, libuuid
+, libX11
+, libxcb
+, libXcomposite
+, libXcursor
+, libXdamage
+, libXext
+, libXfixes
+, libXi
+, libxml2
+, libXrandr
+, libXrender
+, libXScrnSaver
+, libxslt
+, libXtst
+, lzma
+, nspr
+, nss
+, openssl
+, pango
+, qt4
+, sqlite
+, unixODBC
+, xz
+, zlib
+, zotero
+}:
 stdenv.mkDerivation rec {
   pname = "wpsoffice";
   version = "11.1.0.10920";

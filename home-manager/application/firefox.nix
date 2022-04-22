@@ -1,6 +1,5 @@
-{pkgs,config,...}:{
-  programs.firefox = {
-    enable = true;
-    # package = pkgs.unstable.firefox;
-  };
+{ pkgs, config, ... }: {
+  home.packages = with pkgs; [
+    firefox
+  ];
 }

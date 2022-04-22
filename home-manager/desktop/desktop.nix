@@ -3,6 +3,7 @@
     ./eww/eww.nix
     ./rofi/rofi.nix
     ./xmonad/xmonad.nix
+    ./gnome.nix
     ./polybar/polybar.nix
     ./dunst.nix
     ./picom.nix
@@ -18,7 +19,7 @@
   gtk = {
     enable = true;
     theme.name = "Orchis-light";
-    theme.package = pkgs.unstable.orchis-theme;
+    theme.package = pkgs.orchis-theme;
     iconTheme.name = "Tela-blue";
     iconTheme.package = pkgs.tela-icon-theme;
     font.package = pkgs.iosevka;
@@ -48,10 +49,10 @@
     enable = true;
     platformTheme = "gtk";
   };
-  # services.nextcloud-client = {
-  # enable = true;
-  # startInBackground = true;
-  # };
+  services.nextcloud-client = {
+    enable = true;
+    startInBackground = true;
+  };
   services.kdeconnect = {
     enable = true;
     indicator = true;
@@ -62,13 +63,13 @@
     XMODIFIERS = "@im=ibus";
     GTK_IM_MODULE = "ibus";
     QT_IM_MODULE = "ibus";
-    http_proxy = "http://127.0.0.1:8889";
-    https_proxy = "http://127.0.0.1:8889";
-    HTTP_PROXY = "http://127.0.0.1:8889";
-    HTTPS_PROXY = "http://127.0.0.1:8889";
-    ALL_PROXY = "socks5://127.0.0.1:1089";
-    NO_PROXY =
-      "localhost,127.0.0.1,10.96.0.0/12,192.168.99.0/24,192.168.39.0/24";
+    http_proxy = "http://192.168.16.2:8889";
+    https_proxy = "http://192.168.16.2:8889";
+    HTTP_PROXY = "http://192.168.16.2:8889";
+    HTTPS_PROXY = "http://192.168.16.2:8889";
+    # ALL_PROXY = "socks5://127.0.0.1:1089";
+    # NO_PROXY =
+    #   "localhost,127.0.0.1,10.96.0.0/12,192.168.99.0/24,192.168.39.0/24";
     CURL_NIX_FLAGS = "-x $http_proxy";
     __NV_PRIME_RENDER_OFFLOAD = "1";
     __NV_PRIME_RENDER_OFFLOAD_PROVIDER = "NVIDIA-G0";
@@ -76,9 +77,8 @@
     __VK_LAYER_NV_optimus = "NVIDIA_only";
   };
   home.packages = with pkgs; [
-    unstable.qv2ray
     v2ray
-    unstable.wpsoffice
+    wpsoffice
     # libreoffice
     libsForQt5.kdeconnect-kde
     # gimp
@@ -89,6 +89,8 @@
     drawio
     lens
     feh
+
+    # winePackages.stable
 
     wewechat
     # deepin-wine-tim
@@ -118,10 +120,10 @@
     pkgs.gnome-connections
     gnome.totem
     gnome.gnome-software
-    dolphin
+    # dolphin
 
     gnome.gnome-nettool
-    pkgs.unstable.gnome.gnome-todo
+    gnome.gnome-todo
     google-chrome
     dconf
     gnome.dconf-editor

@@ -1,4 +1,4 @@
-{ stdenv, lib, makeWrapper, electron, makeDesktopItem, imagemagick, fetchurl }:
+{ stdenv, fetchgit, lib, makeWrapper, electron, makeDesktopItem, imagemagick, fetchurl }:
 
 let
   desktopItem = makeDesktopItem {
@@ -9,13 +9,16 @@ let
     exec = ''bash -c "icalingua %u > /dev/null"'';
     categories = "Network";
   };
-in stdenv.mkDerivation rec {
+in
+stdenv.mkDerivation
+rec {
   pname = "icalingua";
-  version = "v2.4.5";
-  src = fetchurl {
+  version = "9ba802";
+  src = fetchgit {
     url =
-      "https://github.com/Clansty/Icalingua/releases/download/v2.4.5/app-x86_64.asar";
-    sha256 = "1j52b65cpzzjx31n19m0xgxfp76rcvvmfvh8q4nn6w1b4rvww068";
+      "https://github.com/MayuriNFC/Icalingua/";
+    rev = "9ba8027019daf74b28ab3c9edd2b9f164da6c940";
+    sha256 = "1j52b65cpzzjx31n19m0xgxfp76rcvvmfvh8q4nn6w1b4rvww067";
   };
   nativeBuildInputs = [ makeWrapper ];
 
@@ -43,4 +46,4 @@ in stdenv.mkDerivation rec {
     license = licenses.mit;
     platforms = [ "x86_64-linux" ];
   };
-}https://github.com/MayuriNFC/icalingua
+} https://github.com/MayuriNFC/icalingua

@@ -19,8 +19,16 @@
     sops-nix.url = "github:Mic92/sops-nix";
     flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs = inputs@{ self, home-manager, nur, fenix, nixpkgs, flake-compat
-    , flake-utils, ... }:
+  outputs =
+    inputs@{ self
+    , home-manager
+    , nur
+    , fenix
+    , nixpkgs
+    , flake-compat
+    , flake-utils
+    , ...
+    }:
     let
       system = "x86_64-linux";
       pkgs = (import nixpkgs) {
@@ -46,14 +54,19 @@
                 unstable = import inputs.nixpkgs-unstable {
                   system = final.system;
                   config = { allowUnfree = true; };
+                };
+                new-unstable = (import inputs.nixpkgs-unstable {
+                  system = final.system;
+                  config = { allowUnfree = true; };
                   overlays = [
-                    (final: prev:
-                      (listToAttrs (map (name: {
+                    (final: prev: (listToAttrs (map
+                      (name: {
                         inherit name;
                         value = final.callPackage (./packages + "/${name}") { };
-                      }) (attrNames (readDir ./packages)))))
+                      })
+                      (attrNames (readDir ./packages)))))
                   ];
-                };
+                });
                 nixpkgs-21-05 = import inputs.nixpkgs-21-05 {
                   system = final.system;
                   config = { allowUnfree = true; };
@@ -61,27 +74,33 @@
                 scripts = (map
                   (f: pkgs.writeScriptBin f (readFile (./scripts + "/${f}")))
                   (attrNames (readDir ./scripts)));
-              } // (listToAttrs (map (name: {
-                inherit name;
-                value = final.callPackage (./packages + "/${name}") { };
-              }) (attrNames (readDir ./packages)))))
+              } // (listToAttrs (map
+                (name: {
+                  inherit name;
+                  value = final.callPackage (./packages + "/${name}") { };
+                })
+                (attrNames (readDir ./packages)))))
           ] ++ (map (name: import (./overlays + "/${name}"))
             (attrNames (readDir ./overlays))));
       };
       args = { inherit pkgs; } // inputs;
-    in {
+    in
+    {
       nixosConfigurations = {
         wangzi-pc = import ./machine/MECHREV-z2-air/machine.nix args;
+        wangzi-nuc = import ./machine/MINISFORUM/machine.nix args;
         huawei-ecs = import ./machine/huawei-ecs.nix args;
+        aliyun-hk = import ./machine/aliyun-hk.nix args;
         aliyun-ecs = import ./machine/aliyun-ecs.nix args;
         lxd = import ./machine/lxd.nix args;
 
       };
     } // flake-utils.lib.eachDefaultSystem (system:
-      let pkgs = nixpkgs.legacyPackages.${system};
-      in {
-        devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ sops gnumake git rnix-lsp nixfmt nix-du sumneko-lua-language-server ];
-        };
-      });
+    let pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      devShell = pkgs.mkShell {
+        buildInputs = with pkgs; [ sops gnumake git rnix-lsp nixfmt nix-du sumneko-lua-language-server nixos-generators ];
+      };
+    });
 }
