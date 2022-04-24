@@ -78,6 +78,10 @@ with lib; {
                     type = bool;
                     default = false;
                   };
+                  OnedevServer.enable = mkOption {
+                    type = bool;
+                    default = false;
+                  };
                   weed = {
                     server = {
                       enable = mkOption {
@@ -107,12 +111,10 @@ with lib; {
                         default = "/mnt/weed/mount";
                       };
                     };
-                    nas.attach =
-                      mkOption
-                        {
-                          type = listOf str;
-                          default = [ ];
-                        };
+                    nas.attach = mkOption {
+                      type = listOf str;
+                      default = [ ];
+                    };
                     nas.server = mkOption {
                       type = bool;
                       default = false;
@@ -126,12 +128,10 @@ with lib; {
                       default = false;
                     };
                   };
-                  wayland.enable =
-                    mkOption
-                      {
-                        type = bool;
-                        default = false;
-                      };
+                  wayland.enable = mkOption {
+                    type = bool;
+                    default = false;
+                  };
                   guiServer.enable = mkOption {
                     type = bool;
                     default = false;
@@ -152,11 +152,10 @@ with lib; {
                     type = bool;
                     default = false;
                   };
-                  proxy.enable = mkOption
-                    {
-                      type = bool;
-                      default = false;
-                    };
+                  proxy.enable = mkOption {
+                    type = bool;
+                    default = false;
+                  };
                 };
               }));
         };
@@ -200,6 +199,7 @@ with lib; {
     ./proxy.nix
     ./mySQL.nix
     ./nextcloud.nix
+    ./onedev.nix
     ./redis.nix
     ./weed.nix
   ];
@@ -279,6 +279,7 @@ with lib; {
           };
           proxy.enable = true;
           NextCloudServer.enable = true;
+          OnedevServer.enable = true;
           redis.enable = true;
           inVM = true;
         };

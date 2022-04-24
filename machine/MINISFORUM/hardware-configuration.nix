@@ -50,17 +50,28 @@
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   hardware.firmware = [ pkgs.firmwareLinuxNonfree ];
   hardware.enableAllFirmware = true;
-  hardware.opengl.extraPackages = [
-    pkgs.amdvlk
-  ];
+
+  hardware = {
+    opengl.enable = true;
+    opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva pkgs.driversi686Linux.mesa ];
+    opengl.extraPackages = with pkgs; [
+      amdvlk
+      vaapiIntel
+      libvdpau-va-gl
+      vaapiVdpau
+      intel-ocl
+    ];
+    opengl.setLdLibraryPath = true;
+    opengl.driSupport = true;
+    opengl.driSupport32Bit = true;
+    bluetooth.enable = true;
+    pulseaudio = { enable = true; };
+  };
 
   services.xserver = {
-    modules = with pkgs.xorg; [ xf86videoamdgpu xf86inputlibinput xf86videodummy ];
+    modules = with pkgs.xorg; [ xf86videoamdgpu xf86inputlibinput xf86videodummy xf86videovesa ];
     videoDrivers = [ "amdgpu" ];
   };
-  # hardware.opengl.driSupport = true;
-  # hardware.opengl.driSupport32Bit = true;
-
   systemd.timers.poweroff = {
     timerConfig.OnCalendar = "23:59:59 Asia/Shanghai";
     wantedBy = [ "timers.target" ];

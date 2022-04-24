@@ -75,6 +75,16 @@
         xorg.xhost
         xorg.xbacklight
         vulkan-tools
+
+        libGLU
+        libjpeg
+        xorg.libXv
+        ocl-icd
+        opencl-info
+        xorg.libxcb
+        xorg.xcbutilkeysyms
+        mesa.opencl
+
         virtualgl
         turbovnc
         xpra

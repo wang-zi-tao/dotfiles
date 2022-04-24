@@ -44,7 +44,7 @@
     pulseaudio = { enable = true; };
   };
   services.xserver = {
-    modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput ];
+    modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput xf86videovesa ];
     videoDrivers = [ "nvidia" ];
   };
 }

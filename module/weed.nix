@@ -19,6 +19,7 @@ let
         ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.server.path}/weed ${weed.server.path}/master ${weed.server.path}/volume";
         ExecStart =
           ''${pkgs.seaweedfs}/bin/weed server \
+            -resumeState \
             -ip=${nodeConfig.wireguard.clusterIp} \
             -dir=${weed.server.path}/weed \
             -master.port=301 \
@@ -28,6 +29,8 @@ let
             -volume.dir.idx=${weed.server.path}/volume \
             -filer \
             -filer.port=302 \
+            -volume \
+            -volume.index=leveldb \
             -volume.port=303 \
             -volume.max=256 \
             -volume.publicUrl=${nodeConfig.wireguard.clusterIp}:303
