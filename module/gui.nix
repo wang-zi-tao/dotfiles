@@ -69,6 +69,7 @@
       };
       programs.dconf.enable = true;
       programs.gpaste.enable = true;
+      services.xserver = { modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ]; };
       environment.systemPackages = with pkgs; [
         appimage-run
         glxinfo
@@ -79,6 +80,7 @@
         libGLU
         libjpeg
         xorg.libXv
+        xorg.libXtst
         ocl-icd
         opencl-info
         xorg.libxcb

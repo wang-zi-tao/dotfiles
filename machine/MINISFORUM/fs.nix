@@ -11,6 +11,7 @@
       + "retain\tdaily\t7\n"
       + "retain\tweekly\t4\n"
       + "retain\tmonthly\t12\n"
-      + "backup\t/mnt/weed/mount/wangzi-nuc/wangzi/\tlocalhost/";
+      + "backup\t/mnt/weed/mount/wangzi-nuc/wangzi/\tlocalhost/\n"
+      + "backup\t/mnt/weed/mount/wangzi/wangzi/\tlocalhost/\n";
   };
 }

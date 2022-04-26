@@ -52,8 +52,6 @@ let
         ExecStart =
           ''${pkgs.seaweedfs}/bin/weed webdav \
             -filer=${nodeConfig.wireguard.clusterIp}:302 \
-            -cacheDir=${weed.client.path}/webdav-${nodeConfig.hostname} \
-            -cacheCapacityMB=${builtins.toString weed.client.size} \
             -port=304
           '';
       };
@@ -90,7 +88,7 @@ let
           what = "${pkgs.seaweedfs}/bin/weed#fuse";
           where = "${weed.client.mount}/${nasNode.hostname}";
           options = "x-systemd.mount-timeout=infinity,retry=65535,_netdev,"
-            + "filer='${nasNode.hostname}.wg1:302',"
+            + "filer='${nasNode.hostname}.w01:302',"
             + "dirAutoCreate,"
             + "cacheDir=${weed.client.path}/${nasNode.hostname},"
             + "cacheCapacityMB=${builtins.toString weed.client.size}";
@@ -166,6 +164,7 @@ in
 {
   systemd.services =
     (listToAttrs (lib.lists.optional weed.server.enable server))
+    # // (listToAttrs (lib.lists.optional weed.server.enable webdav))
     // (listToAttrs collections-sync);
   systemd.mounts =
     (lib.lists.optional weed.client.enable client)
