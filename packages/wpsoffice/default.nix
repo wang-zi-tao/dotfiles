@@ -59,8 +59,8 @@ stdenv.mkDerivation rec {
   version = "11.1.0.10920";
   src = fetchurl {
     url =
-      "https://wdl1.cache.wps.cn/wps/download/ep/Linux2019/10920/wps-office_11.1.0.10920_amd64.deb";
-    sha256 = "sha256-touWcXObCmsvxaQ64m7cJPiT+vt17YQIngz9G7FMMd4=";
+      "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2019/10976/wps-office_11.1.0.10976_amd64.deb";
+    sha256 = "sha256-GndezCYqIdTRJ4TV5CS5JP9HX+xjpDNeuZjENJLs0g0=";
   };
   unpackCmd = "dpkg -x $src .";
   sourceRoot = ".";
