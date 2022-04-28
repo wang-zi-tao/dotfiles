@@ -16,7 +16,12 @@ pkgs.unstable.buildGo118Module rec {
     sha256 = "sha256-XsD3IMcPJVBQpV26OjNRCMgH7PZjMKd4AOlfs2UQMkA=";
   };
 
-  vendorSha256 = "sha256-ZM0poWj3wbYA/7rWSvBTMGhTs15fWwYAy8kQbFNVdY8=";
+  vendorSha256 = "sha256-6VB6la9auuigFAYeK6VQqux05NiaG9FdN00jkHqv+M4=";
+  # configurePhase = ''
+  #   ls 
+  #   go version
+  #   cat go.mod
+  # '';
 
   subPackages = [ "weed" ];
 
