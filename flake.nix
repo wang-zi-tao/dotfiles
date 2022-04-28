@@ -18,12 +18,12 @@
     };
     sops-nix.url = "github:Mic92/sops-nix";
     flake-utils.url = "github:numtide/flake-utils";
+    go-1-18.url = "github:flyx/go-1.18-nix/master";
   };
   outputs =
     inputs@{ self
     , home-manager
     , nur
-    , fenix
     , nixpkgs
     , flake-compat
     , flake-utils
@@ -37,7 +37,8 @@
         overlays = with builtins;
           ([
             nur.overlay
-            fenix.overlay
+            inputs.fenix.overlay
+            inputs.go-1-18.overlay
             (final: prev:
               {
                 flake-compat = inputs.flake-compat;

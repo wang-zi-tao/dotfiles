@@ -5,7 +5,7 @@ in
   config = lib.mkIf config.cluster.nodeConfig.proxy.enable {
     services.privoxy = {
       enable = true;
-      settings.listen-address = "${nodeConfig.wireguard.clusterIp}:8889";
+      settings.listen-address = "${nodeConfig.hostname}.wg:8889";
     };
   };
 }

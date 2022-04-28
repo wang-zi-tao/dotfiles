@@ -34,8 +34,8 @@ in
   imports = [ ./git.nix ./vscode.nix ];
   programs.go = {
     enable = true;
-    goBin = ".local/bin.go";
-    goPath = "工作空间/Go";
+    goBin = ".go/bin";
+    goPath = ".go/path";
   };
   home.file.".pip/pip.conf".text = ''
     [global]

@@ -131,6 +131,5 @@ in
   environment.systemPackages = with pkgs; [
     wireguard
     wireguard-tools
-    seaweedfs
   ];
 }

@@ -37,7 +37,7 @@ let
           '';
       };
     };
-  webdav = nameValuePair "seaweedfs-webdav-${nodeConfig.hostname}"
+  client = nameValuePair "seaweedfs-mount-${nodeConfig.hostname}"
     {
       enable = true;
       description = "mount seaweedfs";
@@ -47,81 +47,82 @@ let
       serviceConfig = {
         Type = "simple";
         Restart = "always";
-        RestartSec = "5s";
-        ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.path}/webdav-${nodeConfig.hostname}";
+        RestartSec = "2s";
+        ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${nodeConfig.hostname} ${weed.client.path}/${nodeConfig.hostname}";
         ExecStart =
-          ''${pkgs.seaweedfs}/bin/weed webdav \
+          ''${pkgs.seaweedfs}/bin/weed mount \
             -filer=${nodeConfig.wireguard.clusterIp}:302 \
-            -port=304
+            -dir=${weed.client.mount}/${nodeConfig.hostname} \
+            -dirAutoCreate \
+            -cacheDir=${weed.client.path}/${nodeConfig.hostname} \
+            -cacheCapacityMB=${builtins.toString weed.client.size} \
+            -collection=${nodeConfig.hostname}
           '';
       };
-    };
-  client =
-    {
-      enable = true;
-      description = "mount seaweedfs";
-      wantedBy = [ "multi-user.target" ];
-      before = [ "multi-user.target" ];
-      type = "fuse";
-      what = "${pkgs.seaweedfs}/bin/weed#fuse";
-      where = "${weed.client.mount}/${nodeConfig.hostname}";
-      options = "x-systemd.mount-timeout=infinity,retry=65535,"
-        + "filer='${nodeConfig.wireguard.clusterIp}:302',"
-        + "dirAutoCreate,"
-        + "cacheDir=${weed.client.path}/${nodeConfig.hostname},"
-        + "cacheCapacityMB=${builtins.toString weed.client.size}";
-      mountConfig = {
-        TimeoutSec = "0";
-      };
+      postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${nodeConfig.hostname} -l";
     };
   nas-client =
     map
       (nas:
         let nasNode = config.cluster.nodes."${nas}";
         in
-        {
+        nameValuePair "seaweedfs-mount-${nasNode.hostname}" {
           enable = true;
           description = "mount seaweedfs from ${nasNode.hostname}";
           wantedBy = [ "multi-user.target" ];
           before = [ "multi-user.target" ];
-          type = "fuse";
-          what = "${pkgs.seaweedfs}/bin/weed#fuse";
-          where = "${weed.client.mount}/${nasNode.hostname}";
-          options = "x-systemd.mount-timeout=infinity,retry=65535,_netdev,"
-            + "filer='${nasNode.hostname}.w01:302',"
-            + "dirAutoCreate,"
-            + "cacheDir=${weed.client.path}/${nasNode.hostname},"
-            + "cacheCapacityMB=${builtins.toString weed.client.size}";
-          mountConfig = {
-            TimeoutSec = "0";
+          path = with pkgs; [ busybox seaweedfs fuse ];
+          serviceConfig = {
+            Type = "simple";
+            Restart = "always";
+            RestartSec = "2s";
+            ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${nasNode.hostname} ${weed.client.path}/${nasNode.hostname}";
+            ExecStart =
+              ''${pkgs.seaweedfs}/bin/weed mount \
+              -filer=${nasNode.hostname}.wg:302 \
+              -dir=${weed.client.mount}/${nasNode.hostname} \
+              -dirAutoCreate \
+              -cacheDir=${weed.client.path}/${nasNode.hostname} \
+              -cacheCapacityMB=${builtins.toString weed.client.size} \
+              -collection=${nasNode.hostname} \
+              -filer.path=/${nasNode.hostname}
+            '';
           };
+          postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${nasNode.hostname} -l";
         })
       weed.nas.attach;
   collections-client =
     (map
       (collection:
-        {
+        nameValuePair "seaweedfs-mount-${collection.name}" {
           enable = true;
           description = "mount seaweedfs from ${collection.name}";
           wantedBy = [ "multi-user.target" ];
           before = [ "multi-user.target" ];
-          type = "fuse";
-          what = "${pkgs.seaweedfs}/bin/weed#fuse";
-          where = "${weed.client.mount}/${collection.name}";
-          options = "x-systemd.mount-timeout=infinity,retry=65535,_netdev,"
-            + "filer='${builtins.concatStringsSep "," (
+          path = with pkgs; [ busybox seaweedfs fuse ];
+          serviceConfig = {
+            Type = "simple";
+            Restart = "always";
+            RestartSec = "2s";
+            ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${collection.name} ${weed.client.path}/${collection.name}";
+            ExecStart =
+              ''${pkgs.seaweedfs}/bin/weed mount \
+            -filer=${builtins.concatStringsSep "," (
 if (any (client: client == nodeConfig.hostname) collection.clients)
-then["${nodeConfig.hostname}:302"]
-++(map (server: server+".wg1:302")
+then["${nodeConfig.wireguard.clusterIp}:302"]
+++(map (server: server+".wg:302")
     (lib.lists.remove nodeConfig.hostname collection.clients))
-else (map (server: server+".wg1:302")
-    collections.clients)) }',"
-            + "dirAutoCreate,"
-            + "cacheDir=${weed.client.path}/${collection.name},"
-            + "cacheCapacityMB=${builtins.toString weed.client.size}";
-          mountConfig = {
-            TimeoutSec = "0";
+else (map (server: server+".wg:302")
+    collections.clients)) } \
+            -dir=${weed.client.mount}/${collection.name} \
+            -dirAutoCreate \
+            -cacheDir=${weed.client.path}/${collection.name} \
+            -cacheCapacityMB=${builtins.toString weed.client.size} \
+            -collection=${collection.name} \
+            -filer.path=/${collection.name}
+          '';
           };
+          postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${collection.name} -l";
         }
       )
       (filter
@@ -144,10 +145,10 @@ else (map (server: server+".wg1:302")
                 Restart = "always";
                 RestartSec = "2s";
                 ExecStart = ''${pkgs.seaweedfs}/bin/weed filer.sync \
-                  -a ${sync.from}.wg1:302 \
+                  -a ${sync.from}.wg:302 \
                   -a.collection=${collection.name} \
                   -a.path=/${collection.name} \
-                  -b ${sync.to}.wg1:302 \
+                  -b ${sync.to}.wg:302 \
                   -b.collection=${collection.name} \
                   -b.path=/${collection.name}
                 '';
@@ -162,12 +163,15 @@ else (map (server: server+".wg1:302")
     );
 in
 {
-  systemd.services =
-    (listToAttrs (lib.lists.optional weed.server.enable server))
-    # // (listToAttrs (lib.lists.optional weed.server.enable webdav))
-    // (listToAttrs collections-sync);
-  systemd.mounts =
-    (lib.lists.optional weed.client.enable client)
-    ++ nas-client
-    ++ collections-client;
+  config = lib.mkIf nodeConfig.weed.enable {
+    systemd.services =
+      (listToAttrs (lib.lists.optional weed.server.enable server))
+      // (listToAttrs (lib.lists.optional weed.client.enable client))
+      // (listToAttrs nas-client)
+      // (listToAttrs collections-client)
+      // (listToAttrs collections-sync);
+    environment.systemPackages = with pkgs; [
+      seaweedfs
+    ];
+  };
 }

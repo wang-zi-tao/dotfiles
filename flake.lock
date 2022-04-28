@@ -50,6 +50,22 @@
         "type": "github"
       }
     },
+    "go-1-18": {
+      "locked": {
+        "lastModified": 1643749203,
+        "narHash": "sha256-SHuyObyZPgeIJQZkvhpECA724e2WHbPpPaGrYCl5Djk=",
+        "owner": "flyx",
+        "repo": "go-1.18-nix",
+        "rev": "0ae8c4c744fd0cbf3069f375e7ac45fc9c3bd792",
+        "type": "github"
+      },
+      "original": {
+        "owner": "flyx",
+        "ref": "master",
+        "repo": "go-1.18-nix",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": "nixpkgs_2"
@@ -234,6 +250,7 @@
         "fenix": "fenix",
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils",
+        "go-1-18": "go-1-18",
         "home-manager": "home-manager",
         "nixos-generators": "nixos-generators",
         "nixpkgs": "nixpkgs_3",

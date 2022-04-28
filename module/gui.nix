@@ -86,9 +86,13 @@
         xorg.libxcb
         xorg.xcbutilkeysyms
         mesa.opencl
+        mesa
+        xorg.libXxf86vm
+        glfw
+        alsa-lib
 
         virtualgl
-        turbovnc
+        tigervnc
         xpra
         qrcodegen
         cups

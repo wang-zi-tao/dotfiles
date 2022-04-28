@@ -83,6 +83,10 @@ with lib; {
                     default = false;
                   };
                   weed = {
+                    enable = mkOption {
+                      type = bool;
+                      default = false;
+                    };
                     server = {
                       enable = mkOption {
                         type = bool;
@@ -100,7 +104,7 @@ with lib; {
                       };
                       path = mkOption {
                         type = path;
-                        default = "/tmp";
+                        default = "/tmp/weed-cache";
                       };
                       size = mkOption {
                         type = int;
@@ -229,8 +233,10 @@ with lib; {
           develop.enable = true;
           container.enable = true;
           weed = {
+            enable = true;
             server.enable = true;
             client.enable = true;
+            client.size = 8 * 1024;
             nas = { attach = [ "wangzi-nuc" ]; };
           };
         };
@@ -249,6 +255,7 @@ with lib; {
           develop.enable = true;
           container.enable = true;
           weed = {
+            enable = true;
             server.enable = true;
             client.enable = true;
             client.size = 64 * 1024;
