@@ -14,10 +14,18 @@ windows:
 - Temp:
     layout: 57d8,191x50,0,0,19
     root: Temp
-- zsh:
-    layout: d7d2,191x50,0,0,23
-- zsh:
-    layout: d7d3,191x50,0,0,24
+- wangzi-nuc:
+    layout: 57d6,191x50,0,0,36
+    panes:
+    - ssh wangzi@wangzi-nuc -X -Y -t "tmux attach-session"
+- wangzi-pc:
+    layout: 57d6,191x50,0,0,36
+    panes:
+    - ssh wangzi@wangzi-pc -X -Y -t "tmux attach-session"
+- aliyun:
+    layout: 57d6,191x50,0,0,36
+    panes:
+    - ssh root@aliyun-hk -X -Y -t "tmux attach-session"
 - aliyun:
     layout: 57d6,191x50,0,0,36
     panes:

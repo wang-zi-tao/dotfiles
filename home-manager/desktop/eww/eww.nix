@@ -434,7 +434,7 @@ in
       (defvar brightness_expand false)
       (defpoll brightness_value :interval "5s" "${pkgs.brightnessctl}/bin/brightnessctl -m -d intel_backlight | awk -F, '{print substr($4, 0, length($4)-1)}' | tr -d '%'")
       (defvar wifi_expand false)
-      (defpoll wifi_value :interval "5s" "${pkgs.networkmanager}/bin/nmcli c | grep -E 'wifi' | awk '{print ($1)}' | head 1")
+      (defpoll wifi_value :interval "5s" "${pkgs.networkmanager}/bin/nmcli c | grep -E 'wifi' | awk '{print ($1)}' | head -n 1")
       (defwidget layout [text]
         (box :class "workspace layout" :vexpand false
           (button :onclick "rofi -combi-modi window,drun -show combi -modi combi -theme ~/.config/rofi/apps.css&"
@@ -491,6 +491,6 @@ in
                   ;;  (box :class "color_sky" 
                   ;;   (scale :min 0 :max 100 :class "bar-scale" :value {EWW_BATTERY.BAT0.capacity} :active "false")))
                     (box :valign "center"
-                      (label :class "network_speed" :text {"$${ EWW_NET.wg0.NET_DOWN > 3000000 ? "$${round(EWW_NET.wg0.NET_DOWN/3000000,1)}M" : "$${round(EWW_NET.wg0.NET_DOWN/3000,1)}K"} $${ EWW_NET.wg0.NET_UP > 333333 ? "$${round(EWW_NET.wg0.NET_UP/333333,1)}M" : "$${round(EWW_NET.wg0.NET_UP/333,1)}K"}"})))))))))
+                      (label :class "network_speed" :text {"$${ EWW_NET.wg1.NET_DOWN > 3000000 ? "$${round(EWW_NET.wg1.NET_DOWN/3000000,1)}M" : "$${round(EWW_NET.wg1.NET_DOWN/3000,1)}K"} $${ EWW_NET.wg1.NET_UP > 333333 ? "$${round(EWW_NET.wg1.NET_UP/333333,1)}M" : "$${round(EWW_NET.wg1.NET_UP/333,1)}K"}"})))))))))
     '';
 }

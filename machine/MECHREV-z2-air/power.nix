@@ -12,4 +12,5 @@
       };
     };
   };
+  services.logind.lidSwitch = "ignore";
 }

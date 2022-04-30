@@ -86,11 +86,35 @@ M.colorizer = function()
     -- Available modes: foreground, background
     mode = "background", -- Set the display mode.
   })
-  vim.cmd("ColorizerReloadAllBuffers")
+  -- vim.cmd("ColorizerReloadAllBuffers")
 end
 
 M.comment = function()
-  require("Comment").setup({})
+  require("Comment").setup({
+    padding = true,
+    sticky = true,
+    ignore = nil,
+    toggler = {
+      line = "gcc",
+      block = "gbc",
+    },
+    opleader = {
+      line = "gc",
+      block = "gb",
+    },
+    extra = {
+      above = "gcO",
+      below = "gco",
+      eol = "gcA",
+    },
+    mappings = {
+      basic = true,
+      extra = true,
+      extended = false,
+    },
+    pre_hook = nil,
+    post_hook = nil,
+  })
 end
 
 M.luasnip = function()
@@ -205,37 +229,6 @@ M.gitsigns = function()
     yadm = {
       enable = false,
     },
-  })
-end
-M.null_ls = function()
-  local null_ls = require("null-ls")
-  local b = null_ls.builtins
-  local sources = {
-    b.code_actions.gitsigns,
-    -- Rust
-    -- b.formatting.rustfmt,
-    -- C++
-    b.formatting.clang_format,
-    -- java
-    b.formatting.google_java_format,
-    -- mark
-    b.formatting.prettier.with({ filetypes = { "html", "markdown", "css" } }),
-    -- js/ts
-    b.formatting.deno_fmt,
-    -- Lua
-    b.formatting.stylua.with({ extra_args = { "--indent-type", "Spaces", "--indent-width", "2" } }),
-    b.diagnostics.luacheck.with({ extra_args = { "--global vim" } }),
-    -- Shell
-    b.formatting.shfmt,
-    b.diagnostics.shellcheck.with({ diagnostics_format = "#{m} [#{c}]" }),
-  }
-  null_ls.setup({
-    sources = sources,
-    on_attach = function(client)
-      if client.resolved_capabilities.document_formatting then
-        vim.cmd("autocmd BufWritePre <buffer> lua vim.lsp.buf.formatting_sync()")
-      end
-    end,
   })
 end
 M.which_key = function()
@@ -528,7 +521,6 @@ M.mini = function()
   require("mini.surround").setup({
     n_lines = 65536,
     highlight_duration = 500,
-    funname_pattern = "[%w_%.]+",
     mappings = {
       add = "S", -- Add surrounding
       delete = "ds", -- Delete surrounding

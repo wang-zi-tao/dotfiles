@@ -65,11 +65,13 @@
             pulseaudio = true;
           };
           xkbOptions = "ctrl:nocaps";
+          modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
+          extraConfig = ''
+          '';
         };
       };
       programs.dconf.enable = true;
       programs.gpaste.enable = true;
-      services.xserver = { modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ]; };
       environment.systemPackages = with pkgs; [
         appimage-run
         glxinfo

@@ -2,24 +2,28 @@
 , rustPlatform
 , fetchFromGitHub
 , pkg-config
+, openssl
+, perl
 , stdenv
 }:
 
 rustPlatform.buildRustPackage
 rec {
   pname = "distant";
-  version = "2509f48";
+  version = "2022.3.31";
 
   src = fetchFromGitHub {
     owner = "chipsenkbeil";
     repo = pname;
-    rev = "2509f48d3e16c0b39f6f5a7fec0e25afcd79e75b";
-    sha256 = "sha256-mp6uA3EJiFxdlsJtsSjn4QYvAnK4xwdLTGMig0RQvs0=";
+    rev = "268ec948d602f9ffe03ce959cc2c6c3cf8defa99";
+    sha256 = "sha256-ccZfQPvBSNMDyeMbGVshotU9hQ6jGl3/DHwr3OQ3nyY=";
   };
 
-  cargoSha256 = "sha256-9f/7GHMDiEnCiOIbTwUwuw7dJ1KQJvdzWFj97/mJPXI=";
+  cargoSha256 = "sha256-1IVJKiLHh0DbXv7U9H41FxhbFgFGLAaYY8ynonSI6vM=";
 
-  nativeBuildInputs = [ pkg-config ];
+  nativeBuildInputs = [ pkg-config perl openssl openssl.dev ];
+
+  RUST_BACKTRACE = "full";
 
   cargoBuildFlags = [ "--offline" ];
 

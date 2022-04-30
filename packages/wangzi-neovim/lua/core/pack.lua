@@ -323,7 +323,7 @@ packer.startup(function()
     as = "null_ls",
     after = "nvim_lspconfig",
     config = function()
-      require("core.plugins.others").null_ls()
+      require("core.plugins.null_ls")
     end,
   })
   use({

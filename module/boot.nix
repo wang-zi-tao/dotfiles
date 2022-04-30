@@ -13,7 +13,7 @@
       bcachefs-tools
     ];
     programs.criu.enable = true;
-    boot.kernel.sysctl = { "fs.file-max" = 6553560; };
+    boot.kernel.sysctl = { "fs.file-max" = 65535; };
     environment.etc."security/limits.conf".text = ''
       * soft nofile 65535   
       * hard nofile 65535

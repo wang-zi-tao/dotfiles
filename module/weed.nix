@@ -16,6 +16,8 @@ let
         Type = "simple";
         Restart = "always";
         RestartSec = "5s";
+        LimitNOFILE = 500000;
+        LimitNPROC = 500000;
         ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.server.path}/weed ${weed.server.path}/master ${weed.server.path}/volume";
         ExecStart =
           ''${pkgs.seaweedfs}/bin/weed server \

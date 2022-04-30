@@ -3,9 +3,6 @@ cmp.setup({
   completion = {
     completeopt = "menuone,preview",
   },
-  documentation = {
-    border = "single",
-  },
   snippet = {
     expand = function(args)
       require("luasnip").lsp_expand(args.body)
