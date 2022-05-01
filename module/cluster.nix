@@ -66,6 +66,16 @@ with lib; {
                     gatewayServer = mkOption { type = bool; default = false; };
                     iptables.enable = mkOption { type = bool; default = false; };
                   };
+                  prometheus = {
+                    server = mkOption {
+                      type = bool;
+                      default = false;
+                    };
+                    nodeExporter = mkOption {
+                      type = bool;
+                      default = true;
+                    };
+                  };
                   NextCloudServer.enable = mkOption {
                     type = bool;
                     default = false;
@@ -206,6 +216,7 @@ with lib; {
     ./onedev.nix
     ./redis.nix
     ./weed.nix
+    ./prometheus.nix
   ];
   config = {
     boot.isContainer = nodeConfig.inContainer;
@@ -272,6 +283,7 @@ with lib; {
           container.enable = true;
           MySQL.enable = true;
           redis.enable = true;
+          prometheus.server = true;
           # weedServer.enable = true;
           inVM = true;
         };
