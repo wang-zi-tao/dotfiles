@@ -93,7 +93,6 @@
         aliyun-hk = import ./machine/aliyun-hk.nix args;
         aliyun-ecs = import ./machine/aliyun-ecs.nix args;
         lxd = import ./machine/lxd.nix args;
-
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let pkgs = nixpkgs.legacyPackages.${system};

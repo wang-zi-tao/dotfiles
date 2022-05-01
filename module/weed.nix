@@ -35,7 +35,8 @@ let
             -volume.index=leveldb \
             -volume.port=303 \
             -volume.max=256 \
-            -volume.publicUrl=${nodeConfig.wireguard.clusterIp}:303
+            -volume.publicUrl=${nodeConfig.wireguard.clusterIp}:303 \
+            -metricsPort=9101
           '';
       };
     };
@@ -85,7 +86,7 @@ let
               -dir=${weed.client.mount}/${nasNode.hostname} \
               -dirAutoCreate \
               -cacheDir=${weed.client.path}/${nasNode.hostname} \
-              -cacheCapacityMB=${builtins.toString weed.client.size} \
+              -cacheCapacityMB=${builtins.toString weed.nas.cacheSize} \
               -collection=${nasNode.hostname} \
               -filer.path=/${nasNode.hostname}
             '';
@@ -119,7 +120,7 @@ else (map (server: server+".wg:302")
             -dir=${weed.client.mount}/${collection.name} \
             -dirAutoCreate \
             -cacheDir=${weed.client.path}/${collection.name} \
-            -cacheCapacityMB=${builtins.toString weed.client.size} \
+            -cacheCapacityMB=${builtins.toString weed.nas.cacheSize} \
             -collection=${collection.name} \
             -filer.path=/${collection.name}
           '';
@@ -152,7 +153,9 @@ else (map (server: server+".wg:302")
                   -a.path=/${collection.name} \
                   -b ${sync.to}.wg:302 \
                   -b.collection=${collection.name} \
-                  -b.path=/${collection.name}
+                  -b.path=/${collection.name} \
+                  -a.filerProxy -b.filerProxy \
+                  -a.debug -b.debug
                 '';
               };
             }

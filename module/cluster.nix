@@ -21,7 +21,7 @@ with lib; {
           description = "nodes";
           type = attrsOf
             (submodule
-              ({ name, config, ... }: {
+              ({ name, nodeConfig, ... }: {
                 options = {
                   hostname = mkOption {
                     type = str;
@@ -132,6 +132,10 @@ with lib; {
                     nas.server = mkOption {
                       type = bool;
                       default = false;
+                    };
+                    nas.cacheSize = mkOption {
+                      type = int;
+                      default = 8192;
                     };
                     backup.attach = mkOption {
                       type = nullOr str;
@@ -248,7 +252,10 @@ with lib; {
             server.enable = true;
             client.enable = true;
             client.size = 8 * 1024;
-            nas = { attach = [ "wangzi-nuc" ]; };
+            nas = {
+              cacheSize = 8192;
+              attach = [ "wangzi-nuc" "aliyun-hk" "huawei-ecs" ];
+            };
           };
         };
         wangzi-nuc = {
@@ -270,7 +277,11 @@ with lib; {
             server.enable = true;
             client.enable = true;
             client.size = 64 * 1024;
-            nas = { server = true; };
+            nas = {
+              server = true;
+              cacheSize = 8192;
+              attach = [ "aliyun-hk" "huawei-ecs" ];
+            };
           };
         };
         huawei-ecs = {
@@ -279,6 +290,16 @@ with lib; {
             clusterIp = "192.168.16.1";
             port = 30806;
             publicKey = "IfOIL06xMk/4r2QQvhNbLUFDLh97sXdHO3WIyOP4Sj4=";
+          };
+          weed = {
+            enable = true;
+            server.enable = true;
+            client.enable = true;
+            client.size = 1 * 1024;
+            nas = {
+              cacheSize = 1024;
+              server = true;
+            };
           };
           container.enable = true;
           MySQL.enable = true;
@@ -295,6 +316,16 @@ with lib; {
             publicKey = "kY4n/K6zHjRNq/5f1yId2156zyfO/cVAwQddasPqjE8=";
             iptables.enable = true;
             gatewayServer = true;
+          };
+          weed = {
+            enable = true;
+            server.enable = true;
+            client.enable = true;
+            client.size = 1 * 1024;
+            nas = {
+              cacheSize = 1024;
+              server = true;
+            };
           };
           proxy.enable = true;
           NextCloudServer.enable = true;

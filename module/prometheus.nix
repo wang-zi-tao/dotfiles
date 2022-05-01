@@ -18,20 +18,27 @@ in
   };
   services.prometheus = {
     enable = nodeConfig.prometheus.server;
+    listenAddress = nodeConfig.wireguard.clusterIp;
     port = 9001;
-    scrapeConfigs = [
-      {
-        job_name = "${nodeConfig.hostname}";
-        static_configs = [
-          {
-            targets = (map (node: "${node.hostname}.wg:9100") (filter (node: node.prometheus.nodeExporter) nodeList));
-          }
-          {
-            targets = (map (node: "${node.hostname}.wg:9586") (filter (node: node.wireguard.enable) nodeList));
-          }
-        ];
-      }
-    ];
+    scrapeConfigs = (map (node: {
+        job_name = "${node.hostname}";
+        static_configs = [{
+          targets = ["${node.hostname}.wg:9100"];
+        }];
+      }) (filter (node: node.prometheus.nodeExporter) nodeList))
+    ++ (map (node: {
+        job_name = "${node.hostname}-wg";
+        static_configs = [{
+          targets = ["${node.hostname}.wg:9586"];
+        }];
+      }) (filter (node: node.wireguard.enable) nodeList))
+    ++ (map (node: {
+        job_name = "${node.hostname}-weed";
+        metrics_path = "/metrics";
+        static_configs = [{
+          targets = ["${node.hostname}.wg:9101"];
+        }];
+      }) (filter (node: node.weed.enable) nodeList));
     exporters = {
       node = mkIf nodeConfig.prometheus.nodeExporter {
         enable = true;
@@ -39,6 +46,7 @@ in
         listenAddress = nodeConfig.wireguard.clusterIp;
       };
       wireguard = mkIf nodeConfig.wireguard.enable {
+        enable = true;
         verbose = true;
         listenAddress = nodeConfig.wireguard.clusterIp;
       };

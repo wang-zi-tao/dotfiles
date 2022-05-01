@@ -51,7 +51,7 @@ in
             let w = node.wireguard;
             in
             {
-              persistentKeepalive = 16;
+              persistentKeepalive = 32;
               allowedIPs =
                 [ w.clusterIp ] ++
                 (lib.lists.optionals (node.hostname == nodeConfig.wireguard.gateway)
