@@ -1,84 +1,236 @@
 local function map(mod, key, exec, opt)
   vim.keymap.set(mod, key, exec)
 end
-map("n", "<leader>fk", function()
-  require("telescope.builtin").keymaps()
-end)
-map("n", "<leader>fw", function()
-  require("telescope.builtin").live_grep()
-end)
-map("n", "<leader>ff", function()
-  require("telescope.builtin").find_files()
-end)
-map("n", "<leader>fr", function()
-  require("telescope.builtin").registers()
-end)
-map("n", "<leader>fo", function()
-  require("telescope.builtin").lsp_workspace_symbols()
-end)
-map("n", "<leader>fi", function()
-  require("telescope.builtin").lsp_references()
-end)
-map("n", "<leader>fa", function()
-  require("telescope.builtin").lsp_code_actions()
-end)
-map("n", "<leader>fb", function()
-  require("telescope.builtin").buffers()
-end)
-map("n", "<leader>fs", function()
-  require("telescope.builtin").git_status()
-end)
-map("n", "<leader>fc", function()
-  require("telescope.builtin").git_commits()
-end)
-map("n", "<leader>fm", function()
-  require("telescope.builtin").marks()
-end)
-map("n", "<leader>fd", function()
-  require("telescope.builtin").lsp_document_symbols()
-end)
-map("n", "gd", function()
-  require("telescope.builtin").lsp_definitions()
-end)
-map("n", "gi", function()
-  require("telescope.builtin").lsp_implementations()
-end)
-map("n", "D", function()
-  require("telescope.builtin").lsp_type_definitions()
-end)
-map("n", "<leader>gr", function()
-  require("telescope.builtin").lsp_references()
-end)
-map("n", "<leader>la", function()
-  require("lspsaga.codeaction").code_action()
-end)
-map("n", "<leader>lr", function()
-  require("lspsaga.rename").rename()
-end)
-map("n", "<leader>ld", function()
-  require("lspsaga.provider").preview_definition()
-end)
-map("n", [[<leader>']], function()
-  require("FTerm").toggle()
-end)
+local wk = require("which-key")
+local function telescope()
+  return require("telescope.builtin")
+end
+wk.register({
+  q = { "<cmd>close<CR>", "close" },
+  w = { "<cmd>wa<CR>", "save" },
+  Q = { "<cmd>quitall<CR>", "quit" },
+  ["'"] = {
+    function()
+      require("FTerm").toggle()
+    end,
+    "Terminal",
+  },
+  f = {
+    name = "Telescope",
+    k = {
+      function()
+        telescope().keymaps()
+      end,
+      "Keymaps",
+    },
+    w = {
+      function()
+        telescope().live_grep()
+      end,
+      "Grep",
+    },
+    f = {
+      function()
+        telescope().find_files()
+      end,
+      "Files",
+    },
+    r = {
+      function()
+        telescope().registers()
+      end,
+      "Registers",
+    },
+    o = {
+      function()
+        telescope().lsp_workspace_symbols()
+      end,
+      "WorkspaceSymbols",
+    },
+    a = {
+      function()
+        telescope().lsp_code_actions()
+      end,
+      "Actions",
+    },
+    i = {
+      function()
+        telescope().lsp_references()
+      end,
+      "LSP Reference",
+    },
+    b = {
+      function()
+        telescope().buffers()
+      end,
+      "Buffers",
+    },
+    s = {
+      function()
+        telescope().git_status()
+      end,
+      "GitStatus",
+    },
+    c = {
+      function()
+        telescope().git_commits()
+      end,
+      "GitCommits",
+    },
+    m = {
+      function()
+        require("telescope.builtin").marks()
+      end,
+      "Marks",
+    },
+    d = {
+      function()
+        require("telescope.builtin").lsp_document_symbols()
+      end,
+      "Lsp_document_symbols",
+    },
+  },
+  g = {
+    name = "Diff",
+    r = {
+      function()
+        telescope().lsp_references()
+      end,
+      "LspReferences",
+    },
+    d = {
+      function()
+        require("diffview").open()
+      end,
+      "Open Diff",
+    },
+    D = {
+      function()
+        require("diffview").close()
+      end,
+      "Close Diff",
+    },
+  },
+  l = {
+    name = "LSP",
+    a = {
+      function()
+        require("lspsaga.codeaction").code_actions()
+      end,
+      "CodeActions",
+    },
+    r = {
+      function()
+        require("lspsaga.rename").rename()
+      end,
+      "Rename",
+    },
+    d = {
+      function()
+        require("lspsaga.provider").preview_definition()
+      end,
+      "PreviewDefinition",
+    },
+  },
+  p = { name = "packer", s = {
+    function()
+      require("core.pack").status()
+    end,
+    "PackerStatus",
+  } },
+  d = {
+    name = "debug",
+    b = {
+      function()
+        require("dap").toggle_breakpoint()
+      end,
+      "BreakPoint",
+    },
+    B = {
+      function()
+        require("dap").clear_breakpoint()
+      end,
+      "Clear BreakPoint",
+    },
+    c = {
+      function()
+        require("dap").step_into()
+      end,
+      "Continue",
+    },
+    C = {
+      function()
+        require("dap").close()
+      end,
+      "Close",
+    },
+    o = {
+      function()
+        require("dap").step_over()
+      end,
+      "Step Over",
+    },
+    i = {
+      function()
+        require("dap").step_into()
+      end,
+      "Step Into",
+    },
+    r = {
+      function()
+        require("dap").run()
+      end,
+      "Run",
+    },
+    R = {
+      function()
+        require("dap").repl.open()
+      end,
+      "Repl",
+    },
+    u = {
+      name = "UI",
+      o = {
+        function()
+          require("dapui").open()
+        end,
+        "Open",
+      },
+      c = {
+        function()
+          require("dapui").close()
+        end,
+        "Close",
+      },
+    },
+  },
+  h = { name = "hunk" },
+  b = { name = "buffer" },
+}, { prefix = "<leader>" })
+wk.register({
+  g = {
+    d = {
+      function()
+        require("telescope.builtin").lsp_definitions()
+      end,
+      "Define",
+    },
+    i = {
+      function()
+        require("telescope.builtin").lsp_implementations()
+      end,
+      "Implementation",
+    },
+    D = {
+      function()
+        require("telescope.builtin").lsp_type_definitions()
+      end,
+      "TypeDefinition",
+    },
+  },
+})
 map("n", "\\'", function()
   require("FTerm").toggle()
-end)
-map("n", [[<C-'>]], function()
-  require("FTerm").toggle()
-end)
-map("n", "<leader>q", "<cmd>close<CR>")
-map("n", "<leader>w", "<cmd>wa<CR>")
-map("n", "<leader>Q", "<cmd>quitall<CR>")
-map("n", "<leader>ps", function()
-  require("core.pack").status()
-end)
-
-map("n", "<leader>db", function()
-  require("dap").toggle_breakpoint()
-end)
-map("n", "<leader>dB", function()
-  require("dap").clear_breakpoint()
 end)
 map("n", "\\9", function()
   require("dap").toggle_breakpoint()
@@ -86,20 +238,11 @@ end)
 map("n", "<F9>", function()
   require("dap").toggle_breakpoint()
 end)
-map("n", "<leader>dc", function()
-  require("dap").continue()
-end)
-map("n", "<leader>dC", function()
-  require("dap").close()
-end)
 map("n", "\\%", function()
   require("dap").close()
 end)
 map("n", "<S-F5>", function()
   require("dap").close()
-end)
-map("n", "<leader>do", function()
-  require("dap").step_over()
 end)
 map("n", "\\-", function()
   require("dap").step_over()
@@ -107,39 +250,17 @@ end)
 map("n", "<F11>", function()
   require("dap").step_over()
 end)
-map("n", "<leader>di", function()
-  require("dap").step_into()
-end)
 map("n", "\\0", function()
   require("dap").step_into()
 end)
 map("n", "<F10>", function()
   require("dap").step_into()
 end)
-map("n", "<leader>dr", function()
-  require("dap").run()
-end)
 map("n", "\\5", function()
   require("dap").run()
 end)
 map("n", "<F5>", function()
   require("dap").run()
-end)
-map("n", "<leader>dR", function()
-  require("dap").repl.open()
-end)
-map("n", "<leader>duo", function()
-  require("dapui").open()
-end)
-map("n", "<leader>duc", function()
-  require("dapui").close()
-end)
-
-map("n", "<leader>gd", function()
-  require("diffview").open()
-end)
-map("n", "<leader>gD", function()
-  require("diffview").close()
 end)
 
 map("n", "<leader>hs", "<cmd>Gitsigns stage_hunk<CR>")

@@ -331,7 +331,7 @@ packer.startup(function()
     n.which_key,
     as = "which_key",
     requires = "onedark_nvim",
-    module = "onedark",
+    module = "which-key",
     config = function()
       require("core.plugins.others").which_key()
     end,
