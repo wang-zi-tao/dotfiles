@@ -11,7 +11,19 @@
       + "retain\tdaily\t7\n"
       + "retain\tweekly\t4\n"
       + "retain\tmonthly\t12\n"
-      + "backup\t/mnt/weed/mount/wangzi-nuc/wangzi/\tlocalhost/\n"
-      + "backup\t/mnt/weed/mount/wangzi/wangzi/\tlocalhost/\n";
+      + "backup\t/mnt/weed/mount/wangzi-nuc/\tlocalhost/\n";
+  };
+  swapDevices = [{
+    device = "/swapfile";
+    size = (1024 * 16);
+  }];
+  systemd.services = {
+    create-swapfile = {
+      serviceConfig.Type = "oneshot";
+      wantedBy = [ "swap-swapfile.swap" ];
+      script = ''
+        ${pkgs.coreutils}/bin/truncate -s 0 /swapfile
+      '';
+    };
   };
 }

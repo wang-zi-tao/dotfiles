@@ -12,7 +12,10 @@
     virtualisation = {
       podman = {
         enable = true;
-        dockerCompat = true;
+        # enableNvidia = config.services.xserver.enable;
+      };
+      docker = {
+        enable = true;
         # enableNvidia = config.services.xserver.enable;
       };
       lxd = {

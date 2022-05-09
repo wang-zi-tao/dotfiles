@@ -6,7 +6,7 @@
     ];
     boot.kernelParams = [ "quite" ];
     environment.systemPackages = with pkgs; [
-      # config.boot.kernelPackages.perf
+      config.boot.kernelPackages.perf
       perf-tools
       criu
       bcache-tools

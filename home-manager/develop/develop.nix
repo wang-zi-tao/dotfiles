@@ -93,7 +93,7 @@ in
     taskwarrior
     taskwarrior-tui
 
-    sumneko-lua-language-server
+    # sumneko-lua-language-server
     nodePackages.typescript-language-server
     nodejs
     nodePackages.typescript

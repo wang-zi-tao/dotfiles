@@ -29,4 +29,6 @@ lxd:
 	git add . 
 	nix build '.#nixosConfigurations.lxd'
 	lxc image import --alias nixos `nixos-generate -f lxc-metadata` result/tarball/nixos-system-x86_64-linux.tar.xz local: --force-local --verbose
-
+update:
+	nix flake update
+	make

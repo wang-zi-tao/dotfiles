@@ -7,10 +7,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nur.url = "github:nix-community/NUR";
-    nixpkgs-21-05.url = "github:nixos/nixpkgs/release-21.05";
     nixpkgs.url = "github:nixos/nixpkgs/release-21.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-master.url = "github:nixos/nixpkgs/master";
     fenix = { url = "github:nix-community/fenix"; };
     flake-compat = {
       url = "github:edolstra/flake-compat";
@@ -18,6 +16,7 @@
     };
     sops-nix.url = "github:Mic92/sops-nix";
     flake-utils.url = "github:numtide/flake-utils";
+    go-1-18.url = "github:flyx/go-1.18-nix";
   };
   outputs =
     inputs@{ self
@@ -38,6 +37,7 @@
           ([
             nur.overlay
             fenix.overlay
+            inputs.go-1-18.overlay
             (final: prev:
               {
                 flake-compat = inputs.flake-compat;
@@ -46,10 +46,6 @@
                 nur = import inputs.nur {
                   nurpkgs = final.unstable;
                   pkgs = final.unstable;
-                };
-                master = import inputs.nixpkgs-master {
-                  system = final.system;
-                  config = { allowUnfree = true; };
                 };
                 unstable = import inputs.nixpkgs-unstable {
                   system = final.system;
@@ -67,10 +63,6 @@
                       (attrNames (readDir ./packages)))))
                   ];
                 });
-                nixpkgs-21-05 = import inputs.nixpkgs-21-05 {
-                  system = final.system;
-                  config = { allowUnfree = true; };
-                };
                 scripts = (map
                   (f: pkgs.writeScriptBin f (readFile (./scripts + "/${f}")))
                   (attrNames (readDir ./scripts)));

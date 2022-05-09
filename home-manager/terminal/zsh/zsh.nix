@@ -141,7 +141,7 @@
     '';
     initExtra = builtins.readFile ./p10k.zsh +  builtins.readFile ./zshrc.zsh + ''
       # export FZF_DEFAULT_COMMAND="${pkgs.ag}/bin/ag -p ~/.gitignore -g """
-      source ${pkgs.tmuxinator}/share/zsh/site-functions/_tmuxinator
+      # source ${pkgs.tmuxinator}/share/zsh/site-functions/_tmuxinator
     '';
   };
   # programs.command-not-found.enable = true;

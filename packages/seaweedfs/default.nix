@@ -4,24 +4,20 @@
 , testVersion
 , seaweedfs
 , pkgs
+, buildGo118Module
 }:
-pkgs.unstable.buildGo118Module rec {
+buildGo118Module rec {
   pname = "seaweedfs";
-  version = "3.00";
+  version = "139e03";
 
   src = fetchFromGitHub {
     owner = "chrislusf";
     repo = "seaweedfs";
-    rev = version;
-    sha256 = "sha256-XsD3IMcPJVBQpV26OjNRCMgH7PZjMKd4AOlfs2UQMkA=";
+    rev = "139e039c4489d2f03f17ae3371defdf1609830f2";
+    sha256 = "sha256-hFxoz0ypAEpgt1xsSsvgJUDs4w9s/NfGu68o9ZHGeyQ=";
   };
 
-  vendorSha256 = "sha256-6VB6la9auuigFAYeK6VQqux05NiaG9FdN00jkHqv+M4=";
-  # configurePhase = ''
-  #   ls 
-  #   go version
-  #   cat go.mod
-  # '';
+  vendorSha256 = "sha256-CrVZV+zxvvNQ5JPfmWnLCOFJ9XcQbFJVPaadfRGxq9k=";
 
   subPackages = [ "weed" ];
 

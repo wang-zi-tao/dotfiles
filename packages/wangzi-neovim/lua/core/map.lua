@@ -154,7 +154,7 @@ wk.register({
     },
     c = {
       function()
-        require("dap").step_into()
+        require("dap").continue()
       end,
       "Continue",
     },

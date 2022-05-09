@@ -58,8 +58,7 @@ let
             -dir=${weed.client.mount}/${nodeConfig.hostname} \
             -dirAutoCreate \
             -cacheDir=${weed.client.path}/${nodeConfig.hostname} \
-            -cacheCapacityMB=${builtins.toString weed.client.size} \
-            -collection=${nodeConfig.hostname}
+            -cacheCapacityMB=${builtins.toString weed.client.size}
           '';
       };
       postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${nodeConfig.hostname} -l";
@@ -87,7 +86,6 @@ let
               -dirAutoCreate \
               -cacheDir=${weed.client.path}/${nasNode.hostname} \
               -cacheCapacityMB=${builtins.toString weed.nas.cacheSize} \
-              -collection=${nasNode.hostname} \
               -filer.path=/${nasNode.hostname}
             '';
           };
@@ -121,7 +119,6 @@ else (map (server: server+".wg:302")
             -dirAutoCreate \
             -cacheDir=${weed.client.path}/${collection.name} \
             -cacheCapacityMB=${builtins.toString weed.nas.cacheSize} \
-            -collection=${collection.name} \
             -filer.path=/${collection.name}
           '';
           };
@@ -130,7 +127,9 @@ else (map (server: server+".wg:302")
       )
       (filter
         (collection:
-          any (client: client == nodeConfig.hostname) collection.clients)
+          (any (client: client == nodeConfig.hostname) collection.clients)
+          && !(any (server: server == nodeConfig.hostname) collection.servers)
+        )
         (attrValues collections)));
   collections-sync =
     (concatLists
@@ -149,13 +148,9 @@ else (map (server: server+".wg:302")
                 RestartSec = "2s";
                 ExecStart = ''${pkgs.seaweedfs}/bin/weed filer.sync \
                   -a ${sync.from}.wg:302 \
-                  -a.collection=${collection.name} \
                   -a.path=/${collection.name} \
                   -b ${sync.to}.wg:302 \
-                  -b.collection=${collection.name} \
-                  -b.path=/${collection.name} \
-                  -a.filerProxy -b.filerProxy \
-                  -a.debug -b.debug
+                  -b.path=/${collection.name}
                 '';
               };
             }

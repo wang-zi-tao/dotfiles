@@ -230,7 +230,16 @@ with lib; {
         wangzi = {
           servers = [ "wangzi-nuc" "wangzi-pc" ];
           clients = [ "wangzi-nuc" "wangzi-pc" ];
-          sync = [{ from = "wangzi-pc"; to = "wangzi-nuc"; }];
+          sync = [{ from = "wangzi-nuc"; to = "wangzi-pc"; }];
+        };
+        workspace = {
+          servers = [ "wangzi-nuc" "wangzi-pc" "aliyun-hk" ];
+          clients = [ "wangzi-nuc" "wangzi-pc" "aliyun-hk" ];
+          sync = [
+            { from = "wangzi-nuc"; to = "wangzi-pc"; }
+            { from = "aliyun-hk"; to = "wangzi-pc"; }
+            { from = "aliyun-hk"; to = "wangzi-nuc"; }
+          ];
         };
       };
       nodes = {
