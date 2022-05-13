@@ -93,5 +93,13 @@
       devShell = pkgs.mkShell {
         buildInputs = with pkgs; [ sops gnumake git rnix-lsp nixfmt nix-du sumneko-lua-language-server nixos-generators ];
       };
-    });
+      apps.repl = flake-utils.lib.mkApp {
+        drv = pkgs.writeShellScriptBin "repl" ''
+          confnix=$(mktemp)
+          echo "builtins.getFlake (toString $(git rev-parse --show-toplevel))" >$confnix
+          trap "rm $confnix" EXIT
+          nix repl $confnix
+        '';
+      };
+    }) // { pkgs = pkgs; lib = pkgs.lib; unstable = pkgs.unstable; nur = pkgs.nur; };
 }

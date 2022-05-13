@@ -318,6 +318,18 @@ packer.startup(function()
     end,
   })
   use({
+    n.dressing_nvim,
+    as = "dressing_nvim",
+    config = function()
+      require("core.plugins.dressing")
+    end,
+  })
+  use({
+    n.telescope_ui_select,
+    as = "telescope_ui_select",
+    module = "telescope._extensions.ui-select",
+  })
+  use({
     -- "jose-elias-alvarez/null-ls.nvim",
     n.null_ls,
     as = "null_ls",
@@ -512,6 +524,11 @@ packer.startup(function()
     config = function()
       require("core.plugins.others").dap_virtual_text()
     end,
+  })
+  use({
+    n.telescope_dap_nvim,
+    as = "telescope_dap_nvim",
+    module = "telescope._extensions.dap",
   })
   use({
     n.fterm,

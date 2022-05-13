@@ -127,7 +127,6 @@
       dcd = "${pkgs.docker-compose}/bin/docker-compose down";
       dcu = "${pkgs.docker-compose}/bin/docker-compose up";
       dcud = "${pkgs.docker-compose}/bin/docker-compose up -d";
-      perf = "sudo ${pkgs.perf-tools}/bin/perf";
       diff = "${pkgs.neovim-remote}/bin/nvr -s -d";
     } else {});
     sessionVariables = {

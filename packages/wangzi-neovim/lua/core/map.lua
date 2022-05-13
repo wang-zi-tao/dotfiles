@@ -49,7 +49,7 @@ wk.register({
     },
     a = {
       function()
-        telescope().lsp_code_actions()
+        vim.lsp.buf.code_action()
       end,
       "Actions",
     },
@@ -152,6 +152,12 @@ wk.register({
       end,
       "Clear BreakPoint",
     },
+    p = {
+      function()
+        require("dap").pause()
+      end,
+      "Pause",
+    },
     c = {
       function()
         require("dap").continue()
@@ -176,6 +182,12 @@ wk.register({
       end,
       "Step Into",
     },
+    l = {
+      function()
+        require("dap").run_to_cursor()
+      end,
+      "Run to Corsor",
+    },
     r = {
       function()
         require("dap").run()
@@ -190,6 +202,12 @@ wk.register({
     },
     u = {
       name = "UI",
+      a = {
+        function()
+          require("telescope").extensions.dap.commands({})
+        end,
+        "Commands",
+      },
       o = {
         function()
           require("dapui").open()
@@ -201,6 +219,12 @@ wk.register({
           require("dapui").close()
         end,
         "Close",
+      },
+      C = {
+        function()
+          require("telescope").extensions.dap.configurations({})
+        end,
+        "Configurations",
       },
     },
   },

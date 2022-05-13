@@ -117,6 +117,9 @@ stdenvNoCC.mkDerivation {
         rev = "668b350ce88cc9a2257644c67945c9abbdd36cb5";
         sha256 = "sha256-e+ZniVYOJEuCTwjNkta9K0jrVddxOHa/vqWQuMGO7lk=";
       }}",
+      dressing_nvim = "${dressing-nvim}",
+      telescope_ui_select = "${telescope-ui-select-nvim}",
+      telescope_dap_nvim = "${telescope-dap-nvim}",
       compile_path = "$out/plugins.lua",
     }
     return setmetatable({},{

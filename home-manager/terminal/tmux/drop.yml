@@ -17,23 +17,19 @@ windows:
 - wangzi-nuc:
     layout: 57d6,191x50,0,0,36
     panes:
-    - ssh wangzi@wangzi-nuc -X -Y -t "tmux attach-session"
+    - retry ssh wangzi@wangzi-nuc -X -Y -t "tmux attach-session"
 - wangzi-pc:
     layout: 57d6,191x50,0,0,36
     panes:
-    - ssh wangzi@wangzi-pc -X -Y -t "tmux attach-session"
+    - retry ssh wangzi@wangzi-pc -X -Y -t "tmux attach-session"
 - aliyun:
     layout: 57d6,191x50,0,0,36
     panes:
-    - ssh root@aliyun-hk -X -Y -t "tmux attach-session"
-- aliyun:
-    layout: 57d6,191x50,0,0,36
-    panes:
-    - ssh root@aliyun-hk -X -Y -t "tmux attach-session"
+    - retry ssh root@aliyun-hk -X -Y -t "tmux attach-session"
 - huawei-ecs:
     layout: 57d6,191x50,0,0,36
     panes:
-    - ssh root@huawei-ecs -X -Y -t "tmux attach-session"
+    - retry ssh root@huawei-ecs -X -Y -t "tmux attach-session"
 - monitor:
     layout: c165,211x55,0,0,
     panes:

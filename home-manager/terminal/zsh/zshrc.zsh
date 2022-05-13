@@ -122,7 +122,7 @@ own() {
   fi
 }
 mkcd() { mkdir -p "$1" && cd "$1"; }
-nixify() {
+new-nix-shell-flake() {
   if [ ! -e ./.direnv ]; then
     mkdir .direnv
   fi
