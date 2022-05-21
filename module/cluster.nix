@@ -364,9 +364,24 @@ with lib; with builtins;{
         };
         aliyun-ecs = {
           publicIp = "116.23.62.116";
-          wireguard = { enable = false; };
+          wireguard = {
+            index = 3;
+            port = 39690;
+            publicKey = "riRxoNrTrJYZQyjAtiMk/aqiZ8ZoLnzw2e9maV18Tlk=";
+          };
+          weed = {
+            enable = true;
+            server.enable = true;
+            client.enable = true;
+            client.size = 1 * 1024;
+            nas = {
+              cacheSize = 1024;
+              server = true;
+            };
+          };
           container.enable = true;
           inVM = true;
+          CodeServer.enable = true;
         };
         lxd = {
           wireguard = { enable = false; };

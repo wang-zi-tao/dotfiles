@@ -1,5 +1,5 @@
 { pkgs, nixpkgs, home-manager, sops-nix, ... }:
-let hostname = "aliyun-hk";
+let hostname = "aliyun-ecs";
 in
 nixpkgs.lib.nixosSystem {
   system = "x86_64-linux";

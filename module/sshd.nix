@@ -12,7 +12,6 @@ in
       forwardX11 = true;
       gatewayPorts = "yes";
       passwordAuthentication = true;
-      startWhenNeeded = true;
       authorizedKeysFiles = [ config.sops.secrets.ssh-public-keys.path ];
       extraConfig = ''
         TCPKeepAlive yes

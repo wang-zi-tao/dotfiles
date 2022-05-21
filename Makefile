@@ -4,6 +4,7 @@ all:
 	make wangzi-nuc || true
 	make huawei-ecs || true
 	make aliyun-hk || true
+	make aliyun-ecs || true
 this:
 	git add . 
 	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch
@@ -22,8 +23,7 @@ aliyun-hk:
 	nixos-rebuild --flake '.#aliyun-hk' --target-host root@47.243.22.114 switch
 aliyun-ecs:
 	git add . 
-	nix --experimental-features 'flakes nix-command' build '.#aliyun-ecs.activationPackage'
-	./result/activate
+	nixos-rebuild --flake '.#aliyun-ecs' --target-host root@116.23.62.116 switch
 
 lxd:
 	git add . 
