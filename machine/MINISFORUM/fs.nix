@@ -1,11 +1,13 @@
 { config, lib, pkgs, modulesPath, ... }: {
   programs.fuse = { userAllowOther = true; };
   environment.systemPackages = with pkgs; [ duperemove btrfs-progs ];
+  services.cron.enable = true;
   services.rsnapshot = {
     enable = true;
     cronIntervals = {
-      daily = "50 21 * * *";
-      weekly = "50 21 6 * *";
+      daily = "30 21 * * *";
+      weekly = "00 22 * * 6";
+      monthly = "30 22 1 * *";
     };
     extraConfig = "snapshot_root\t/mnt/data/backup/\n"
       + "retain\tdaily\t7\n"

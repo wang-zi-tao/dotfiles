@@ -130,19 +130,27 @@ new-nix-shell-flake() {
     cat > flake.nix <<'EOF'
 {
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  outputs = { self, nixpkgs, flake-utils }:
+  # inputs.fenix.url = "github:nix-community/fenix";
+  outputs = inputs@{ self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let pkgs = nixpkgs.legacyPackages.${system};
       in {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [ 
-            $@
+
+            # (inputs.fenix.packages.${system}.fromToolchainFile {
+            #   file = ./rust-toolchain.toml;
+            #   sha256 = lib.fakeHash;
+            # })
           ];
         };
       });
 }
 EOF
-    ${EDITOR:-vim} default.nix
+    ${EDITOR:-vim} flake.nix
+  fi
+  if [ -e ./.git ]; then 
+    git add flake.nix
   fi
   if [ ! -e ./.envrc ]; then
     echo "use flake" > .envrc

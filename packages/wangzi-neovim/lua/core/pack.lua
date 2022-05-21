@@ -286,10 +286,10 @@ packer.startup(function()
   })
 
   use({
-    n.comment_nvim,
-    as = "comment_nvim",
+    n.nvim_comment,
+    as = "nvim_comment",
     requires = "core",
-    module = "Comment",
+    module = "nvim_comment",
     keys = { "gcc", "gc" },
     config = function()
       require("core.plugins.others").comment()
@@ -328,6 +328,11 @@ packer.startup(function()
     n.telescope_ui_select,
     as = "telescope_ui_select",
     module = "telescope._extensions.ui-select",
+  })
+  use({
+    n.project,
+    as = "project",
+    module = { "telescope._extensions.projects", "project_nvim" },
   })
   use({
     -- "jose-elias-alvarez/null-ls.nvim",

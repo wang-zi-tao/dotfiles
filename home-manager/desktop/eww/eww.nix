@@ -469,7 +469,7 @@ in
                       (scale :min 0 :max 101 :class "bar-volume-scale" :value volume_value :onchange  "${pkgs.alsaUtils}/bin/amixer set Master {}%"))))
                 (eventbox :onhover "${eww} update brightness_expand=true" :onhoverlost "${eww} update brightness_expand=false"
                   (box :orientation "h" :class "sidestuff" :space-evenly false
-                    (label :class "brightness_icon" :text "")
+                    (label :class "brightness_icon" :text "")
                     (revealer :transition "slideleft" :reveal brightness_expand :duration "350ms"
                       (scale :min 0 :max 101 :class "bar-brightness-scale" :value brightness_value :onchange  "${pkgs.brightnessctl}/bin/brightnessctl set {}%"))))
                 (eventbox :onhover "${eww} update wifi_expand=true" :onhoverlost "${eww} update wifi_expand=false"

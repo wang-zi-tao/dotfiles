@@ -79,15 +79,21 @@ wk.register({
     },
     m = {
       function()
-        require("telescope.builtin").marks()
+        telescope().marks()
       end,
       "Marks",
     },
     d = {
       function()
-        require("telescope.builtin").lsp_document_symbols()
+        telescope().lsp_document_symbols()
       end,
       "Lsp_document_symbols",
+    },
+    p = {
+      function()
+        require("telescope").extensions.projects.projects()
+      end,
+      "Projects",
     },
   },
   g = {

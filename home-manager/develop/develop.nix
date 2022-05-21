@@ -93,6 +93,9 @@ in
     taskwarrior
     taskwarrior-tui
 
+    unixtools.xxd
+    gh
+
     # sumneko-lua-language-server
     nodePackages.typescript-language-server
     nodejs

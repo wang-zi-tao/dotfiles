@@ -3,8 +3,8 @@ let
   cfg = config.cluster;
   nodeConfig = cfg.nodes."${cfg.nodeName}";
 in
-with lib; {
-  options = with lib;
+with lib; with builtins;{
+  options =
     with types; {
       cluster = {
         weedFilers = mkOption { type = listOf str; };
@@ -21,7 +21,7 @@ with lib; {
           description = "nodes";
           type = attrsOf
             (submodule
-              ({ name, nodeConfig, ... }: {
+              ({ name, config, ... }: {
                 options = {
                   hostname = mkOption {
                     type = str;
@@ -56,7 +56,15 @@ with lib; {
                       type = bool;
                       default = true;
                     };
-                    clusterIp = mkOption { type = str; };
+                    index = mkOption { type = ints.u8; };
+                    clusterIp = mkOption {
+                      type = str;
+                      default = "192.168.16.${toString config.wireguard.index}";
+                    };
+                    clusterIp2 = mkOption {
+                      type = str;
+                      default = "192.168.17.${toString config.wireguard.index}";
+                    };
                     port = mkOption {
                       type = nullOr ints.u16;
                       default = null;
@@ -65,6 +73,7 @@ with lib; {
                     gateway = mkOption { type = nullOr str; default = null; };
                     gatewayServer = mkOption { type = bool; default = false; };
                     iptables.enable = mkOption { type = bool; default = false; };
+                    tcp = mkOption { type = bool; default = false; };
                   };
                   prometheus = {
                     server = mkOption {
@@ -89,6 +98,10 @@ with lib; {
                     default = false;
                   };
                   OnedevServer.enable = mkOption {
+                    type = bool;
+                    default = false;
+                  };
+                  CodeServer.enable = mkOption {
                     type = bool;
                     default = false;
                   };
@@ -218,6 +231,7 @@ with lib; {
     ./mySQL.nix
     ./nextcloud.nix
     ./onedev.nix
+    ./code.nix
     ./redis.nix
     ./weed.nix
     ./prometheus.nix
@@ -247,15 +261,17 @@ with lib; {
           users = [ "wangzi" ];
           localIp = "192.168.32.128";
           wireguard = {
-            clusterIp = "192.168.16.11";
+            index = 11;
             port = 16538;
             publicKey = "jh1sHn85aq4Hkb3/s8AeQwfzpQ5PtNU7p0dqyeUOTWQ=";
             gateway = "aliyun-hk";
+            tcp = true;
           };
           guiServer.enable = true;
           guiClient.enable = true;
           develop.enable = true;
           container.enable = true;
+          CodeServer.enable = true;
           weed = {
             enable = true;
             server.enable = true;
@@ -271,16 +287,18 @@ with lib; {
           users = [ "wangzi" ];
           localIp = "192.168.32.1";
           wireguard = {
-            clusterIp = "192.168.16.12";
+            index = 12;
             port = 16538;
             publicKey = "Vk2vw8TbtI7GgktauuppvfhKAAxyEeNC8+/nxt10t1s=";
             gateway = "aliyun-hk";
+            tcp = true;
           };
           wayland.enable = true;
           guiServer.enable = true;
           guiClient.enable = true;
           develop.enable = true;
           container.enable = true;
+          CodeServer.enable = true;
           weed = {
             enable = true;
             server.enable = true;
@@ -296,7 +314,7 @@ with lib; {
         huawei-ecs = {
           publicIp = "139.9.235.87";
           wireguard = {
-            clusterIp = "192.168.16.1";
+            index = 1;
             port = 30806;
             publicKey = "IfOIL06xMk/4r2QQvhNbLUFDLh97sXdHO3WIyOP4Sj4=";
           };
@@ -312,6 +330,7 @@ with lib; {
           };
           container.enable = true;
           MySQL.enable = true;
+          CodeServer.enable = true;
           redis.enable = true;
           prometheus.server = true;
           # weedServer.enable = true;
@@ -320,7 +339,7 @@ with lib; {
         aliyun-hk = {
           publicIp = "47.243.22.114";
           wireguard = {
-            clusterIp = "192.168.16.2";
+            index = 2;
             port = 49638;
             publicKey = "kY4n/K6zHjRNq/5f1yId2156zyfO/cVAwQddasPqjE8=";
             iptables.enable = true;
@@ -338,6 +357,7 @@ with lib; {
           };
           proxy.enable = true;
           NextCloudServer.enable = true;
+          CodeServer.enable = true;
           OnedevServer.enable = true;
           redis.enable = true;
           inVM = true;
@@ -354,7 +374,7 @@ with lib; {
         };
         nova9 = {
           wireguard = {
-            clusterIp = "192.168.16.21";
+            index = 21;
             port = 53555;
             publicKey = "Xy1ofNbrxk2Gm8Q29hzCxtu5djfAvv9EFg6yOkbkBhw=";
             gateway = "aliyun-hk";
