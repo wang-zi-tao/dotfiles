@@ -23,7 +23,7 @@ aliyun-hk:
 	nixos-rebuild --flake '.#aliyun-hk' --target-host root@47.243.22.114 switch
 aliyun-ecs:
 	git add . 
-	nixos-rebuild --flake '.#aliyun-ecs' --target-host root@116.23.62.116 switch
+	nixos-rebuild --flake '.#aliyun-ecs' --target-host root@116.62.23.116 switch
 
 lxd:
 	git add . 

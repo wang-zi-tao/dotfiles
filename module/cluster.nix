@@ -246,6 +246,17 @@ with lib; with builtins;{
           clients = [ "wangzi-nuc" "wangzi-pc" ];
           sync = [{ from = "wangzi-nuc"; to = "wangzi-pc"; }];
         };
+        config = {
+          servers = [ "wangzi-nuc" "wangzi-pc" "huawei-ecs" "aliyun-hk" "aliyun-ecs" ];
+          clients = [ "wangzi-nuc" "wangzi-pc" "huawei-ecs" "aliyun-hk" "aliyun-ecs" ];
+          sync = [
+            { from = "wangzi-nuc"; to = "wangzi-pc"; }
+            { from = "aliyun-hk"; to = "wangzi-pc"; }
+            { from = "aliyun-hk"; to = "wangzi-nuc"; }
+            { from = "aliyun-hk"; to = "aliyun-ecs"; }
+            { from = "aliyun-hk"; to = "huawei-ecs"; }
+          ];
+        };
         workspace = {
           servers = [ "wangzi-nuc" "wangzi-pc" "aliyun-hk" ];
           clients = [ "wangzi-nuc" "wangzi-pc" "aliyun-hk" ];
@@ -363,7 +374,7 @@ with lib; with builtins;{
           inVM = true;
         };
         aliyun-ecs = {
-          publicIp = "116.23.62.116";
+          publicIp = "116.62.23.116";
           wireguard = {
             index = 3;
             port = 39690;
@@ -379,9 +390,7 @@ with lib; with builtins;{
               server = true;
             };
           };
-          container.enable = true;
           inVM = true;
-          CodeServer.enable = true;
         };
         lxd = {
           wireguard = { enable = false; };

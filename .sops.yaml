@@ -14,6 +14,7 @@ creation_rules:
       - *server-wangzi-pc
       - *server-wangzi-nuc
       - *server-aliyun-hk
+      - *server-aliyun-ecs
   - path_regex: secrets/wangzi-pc.yaml$
     key_groups:
     - age:
