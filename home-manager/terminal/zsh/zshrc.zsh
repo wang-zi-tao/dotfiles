@@ -65,6 +65,9 @@ bindkey '^[-' tmux split -v
 
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
+if [[ -e $SSH_CONNECTION ]];then
+  command tmux set prefix C-v
+fi
 
 alias -s gz='tar -xzvf'
 alias -s tgz='tar -xzvf'

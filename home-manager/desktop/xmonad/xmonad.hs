@@ -58,11 +58,12 @@ import           XMonad.Util.PureX
 import           XMonad.Util.Run                      (hPutStrLn, spawnPipe)
 import           XMonad.Util.SpawnOnce                (spawnOnce)
 import           XMonad.Util.WindowProperties
+import XMonad.Hooks.WallpaperSetter
 
 -- | q ^? x. if the result of x 'isPrefixOf' q, return True
 (<^?) :: (Eq a, Functor m) => m [a] -> [a] -> m Bool
 q <^? x = fmap (x `isPrefixOf`) q
-
+myWorkspaces         = [ "1" , "2" , "3" , "4" , "5" , "6" , "7" , "8" , "9" ]
 myKeys :: [(String, X ())]
 myKeys =
   [
@@ -81,7 +82,9 @@ myKeys =
   , ("M-S-c", kill)
   , ("M-c", kill)
   , ("M-Delete", kill)
-  , ("M-o", spawn "betterlockscreen -l -s && systemctl suspend") -- lock screen
+  , ("M-o", spawn "i3lock-fancy && systemctl suspend") -- lock screen
+  , ("C-M-o", spawn "i3lock-fancy")
+  , ("C-M-l", spawn "i3lock-fancy")
   -- , ("M-S-q", confirmPrompt myXPConfig "exit" $ io exitSuccess) -- prompt to kill xmonad
   , ("M-q", spawn "xmonad --restart")
 
@@ -100,7 +103,6 @@ myKeys =
   , ("M-d", spawn "rofi -combi-modi window,drun -show combi -modi combi -theme ~/.config/rofi/apps.css")
   , ("M-f", spawn "rofi -combi-modi window -show combi -modi combi -theme ~/.config/rofi/apps.css")
   , ("M-r", spawn "rofi -combi-modi run -show combi -modi combi -theme ~/.config/rofi/apps.css")
-  , ("C-M-l", spawn "light-locker")
   , ("M-<Esc>", nextMatch Forward isOnAnyVisibleWS)
   , ("M-<Tab>", nextMatch History (return True))
 
@@ -239,7 +241,6 @@ myManageHook = composeAll
    -- then spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080 --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal"
    -- else spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080"
 myStartupHook = do
-  spawn "feh --bg-fill ~/图片/大鱼海棠16.png"
   spawn "killall picom; picom --dbus --experimental-backend"
   -- spawnOnce "qv2ray"
   spawnOnce "ibus-daemon -x -r -R"
@@ -264,7 +265,21 @@ myLayout =  avoidStruts $ smartBorders
   spiralgaps = myGaps $ spiral (6 / 7)
 myTerminal :: String
 myTerminal = "alacritty"
-myLogHook dbus = dynamicLogWithPP (barHook dbus) <+> historyHook -- <+> updatePointer (0.5, 0.5) (0, 0)
+myLogHook dbus = dynamicLogWithPP (barHook dbus) <+> historyHook <+> wallpapersHook -- <+> updatePointer (0.5, 0.5) (0, 0)
+wallpapersHook = wallpaperSetter defWallpaperConf {
+     wallpapers = defWPNames myWorkspaces
+               <> WallpaperList [
+                 ("1",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠16.jpg")
+                ,("2",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠9.jpg")
+                ,("3",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠14.jpg")
+                ,("4",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠15.jpg")
+                ,("5",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠8.jpg")
+                ,("6",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠6.jpg")
+                ,("7",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠3.jpg")
+                ,("8",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠1.jpg")
+                ,("9",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠.jpg")
+               ]
+  }
 mkDbusClient :: IO D.Client
 mkDbusClient = do
   dbus <- D.connectSession
@@ -272,8 +287,6 @@ mkDbusClient = do
   return dbus
  where
   opts = [D.nameAllowReplacement, D.nameReplaceExisting, D.nameDoNotQueue]
-
--- Emit a DBus signal on log updates
 dbusOutput :: D.Client -> String -> IO ()
 dbusOutput dbus str =
   let opath  = D.objectPath_ "/org/xmonad/Log"
@@ -282,7 +295,6 @@ dbusOutput dbus str =
       signal = (D.signal opath iname mname)
       body   = [D.toVariant $ UTF8.decodeString str]
   in  D.emit dbus $ signal { D.signalBody = body }
-
 barHook :: D.Client -> PP
 barHook dbus =
   let symbol w | w == "1" = "\xf269"
@@ -327,7 +339,7 @@ main = do
       , clickJustFocuses   = True
       , borderWidth        = 2
       , modMask            = mod4Mask
-      , workspaces         = [ "1" , "2" , "3" , "4" , "5" , "6" , "7" , "8" , "9" ]
+      , workspaces         = myWorkspaces
       , normalBorderColor  = "#ffffff" -- "#d6778c"
       , focusedBorderColor = "#5a9dd8"
       -- key bindings

@@ -335,10 +335,10 @@ in
 
       (defwidget logout [] 
         (box :class "genwin" :vexpand "false" :hexpand "false" 
-          (button :class "btn_logout" :onclick "betterlockscreen -l -s" "﫼")))
+          (button :class "btn_logout" :onclick "i3lock-fancy" "﫼")))
       (defwidget sleep [] 
         (box :class "genwin" :vexpand "false" :hexpand "false" 
-          (button :class "btn_sleep" :onclick "eww set control-center-enable=false; betterlockscreen -l -s" "⏾")))
+          (button :class "btn_sleep" :onclick "eww set control-center-enable=false; i3lock-fancy" "⏾")))
       (defwidget reboot [] 
         (box :class "genwin" :vexpand "false" :hexpand "false" 
           (button :class "btn_reboot" :onclick "systemctl reboot" "")))

@@ -6,14 +6,13 @@ windows:
     layout: 57d5,191x50,0,0,16
 - nixos:
     layout: af43,191x50,0,0,6
-    root: /home/wangzi/workspace/nixos
+    root: /mnt/weed/mount/wangzi-nuc/config/nixos
     panes:
     - vim
-- zsh:
-    layout: 57d5,191x50,0,0,16
-- Temp:
-    layout: 57d8,191x50,0,0,19
-    root: Temp
+- monitor:
+    layout: c165,211x55,0,0,
+    panes:
+    - htop
 - wangzi-nuc:
     layout: 57d6,191x50,0,0,36
     panes:
@@ -22,7 +21,11 @@ windows:
     layout: 57d6,191x50,0,0,36
     panes:
     - retry ssh wangzi@wangzi-pc -X -Y -t "tmux attach-session"
-- aliyun:
+- aliyun-ecs:
+    layout: 57d6,191x50,0,0,36
+    panes:
+    - retry ssh root@aliyun-ecs -X -Y -t "tmux attach-session"
+- aliyun-hk:
     layout: 57d6,191x50,0,0,36
     panes:
     - retry ssh root@aliyun-hk -X -Y -t "tmux attach-session"
@@ -30,12 +33,8 @@ windows:
     layout: 57d6,191x50,0,0,36
     panes:
     - retry ssh root@huawei-ecs -X -Y -t "tmux attach-session"
-- monitor:
-    layout: c165,211x55,0,0,
-    panes:
-    - htop
-- huawei-ecs:
-    layout: 57d6,191x50,0,0,36
-    panes:
-    - ping aliyun-hk.wg
-    - ping aliyun-hk.wg1
+- zsh:
+    layout: 57d5,191x50,0,0,16
+- Temp:
+    layout: 57d8,191x50,0,0,19
+    root: Temp

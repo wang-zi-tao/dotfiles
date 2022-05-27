@@ -173,5 +173,8 @@ in
     environment.systemPackages = with pkgs; [
       seaweedfs
     ];
+    system.activationScripts.weed-self = ''
+      ln -sfn /mnt/weed/mount/${nodeConfig.hostname} /mnt/weed/mount/self
+    '';
   };
 }

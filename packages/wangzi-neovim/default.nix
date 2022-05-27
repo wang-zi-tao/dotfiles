@@ -47,6 +47,11 @@ stdenvNoCC.mkDerivation {
       nvim_colorizer_lua = "${nvim-colorizer-lua}",
       nvim_treesitter = "${nvim-treesitter}",
       gitsigns_nvim = "${gitsigns-nvim}",
+      vgit_nvim = "${pkgs.fetchgit {
+        url = "https://github.com/tanvirtin/vgit.nvim";
+        rev = "554dfaf74022cc4c4bc420a73888652b81c6d9c9";
+        sha256 = "sha256-U7AOuJ7y+rdj0DgizKIPtorAgaiE9YVL7agkR8OEPaA=";
+      }}",
       nvim_lspconfig = "${nvim-lspconfig}",
       lsp_signature_nvim = "${lsp_signature-nvim}",
       vim_matchup = "${vim-matchup}",
@@ -70,8 +75,23 @@ stdenvNoCC.mkDerivation {
       rust_tools = "${rust-tools-nvim}",
       cmp_tabnine = "${cmp-tabnine}",
       cmp_spell = "${cmp-spell}",
+      cmp_zsh = "${pkgs.fetchgit {
+        url = "https://github.com/tamago324/cmp-zsh";
+        rev = "1d8133e5637c73b3eb392682ae9661d521738268";
+        sha256 = "sha256-49MghjnaVzrOlbawP+WM7nQvkGH2nWt/AFdiT4ijQgQ=";
+      }}",
+      cmp_git = "${pkgs.fetchgit {
+        url = "https://github.com/petertriho/cmp-git";
+        rev = "60e3de62b925ea05c7aa37883408859c72d498fb";
+        sha256 = "sha256-gbfrFDLeybiSyLqmJYG4AD8boFASjDBV6aHHs4BfbmE=";
+      }}",
       markdown_preview = "${markdown-preview-nvim}",
       marks = "${marks-nvim}",
+      marks = "${pkgs.fetchgit {
+        url = "https://github.com/chentoast/marks.nvim";
+        rev = "01b87464559506ddd8e800e1a3192b134879c212";
+        sha256 = "sha256-rYJF/1mdQ64o69m3ROjDFPgyAaun8aVIpyuh586MEWU=";
+      }}",
       auto_save = "${pkgs.fetchgit {
         url = "https://github.com/Pocco81/AutoSave.nvim/";
         rev = "3d342d6fcebeede15b6511b13a38a522c6f33bf8";
@@ -116,6 +136,7 @@ stdenvNoCC.mkDerivation {
       dressing_nvim = "${dressing-nvim}",
       telescope_ui_select = "${telescope-ui-select-nvim}",
       telescope_dap_nvim = "${telescope-dap-nvim}",
+      trouble_nvim = "${trouble-nvim}",
       project = "${pkgs.fetchgit {
         url = "https://github.com/ahmedkhalf/project.nvim";
         rev = "612443b27f5feda45ea478bd6ddc8f95d4ec7b77";

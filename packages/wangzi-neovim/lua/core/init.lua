@@ -1,5 +1,6 @@
 require("core.opt")
 require("core.map")
+require("core.env")
 
 local n = require("core.gen")
 for _, file in ipairs(vim.fn.readdir(n.core .. "/skeleton")) do

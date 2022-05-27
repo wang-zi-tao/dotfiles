@@ -11,17 +11,15 @@ windows:
     panes:
     - vim
     # - zsh
-- lua:
+- mesh:
     layout: c15f,211x55,0,0,2
-    root: /home/wangzi/workspace/lua
+    root: /home/wangzi/workspace/NixCluster/mesh-proxy
     panes:
-    - vim test.lua
+    - vim
 - zsh:
     layout: c160,211x55,0,0,3
-    root: /home/wangzi/workspace/JVM/JVM
 - zsh:
     layout: c165,211x55,0,0,8
-    root: /home/wangzi/Temp
 - monitor:
     layout: c165,211x55,0,0,8
     panes:

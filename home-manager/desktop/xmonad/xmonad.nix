@@ -25,15 +25,18 @@ let
     blue = "#81A1C1";
     purple = "#B48EAD";
   };
-in with lib; {
-  options.theme = mapAttrs (name: value:
-    mkOption {
-      type = types.str;
-      default = value;
-    }) theme;
+in
+with lib; {
+  options.theme = mapAttrs
+    (name: value:
+      mkOption {
+        type = types.str;
+        default = value;
+      })
+    theme;
   config = {
     home.packages = with pkgs;
-      [ lxappearance lightlocker betterlockscreen playerctl scrot ];
+      [ lxappearance lightlocker playerctl scrot imagemagickBig i3lock-fancy ];
     xsession = {
       windowManager.xmonad = {
         enable = true;
@@ -47,9 +50,10 @@ in with lib; {
       network-manager-applet.enable = true;
     };
     # services.random-background = {
-      # enable = true;
-      # imageDirectory = "${pkgs.backgrounds}/share/backgrounds";
+    # enable = true;
+    # imageDirectory = "${pkgs.backgrounds}/share/backgrounds";
     # };
-    home.file.".xmonad/background.jpg".source="${pkgs.resources}/share/backgrounds/大鱼海棠16.jpg";
+    home.file.".xmonad/wallpapers/".source = "${pkgs.resources}/share/backgrounds/";
+    home.file.".xmonad/background.jpg".source = "${pkgs.resources}/share/backgrounds/大鱼海棠16.jpg";
   };
 }

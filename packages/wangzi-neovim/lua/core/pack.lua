@@ -37,6 +37,7 @@ packer.startup(function()
   use({
     n.impatient_nvim,
     as = "impatient_nvim",
+    disable = true,
     config = function()
       require("impatient")
     end,
@@ -48,7 +49,7 @@ packer.startup(function()
     as = "onedark_nvim",
     requires = "core",
     config = function()
-      require("core.plugins.others").onedark()
+      require("core.plugins.onedark")
     end,
   })
 
@@ -117,12 +118,21 @@ packer.startup(function()
     as = "gitsigns.nvim",
     module = "gitsigns",
     config = function()
-      require("core.plugins.others").gitsigns()
+      require("core.plugins.gitsigns")
     end,
     setup = function()
       vim.defer_fn(function()
         require("packer").loader("gitsigns.nvim")
       end, 0)
+    end,
+  })
+  use({
+    n.vgit_nvim,
+    as = "vgit_nvim",
+    requires = "nvim-lua/plenary.nvim",
+    cmd = "VGit",
+    config = function()
+      require("core.plugins.vgit")
     end,
   })
 
@@ -166,7 +176,6 @@ packer.startup(function()
   use({
     n.better_escape_nvim,
     as = "better_escape_nvim",
-    event = "InsertCharPre",
     disable = true,
     config = function()
       require("core.plugins.others").better_escape()
@@ -177,7 +186,6 @@ packer.startup(function()
     n.friendly_snippets,
     as = "friendly_snippets",
     module = "cmp_nvim_lsp",
-    event = "InsertCharPre",
   })
 
   use({
@@ -188,11 +196,13 @@ packer.startup(function()
     config = function()
       require("core.plugins.cmp")
     end,
+    event = "BufEnter",
   })
 
   use({
     n.luasnip,
     as = "luasnip",
+    module = "luasnip",
     after = "friendly_snippets",
     config = function()
       require("core.plugins.others").luasnip()
@@ -268,6 +278,28 @@ packer.startup(function()
       require("cmp").register_source("path", require("cmp_path").new())
     end,
   })
+  use({
+    n.cmp_zsh,
+    as = "cmp_zsh",
+    after = "cmp_buffer",
+    requires = "cmp_buffer",
+    config = function()
+      require("cmp").register_source("zsh", require("cmp_zsh").new())
+      require("cmp_zsh").setup({
+        zshrc = true, -- Source the zshrc (adding all custom completions). default: false
+        filetypes = { "deoledit", "zsh" }, -- Filetypes to enable cmp_zsh source. default: {"*"}
+      })
+    end,
+  })
+  use({
+    n.cmp_git,
+    as = "cmp_git",
+    after = "cmp_buffer",
+    requires = "cmp_buffer",
+    config = function()
+      require("core.plugins.cmp_git")
+    end,
+  })
 
   use({
     n.nvim_autopairs,
@@ -325,6 +357,13 @@ packer.startup(function()
     end,
   })
   use({
+    n.trouble_nvim,
+    as = "trouble_nvim",
+    config = function()
+      require("core.plugins.trouble")
+    end,
+  })
+  use({
     n.telescope_ui_select,
     as = "telescope_ui_select",
     module = "telescope._extensions.ui-select",
@@ -363,7 +402,7 @@ packer.startup(function()
       "SymbolsOutlineOpen",
       "SymbolsOutlineClose",
     },
-    setup = "require('core.plugins.others').symbols_outline_pre()",
+    setup = "require('core.plugins.symbols_outline_pre')",
     config = function()
       require("core.plugins.others").symbols_outline()
     end,
@@ -394,7 +433,7 @@ packer.startup(function()
     config = function()
       require("core.plugins.others").rust_tools()
     end,
-    ft = { "rs", "toml" },
+    ft = { "rs", "rust", "toml" },
   })
   use({
     -- "davidgranstrom/nvim-markdown-preview",
@@ -434,9 +473,6 @@ packer.startup(function()
     as = "ts_rainbow",
     after = "nvim_treesitter",
     requires = "nvim_treesitter",
-    config = function()
-      require("core.plugins.others").ts_rainbow()
-    end,
   })
   use({
     -- "sindrets/diffview.nvim",
@@ -478,7 +514,7 @@ packer.startup(function()
     as = "hlslens",
     after = "nvim_treesitter",
     config = function()
-      require("core.plugins.others").hlslens()
+      require("core.plugins.hlslens")
     end,
   })
   use({
@@ -486,7 +522,7 @@ packer.startup(function()
     as = "pretty_fold",
     after = "nvim_treesitter",
     config = function()
-      require("core.plugins.others").pretty_fold()
+      require("core.plugins.pretty_fold")
     end,
   })
   use({

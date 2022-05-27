@@ -183,6 +183,10 @@ with lib; with builtins;{
                     type = bool;
                     default = false;
                   };
+                  virtualisation.enable = mkOption {
+                    type = bool;
+                    default = false;
+                  };
                   proxy.enable = mkOption {
                     type = bool;
                     default = false;
@@ -282,6 +286,7 @@ with lib; with builtins;{
           guiClient.enable = true;
           develop.enable = true;
           container.enable = true;
+          virtualisation.enable = true;
           CodeServer.enable = true;
           weed = {
             enable = true;
@@ -309,6 +314,7 @@ with lib; with builtins;{
           guiClient.enable = true;
           develop.enable = true;
           container.enable = true;
+          virtualisation.enable = true;
           CodeServer.enable = true;
           weed = {
             enable = true;
@@ -390,6 +396,8 @@ with lib; with builtins;{
               server = true;
             };
           };
+          CodeServer.enable = true;
+          redis.enable = true;
           inVM = true;
         };
         lxd = {

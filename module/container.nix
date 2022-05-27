@@ -18,13 +18,6 @@
         enable = true;
         # enableNvidia = config.services.xserver.enable;
       };
-      lxd = {
-        enable = true;
-        package = pkgs.unstable.lxd;
-        recommendedSysctlSettings = true;
-      };
-      lxc.lxcfs.enable = true;
-      libvirtd = { enable = !config.cluster.nodeConfig.inVM; };
     };
     programs.criu.enable = true;
     environment.systemPackages = with pkgs; [ criu ];

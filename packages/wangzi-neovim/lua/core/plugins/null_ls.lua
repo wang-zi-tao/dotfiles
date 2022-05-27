@@ -18,6 +18,8 @@ local sources = {
   -- Shell
   b.formatting.shfmt,
   b.diagnostics.shellcheck.with({ diagnostics_format = "#{m} [#{c}]" }),
+  -- git
+  b.code_actions.gitsigns,
 }
 null_ls.setup({
   sources = sources,

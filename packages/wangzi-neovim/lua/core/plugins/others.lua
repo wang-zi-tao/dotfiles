@@ -1,44 +1,5 @@
 local n = require("core.gen")
 local M = {}
-M.onedark = function()
-  local onedark = require("onedark")
-  onedark.setup({
-    -- Main options --
-    style = "deep", -- Default theme style. Choose between 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer' and 'light'
-    transparent = false, -- Show/hide background
-    term_colors = false, -- Change terminal color as per the selected theme style
-    ending_tildes = false, -- Show the end-of-buffer tildes. By default they are hidden
-    -- toggle theme style ---
-    toggle_style_key = "<leader>ts", -- Default keybinding to toggle
-    toggle_style_list = { "dark", "darker", "cool", "deep", "warm", "warmer", "light" }, -- List of styles to toggle between
-
-    -- Change code style ---
-    -- Options are italic, bold, underline, none
-    -- You can configure multiple style with comma seperated, For e.g., keywords = 'italic,bold'
-    code_style = {
-      comments = "italic",
-      keywords = "none",
-      functions = "none",
-      strings = "none",
-      variables = "none",
-    },
-
-    -- Custom Highlights --
-    colors = {}, -- Override default colors
-    highlights = {
-      NormalBorder = { fg = "$blue" },
-      VertSplit = { fg = "$blue" },
-    }, -- Override highlight groups
-
-    -- Plugins Config --
-    diagnostics = {
-      darker = true, -- darker colors for diagnostic
-      undercurl = true, -- use undercurl instead of underline for diagnostics
-      background = false, -- use background color for virtual text
-    },
-  })
-  onedark.load()
-end
 M.autopairs = function()
   local autopairs = require("nvim-autopairs")
   autopairs.setup({ fast_wrap = {} })
@@ -142,144 +103,8 @@ M.signature = function()
   })
 end
 
-M.lsp_handlers = function()
-  local function lspSymbol(name, icon)
-    local hl = "DiagnosticSign" .. name
-    vim.fn.sign_define(hl, { text = icon, numhl = hl, texthl = hl })
-  end
-
-  lspSymbol("Error", "")
-  lspSymbol("Info", "")
-  lspSymbol("Hint", "")
-  lspSymbol("Warn", "")
-
-  vim.diagnostic.config({
-    virtual_text = {
-      prefix = "",
-    },
-    signs = true,
-    underline = true,
-    update_in_insert = false,
-  })
-
-  vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-    border = "single",
-  })
-  vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
-    border = "single",
-  })
-
-  -- suppress error messages from lang servers
-  vim.notify = function(msg, log_level)
-    if msg:match("exit code") then
-      return
-    end
-    if log_level == vim.log.levels.ERROR then
-      vim.api.nvim_err_writeln(msg)
-    else
-      vim.api.nvim_echo({ { msg } }, true, {})
-    end
-  end
-end
-
-M.gitsigns = function()
-  require("gitsigns").setup({
-    signs = {
-      add = { hl = "GitSignsAdd", text = "│", numhl = "GitSignsAddNr", linehl = "GitSignsAddLn" },
-      change = { hl = "GitSignsChange", text = "│", numhl = "GitSignsChangeNr", linehl = "GitSignsChangeLn" },
-      delete = { hl = "GitSignsDelete", text = "_", numhl = "GitSignsDeleteNr", linehl = "GitSignsDeleteLn" },
-      topdelete = { hl = "GitSignsDelete", text = "‾", numhl = "GitSignsDeleteNr", linehl = "GitSignsDeleteLn" },
-      changedelete = { hl = "GitSignsChange", text = "~", numhl = "GitSignsChangeNr", linehl = "GitSignsChangeLn" },
-    },
-    signcolumn = true, -- Toggle with `:Gitsigns toggle_signs`
-    numhl = false, -- Toggle with `:Gitsigns toggle_numhl`
-    linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
-    word_diff = true, -- Toggle with `:Gitsigns toggle_word_diff`
-    watch_gitdir = {
-      interval = 1000,
-      follow_files = true,
-    },
-    attach_to_untracked = true,
-    current_line_blame = false, -- Toggle with `:Gitsigns toggle_current_line_blame`
-    current_line_blame_opts = {
-      virt_text = true,
-      virt_text_pos = "eol", -- 'eol' | 'overlay' | 'right_align'
-      delay = 1000,
-      ignore_whitespace = false,
-    },
-    sign_priority = 6,
-    update_debounce = 100,
-    status_formatter = nil, -- Use default
-    max_file_length = 40000,
-    preview_config = {
-      -- Options passed to nvim_open_win
-      border = "single",
-      style = "minimal",
-      relative = "cursor",
-      row = 0,
-      col = 1,
-    },
-    yadm = {
-      enable = false,
-    },
-  })
-end
 M.which_key = function()
   require("which-key").setup({})
-end
-M.symbols_outline_pre = function()
-  vim.g.symbols_outline = {
-    highlight_hovered_item = true,
-    show_guides = true,
-    auto_preview = true,
-    position = "right",
-    relative_width = true,
-    width = 25,
-    auto_close = false,
-    show_numbers = false,
-    show_relative_numbers = false,
-    show_symbol_details = true,
-    preview_bg_highlight = "Pmenu",
-    keymaps = { -- These keymaps can be a string or a table for multiple keys
-      close = { "<Esc>", "q" },
-      goto_location = "<Cr>",
-      focus_location = "o",
-      hover_symbol = "<C-space>",
-      toggle_preview = "K",
-      rename_symbol = "r",
-      code_actions = "a",
-    },
-    lsp_blacklist = {},
-    symbol_blacklist = {},
-    symbols = {
-      File = { icon = "", hl = "SymbolOutlineURI" },
-      Module = { icon = "", hl = "SymbolOutlineNamespace" },
-      Namespace = { icon = "", hl = "SymbolOutlineNamespace" },
-      Package = { icon = "", hl = "SymbolOutlineNamespace" },
-      Class = { icon = "C", hl = "SymbolOutlineType" },
-      Method = { icon = "F", hl = "SymbolOutlineMethod" },
-      Property = { icon = "", hl = "SymbolOutlineMethod" },
-      Field = { icon = "", hl = "SymbolOutlineField" },
-      Constructor = { icon = "F", hl = "SymbolOutlineConstructor" },
-      Enum = { icon = "", hl = "SymbolOutlineType" },
-      Interface = { icon = "", hl = "SymbolOutlineType" },
-      Function = { icon = "", hl = "SymbolOutlineFunction" },
-      Variable = { icon = "", hl = "SymbolOutlineConstant" },
-      Constant = { icon = "", hl = "SymbolOutlineConstant" },
-      String = { icon = "", hl = "SymbolOutlineString" },
-      Number = { icon = "#", hl = "SymbolOutlineNumber" },
-      Boolean = { icon = "01", hl = "SymbolOutlineBoolean" },
-      Array = { icon = "", hl = "SymbolOutlineConstant" },
-      Object = { icon = "", hl = "SymbolOutlineType" },
-      Key = { icon = "", hl = "SymbolOutlineType" },
-      Null = { icon = "0", hl = "SymbolOutlineType" },
-      EnumMember = { icon = "", hl = "SymbolOutlineField" },
-      Struct = { icon = "", hl = "SymbolOutlineType" },
-      Event = { icon = "", hl = "SymbolOutlineType" },
-      Operator = { icon = "+", hl = "SymbolOutlineOperator" },
-      TypeParameter = { icon = "𝙏", hl = "SymbolOutlineParameter" },
-    },
-  }
 end
 M.symbols_outline = function()
   local colors = require("core.colors").get()
@@ -336,20 +161,6 @@ M.auto_save = function()
     debounce_delay = 135,
   })
 end
-M.ts_rainbow = function()
-  require("nvim-treesitter.configs").setup({
-    rainbow = {
-      -- Setting colors
-      colors = {
-        -- Colors here
-      },
-      -- Term colors
-      termcolors = {
-        -- Term colors here
-      },
-    },
-  })
-end
 M.diffview = function()
   require("diffview").setup({})
 end
@@ -366,86 +177,6 @@ end
 M.scrollbar = function()
   require("scrollbar").setup()
   require("scrollbar.handlers.search").setup()
-end
-M.hlslens = function()
-  require("hlslens").setup({
-    override_lens = function(render, plist, nearest, idx, r_idx)
-      local sfw = vim.v.searchforward == 1
-      local indicator, text, chunks
-      local abs_r_idx = math.abs(r_idx)
-      if abs_r_idx > 1 then
-        indicator = ("%d%s"):format(abs_r_idx, sfw ~= (r_idx > 1) and "▲" or "▼")
-      elseif abs_r_idx == 1 then
-        indicator = sfw ~= (r_idx == 1) and "▲" or "▼"
-      else
-        indicator = ""
-      end
-
-      local lnum, col = unpack(plist[idx])
-      if nearest then
-        local cnt = #plist
-        if indicator ~= "" then
-          text = ("(%s %d/%d)"):format(indicator, idx, cnt)
-        else
-          text = ("(%d/%d)"):format(idx, cnt)
-        end
-        chunks = { { " ", "Ignore" }, { text, "HlSearchLensNear" } }
-      else
-        text = ("(%s %d)"):format(indicator, idx)
-        chunks = { { " ", "Ignore" }, { text, "HlSearchLens" } }
-      end
-      render.set_virt(0, lnum - 1, col - 1, chunks, nearest)
-    end,
-  })
-end
-M.pretty_fold = function()
-  require("pretty-fold").setup({
-    fill_char = "━",
-    sections = {
-      left = {
-        "━ ",
-        function()
-          return string.rep("*", vim.v.foldlevel)
-        end,
-        " ━┫",
-        "content",
-        "┣",
-      },
-      right = {
-        "┫ ",
-        "number_of_folded_lines",
-        ": ",
-        "percentage",
-        " ┣━━",
-      },
-    },
-    remove_fold_markers = true,
-    -- Keep the indentation of the content of the fold string.
-    keep_indentation = true,
-    -- Possible values:
-    -- "delete" : Delete all comment signs from the fold string.
-    -- "spaces" : Replace all comment signs with equal number of spaces.
-    -- false    : Do nothing with comment signs.
-    process_comment_signs = "spaces",
-    -- Comment signs additional to the value of `&commentstring` option.
-    comment_signs = {},
-    -- List of patterns that will be removed from content foldtext section.
-    stop_words = {
-      "@brief%s*", -- (for C++) Remove '@brief' and all spaces after.
-    },
-    add_close_pattern = true, -- true, 'last_line' or false
-    matchup_patterns = {
-      -- beginning of the line -> any number of spaces -> 'do' -> end of the line
-      { "^%s*do$", "end" }, -- `do ... end` blocks
-      { "^%s*if", "end" }, -- if
-      { "^%s*for", "end" }, -- for
-      { "function%s*%(", "end" }, -- 'function( or 'function (''
-      { "{", "}" },
-      { "%(", ")" }, -- % to escape lua pattern char
-      { "%[", "]" }, -- % to escape lua pattern char
-    },
-  })
-  require("pretty-fold.preview").setup()
 end
 M.ts_autotag = function() end
 M.lspsaga = function()
@@ -542,5 +273,4 @@ M.session_manager = function()
     autosave_only_in_session = false, -- Always autosaves session. If true, only autosaves after a session is active.
   })
 end
-
 return M

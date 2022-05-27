@@ -97,7 +97,7 @@ wk.register({
     },
   },
   g = {
-    name = "Diff",
+    name = "Git",
     r = {
       function()
         telescope().lsp_references()
@@ -116,6 +116,10 @@ wk.register({
       end,
       "Close Diff",
     },
+    a = { ":!git add .<CR>", "git add ." },
+    c = { ":terminal git commit<CR>", "git commit" },
+    p = { ":!git push<CR>", "git push" },
+    P = { ":!git pull<CR>", "git pull" },
   },
   l = {
     name = "LSP",
@@ -235,7 +239,13 @@ wk.register({
     },
   },
   h = { name = "hunk" },
-  b = { name = "buffer" },
+  b = {
+    name = "buffer",
+    d = {
+      "<cmd>bd<CR>",
+      "Delete Buffer",
+    },
+  },
 }, { prefix = "<leader>" })
 wk.register({
   g = {
@@ -317,6 +327,9 @@ map("n", "<leader>we", function()
 end)
 map("n", "<leader>o", function()
   require("symbols-outline").toggle_outline()
+end)
+map("n", "<leader>r", function()
+  require("trouble").toggle()
 end)
 map("n", "<leader>u", "<cmd>UndotreeToggle<CR>")
 map("n", "<leader><Tab>", "<cmd>b#<CR>")

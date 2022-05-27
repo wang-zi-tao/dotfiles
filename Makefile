@@ -8,6 +8,9 @@ all:
 this:
 	git add . 
 	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch
+self:
+	git add . 
+	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch
 wangzi-pc:
 	git add . 
 	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.32.128 switch || \

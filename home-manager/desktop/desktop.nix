@@ -13,7 +13,6 @@
     timeout = 8;
   };
   xresources.properties = { "Xft.dpi" = 96; };
-  services.betterlockscreen = { enable = true; };
   home.file.".icons/default".source =
     "${pkgs.layan-cursor-theme}/share/icons/Layan-white Cursors";
   gtk = {

@@ -36,7 +36,7 @@ local function setup_lsp(attach, capabilities)
   end
 end
 
-require("core.plugins.others").lsp_handlers()
+require("core.plugins.lsp_handlers")
 
 local function on_attach(_, bufnr)
   -- local function buf_set_option(...)

@@ -39,7 +39,7 @@ require("nvim-tree").setup({
   ignore_ft_on_setup = {},
   auto_close = false,
   auto_reload_on_write = true,
-  open_on_tab = false,
+  open_on_tab = true,
   hijack_cursor = false,
   update_cwd = false,
   diagnostics = {
@@ -99,15 +99,16 @@ require("nvim-tree").setup({
   },
   actions = {
     open_file = {
-      quit_on_open = true,
+      quit_on_open = false,
       window_picker = {
         enable = true,
-        chars = "1234567890",
+        chars = "asdfghjkl",
         exclude = {
           filetype = {
             "notify",
             "packer",
             "qf",
+            "OUTLINE",
           },
           buftype = { "terminal" },
         },
