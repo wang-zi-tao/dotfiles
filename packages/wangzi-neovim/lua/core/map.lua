@@ -1,4 +1,4 @@
-local function map(mod, key, exec, opt)
+local function map(mod, key, exec)
   vim.keymap.set(mod, key, exec)
 end
 local wk = require("which-key")

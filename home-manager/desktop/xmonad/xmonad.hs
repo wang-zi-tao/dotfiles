@@ -223,7 +223,6 @@ myManageHook = composeAll
       , resource =? "desktop_window" --> doIgnore
       , className =? "icalingua" --> doShift "6"
       , (className =? "gnome-screenshot") <||> (className =? "Gnome-screenshot") --> doFloat
-      , (className =? "Firefox" )  --> doShift "1"
       , title /=? "alacritty-drop" --> placeHook (withGaps (100,100,100,100) (underMouse (0,0)))
       , title =? "alacritty-workspace-1" --> doShift "1"
       , title =? "alacritty-workspace-2" --> doShift "2"

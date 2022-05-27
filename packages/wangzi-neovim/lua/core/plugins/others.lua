@@ -69,6 +69,8 @@ M.comment = function()
     -- Hook function to call before commenting takes place
     hook = nil,
   })
+  vim.cmd([[autocmd BufEnter *.cpp,*.h :lua vim.api.nvim_buf_set_option(0, "commentstring", "// %s")]])
+  vim.cmd([[autocmd BufEnter *.nix :lua vim.api.nvim_buf_set_option(0, "commentstring", "# %s")]])
 end
 
 M.luasnip = function()

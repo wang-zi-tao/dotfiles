@@ -46,8 +46,13 @@ with lib; {
       };
     };
     services = {
-      # blueman-applet.enable = true;
+      blueman-applet.enable = true;
       network-manager-applet.enable = true;
+    };
+    services.screen-locker = {
+      enable = true;
+      lockCmd = "${pkgs.i3lock-fancy}/bin/i3lock-fancy";
+      xautolock.enable = true;
     };
     # services.random-background = {
     # enable = true;
