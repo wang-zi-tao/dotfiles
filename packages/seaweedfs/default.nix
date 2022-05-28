@@ -8,7 +8,7 @@
 }:
 buildGo118Module rec {
   pname = "seaweedfs";
-  version = "3.02";
+  version = "3.06";
 
   src = fetchFromGitHub {
     owner = "chrislusf";
