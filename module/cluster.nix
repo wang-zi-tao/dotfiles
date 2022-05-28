@@ -254,7 +254,6 @@ with lib; with builtins;{
           servers = [ "wangzi-nuc" "wangzi-pc" "huawei-ecs" "aliyun-hk" "aliyun-ecs" ];
           clients = [ "wangzi-nuc" "wangzi-pc" "huawei-ecs" "aliyun-hk" "aliyun-ecs" ];
           sync = [
-            { from = "wangzi-nuc"; to = "wangzi-pc"; }
             { from = "aliyun-hk"; to = "wangzi-pc"; }
             { from = "aliyun-hk"; to = "wangzi-nuc"; }
             { from = "aliyun-hk"; to = "aliyun-ecs"; }

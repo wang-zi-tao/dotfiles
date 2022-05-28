@@ -46,7 +46,7 @@ with lib; {
       };
     };
     services = {
-      blueman-applet.enable = true;
+      blueman-applet.enable = false;
       network-manager-applet.enable = true;
     };
     services.screen-locker = {
