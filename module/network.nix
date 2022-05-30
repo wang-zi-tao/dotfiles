@@ -83,7 +83,7 @@ in
     (lib.optionalAttrs (nodeConfig.wireguard.enable && nodeConfig.wireguard.tunnel)
       (builtins.listToAttrs
         (builtins.map
-          (node: lib.nameValuePair "wireguard-tunnel-${node.hostname}" (
+          (node: lib.nameValuePair "wireguard-tunnel-client-${node.hostname}" (
             let ip = if node.publicIp != null then node.publicIp else if node.localIp != null then node.localIp else null; in
             {
               enable = true;
@@ -96,27 +96,32 @@ in
                 RestartSec = "5s";
                 LimitNOFILE = 500000;
                 LimitNPROC = 500000;
-                ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -c -l127.0.0.1:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (node.wireguard.index + 40000)}";
+                ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -c -l127.0.0.1:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (nodeConfig.wireguard.index + 40000)}";
               };
             }
           ))
-          (builtins.filter (node: node.wireguard.enable && node.hostname != nodeConfig.hostname && (node.publicIp != null || node.localIp != null)) (builtins.attrValues config.cluster.nodes))))) //
-    {
-      wireguard-tunnel-server = {
-        enable = nodeConfig.wireguard.enable;
-        wantedBy = [ "multi-user.target" ];
-        before = [ "multi-user.target" ];
-        path = with pkgs; [ busybox openssh ];
-        serviceConfig = {
-          Type = "simple";
-          Restart = "always";
-          RestartSec = "5s";
-          LimitNOFILE = 500000;
-          LimitNPROC = 500000;
-          ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -s -l0.0.0.0:${builtins.toString (nodeConfig.wireguard.index + 40000)} -r 127.0.0.1:${builtins.toString nodeConfig.wireguard.port }";
-        };
-      };
-    }
+          (builtins.filter (node: node.wireguard.enable && node.hostname != nodeConfig.hostname && (node.publicIp != null || node.localIp != null)) (builtins.attrValues config.cluster.nodes)))))
+    // (builtins.listToAttrs
+      (builtins.map
+        (node: lib.nameValuePair "wireguard-tunnel-server-${node.hostname}" (
+          let ip = if node.publicIp != null then node.publicIp else if node.localIp != null then node.localIp else null; in
+          {
+            enable = true;
+            wantedBy = [ "multi-user.target" ];
+            before = [ "multi-user.target" ];
+            path = with pkgs; [ busybox openssh ];
+            serviceConfig = {
+              Type = "simple";
+              Restart = "always";
+              RestartSec = "5s";
+              LimitNOFILE = 500000;
+              LimitNPROC = 500000;
+              ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -s -l0.0.0.0:${builtins.toString (node.wireguard.index + 40000)} -r 127.0.0.1:${builtins.toString nodeConfig.wireguard.port}";
+            };
+          }
+        ))
+        (builtins.filter (node: node.wireguard.enable && node.hostname != nodeConfig.hostname && node.wireguard.tunnel) (builtins.attrValues config.cluster.nodes))))
+
     // {
       wg-netmanager = lib.mkIf nodeConfig.wireguard.enable
         {
