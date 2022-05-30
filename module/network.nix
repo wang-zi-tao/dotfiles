@@ -63,8 +63,8 @@ in
               # allowedIPs = [ w.clusterIp ] ++ (lib.lists.optional "192.168.16.0/24");
               publicKey = w.publicKey;
               endpoint =
-                if false && nodeConfig.wireguard.tcp then
-                  "localhost:${builtins.toString (w.index + 40000)}"
+                if false && nodeConfig.wireguard.tunnel then
+                  "127.0.0.1:${builtins.toString (w.index + 40000)}"
                 else if node.publicIp != null then
                   "${node.publicIp}:${builtins.toString w.port}"
                 else if node.localIp != null then
@@ -79,10 +79,10 @@ in
   };
 
   systemd.services =
-    (lib.optionalAttrs (nodeConfig.wireguard.enable && nodeConfig.wireguard.tcp)
+    (lib.optionalAttrs (nodeConfig.wireguard.enable && nodeConfig.wireguard.tunnel)
       (builtins.listToAttrs
         (builtins.map
-          (node: lib.nameValuePair "wireguard-tcp-${node.hostname}" (
+          (node: lib.nameValuePair "wireguard-tunnel-${node.hostname}" (
             let ip = if node.publicIp != null then node.publicIp else if node.localIp != null then node.localIp else null; in
             {
               enable = false;
@@ -95,14 +95,14 @@ in
                 RestartSec = "5s";
                 LimitNOFILE = 500000;
                 LimitNPROC = 500000;
-                ExecStart = "${pkgs.udp2raw}/bin/udp2raw -c -l0.0.0.0:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (node.wireguard.index + 40000)}";
+                ExecStart = "${pkgs.udp2raw}/bin/udp2raw -c -l127.0.0.1:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (node.wireguard.index + 40000)}";
               };
             }
           ))
           (builtins.filter (node: node.wireguard.enable && node.hostname != nodeConfig.hostname && (node.publicIp != null || node.localIp != null)) (builtins.attrValues config.cluster.nodes))))) //
     {
-      wireguard-tcp-server = {
-        enable = nodeConfig.wireguard.enable;
+      wireguard-tunnel-server = {
+        enable = false && nodeConfig.wireguard.enable;
         wantedBy = [ "multi-user.target" ];
         before = [ "multi-user.target" ];
         path = with pkgs; [ busybox openssh ];
@@ -112,7 +112,7 @@ in
           RestartSec = "5s";
           LimitNOFILE = 500000;
           LimitNPROC = 500000;
-          ExecStart = "${pkgs.udp2raw}/bin/udp2raw -s -l0.0.0.0:${builtins.toString (nodeConfig.wireguard.index + 40000)} -r 0.0.0.0:${builtins.toString (nodeConfig.wireguard.port)}";
+          ExecStart = "${pkgs.udp2raw}/bin/udp2raw -s -l0.0.0.0:${builtins.toString (nodeConfig.wireguard.index + 40000)} -r 127.0.0.1:${builtins.toString (nodeConfig.wireguard.port)}";
         };
       };
     }

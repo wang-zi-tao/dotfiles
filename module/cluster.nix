@@ -73,7 +73,7 @@ with lib; with builtins;{
                     gateway = mkOption { type = nullOr str; default = null; };
                     gatewayServer = mkOption { type = bool; default = false; };
                     iptables.enable = mkOption { type = bool; default = false; };
-                    tcp = mkOption { type = bool; default = false; };
+                    tunnel = mkOption { type = bool; default = false; };
                   };
                   prometheus = {
                     server = mkOption {
@@ -279,7 +279,7 @@ with lib; with builtins;{
             port = 16538;
             publicKey = "jh1sHn85aq4Hkb3/s8AeQwfzpQ5PtNU7p0dqyeUOTWQ=";
             gateway = "aliyun-hk";
-            tcp = true;
+            tunnel = true;
           };
           guiServer.enable = true;
           guiClient.enable = true;
@@ -306,7 +306,7 @@ with lib; with builtins;{
             port = 16538;
             publicKey = "Vk2vw8TbtI7GgktauuppvfhKAAxyEeNC8+/nxt10t1s=";
             gateway = "aliyun-hk";
-            tcp = true;
+            tunnel = true;
           };
           wayland.enable = true;
           guiServer.enable = true;
@@ -329,6 +329,7 @@ with lib; with builtins;{
         };
         huawei-ecs = {
           publicIp = "139.9.235.87";
+          localIp = "192.168.0.212";
           wireguard = {
             index = 1;
             port = 30806;
@@ -354,6 +355,7 @@ with lib; with builtins;{
         };
         aliyun-hk = {
           publicIp = "47.243.22.114";
+          localIp = "172.17.19.165";
           wireguard = {
             index = 2;
             port = 49638;
@@ -380,6 +382,7 @@ with lib; with builtins;{
         };
         aliyun-ecs = {
           publicIp = "116.62.23.116";
+          localIp = "172.26.48.134";
           wireguard = {
             index = 3;
             port = 39690;
