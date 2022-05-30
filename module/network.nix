@@ -46,6 +46,7 @@ in
         address = [ nodeConfig.wireguard.clusterIp ];
         listenPort = nodeConfig.wireguard.port;
         privateKeyFile = config.sops.secrets."wireguard/private-key".path;
+        mtu = 1200;
         peers = map
           (node:
             let w = node.wireguard;
@@ -63,7 +64,7 @@ in
               # allowedIPs = [ w.clusterIp ] ++ (lib.lists.optional "192.168.16.0/24");
               publicKey = w.publicKey;
               endpoint =
-                if false && nodeConfig.wireguard.tunnel then
+                if nodeConfig.wireguard.tunnel then
                   "127.0.0.1:${builtins.toString (w.index + 40000)}"
                 else if node.publicIp != null then
                   "${node.publicIp}:${builtins.toString w.port}"
@@ -85,7 +86,7 @@ in
           (node: lib.nameValuePair "wireguard-tunnel-${node.hostname}" (
             let ip = if node.publicIp != null then node.publicIp else if node.localIp != null then node.localIp else null; in
             {
-              enable = false;
+              enable = true;
               wantedBy = [ "multi-user.target" ];
               before = [ "multi-user.target" ];
               path = with pkgs; [ busybox openssh ];
@@ -95,14 +96,14 @@ in
                 RestartSec = "5s";
                 LimitNOFILE = 500000;
                 LimitNPROC = 500000;
-                ExecStart = "${pkgs.udp2raw}/bin/udp2raw -c -l127.0.0.1:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (node.wireguard.index + 40000)}";
+                ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode none --auth-mode simple -c -l127.0.0.1:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (node.wireguard.index + 40000)}";
               };
             }
           ))
           (builtins.filter (node: node.wireguard.enable && node.hostname != nodeConfig.hostname && (node.publicIp != null || node.localIp != null)) (builtins.attrValues config.cluster.nodes))))) //
     {
       wireguard-tunnel-server = {
-        enable = false && nodeConfig.wireguard.enable;
+        enable = nodeConfig.wireguard.enable;
         wantedBy = [ "multi-user.target" ];
         before = [ "multi-user.target" ];
         path = with pkgs; [ busybox openssh ];
@@ -112,7 +113,7 @@ in
           RestartSec = "5s";
           LimitNOFILE = 500000;
           LimitNPROC = 500000;
-          ExecStart = "${pkgs.udp2raw}/bin/udp2raw -s -l0.0.0.0:${builtins.toString (nodeConfig.wireguard.index + 40000)} -r 127.0.0.1:${builtins.toString (nodeConfig.wireguard.port)}";
+          ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode none --auth-mode simple -s -l0.0.0.0:${builtins.toString (nodeConfig.wireguard.index + 40000)} -r 127.0.0.1:${builtins.toString nodeConfig.wireguard.port }";
         };
       };
     }
