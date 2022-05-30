@@ -1,0 +1,155 @@
+(defwidget profile[](box))
+(defvar control-center-enable false)
+
+(defpoll UNAME :run-while control-center-enable :interval "5m"  "whoami")
+(defwidget profile[]
+  (big_block
+    (box :class "profile" :orientation "v" :spacing 2 :space-evenly "false" :vexpand "false" :hexpand "false"
+      (box)
+      (label :class "fullname" :halign "center" :wrap "true" :limit-width 25 :text UNAME))))
+(defwidget weather_page[]
+  (big_block
+    (box :class "weather" :space-evenly false :spacing 8 :orientation "v"
+      :style "color: ${WEATHER_ICONS['${WEATHER.weather[0].icon}'].color};"
+      (label :class "weather_icon" :text {WEATHER_ICONS["${WEATHER.weather[0].icon}"].icon})
+      (label :text "${round(WEATHER.main.temp,0) - 273}°C"))))
+(defwidget system_monitor_page[]
+  (big_block
+    (box :class "system_monitor" :spacing 8
+      (box :orientation "v" :spacing 8
+        (my-circular-progress :icon "" :value {EWW_CPU["avg"]})
+        (my-circular-progress :icon "ﲮ" :value {EWW_RAM.used_mem_perc}))
+      (box :orientation "v" :spacing 8
+        (my-circular-progress :icon "糖" :value {EWW_TEMPS.COMPOSITE != 'null' ? EWW_TEMPS.COMPOSITE : EWW_TEMPS.PACKAGE_ID_0})
+        (my-circular-progress :icon "⏻" :value {EWW_BATTERY != '' ? EWW_BATTERY.BAT0.capacity : 100})))))
+(defwidget apps_page[]
+  (big_block
+    (box :spacing 8 :orientation "v"
+      (box :spacing 8
+        (icon :picture "images/firefox.png" :command "firefox --new-tab")
+        (icon :picture "images/alacritty.png" :command "alacritty")
+        (icon :picture "images/vscode.png" :command "code"))
+      (box :spacing 8
+        (icon :picture "images/chrome.png" :command "google-chrome-stable")
+        (icon :picture "images/wps-office2019-kprometheus.png" :command "wps")
+        (icon :picture "images/minecraft.png" :command "cd ~/MineCraft;java -jar HMCL-3.5.2.218.jar"))
+      (box :spacing 8
+        (icon :picture "images/wps-office-wppmain.png" :command "wpp")
+        (icon :picture "images/wps-office-etmain.png" :command "et")
+        (icon :picture "images/wps-office-wpsmain.png" :command "wps")))))
+
+(defpoll WIFI_LIST :interval "60s" "nmcli --terse  device wifi | awk -F \":\" '
+  BEGIN{i=0;printf(\"[\")}
+  {
+  if(i!=0){printf(\",\")};
+  i++;
+  printf(\"{\\\"name\\\":\\\"\")
+  printf(\$8)
+  printf(\"\\\",\\\"speed\\\":\\\"\")
+  printf(\$11)
+  printf(\"\\\",\\\"signal\\\":\\\"\")
+  printf(\$13)
+  printf(\"\\\",\\\"state\\\":\\\"\")
+  printf(\$1)
+  printf(\"\\\"}\")
+  }
+  END{printf(\"]\")}
+'")
+(defwidget wifi_page[]
+  (fill_block
+    (box :orientation "v" :hexpand true :class "list wifi_page" :space-evenly false
+      (box :space-evenly false :spacing 16 :hexpand true :halign "center"
+        (label :class "icon" :text {WIFI_VALUE == "" ? "睊" : "直" })
+        (label :class "name" :text "  ${WIFI_VALUE}"))
+      (scroll :vscroll true :height 96
+        (box :orientation "v"
+          (for wifi in WIFI_LIST
+            (button :onclick "command nmcli device wifi connect ${wifi.name}" :class "block1"
+              (centerbox
+                (box :spacing 16 :space-evenly false
+                  (label :class "state" :text {wifi.state!= " " ? "" : " "})
+                  (label :class "name" :text {wifi.name}))
+                (box)
+                ; (label :class "wifi_speed" :text {wifi.speed})
+                (label :halign "end" :class "wifi_signal" :text {wifi.signal})))))))))
+(defpoll BLUETOOTH_LIST :interval "60s" "bluetoothctl devices | awk '
+  BEGIN{i=0;printf(\"[\")}
+  {
+  if(i!=0){printf(\",\")};
+  i++;
+  printf(\"{\\\"name\\\":\\\"\")
+  printf(\$3)
+  printf(\"\\\",\\\"uuid\\\":\\\"\")
+  printf(\$2)
+  printf(\"\\\"}\")
+  }
+  END{printf(\"]\")}
+'")
+(defwidget bluetooth_page[]
+  (fill_block
+    (box :orientation "v" :hexpand true :class "list bluetooth_page" :space-evenly false
+      (box :space-evenly false :spacing 16 :hexpand true :halign "center"
+        (label :text " 蓝牙")
+      )
+      (scroll :vscroll true :height 96
+        (box :orientation "v" :valign "start"
+          (for bluetooth_device in BLUETOOTH_LIST
+            (button :onclick "bluetoothctl connect ${bluetooth_device.uuid}" :class "block1"
+              (box :spacing 16 :space-evenly true
+                (label :class "name" :limit-width 8 :text {bluetooth_device.name}))
+            )))))))
+(defwidget control_page[]
+  (fill_block
+    (box :orientation "v" :class "control_page"
+      (box :space-evenly false :class "control_volume"
+        (label :text "" :width 32)
+        (scale :hexpand true :min 0 :max 101 :value VOLUME_VALUE :onchange  "amixer set Master {}%"))
+      (box :space-evenly false :class "control_brightness"
+        (label :text "" :width 32)
+        (scale :hexpand true  :min 0 :max 101 :value BRIGHTNESS_VALUE :onchange  "brightnessctl set {}%"))
+    )))
+(defwidget control_button[]
+  (fill_block
+    (box :orientation "v" :valign "start" :spacing 4
+      (symbol :symbol "⏻" :command "systemctl poweroff")
+      (symbol :symbol "ﰇ" :command "systemctl reboot")
+      (symbol :symbol "⏾" :command "systemctl suspend")
+      (symbol :symbol "" :command "i3lock-fancy")
+      (symbol :symbol "" :command "firefox --new-tab 'https://github.com'")
+      (symbol :symbol "" :command "firefox --new-tab 'https://search.nixos.org/packages'")
+      (symbol :symbol "" :command "firefox --new-tab 'http://47.243.22.114/apps/dashboard/#/'")
+      (symbol :symbol "ﲳ" :command "firefox --new-tab 'http://47.243.22.114:6610/'")
+      (symbol :symbol "ﲮ" :command "firefox --new-tab 'http://139.9.235.87:9002'")
+      (symbol :symbol "" :command "firefox --new-tab 'https://doc.rust-lang.org/std/'")
+    )
+    ))
+(defwindow mainpage
+  :monitor 0
+  :windowtype "dock"
+  :wm-ignore true
+  :stacking "overlay"
+  :focusable true
+  :screen 1
+  :geometry (geometry :x "-1%" :y "5%"
+  :anchor "top right")
+  (eventbox :onhoverlost "eww close mainpage"
+    (revealer :transition "slidedown" :reveal true :duration "1s"
+    (box :space-evenly false
+      (box :class "mainpage" :orientation "v" :vexpand false :space-evenly false
+        (control_page)
+        (box
+          (weather_page)
+          (profile)
+        )
+        (box
+          (apps_page)
+          (system_monitor_page)
+        )
+        (box
+          (wifi_page)
+          (bluetooth_page)
+        )
+      )
+      (control_button)
+      
+    ))))

@@ -22,7 +22,7 @@ let
     yellow = "#EBCB8B";
     green = "#A3BE8C";
     sky = "#88C0D0";
-    blue = "#81A1C1";
+    blue = "#3b99f8";
     purple = "#B48EAD";
   };
 in

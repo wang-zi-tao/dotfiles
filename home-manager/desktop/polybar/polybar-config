@@ -18,8 +18,9 @@
 [bar/icons]
 enable-ipc=true
 offset-x = 344
-width = 10%
-offset-y = 8
+width = 7.5%
+height = 30
+offset-y = 6
 module-margin = 1
 font-0 = "Liga SFMono Nerd Font:size=13;3"
 font-1 = "LiterationMono Nerd Font:size=12;3"

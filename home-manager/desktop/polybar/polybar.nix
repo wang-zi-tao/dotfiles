@@ -3,10 +3,10 @@
 let
   theme = config.theme;
   colors = builtins.readFile ./polybar-colors + ''
-    BACKGROUND = ${theme.background1}
+    BACKGROUND = ${theme.background}
     FOREGROUND = ${theme.foreground}
 
-    BLACK = #2E3440
+    BLACK = ${theme.background1}
     RED = ${theme.red}
     GREEN = ${theme.green}
     YELLOW = ${theme.yellow}
@@ -24,8 +24,9 @@ let
     ALTWHITE = #ECEFF4
 
     foreground-alt = ${theme.red}
-      '';
-in {
+  '';
+in
+{
   services.polybar = {
     enable = true;
     config = ./polybar-config;

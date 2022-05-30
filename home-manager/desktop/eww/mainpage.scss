@@ -1,0 +1,100 @@
+.mainpage {
+	font-size: 32px;
+
+	.block {
+		background-color: $theme-background;
+		padding: 6px;
+		margin: 4px;
+		min-height: 27px;
+		border-radius: 16px;
+		border-width: 5px;
+	}
+
+	.profile {
+		>box {
+			background-repeat: no-repeat;
+			background-size: 96px;
+			min-height: 96px;
+			min-width: 96px;
+			border-radius: 100%;
+			background-image: url("file:///home/wangzi/.config/eww/images/profile.jpg");
+		}
+
+		>label {
+			color: $theme-foreground;
+			font-size: 32px;
+			font-weight: bold;
+		}
+	}
+
+	.weather_icon {
+		font-size: 64px;
+	}
+
+	.system_monitor {
+
+		circular-progress {
+
+			color: $theme-sky;
+			background-color: $theme-background2;
+
+			label {
+				color: $theme-sky;
+				font-size: 32px;
+				margin: 16px;
+			}
+
+		}
+	}
+
+	.wifi_page {
+		font-size: 16px;
+		.wifi_signal{
+			color: $theme-foreground2;
+		}
+	}
+
+	.bluetooth_page {
+		font-size: 16px;
+	}
+
+	.control_page {
+		padding: 8px 16px;
+
+		trough {
+			background-color: $theme-background2;
+			min-width: 64px;
+			min-height: 16px;
+			border-radius: 8px;
+			margin-left: 10px;
+			margin-right: 20px;
+		}
+
+		highlight {
+			color: $theme-blue;
+			border-radius: 8px;
+			border-radius: 8px;
+			background-color: $theme-yellow;
+		}
+
+		.control_volume highlight {
+			background-color: $theme-green;
+		}
+
+		.control_brightness highlight {
+			background-color: $theme-yellow;
+		}
+
+	}
+	.symbol{
+		padding: 2px;
+		margin: 2px;
+		min-height: 40px;
+		min-width: 40px;
+		>label{
+			font-size: 32px;
+			border-radius: 32px;
+			background-color: $theme-background2;
+		}
+	}
+}

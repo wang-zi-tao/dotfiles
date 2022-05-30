@@ -244,7 +244,7 @@ myStartupHook = do
   -- spawnOnce "qv2ray"
   spawnOnce "ibus-daemon -x -r -R"
   spawnOnce "sleep 4;nextcloud"
-  spawn "killall eww; eww open-many bar"
+  spawn "killall eww; eww open-many panel"
   spawn "killall polybar;sleep 4; polybar icons"
   spawn "gpaste-client start"
   spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080 --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal"

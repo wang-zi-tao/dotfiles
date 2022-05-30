@@ -1,7 +1,7 @@
 { pkgs, ... }: {
   programs.vscode = {
     enable = true;
-    package = pkgs.vscodium;
+    /* package = pkgs.vscodium; */
     extensions = with pkgs.unstable.vscode-extensions; [
       # markdowm
       yzhang.markdown-all-in-one

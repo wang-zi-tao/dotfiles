@@ -1,0 +1,85 @@
+(defpoll TIME :interval "1s" "date '+%m-%d %H:%M:%S'")
+(deflisten WORKSPACE_ID "xprop -spy -root _NET_CURRENT_DESKTOP")
+(defvar WORKSPACE_LIST "[
+  {\"text\":\"\",\"id\":1},
+  {\"text\":\"\",\"id\":2},
+  {\"text\":\"\",\"id\":3},
+  {\"text\":\"\",\"id\":4},
+  {\"text\":\"\",\"id\":5},
+  {\"text\":\"ﬄ\",\"id\":6},
+  {\"text\":\"\",\"id\":7},
+  {\"text\":\"\",\"id\":8},
+  {\"text\":\"\",\"id\":9}
+]")
+(defwidget workspaces []
+  (box :class "worksapce" :space-evenly false
+    (button :class "workspace layout" :onclick "rofi -combi-modi window,drun -show combi -modi combi -theme ~/.config/rofi/apps.css&" (label :hexpand false :text ""))
+    (for ws in WORKSPACE_LIST
+      (box :class "workspace ${WORKSPACE_ID == '_NET_CURRENT_DESKTOP(CARDINAL) = ${(ws.id)-1}' ? 'current-workspace' : 'normal-workspace' }"
+        :halign "center"
+        :valign "center"
+        (eventbox :onhover "wmctrl -s $(( ${ws.id} - 1 ))"
+          (label :hexpand true :text "${ws.text}"))))))
+(deflisten SONG :interval ""  "playerctl metadata --format '{{ title }}';playerctl --follow metadata --format '{{ title }}'")
+(deflisten ARTIST :interval ""  "playerctl metadata --format '{{ artist }}';playerctl --follow metadata --format '{{ artist }}'")
+(defvar VOLUME_EXPAND false)
+(defpoll VOLUME_VALUE :interval "1s" "amixer get Master | grep 'Left:' | awk -F'[][]' '{ print $2 }' | tr -d '%' | head -1 || echo 0")
+(defvar BRIGHTNESS_EXPAND false)
+(defpoll BRIGHTNESS_VALUE :interval "5s" "brightnessctl -m | awk -F, '{print substr($4, 0, length($4)-1)}' | tr -d '%'")
+(defvar WIFI_EXPAND false)
+(defpoll WIFI_VALUE :interval "5s" "nmcli c | grep -E 'wifi' | awk '{print ($1)}' | head -n 1")
+(defwidget control_panel []
+  (eventbox :onhover "eww open mainpage"
+    (box :halign "end" :space-evenly false :spacing 8 :class "control_panel"
+      (my-circular-progress :icon "" :value {EWW_CPU["avg"]})
+      (my-circular-progress :icon "ﲮ" :value {EWW_RAM.used_mem_perc})
+      (my-circular-progress :icon "糖" :value {EWW_TEMPS.COMPOSITE != 'null' ? EWW_TEMPS.COMPOSITE : EWW_TEMPS.PACKAGE_ID_0})
+      (my-circular-progress :icon "⏻" :value {EWW_BATTERY != '' ? EWW_BATTERY.BAT0.capacity : 100})
+      (eventbox :class "volume" :onhover "eww update VOLUME_EXPAND=true" :onhoverlost "eww update VOLUME_EXPAND=false"
+        (box :orientation "h" :class "sidestuff" :space-evenly false
+          (label :text "")
+          (revealer :transition "slideleft" :reveal VOLUME_EXPAND :duration "350ms"
+            (scale :min 0 :max 101 :value VOLUME_VALUE :onchange  "amixer set Master {}%"))))
+      (eventbox :class "brightness" :onhover "eww update BRIGHTNESS_EXPAND=true" :onhoverlost "eww update BRIGHTNESS_EXPAND=false"
+        (box :orientation "h" :class "sidestuff" :space-evenly false
+          (label :text "")
+          (revealer :transition "slideleft" :reveal BRIGHTNESS_EXPAND :duration "350ms"
+            (scale :min 0 :max 101 :value BRIGHTNESS_VALUE :onchange  "brightnessctl set {}%"))))
+      (eventbox :onhover "eww update WIFI_EXPAND=true" :onhoverlost "eww update WIFI_EXPAND=false"
+        (box :orientation "h" :class "sidestuff" :space-evenly false
+          (label :class "wifi_icon" :text {WIFI_VALUE == "" ? "睊" : "直" })
+          (revealer :transition "slideleft" :reveal WIFI_EXPAND :duration "350ms"
+            (label :class "wifi_name" :text "  ${WIFI_VALUE}"))))
+      (box :halign "end" :space-evenly false
+        (box :valign "center"
+          (label :class "network_speed" :text {"${ EWW_NET.wg0.NET_DOWN > 3000000 ? '${round(EWW_NET.wg0.NET_DOWN/3000000,1)}M' : '${round(EWW_NET.wg0.NET_DOWN/3000,1)}K'} ${ EWW_NET.wg0.NET_UP > 333333 ? '${round(EWW_NET.wg0.NET_UP/333333,1)}M' : '${round(EWW_NET.wg0.NET_UP/333,1)}K'}"})))
+      (label :text "    "))))
+(defwidget weather_panel[]
+  (box :class "weather_panel" :space-evenly false :spacing 4
+    :style "color: ${WEATHER_ICONS["${WEATHER.weather[0].icon}"].color};"
+    (label :text {WEATHER_ICONS["${WEATHER.weather[0].icon}"].icon})
+    (label :text "${round(WEATHER.main.temp,0) - 273}°C")
+  ))
+(defwidget center_panel []
+  (box :space-evenly false :class "center_panel"
+    (label :text " ")
+    (revealer :transition "slideleft" :reveal {SONG!=''} :duration "350ms"
+      (box :class "panel_music" :orientation "h" :space-evenly false :valign "center" :spacing 8
+        (button :onclick "playerctl previous"  "玲")
+        (button :onclick "playerctl play-pause"  "懶")
+        (button :onclick "playerctl next"  "怜")
+        (label :limit-width 32 :text SONG)
+        (label :limit-width 32 :text ARTIST)))
+    (box :class "time" (label :text TIME))
+    (box
+      (label :class "warn" :text "${(EWW_BATTERY != '' ? EWW_BATTERY.BAT0.capacity : 100) < 20 ? '${EWW_BATTERY.BAT0.capacity}%': ''}")
+      (label :class "warn" :text "${(EWW_TEMPS.COMPOSITE != 'null' ? EWW_TEMPS.COMPOSITE : EWW_TEMPS.PACKAGE_ID_0) > 75 ? '${(EWW_TEMPS.COMPOSITE != 'null' ? EWW_TEMPS.COMPOSITE : EWW_TEMPS.PACKAGE_ID_0)}糖' : ''}"))
+    (weather_panel)
+  ))
+(defwindow panel :monitor 0 :windowtype "dock" :wm-ignore true :stacking "bg"
+  :geometry (geometry :x "0%" :y "0%" :width "100%" :height "0px" :anchor "top center")
+  :reserve (struts :side "top" :distance "34px")
+  (centerbox :class "panel" :orientation "h"
+    (box :space-evenly false (block(workspaces)) (box  :hexpand true))
+    (box :space-evenly false (block (center_panel)))
+    (box :space-evenly false (box :hexpand true) (block (control_panel)))))

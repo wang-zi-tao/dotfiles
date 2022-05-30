@@ -9,9 +9,9 @@ stdenv.mkDerivation rec {
   };
   installPhase = ''
     mkdir -p $out/bin
-    cp udp2raw_amd64 $out/bin
+    cp udp2raw $out/bin
   '';
-  nativeBuildInputs = [ pkg-config gnumake git glibc glibc.dev ];
+  nativeBuildInputs = [ pkg-config gnumake git glibc.static ];
   buildInputs = [ ];
   meta = with lib; {
     description = " A Tunnel which Turns UDP Traffic into Encrypted UDP/FakeTCP/ICMP Traffic by using Raw Socket,helps you Bypass UDP FireWalls(or Unstable UDP Environment) ";

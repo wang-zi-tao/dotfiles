@@ -1,0 +1,77 @@
+(defwidget block [?class]
+  (box
+    :spacing 1
+    :space-evenly true
+    :hexpand false
+    :class "block ${class}"
+    :valign "center"
+    :halign "center"
+    (children)))
+(defwidget big_block [?class]
+  (box
+    :spacing 1
+    :space-evenly true
+    :hexpand false
+    :class "block ${class}"
+    (box
+      :valign "center"
+      :halign "center"
+      :hexpand true
+      :vexpand true
+      (children))))
+(defwidget fill_block [?class]
+  (box
+    :spacing 1
+    :space-evenly true
+    :hexpand false
+    :class "block ${class}"
+    (box
+      :valign "fill"
+      :halign "fill"
+      :hexpand true
+      :vexpand true
+      (children))))
+(defwidget my-circular-progress [icon value ?class]
+  (circular-progress :value value :thickness 5 :class "${class}"
+    (label :text icon)))
+(defwidget icon [picture command ?class]
+  (button
+    :onclick command
+    :class "icon ${class}"
+    (image
+      :image-width 32
+      :image-height 32
+      :width 32
+      :height 32
+    :path picture)))
+(defwidget symbol [symbol command ?class]
+  (button
+    :valign "center"
+    :halign "center"
+    :onclick command
+    :class "symbol ${class}"
+    (label :text symbol)))
+(defpoll WEATHER :interval "1m" "wget --connect-timeout=1s -O - 'https://api.openweathermap.org/data/2.5/weather?q=kunming,CN&appid=fb99bcdaeab53d643557bf4fc227679b' 2> /dev/null")
+
+(defvar WEATHER_ICONS "{
+  \"50d\":{\"icon\":\"\",\"color\":\"#84afdb\"},
+  \"50n\":{\"icon\":\"\",\"color\":\"#84afdb\"},
+  \"01d\":{\"icon\":\"\",\"color\":\"#ffd86b\"},
+  \"01n\":{\"icon\":\"\",\"color\":\"#fcdcf6\"},
+  \"02d\":{\"icon\":\"\",\"color\":\"#adadff\"},
+  \"02n\":{\"icon\":\"\",\"color\":\"#adadff\"},
+  \"03d\":{\"icon\":\"\",\"color\":\"#adadff\"},
+  \"03n\":{\"icon\":\"\",\"color\":\"#adadff\"},
+  \"04d\":{\"icon\":\"\",\"color\":\"#adadff\"},
+  \"04n\":{\"icon\":\"\",\"color\":\"#adadff\"},
+  \"09d\":{\"icon\":\"\",\"color\":\"#6b95ff\"},
+  \"09n\":{\"icon\":\"\",\"color\":\"#6b95ff\"},
+  \"10d\":{\"icon\":\"\",\"color\":\"#6b95ff\"},
+  \"10n\":{\"icon\":\"\",\"color\":\"#6b95ff\"},
+  \"11d\":{\"icon\":\"\",\"color\":\"#ffeb57\"},
+  \"11n\":{\"icon\":\"\",\"color\":\"#ffeb57\"},
+  \"13d\":{\"icon\":\"\",\"color\":\"#e3e6fc\"},
+  \"13n\":{\"icon\":\"\",\"color\":\"#e3e6fc\"},
+  \"40d\":{\"icon\":\"\",\"color\":\"#84afdb\"},
+  \"40n\":{\"icon\":\"\",\"color\":\"#84afdb\"}
+}")

@@ -34,7 +34,7 @@ in
         })
         (builtins.filter ({ wireguard, ... }: wireguard.enable)
           (builtins.attrValues config.cluster.nodes)))) //
-    { "127.0.0.1" = [ config.networking.hostName ]; };
+    { "127.0.0.1" = [ config.networking.hostName "localhost.wangzicloud.cn" ]; };
   };
   sops.secrets."wireguard/private-key" =
     lib.mkIf nodeConfig.wireguard.enable { };
@@ -63,10 +63,9 @@ in
               # allowedIPs = [ w.clusterIp ] ++ (lib.lists.optional "192.168.16.0/24");
               publicKey = w.publicKey;
               endpoint =
-                /* if nodeConfig.wireguard.tcp then */
-                /*   "localhost:${builtins.toString (w.index + 40000)}" */
-                /* else */
-                if node.publicIp != null then
+                if false && nodeConfig.wireguard.tcp then
+                  "localhost:${builtins.toString (w.index + 40000)}"
+                else if node.publicIp != null then
                   "${node.publicIp}:${builtins.toString w.port}"
                 else if node.localIp != null then
                   "${node.localIp}:${builtins.toString w.port}"
@@ -96,48 +95,44 @@ in
                 RestartSec = "5s";
                 LimitNOFILE = 500000;
                 LimitNPROC = 500000;
-                ExecStart = "${pkgs.udp2raw}/bin/udp2raw -l0.0.0.0:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (node.wireguard.index + 40000)}";
+                ExecStart = "${pkgs.udp2raw}/bin/udp2raw -c -l0.0.0.0:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (node.wireguard.index + 40000)}";
               };
             }
           ))
           (builtins.filter (node: node.wireguard.enable && node.hostname != nodeConfig.hostname && (node.publicIp != null || node.localIp != null)) (builtins.attrValues config.cluster.nodes))))) //
-    lib.optionalAttrs (false && nodeConfig.wireguard.enable)
-      (lib.nameValuePair "wireguard-tcp-server"
+    {
+      wireguard-tcp-server = {
+        enable = nodeConfig.wireguard.enable;
+        wantedBy = [ "multi-user.target" ];
+        before = [ "multi-user.target" ];
+        path = with pkgs; [ busybox openssh ];
+        serviceConfig = {
+          Type = "simple";
+          Restart = "always";
+          RestartSec = "5s";
+          LimitNOFILE = 500000;
+          LimitNPROC = 500000;
+          ExecStart = "${pkgs.udp2raw}/bin/udp2raw -s -l0.0.0.0:${builtins.toString (nodeConfig.wireguard.index + 40000)} -r 0.0.0.0:${builtins.toString (nodeConfig.wireguard.port)}";
+        };
+      };
+    }
+    // {
+      wg-netmanager = lib.mkIf nodeConfig.wireguard.enable
         {
-          enable = false;
+          description = "Wireguard network manager wg1";
           wantedBy = [ "multi-user.target" ];
-          before = [ "multi-user.target" ];
-          path = with pkgs; [ busybox openssh ];
+          after = [ "network.target" ];
+          path = with pkgs; [ wireguard-tools iproute2 ];
           serviceConfig = {
             Type = "simple";
             Restart = "always";
-            RestartSec = "5s";
-            LimitNOFILE = 500000;
-            LimitNPROC = 500000;
-            ExecStart = "${pkgs.udp2raw}/bin/udp2raw -l0.0.0.0:${builtins.toString (nodeConfig.wireguard.index + 40000)} -r 0.0.0.0:${builtins.toString (nodeConfig.wireguard.port)}";
+            ExecStart = "${pkgs.unstable.wg-netmanager}/bin/wg_netmanager ${if (nodeConfig.publicIp == null) then "-H" else "-w ${builtins.toString (nodeConfig.wireguard.port+1)}"} -v -v";
+            ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
+            ExecStop = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
+            ReadWritePaths = [ "/tmp" ];
           };
-        }
-      ) // {
-      wg-netmanager =
-        let
-          config = "";
-        in
-        lib.mkIf nodeConfig.wireguard.enable
-          {
-            description = "Wireguard network manager wg1";
-            wantedBy = [ "multi-user.target" ];
-            after = [ "network.target" ];
-            path = with pkgs; [ wireguard-tools iproute2 ];
-            serviceConfig = {
-              Type = "simple";
-              Restart = "always";
-              ExecStart = "${pkgs.unstable.wg-netmanager}/bin/wg_netmanager ${if (nodeConfig.publicIp == null) then "-H" else "-w ${builtins.toString (nodeConfig.wireguard.port+1)}"} -v -v";
-              ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
-              ExecStop = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
-              ReadWritePaths = [ "/tmp" ];
-            };
-            restartTriggers = [ "/etc/wg_netmanager/network.yaml" "/etc/wg_netmanager/peer.yaml" ];
-          };
+          restartTriggers = [ "/etc/wg_netmanager/network.yaml" "/etc/wg_netmanager/peer.yaml" ];
+        };
     };
   environment.etc."wg_netmanager/peer.yaml".text = lib.optionalString nodeConfig.wireguard.enable (lib.generators.toYAML { } {
     wgInterface = "wg1";
@@ -156,12 +151,11 @@ in
         peers =
           (builtins.map
             (node: {
-              # endPoint =
-              #   if node.publicIp != null then
-              #     "${node.publicIp}:${builtins.toString (node.wireguard.port+1)}"
-              #   else
-              #     "${node.localIp}:${builtins.toString (node.wireguard.port+1)}";
-              endPoint = "${node.publicIp}:${builtins.toString (node.wireguard.port+1)}";
+              endPoint =
+                if node.publicIp != null then
+                  "${node.publicIp}:${builtins.toString (node.wireguard.port+1)}"
+                else
+                  "${node.localIp}:${builtins.toString (node.wireguard.port+1)}";
               adminPort = 52343;
               wgIp = builtins.replaceStrings [ ".16." ] [ ".17." ] node.wireguard.clusterIp;
             })

@@ -1,0 +1,20 @@
+(defwidget apps_dock[]
+    (big_block
+      (box :spacing 8 :orientation "h"
+        (box :spacing 8
+          (icon :picture "images/firefox.png" :command "firefox --new-tab")
+          (icon :picture "images/alacritty.png" :command "alacritty")
+          (icon :picture "images/vscode.png" :command "code"))
+        (box :spacing 8
+          (icon :picture "images/chrome.png" :command "google-chrome-stable")
+          (icon :picture "images/wps-office2019-kprometheus.png" :command "wps")
+          (icon :picture "images/minecraft.png" :command "cd ~/MineCraft;java -jar HMCL-3.5.2.218.jar"))
+        (box :spacing 8
+          (icon :picture "images/wps-office-wppmain.png" :command "wpp")
+          (icon :picture "images/wps-office-etmain.png" :command "et")
+          (icon :picture "images/wps-office-wpsmain.png" :command "wps")))))
+
+(defwindow dock
+    (box
+        (apps_dock)
+    ))
