@@ -96,7 +96,7 @@ in
                 RestartSec = "5s";
                 LimitNOFILE = 500000;
                 LimitNPROC = 500000;
-                ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode none --auth-mode simple -c -l127.0.0.1:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (node.wireguard.index + 40000)}";
+                ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -c -l127.0.0.1:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (node.wireguard.index + 40000)}";
               };
             }
           ))
@@ -113,7 +113,7 @@ in
           RestartSec = "5s";
           LimitNOFILE = 500000;
           LimitNPROC = 500000;
-          ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode none --auth-mode simple -s -l0.0.0.0:${builtins.toString (nodeConfig.wireguard.index + 40000)} -r 127.0.0.1:${builtins.toString nodeConfig.wireguard.port }";
+          ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -s -l0.0.0.0:${builtins.toString (nodeConfig.wireguard.index + 40000)} -r 127.0.0.1:${builtins.toString nodeConfig.wireguard.port }";
         };
       };
     }
