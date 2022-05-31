@@ -1,7 +1,6 @@
-(defwidget profile[](box))
-(defvar control-center-enable false)
+(defvar OPEN_MAINPAGE false)
 
-(defpoll UNAME :run-while control-center-enable :interval "5m"  "whoami")
+(defpoll UNAME :run-while OPEN_MAINPAGE :interval "5m"  "whoami")
 (defwidget profile[]
   (big_block
     (box :class "profile" :orientation "v" :spacing 2 :space-evenly "false" :vexpand "false" :hexpand "false"
@@ -38,7 +37,7 @@
         (icon :picture "images/wps-office-etmain.png" :command "et")
         (icon :picture "images/wps-office-wpsmain.png" :command "wps")))))
 
-(defpoll WIFI_LIST :interval "60s" "nmcli --terse  device wifi | awk -F \":\" '
+(defpoll WIFI_LIST :run-while OPEN_MAINPAGE :interval "60s" "nmcli --terse  device wifi | awk -F \":\" '
   BEGIN{i=0;printf(\"[\")}
   {
   if(i!=0){printf(\",\")};
@@ -72,7 +71,7 @@
                 (box)
                 ; (label :class "wifi_speed" :text {wifi.speed})
                 (label :halign "end" :class "wifi_signal" :text {wifi.signal})))))))))
-(defpoll BLUETOOTH_LIST :interval "60s" "bluetoothctl devices | awk '
+(defpoll BLUETOOTH_LIST :run-while OPEN_MAINPAGE :interval "60s" "bluetoothctl devices | awk '
   BEGIN{i=0;printf(\"[\")}
   {
   if(i!=0){printf(\",\")};
@@ -109,8 +108,8 @@
         (scale :hexpand true  :min 0 :max 101 :value BRIGHTNESS_VALUE :onchange  "brightnessctl set {}%"))
     )))
 (defwidget control_button[]
-  (fill_block
-    (box :orientation "v" :valign "start" :spacing 4
+  (fill_block 
+    (box :orientation "v" :valign "start" :spacing 8 :class "action_button"
       (symbol :symbol "⏻" :command "systemctl poweroff")
       (symbol :symbol "ﰇ" :command "systemctl reboot")
       (symbol :symbol "⏾" :command "systemctl suspend")
@@ -123,6 +122,20 @@
       (symbol :symbol "" :command "firefox --new-tab 'https://doc.rust-lang.org/std/'")
     )
     ))
+(defwidget mainpage[]
+  (box :space-evenly false :class "mainpage" 
+    (box :orientation "v" :vexpand false :space-evenly false
+      (control_page)
+      (box
+        (weather_page)
+        (profile))
+      (box
+        (apps_page)
+        (system_monitor_page))
+      (box
+        (wifi_page)
+        (bluetooth_page)))
+    (control_button)))
 (defwindow mainpage
   :monitor 0
   :windowtype "dock"
@@ -130,26 +143,7 @@
   :stacking "overlay"
   :focusable true
   :screen 1
-  :geometry (geometry :x "-1%" :y "5%"
-  :anchor "top right")
+  :geometry (geometry :x "-1%" :y "4%" :anchor "top right")
   (eventbox :onhoverlost "eww close mainpage"
     (revealer :transition "slidedown" :reveal true :duration "1s"
-    (box :space-evenly false
-      (box :class "mainpage" :orientation "v" :vexpand false :space-evenly false
-        (control_page)
-        (box
-          (weather_page)
-          (profile)
-        )
-        (box
-          (apps_page)
-          (system_monitor_page)
-        )
-        (box
-          (wifi_page)
-          (bluetooth_page)
-        )
-      )
-      (control_button)
-      
-    ))))
+      (mainpage))))

@@ -244,7 +244,7 @@ myStartupHook = do
   -- spawnOnce "qv2ray"
   spawnOnce "ibus-daemon -x -r -R"
   spawnOnce "sleep 4;nextcloud"
-  spawn "killall eww; eww open-many panel"
+  spawn "killall eww; eww open-many panel_left panel_center panel_right"
   spawn "killall polybar;sleep 4; polybar icons"
   spawn "gpaste-client start"
   spawn "xrandr --output eDP-1-1 --primary --mode 1920x1080 --pos 0x1080 --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal"
@@ -268,11 +268,11 @@ myLogHook dbus = dynamicLogWithPP (barHook dbus) <+> historyHook <+> wallpapersH
 wallpapersHook = wallpaperSetter defWallpaperConf {
      wallpapers = defWPNames myWorkspaces
                <> WallpaperList [
-                 ("1",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠16.jpg")
+                 ("1",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠8.jpg")
                 ,("2",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠9.jpg")
                 ,("3",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠14.jpg")
                 ,("4",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠15.jpg")
-                ,("5",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠8.jpg")
+                ,("5",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠16.jpg")
                 ,("6",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠6.jpg")
                 ,("7",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠3.jpg")
                 ,("8",WallpaperFix "/home/wangzi/.xmonad/wallpapers/大鱼海棠1.jpg")

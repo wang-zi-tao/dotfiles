@@ -1,13 +1,10 @@
 .panel {
-
-	.block {
-		background-color: $theme-background;
-		padding: 0px 7px;
-		margin: 6px 6px;
-		min-height: 27px;
-		border-radius: 8px;
-		border-width: 5px;
-	}
+        background-color: $theme-background;
+        padding: 0px 7px;
+        margin: 6px 6px;
+        min-height: 27px;
+        border-radius: 8px;
+        border-width: 5px;
 
 	font-size: 16px;
 
@@ -15,6 +12,9 @@
 	.center_panel>box {
 		padding: 0px 2px 0px 2px;
 	}
+        .time {
+          font-size: 22px;
+        }
 
 	.weather_panel,
 	.panel_music {
@@ -100,13 +100,15 @@
 	}
 
 	.control_panel {
+                margin: 2px;
+
 		circular-progress {
 			background-color: $theme-background2;
 			border-radius: 24px;
 
 			label {
 				color: $theme-sky;
-				font-size: 12px;
+				font-size: 13px;
 				margin: 7px;
 			}
 
