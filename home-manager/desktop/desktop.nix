@@ -3,11 +3,13 @@
     ./eww/eww.nix
     ./rofi/rofi.nix
     ./xmonad/xmonad.nix
+    ./awesome/awesomewm.nix
     ./gnome.nix
     ./polybar/polybar.nix
     ./dunst.nix
     ./picom.nix
   ];
+  xsession.windowManager.awesome = { enable = true; };
   services.unclutter = {
     enable = true;
     timeout = 8;
@@ -75,7 +77,26 @@
     __GLX_VENDOR_LIBRARY_NAME = "nvidia";
     __VK_LAYER_NV_optimus = "NVIDIA_only";
   };
+  services.playerctld.enable = true;
+  services.mpd.enable = true;
   home.packages = with pkgs; [
+    mpdris2
+    libmpc
+    mpd
+    mpv
+    redshift
+    scrot
+    brightnessctl
+    pamixer
+    pipewire
+    polkit_gnome
+    inotify-tools
+    jq
+    upower
+    acpid
+    acpi
+
+
     v2ray
     wpsoffice
     # libreoffice

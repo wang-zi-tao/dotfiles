@@ -75,6 +75,7 @@ in
     gnumake
     ninja
     cmake
+    meson
     unstable.clang-tools
     # clang
     libcxx
@@ -96,7 +97,7 @@ in
     unixtools.xxd
     gh
 
-    # sumneko-lua-language-server
+    sumneko-lua-language-server
     nodePackages.typescript-language-server
     nodejs
     nodePackages.typescript
@@ -118,6 +119,7 @@ in
     neovim-remote
     python2
     luajitPackages.luacheck
+    luajitPackages.luarocks
     google-java-format
     stylua
     shfmt

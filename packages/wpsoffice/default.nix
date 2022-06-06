@@ -206,18 +206,18 @@ stdenv.mkDerivation rec {
       mkdir -p $out
       cp -r opt $out
       cp -r usr/* $out
-      for lib in $unvendoredLibraries; do
-        echo $lib
-        rm -v "$prefix/office6/lib$lib"*.so{,.*}
-      done
-      for i in wps wpp et wpspdf; do
-        patchelf \
-          --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-          --force-rpath --set-rpath "${stdenv.cc.cc.lib}/lib64:${libPath}:$(patchelf --print-rpath $prefix/office6/$i)" \
-          $prefix/office6/$i
-        substituteInPlace $out/bin/$i \
-          --replace /opt/kingsoft/wps-office $prefix
-      done
+      # for lib in $unvendoredLibraries; do
+      #   echo $lib
+      #   rm -v "$prefix/office6/lib$lib"*.so{,.*}
+      # done
+      # for i in wps wpp et wpspdf; do
+      #   patchelf \
+      #     --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+      #     --force-rpath --set-rpath "${stdenv.cc.cc.lib}/lib64:${libPath}:$(patchelf --print-rpath $prefix/office6/$i)" \
+      #     $prefix/office6/$i
+      #   substituteInPlace $out/bin/$i \
+      #     --replace /opt/kingsoft/wps-office $prefix
+      # done
       for i in $out/share/applications/*;do
         substituteInPlace $i \
           --replace /usr/bin $out/bin
@@ -229,12 +229,12 @@ stdenv.mkDerivation rec {
   dontWrapQtApps = true;
   dontWrapGApps = true;
   postFixup = ''
-    for f in "$out"/bin/*; do
-      echo "Wrapping $f"
-      wrapProgram "$f" \
-        "''${gappsWrapperArgs[@]}" \
-        "''${qtWrapperArgs[@]}" \
-        --suffix LD_LIBRARY_PATH : "$runtimeLibPath"
-    done
+    # for f in "$out"/bin/*; do
+    #   echo "Wrapping $f"
+    #   wrapProgram "$f" \
+    #     "''${gappsWrapperArgs[@]}" \
+    #     "''${qtWrapperArgs[@]}" \
+    #     --suffix LD_LIBRARY_PATH : "$runtimeLibPath"
+    # done
   '';
 }

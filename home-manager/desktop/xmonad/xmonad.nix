@@ -39,7 +39,7 @@ with lib; {
       [ lxappearance lightlocker playerctl scrot imagemagickBig i3lock-fancy ];
     xsession = {
       windowManager.xmonad = {
-        enable = true;
+        enable = false;
         enableContribAndExtras = true;
         extraPackages = hp: with hp; [ dbus monad-logger xmonad-contrib ];
         config = ./xmonad.hs;

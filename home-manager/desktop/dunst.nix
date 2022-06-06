@@ -1,9 +1,10 @@
 { config, pkgs, ... }:
 
 let theme = config.theme;
-in {
+in
+{
   services.dunst = {
-    enable = true;
+    enable = false;
     iconTheme = {
       size = "32x32";
       name = "Tela-blue";

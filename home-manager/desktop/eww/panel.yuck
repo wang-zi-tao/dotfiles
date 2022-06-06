@@ -96,7 +96,7 @@
   :geometry (geometry :x "0px" :y "0px" :height "0px" :anchor "top right")
   :reserve (struts :side "top" :distance "34px")
   (eventbox :style ""
-    :onhover "eww update OPEN_MAINPAGE=true;eww open mainpage"
+    :onhover "eww open mainpage"
     (box :orientation "v" :space-evenly false 
       (centerbox
         (box)

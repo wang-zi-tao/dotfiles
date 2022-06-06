@@ -67,6 +67,6 @@ in
   home.file.".config/alacritty/alacritty-drop.yml".text = setting + ''
     background_opacity: 0.64
     shell:
-      program: "${pkgs.writeScript "tmuxinator-s-drop" "remote-shell.sh  drop"}"
+      program: "${pkgs.writeScript "tmuxinator-s-drop" "tmuxinator s  drop"}"
   '';
 }

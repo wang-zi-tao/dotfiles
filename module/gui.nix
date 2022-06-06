@@ -53,22 +53,33 @@
         gvfs.enable = true;
         udisks2.enable = true;
         flatpak.enable = true;
-        xserver = {
-          enable = true;
-          exportConfiguration = true;
-          displayManager.startx.enable = true;
-          windowManager.xmonad.enable = true;
-          desktopManager.gnome.enable = true;
-          displayManager.xpra = {
-            enable = false;
-            bindTcp = "0.0.0.0:10000";
-            pulseaudio = true;
-          };
-          xkbOptions = "ctrl:nocaps";
-          modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
-          extraConfig = ''
+        xserver =
+          {
+            enable = true;
+            exportConfiguration = true;
+            displayManager.startx.enable = true;
+            windowManager.xmonad.enable = true;
+            windowManager.awesome = {
+              enable = true;
+              luaModules = with pkgs.luaPackages; [
+                luarocks
+                luadbi-mysql
+              ];
+            };
+            desktopManager.gnome.enable = true;
+            displayManager.xpra = {
+              enable = false;
+              bindTcp = "0.0.0.0:10000";
+              pulseaudio = true;
+            };
+            xkbOptions = "ctrl:nocaps";
+            modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
+            extraConfig = ''
           '';
-        };
+          };
+      };
+      environment.variables = {
+        GI_TYPELIB_PATH = "${pkgs.playerctl}/lib/girepository-1.0:${pkgs.upower}/lib/girepository-1.0\${GI_TYPELIB_PATH:+:$GI_TYPELIB_PATH}";
       };
       programs.dconf.enable = true;
       programs.gpaste.enable = true;

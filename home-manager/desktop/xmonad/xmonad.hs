@@ -101,7 +101,7 @@ myKeys =
   , ("M-z", spawn "~/.config/eww/scripts/trigger.sh")
 
   , ("M-d", spawn "rofi -combi-modi window,drun -show combi -modi combi -theme ~/.config/rofi/apps.css")
-  , ("M-f", spawn "rofi -combi-modi window -show combi -modi combi -theme ~/.config/rofi/apps.css")
+  , ("M-s", spawn "rofi -combi-modi window -show combi -modi combi -theme ~/.config/rofi/apps.css")
   , ("M-r", spawn "rofi -combi-modi run -show combi -modi combi -theme ~/.config/rofi/apps.css")
   , ("M-<Esc>", nextMatch Forward isOnAnyVisibleWS)
   , ("M-<Tab>", nextMatch History (return True))

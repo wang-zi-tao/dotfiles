@@ -1,7 +1,8 @@
 # This file is generated from "README.org"
 { pkgs, ... }:
 let
-in {
+in
+{
   home.packages = [
     pkgs.picom
   ];
@@ -44,6 +45,7 @@ in {
         "class_g = 'i3lock'",
         "class_g ^= 'eww'",
         "class_g = 'Dunst'",
+        "class_g = 'awesome'",
     ];
     corner-radius = 12;
     rounded-corners-exclude = [

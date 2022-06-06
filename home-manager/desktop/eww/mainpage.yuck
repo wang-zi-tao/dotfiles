@@ -1,4 +1,4 @@
-(defvar OPEN_MAINPAGE false)
+(defvar OPEN_MAINPAGE true)
 
 (defpoll UNAME :run-while OPEN_MAINPAGE :interval "5m"  "whoami")
 (defwidget profile[]
