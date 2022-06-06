@@ -8,7 +8,7 @@
     };
     timeout = 1;
   };
-  boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_17.extend (self: super: {
+  boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod.extend (self: super: {
     virtualbox = super.virtualbox.override { inherit (self) kernel; };
   });
   boot.initrd.availableKernelModules =

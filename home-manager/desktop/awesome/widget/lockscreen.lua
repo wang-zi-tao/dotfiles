@@ -15,9 +15,8 @@ local authenticate = function(password)
 end
 -- Word Clock Lock Screen
 ----------------
-
-local lock_screen_symbol = ""
-local lock_screen_fail_symbol = ""
+local lock_screen_symbol = ""
+local lock_screen_fail_symbol = ""
 local lock_animation_icon = wibox.widget({
   -- Set forced size to prevent flickering when the icon rotates
   forced_height = dpi(80),
