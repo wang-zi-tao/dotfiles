@@ -248,7 +248,7 @@ with lib; with builtins;{
         wangzi = {
           servers = [ "wangzi-nuc" "wangzi-pc" ];
           clients = [ "wangzi-nuc" "wangzi-pc" ];
-          sync = [{ from = "wangzi-nuc"; to = "wangzi-pc"; }];
+          sync = [{ to = "wangzi-nuc"; from = "wangzi-pc"; }];
         };
         config = {
           servers = [ "wangzi-nuc" "wangzi-pc" "huawei-ecs" "aliyun-hk" "aliyun-ecs" ];

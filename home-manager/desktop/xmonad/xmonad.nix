@@ -51,7 +51,7 @@ with lib; {
     };
     services.screen-locker = {
       enable = true;
-      lockCmd = "${pkgs.i3lock-fancy}/bin/i3lock-fancy";
+      lockCmd = ''awesome-client " awesome.emit_signal ('signal::lock') "'';
       xautolock.enable = true;
     };
     # services.random-background = {
@@ -62,3 +62,4 @@ with lib; {
     home.file.".xmonad/background.jpg".source = "${pkgs.resources}/share/backgrounds/大鱼海棠16.jpg";
   };
 }
+

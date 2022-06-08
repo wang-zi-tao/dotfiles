@@ -28,6 +28,7 @@ let
             -master.dir=${weed.server.path}/master \
             -master.defaultReplication=000 \
             -master.volumePreallocate=false \
+            -master.electionTimeout=1s \
             -volume.dir.idx=${weed.server.path}/volume \
             -filer \
             -filer.port=302 \
@@ -150,6 +151,7 @@ else (map (server: server+".wg:302")
                   -a ${sync.from}.wg:302 \
                   -a.path=/${collection.name} \
                   -b ${sync.to}.wg:302 \
+                  -a.debug -b.debug \
                   -b.path=/${collection.name}
                 '';
               };

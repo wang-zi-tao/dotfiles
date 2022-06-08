@@ -9,7 +9,7 @@
           };
         };
         lxd = {
-          enable = true;
+          enable = false;
           package = pkgs.unstable.lxd;
           recommendedSysctlSettings = true;
         };

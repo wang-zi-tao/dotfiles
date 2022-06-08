@@ -6,7 +6,7 @@ windows:
     layout: 57d5,191x50,0,0,16
 - nixos:
     layout: af43,191x50,0,0,6
-    root: /mnt/weed/mount/wangzi-nuc/config/nixos
+    root: workspace/nixos
     panes:
     - vim
 - monitor:
