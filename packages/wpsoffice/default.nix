@@ -58,8 +58,9 @@ stdenv.mkDerivation rec {
   pname = "wpsoffice";
   version = "11.1.0.10920";
   src = fetchurl {
-    url = "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2019/11664/wps-office_11.1.0.11664_amd64.deb";
-    sha256 = "sha256-D2LhxBMHmQjVExa/63DHdws0V+EmOSlJzGq91jbuJHs=";
+    url =
+      "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2019/10976/wps-office_11.1.0.10976_amd64.deb";
+    sha256 = "sha256-GndezCYqIdTRJ4TV5CS5JP9HX+xjpDNeuZjENJLs0g0=";
   };
   unpackCmd = "dpkg -x $src .";
   sourceRoot = ".";
@@ -71,7 +72,7 @@ stdenv.mkDerivation rec {
   '';
 
   nativeBuildInputs =
-    [ dpkg wrapGAppsHook libsForQt5.qt5.wrapQtAppsHook ];
+    [ autoPatchelfHook dpkg wrapGAppsHook libsForQt5.qt5.wrapQtAppsHook ];
 
   meta = with lib; {
     description = "Office suite, formerly Kingsoft Office";
@@ -205,18 +206,18 @@ stdenv.mkDerivation rec {
       mkdir -p $out
       cp -r opt $out
       cp -r usr/* $out
-      for lib in $unvendoredLibraries; do
-        echo $lib
-        rm -v "$prefix/office6/lib$lib"*.so{,.*}
-      done
-      for i in wps wpp et wpspdf; do
-        patchelf \
-          --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-          --force-rpath --set-rpath "${stdenv.cc.cc.lib}/lib64:${libPath}:$(patchelf --print-rpath $prefix/office6/$i)" \
-          $prefix/office6/$i
-        substituteInPlace $out/bin/$i \
-          --replace /opt/kingsoft/wps-office $prefix
-      done
+      # for lib in $unvendoredLibraries; do
+      #   echo $lib
+      #   rm -v "$prefix/office6/lib$lib"*.so{,.*}
+      # done
+      # for i in wps wpp et wpspdf; do
+      #   patchelf \
+      #     --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+      #     --force-rpath --set-rpath "${stdenv.cc.cc.lib}/lib64:${libPath}:$(patchelf --print-rpath $prefix/office6/$i)" \
+      #     $prefix/office6/$i
+      #   substituteInPlace $out/bin/$i \
+      #     --replace /opt/kingsoft/wps-office $prefix
+      # done
       for i in $out/share/applications/*;do
         substituteInPlace $i \
           --replace /usr/bin $out/bin
@@ -225,15 +226,15 @@ stdenv.mkDerivation rec {
 
   runtimeLibPath = lib.makeLibraryPath [ cups.lib ];
 
-  dontWrapQtApps = false;
-  dontWrapGApps = false;
+  dontWrapQtApps = true;
+  dontWrapGApps = true;
   postFixup = ''
-    for f in "$out"/bin/*; do
-      echo "Wrapping $f"
-      wrapProgram "$f" \
-        "''${gappsWrapperArgs[@]}" \
-        "''${qtWrapperArgs[@]}" \
-        --suffix LD_LIBRARY_PATH : "$runtimeLibPath"
-    done
+    # for f in "$out"/bin/*; do
+    #   echo "Wrapping $f"
+    #   wrapProgram "$f" \
+    #     "''${gappsWrapperArgs[@]}" \
+    #     "''${qtWrapperArgs[@]}" \
+    #     --suffix LD_LIBRARY_PATH : "$runtimeLibPath"
+    # done
   '';
 }
