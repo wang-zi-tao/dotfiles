@@ -51,4 +51,10 @@ sha256 = "sha256-ELNWKnwHDOxgC30xP3gTT1pYLZgGvGd9eVJKd5Ok98A=";
     source = "${pkgs.lua-pam}";
     recursive = true;
   };
+  services.screen-locker = {
+    enable = true;
+    lockCmd = ''awesome-client " awesome.emit_signal ('signal::lock') "'';
+    inactiveInterval = 1;
+    xautolock = { enable = false; };
+  };
 }

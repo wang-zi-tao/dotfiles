@@ -49,11 +49,6 @@ with lib; {
       blueman-applet.enable = false;
       network-manager-applet.enable = true;
     };
-    services.screen-locker = {
-      enable = true;
-      lockCmd = ''awesome-client " awesome.emit_signal ('signal::lock') "'';
-      xautolock.enable = true;
-    };
     # services.random-background = {
     # enable = true;
     # imageDirectory = "${pkgs.backgrounds}/share/backgrounds";
