@@ -110,7 +110,7 @@ local control_center_react = react({
         self.set_state({ brightness = brightness })
       end
     end)
-    watch("LANG='' nmcli monitor", function(_, stdout)
+    awful.spawn.easy_async_with_shell([[LANG='' nmcli monitor]], function(stdout)
       local split = gears.string.split(stdout, " ")
       for _, device in pairs(config.wifi_devices) do
         if split[1] == device .. ":" then
@@ -133,7 +133,7 @@ local control_center_react = react({
           awful.spawn("brightness set " .. v .. "%")
         end),
         {
-          button("直", "睊", "wifi " .. self.state.wifi, "wifi off", self.state.wifi ~= nil, function()
+          button("直", "睊", "wifi " .. (self.state.wifi or "off"), "wifi off", self.state.wifi ~= nil, function()
             if self.state.wifi then
               for _, device in pairs(config.wifi_devices) do
                 awful.spawn("nmcli device disconnect " .. device)
