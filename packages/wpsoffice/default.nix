@@ -7,7 +7,6 @@
 , libsForQt5
 , xorg
 , alsa-lib
-, alsaLib
 , atk
 , bzip2
 , cairo
@@ -19,10 +18,8 @@
 , freetype
 , gdk-pixbuf
 , glib
-, glui
 , gperftools
 , gtk2-x11
-, libGLU
 , libICE
 , libpng12
 , libSM
@@ -40,19 +37,18 @@
 , libXrandr
 , libXrender
 , libXScrnSaver
-, libxslt
 , libXtst
-, lzma
 , nspr
 , nss
 , openssl
 , pango
-, qt4
 , sqlite
 , unixODBC
 , xz
 , zlib
-, zotero
+, libcxxabi
+, libcxx
+, qt4
 }:
 stdenv.mkDerivation rec {
   pname = "wpsoffice";
@@ -83,58 +79,6 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [ mlatus th0rgal ];
   };
 
-  buildInputs = with xorg; [
-    alsa-lib
-    alsaLib
-    atk
-    bzip2
-    cairo
-    cups
-    dbus.daemon.lib
-    dbus.lib
-    expat
-    ffmpeg
-    fontconfig
-    fontconfig.lib
-    freetype
-    gdk-pixbuf
-    glib
-    glui
-    gperftools
-    gtk2-x11
-    libGLU
-    libICE
-    libpng12
-    libsForQt5.qt5.qtbase
-    libSM
-    libtool
-    libuuid
-    libX11
-    libxcb
-    libXcomposite
-    libXcursor
-    libXdamage
-    libXext
-    libXfixes
-    libXi
-    libxml2
-    libXrandr
-    libXrender
-    libXScrnSaver
-    libxslt
-    libXtst
-    lzma
-    nspr
-    nss
-    openssl
-    pango
-    qt4
-    sqlite
-    unixODBC
-    xz
-    zlib
-    zotero
-  ];
 
   dontPatchELF = true;
 
@@ -161,63 +105,74 @@ stdenv.mkDerivation rec {
     # "nspr"
     # "nss"
     # "odbc"
-    # "tcmalloc" # gperftools
+    "tcmalloc" # gperftools
+  ];
+  buildInputs = with xorg; [
+    alsa-lib
+    atk
+    bzip2
+    cairo
+    dbus.lib
+    expat
+    ffmpeg
+    fontconfig
+    freetype
+    gdk-pixbuf
+    glib
+    gperftools
+    gtk2-x11
+    libICE
+    libSM
+    libX11
+    libXScrnSaver
+    libXcomposite
+    libXcursor
+    libXdamage
+    libXext
+    libXfixes
+    libXi
+    libXrandr
+    libXrender
+    libXtst
+    libpng12
+    libtool
+    libuuid
+    libxcb
+    libxml2
+    xz
+    nspr
+    nss
+    openssl
+    pango
+    qt4
+    libsForQt5.qt5.qtbase
+    sqlite
+    unixODBC
+    zlib
+    cups.lib
+    libcxxabi
+    libcxx
   ];
   libPath = with xorg;
-    lib.makeLibraryPath [
-      libX11
-      libpng12
-      glib
-      libSM
-      libXext
-      fontconfig
-      zlib
-      freetype
-      libICE
-      cups
-      libXrender
-      libxcb
-
-      alsaLib
-      atk
-      cairo
-      dbus.daemon.lib
-      expat
-      fontconfig.lib
-      gdk-pixbuf
-      gtk2-x11
-      lzma
-      pango
-      zotero
-      sqlite
-      libuuid
-      libXcomposite
-      libXcursor
-      libXdamage
-      libXfixes
-      libXi
-      libXrandr
-      libXScrnSaver
-      libXtst
-    ];
+    lib.makeLibraryPath (buildInputs ++ [ ]);
 
   installPhase = ''
     prefix=$out/opt/kingsoft/wps-office
       mkdir -p $out
       cp -r opt $out
       cp -r usr/* $out
-      # for lib in $unvendoredLibraries; do
-      #   echo $lib
-      #   rm -v "$prefix/office6/lib$lib"*.so{,.*}
-      # done
-      # for i in wps wpp et wpspdf; do
-      #   patchelf \
-      #     --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-      #     --force-rpath --set-rpath "${stdenv.cc.cc.lib}/lib64:${libPath}:$(patchelf --print-rpath $prefix/office6/$i)" \
-      #     $prefix/office6/$i
-      #   substituteInPlace $out/bin/$i \
-      #     --replace /opt/kingsoft/wps-office $prefix
-      # done
+      for lib in $unvendoredLibraries; do
+        echo $lib
+        rm -v "$prefix/office6/lib$lib"*.so{,.*}
+      done
+      for i in wps wpp et wpspdf; do
+        patchelf \
+          --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+          --force-rpath --set-rpath "${stdenv.cc.cc.lib}/lib64:${libPath}:$(patchelf --print-rpath $prefix/office6/$i)" \
+          $prefix/office6/$i
+        substituteInPlace $out/bin/$i \
+          --replace /opt/kingsoft/wps-office $prefix
+      done
       for i in $out/share/applications/*;do
         substituteInPlace $i \
           --replace /usr/bin $out/bin
@@ -228,13 +183,13 @@ stdenv.mkDerivation rec {
 
   dontWrapQtApps = true;
   dontWrapGApps = true;
-  postFixup = ''
-    # for f in "$out"/bin/*; do
-    #   echo "Wrapping $f"
-    #   wrapProgram "$f" \
-    #     "''${gappsWrapperArgs[@]}" \
-    #     "''${qtWrapperArgs[@]}" \
-    #     --suffix LD_LIBRARY_PATH : "$runtimeLibPath"
-    # done
+  preFixup = ''
+    for f in "$out"/bin/*; do
+      echo "Wrapping $f"
+      wrapProgram "$f" \
+        "''${gappsWrapperArgs[@]}" \
+        "''${qtWrapperArgs[@]}" \
+        --suffix LD_LIBRARY_PATH : "$runtimeLibPath"
+    done
   '';
 }
