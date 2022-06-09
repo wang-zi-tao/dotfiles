@@ -2,7 +2,7 @@
   programs.vscode = {
     enable = true;
     /* package = pkgs.vscodium; */
-    extensions = with pkgs.unstable.vscode-extensions; [
+    extensions = with pkgs.vscode-extensions; [
       # markdowm
       yzhang.markdown-all-in-one
       # sh

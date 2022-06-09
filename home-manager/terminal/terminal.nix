@@ -17,8 +17,8 @@
   };
   manual.manpages.enable = true;
   home.sessionVariables = with pkgs; {
-    EDITOR = "${new-unstable.wangzi-neovim}/bin/nvim";
-    VISUAL = "${new-unstable.wangzi-neovim}/bin/nvim";
+    EDITOR = "${wangzi-neovim}/bin/nvim";
+    VISUAL = "${wangzi-neovim}/bin/nvim";
     NIX_AUTO_RUN = "1";
     NIXPKGS_ALLOW_UNFREE = "1";
     PATH = "$PATH:/$HOME/.cargo/bin";
@@ -28,7 +28,7 @@
   '';
   home.packages = with pkgs;
     scripts ++ [
-      new-unstable.wangzi-neovim
+      wangzi-neovim
       distant
       iperf2
 
