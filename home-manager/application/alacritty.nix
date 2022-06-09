@@ -62,10 +62,12 @@ in
 {
   programs.alacritty = { enable = true; };
   home.file.".config/alacritty/alacritty.yml".text = setting + ''
-    window.opacity: 0.16
+    window:
+      opacity: 0.16
   '';
   home.file.".config/alacritty/alacritty-drop.yml".text = setting + ''
-    window.opacity: 0.64
+    window:
+      opacity: 0.64
     shell:
       program: "${pkgs.writeScript "tmuxinator-s-drop" "tmuxinator s  drop"}"
   '';
