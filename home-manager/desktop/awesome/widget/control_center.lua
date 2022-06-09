@@ -8,6 +8,8 @@ local awful = require("awful")
 local beautiful = require("beautiful")
 local util = require("widget.util")
 local react = require("react")
+local config = require("config")
+local watch = awful.widget.watch
 local function button(symbol_enabled, symbol_disabled, text_enabled, text_disabled, enabled, callback)
   return util.big_block1({
     {
@@ -51,7 +53,9 @@ local function slider(symbol, value, callback)
     value = value,
     widget = wibox.widget.slider,
   })
-  slider_widget:connect_signal("button::release", callback)
+  slider_widget:connect_signal("button::release", function()
+    callback(slider_widget.value)
+  end)
   return util.big_block1({
     {
       {
@@ -82,8 +86,8 @@ local control_center_react = react({
   default_states = {
     volume = 0,
     brightness = 100,
-    float = false,
-    wifi = "",
+    old_layout = false,
+    wifi = false,
     bluetooth = {},
     fly_mode = false,
     cursor = {},
@@ -95,16 +99,62 @@ local control_center_react = react({
     remote_hosts_gui_enable = false,
     remote_hosts_gui = {},
   },
-  init = function(self) end,
+  init = function(self)
+    awesome.connect_signal("signal::volume", function(volume_int, muted)
+      self:set_state({ volume = volume_int })
+    end)
+    awful.spawn.easy_async_with_shell("brightnessctl -m", function(stdout)
+      local split = gears.string.split(stdout, ",")
+      local brightness = 100 * split[3] / split[5]
+      if brightness ~= self.state.brightness then
+        self.set_state({ brightness = brightness })
+      end
+    end)
+    watch("LANG='' nmcli monitor", function(_, stdout)
+      local split = gears.string.split(stdout, " ")
+      for _, device in pairs(config.wifi_devices) do
+        if split[1] == device .. ":" then
+          if split[2] == "disconnected" then
+            self:set_state({ wifi = false })
+          elseif split[2] == "using" and split[3] == "connection" then
+            self:set_state({ wifi = split[4] })
+          end
+        end
+      end
+    end)
+  end,
   render = function(self)
     return {
       {
-        slider("", self.state.volume, function() end),
-        slider("", self.state.brightness, function() end),
+        slider("", self.state.volume, function(v)
+          awful.spawn("amixer set Master " .. v .. "%")
+        end),
+        slider("", self.state.brightness, function(v)
+          awful.spawn("brightness set " .. v .. "%")
+        end),
         {
-          button("直", "睊", "wifi on", "wifi off", self.state.wifi ~= nil, function() end),
+          button("直", "睊", "wifi " .. self.state.wifi, "wifi off", self.state.wifi ~= nil, function()
+            if self.state.wifi then
+              for _, device in pairs(config.wifi_devices) do
+                awful.spawn("nmcli device disconnect " .. device)
+              end
+            else
+              for _, device in pairs(config.wifi_devices) do
+                awful.spawn("nmcli device connect " .. device)
+              end
+            end
+          end),
           button("", "", "bluetooth on", "bluetooth off", self.state.bluetooth_enable, function() end),
-          button("", "舘", "float on", "float off", self.state.float, function() end),
+          button("", "舘", "float on", "float off", self.state.old_layout, function()
+            if self.state.old_layout then
+              awful.layout.set(awful.layout.suit.floating)
+              self.set_state({ floating = false })
+            else
+              local layout = awful.layout.getname()
+              awful.layout.set(self.state.old_layout)
+              self.set_state({ floating = layout })
+            end
+          end),
           button("ﲳ", "", "remote cli on", "remote cli off", self.state.remote_hosts_cli_enable, function()
             self:set_state({ remote_hosts_cli_enable = not self.state.remote_hosts_cli_enable })
           end),

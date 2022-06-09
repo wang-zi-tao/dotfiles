@@ -1,4 +1,5 @@
 return {
+  wifi_devices = { "wlo1", "wlp3s0" },
   widget = {
     weather = {
       -- API Key

@@ -22,7 +22,7 @@ stdenvNoCC.mkDerivation {
     gcc
   ];
 
-  installPhase = with pkgs.vimPlugins; ''
+  installPhase = with pkgs.unstable.vimPlugins; ''
     rm default.nix
     mkdir -p $out/
     cp * -r $out

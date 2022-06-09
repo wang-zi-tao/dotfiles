@@ -1,6 +1,7 @@
 { nixosConfig, pkgs, lib, config, ... }:
 let cfg-node = config.cluster.nodes."${cfg.cluster.nodeName}";
-in with lib; {
+in
+with lib; {
   imports =
     [ (mkIf cfg-node.my-shell ../../home-manager/terminal/terminal.nix) ]
     ++ mkIf (config.home.username != "root") [

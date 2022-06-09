@@ -172,7 +172,6 @@ in
     "net.ipv4.conf.all.proxy_arp" = 1;
   };
   environment.systemPackages = with pkgs; [
-    wireguard
     wireguard-tools
   ];
 }

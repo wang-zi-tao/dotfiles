@@ -2,7 +2,8 @@
 let
   lib = pkgs.lib;
   nodeConfig = config.cluster.nodeConfig;
-in {
+in
+{
   config = {
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;

@@ -139,7 +139,6 @@
       source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
     '';
     initExtra = builtins.readFile ./p10k.zsh +  builtins.readFile ./zshrc.zsh + ''
-      # export FZF_DEFAULT_COMMAND="${pkgs.ag}/bin/ag -p ~/.gitignore -g """
       # source ${pkgs.tmuxinator}/share/zsh/site-functions/_tmuxinator
     '';
   };

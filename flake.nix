@@ -1,13 +1,14 @@
 {
   description = "NixOS configuration for all machines in wangzicloud.cn";
   inputs = {
-    home-manager.url = "github:nix-community/home-manager/release-21.11";
+    home-manager.url = "github:nix-community/home-manager/release-22.05";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nur.url = "github:nix-community/NUR";
-    nixpkgs.url = "github:nixos/nixpkgs/release-21.11";
+    nixpkgs-21.url = "github:nixos/nixpkgs/release-21.11";
+    nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     fenix = { url = "github:nix-community/fenix"; };
     flake-compat = {
@@ -16,7 +17,6 @@
     };
     sops-nix.url = "github:Mic92/sops-nix";
     flake-utils.url = "github:numtide/flake-utils";
-    go-1-18.url = "github:flyx/go-1.18-nix";
   };
   outputs =
     inputs@{ self
@@ -37,7 +37,6 @@
           ([
             nur.overlay
             fenix.overlay
-            inputs.go-1-18.overlay
             (final: prev:
               {
                 flake-compat = inputs.flake-compat;
@@ -51,18 +50,10 @@
                   system = final.system;
                   config = { allowUnfree = true; };
                 };
-                new-unstable = (import inputs.nixpkgs-unstable {
+                nixpkgs-21 = import inputs.nixpkgs-21 {
                   system = final.system;
                   config = { allowUnfree = true; };
-                  overlays = [
-                    (final: prev: (listToAttrs (map
-                      (name: {
-                        inherit name;
-                        value = final.callPackage (./packages + "/${name}") { };
-                      })
-                      (attrNames (readDir ./packages)))))
-                  ];
-                });
+                };
                 scripts = (map
                   (f: pkgs.writeScriptBin f (readFile (./scripts + "/${f}")))
                   (attrNames (readDir ./scripts)));

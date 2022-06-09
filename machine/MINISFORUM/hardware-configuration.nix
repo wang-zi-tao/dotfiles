@@ -59,7 +59,6 @@
       vaapiIntel
       libvdpau-va-gl
       vaapiVdpau
-      intel-ocl
     ];
     opengl.setLdLibraryPath = true;
     opengl.driSupport = true;

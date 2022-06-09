@@ -14,10 +14,10 @@ buildGo118Module rec {
     owner = "chrislusf";
     repo = "seaweedfs";
     rev = version;
-    sha256 = "sha256-6GCHtpYMzg/w9pftdc4oLuDk7EZ7Nc6gIIbhVqAte2c=";
+    sha256 = "sha256-GlTCE2cBnU1Eu46MFiNhOJ6rXaa4HKd8svHccyJp7Fo=";
   };
 
-  vendorSha256 = "sha256-CrVZV+zxvvNQ5JPfmWnLCOFJ9XcQbFJVPaadfRGxq9k=";
+  vendorSha256 = "sha256-EcTv0XqSlztFKvQjCuaoliPmZ/pQevWUOauJ8dJo3IQ=";
 
   subPackages = [ "weed" ];
 

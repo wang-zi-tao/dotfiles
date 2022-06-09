@@ -94,7 +94,6 @@
         libjpeg
         xorg.libXv
         xorg.libXtst
-        ocl-icd
         opencl-info
         xorg.libxcb
         xorg.xcbutilkeysyms

@@ -115,7 +115,7 @@ in
     kubectl
     kubernetes-helm
 
-    new-unstable.wangzi-neovim
+    wangzi-neovim
     neovim-remote
     python2
     luajitPackages.luacheck
