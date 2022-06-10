@@ -54,8 +54,8 @@ local function slider(symbol, value, callback)
     value = value,
     widget = wibox.widget.slider,
   })
-  slider_widget:connect_signal("button::release", function()
-    callback(slider_widget.value)
+  slider_widget:connect_signal("property::value", function(_, new_value)
+    callback(new_value)
   end)
   return util.big_block1({
     {
@@ -106,7 +106,7 @@ local control_center_react = react({
     awesome.connect_signal("signal::volume", function(volume_int, muted)
       self:set_state({ volume = volume_int })
     end)
-    awful.spawn.easy_async_with_shell("brightnessctl -m", function(stdout)
+    watch("brightnessctl -m", 16, function(_, stdout)
       local split = gears.string.split(stdout, ",")
       local brightness = 100 * split[3] / split[5]
       if brightness ~= self.state.brightness then
@@ -133,6 +133,7 @@ local control_center_react = react({
       end),
       slider("", self.state.brightness, function(v)
         awful.spawn("brightness set " .. v .. "%")
+        self:set_state({ brightness = v })
       end),
       {
         util.big_block1({
