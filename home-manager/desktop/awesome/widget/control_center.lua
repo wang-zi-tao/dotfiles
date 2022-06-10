@@ -150,12 +150,12 @@ local control_center_react = react({
           button("", "", "bluetooth on", "bluetooth off", self.state.bluetooth_enable, function() end),
           button("", "舘", "float on", "float off", self.state.old_layout, function()
             if self.state.old_layout then
-              awful.layout.set(awful.layout.suit.floating)
-              self.set_state({ old_layout = false })
-            else
-              local layout = awful.layout.getname()
               awful.layout.set(self.state.old_layout)
-              self.set_state({ old_layout = layout })
+              self:set_state({ old_layout = false })
+            else
+              local layout = awful.layout.get(self.props.screen)
+              awful.layout.set(awful.layout.suit.floating)
+              self:set_state({ old_layout = layout })
             end
           end),
           spacing = 8,
@@ -186,7 +186,7 @@ awful.screen.connect_for_each_screen(function(s)
   local width = dpi(400)
   local height = dpi(600)
   local control_center_widget = wibox.widget(util.big_block({
-    control_center_react(),
+    control_center_react({ screen = s }),
     widget = wibox.container.margin,
   }))
   local control_center = awful.popup({

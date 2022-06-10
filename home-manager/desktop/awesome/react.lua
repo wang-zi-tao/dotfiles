@@ -35,40 +35,42 @@ local function compare_table(a, b)
   return is_part_of(b, a)
 end
 
-local M
-M = {
-  set_state_force = function(self, new_state)
-    self.state = new_state
+local function set_state_force(self, new_state)
+  self.state = new_state
+  self.widget:setup(self:render())
+end
+
+local function compare_state(old, new)
+  return is_part_of(new, old)
+end
+
+local function compare_props(old, new)
+  return compare_table(old, new)
+end
+
+local function render()
+  return {
+    text = "react",
+    widget = wibox.widget.textbox,
+  }
+end
+
+local function init(props) end
+
+local function set_state(self, new_state)
+  if not compare_state(new_state, self.state) then
+    self.state = gears.table.crush(self.state, new_state)
     self.widget:setup(self:render())
-  end,
-  compare_state = function(old, new)
-    return is_part_of(new, old)
-  end,
-  compare_props = function(old, new)
-    return compare_table(old, new)
-  end,
-  render = function()
-    return {
-      text = "react",
-      widget = wibox.widget.textbox,
-    }
-  end,
-  init = function(props) end,
-  set_state = function(self, new_state)
-    if not M.compare_state(new_state, self.state) then
-      self.state = gears.table.crush(self.state, new_state)
-      self.widget:setup(self:render())
-    end
-  end,
-}
+  end
+end
 
 local metatable = {}
 function metatable.__call(self, args)
-  local init = args.init or M.init
+  local init = args.init or init
   local render = args.render
   local default_props = args.default_props or {}
   local default_states = args.default_states or {}
-  local compare_props = args.compare_props or M.compare_props
+  local compare_props = args.compare_props or compare_props
   -- local compare_state = args.compare_state or M.compare_state
   local index = {
     default_props = default_props,
@@ -77,8 +79,8 @@ function metatable.__call(self, args)
     compare_props = compare_props,
     render = render,
     init = init,
-    set_state = M.set_state,
-    set_state_force = M.set_state_force,
+    set_state = set_state,
+    set_state_force = set_state_force,
   }
   return function(props)
     local widget = wibox.container.margin()
