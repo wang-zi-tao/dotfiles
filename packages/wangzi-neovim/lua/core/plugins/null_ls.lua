@@ -13,8 +13,8 @@ local sources = {
   -- js/ts
   b.formatting.deno_fmt,
   -- Lua
-  b.formatting.stylua.with({ extra_args = { "--indent-type", "Spaces", "--indent-width", "2" } }),
-  b.diagnostics.luacheck.with({ extra_args = { "--global vim" } }),
+  -- b.formatting.stylua.with({ extra_args = { "--indent-type", "Spaces", "--indent-width", "2" } }),
+  -- b.diagnostics.luacheck.with({ extra_args = { "--global vim" } }),
   -- Shell
   b.formatting.shfmt,
   b.diagnostics.shellcheck.with({ diagnostics_format = "#{m} [#{c}]" }),
