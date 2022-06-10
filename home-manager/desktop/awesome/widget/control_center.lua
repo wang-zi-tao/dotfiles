@@ -11,7 +11,7 @@ local react = require("react")
 local config = require("config")
 local watch = awful.widget.watch
 local function button(symbol_enabled, symbol_disabled, text_enabled, text_disabled, enabled, callback)
-  return util.big_block1({
+  return {
     {
       {
         text = enabled and symbol_enabled or symbol_disabled,
@@ -35,8 +35,9 @@ local function button(symbol_enabled, symbol_disabled, text_enabled, text_disabl
     spacing = 8,
     layout = wibox.layout.fixed.horizontal,
     buttons = gears.table.join(awful.button({}, 1, callback)),
-  })
+  }
 end
+
 local function slider(symbol, value, callback)
   local slider_widget = wibox.widget({
     bar_shape = gears.shape.rounded_rect,
@@ -82,6 +83,7 @@ local function slider(symbol, value, callback)
     layout = wibox.layout.fixed.horizontal,
   })
 end
+
 local control_center_react = react({
   default_states = {
     volume = 0,
@@ -89,6 +91,7 @@ local control_center_react = react({
     old_layout = false,
     wifi = false,
     bluetooth = {},
+    bluetooth_enable = true,
     fly_mode = false,
     cursor = {},
     remote_hosts = {},
@@ -125,15 +128,15 @@ local control_center_react = react({
   end,
   render = function(self)
     return {
+      slider("", self.state.volume, function(v)
+        awful.spawn("amixer set Master " .. v .. "%")
+      end),
+      slider("", self.state.brightness, function(v)
+        awful.spawn("brightness set " .. v .. "%")
+      end),
       {
-        slider("", self.state.volume, function(v)
-          awful.spawn("amixer set Master " .. v .. "%")
-        end),
-        slider("", self.state.brightness, function(v)
-          awful.spawn("brightness set " .. v .. "%")
-        end),
-        {
-          button("直", "睊", "wifi " .. (self.state.wifi or "off"), "wifi off", self.state.wifi ~= nil, function()
+        util.big_block1({
+          button("直", "睊", "wifi " .. (self.state.wifi or "on"), "wifi off", self.state.wifi ~= nil, function()
             if self.state.wifi then
               for _, device in pairs(config.wifi_devices) do
                 awful.spawn("nmcli device disconnect " .. device)
@@ -148,13 +151,17 @@ local control_center_react = react({
           button("", "舘", "float on", "float off", self.state.old_layout, function()
             if self.state.old_layout then
               awful.layout.set(awful.layout.suit.floating)
-              self.set_state({ floating = false })
+              self.set_state({ old_layout = false })
             else
               local layout = awful.layout.getname()
               awful.layout.set(self.state.old_layout)
-              self.set_state({ floating = layout })
+              self.set_state({ old_layout = layout })
             end
           end),
+          spacing = 8,
+          layout = wibox.layout.fixed.vertical,
+        }),
+        util.big_block1({
           button("ﲳ", "", "remote cli on", "remote cli off", self.state.remote_hosts_cli_enable, function()
             self:set_state({ remote_hosts_cli_enable = not self.state.remote_hosts_cli_enable })
           end),
@@ -164,13 +171,13 @@ local control_center_react = react({
           button("", "", "remote gui on", "remote gui off", self.state.remote_hosts_gui_enable, function()
             self:set_state({ remote_hosts_gui_enable = not self.state.remote_hosts_gui_enable })
           end),
-          forced_num_cols = 2,
-          expand = true,
-          layout = wibox.layout.grid,
-        },
-        layout = wibox.layout.fixed.vertical,
+          spacing = 8,
+          layout = wibox.layout.fixed.vertical,
+        }),
+        spacing = 8,
+        layout = wibox.layout.fixed.horizontal,
       },
-      layout = wibox.layout.fixed.horizontal,
+      layout = wibox.layout.fixed.vertical,
     }
   end,
 })

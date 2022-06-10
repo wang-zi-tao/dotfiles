@@ -49,14 +49,15 @@
 , libcxxabi
 , libcxx
 , qt4
+, steam
 }:
 stdenv.mkDerivation rec {
   pname = "wpsoffice";
   version = "11.1.0.10920";
   src = fetchurl {
     url =
-      "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2019/10976/wps-office_11.1.0.10976_amd64.deb";
-    sha256 = "sha256-GndezCYqIdTRJ4TV5CS5JP9HX+xjpDNeuZjENJLs0g0=";
+      "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2019/11664/wps-office_11.1.0.11664_amd64.deb";
+    sha256 = "sha256-D2LhxBMHmQjVExa/63DHdws0V+EmOSlJzGq91jbuJHs=";
   };
   unpackCmd = "dpkg -x $src .";
   sourceRoot = ".";
@@ -107,6 +108,7 @@ stdenv.mkDerivation rec {
     # "odbc"
     "tcmalloc" # gperftools
   ];
+  autoPatchelfIgnoreMissingDeps = [ "libkappessframework.so" ];
   buildInputs = with xorg; [
     alsa-lib
     atk
@@ -156,28 +158,40 @@ stdenv.mkDerivation rec {
   libPath = with xorg;
     lib.makeLibraryPath (buildInputs ++ [ ]);
 
-  installPhase = ''
-    prefix=$out/opt/kingsoft/wps-office
-      mkdir -p $out
-      cp -r opt $out
-      cp -r usr/* $out
-      for lib in $unvendoredLibraries; do
-        echo $lib
-        rm -v "$prefix/office6/lib$lib"*.so{,.*}
-      done
-      for i in wps wpp et wpspdf; do
-        patchelf \
-          --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-          --force-rpath --set-rpath "${stdenv.cc.cc.lib}/lib64:${libPath}:$(patchelf --print-rpath $prefix/office6/$i)" \
-          $prefix/office6/$i
-        substituteInPlace $out/bin/$i \
-          --replace /opt/kingsoft/wps-office $prefix
-      done
-      for i in $out/share/applications/*;do
-        substituteInPlace $i \
-          --replace /usr/bin $out/bin
-      done
-  '';
+  installPhase =
+    let
+      steam-run = (steam.override {
+        extraPkgs = p: buildInputs;
+      }).run;
+    in
+    ''
+      prefix=$out/opt/kingsoft/wps-office
+        mkdir -p $out
+        cp -r opt $out
+        cp -r usr/* $out
+        for lib in $unvendoredLibraries; do
+          echo $lib
+          rm -v "$prefix/office6/lib$lib"*.so{,.*}
+        done
+        for i in wps wpp et wpspdf; do
+          patchelf \
+            --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+            --force-rpath --set-rpath "${stdenv.cc.cc.lib}/lib64:${libPath}:$(patchelf --print-rpath $prefix/office6/$i)" \
+            $prefix/office6/$i
+          substituteInPlace $out/bin/$i \
+            --replace /opt/kingsoft/wps-office $prefix
+        done
+        for i in wps wpp et wpspdf; do
+        mv $out/bin/$i $out/bin/.$i-orig
+        makeWrapper ${steam-run}/bin/steam-run $out/bin/$i \
+          --add-flags $out/bin/.$i-orig \
+          --argv0 $i
+        done
+        for i in $out/share/applications/*;do
+          substituteInPlace $i \
+            --replace /usr/bin $out/bin
+        done
+    '';
 
   runtimeLibPath = lib.makeLibraryPath [ cups.lib ];
 

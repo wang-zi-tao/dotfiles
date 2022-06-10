@@ -8,6 +8,7 @@ local function is_part_of(a, b)
   end
   return true
 end
+
 local function merge(a, b, ctx)
   ctx = ctx or { history = {} }
   if not ctx.history[b] then
@@ -29,16 +30,13 @@ local function merge(a, b, ctx)
     end
   end
 end
+
 local function compare_table(a, b)
   return is_part_of(b, a)
 end
-local M = {
-  set_state = function(self, new_state)
-    if not self.compare_state(new_state, self.state) then
-      self.state = gears.table.crush(self.state, new_state)
-      self.widget:setup(self:render())
-    end
-  end,
+
+local M
+M = {
   set_state_force = function(self, new_state)
     self.state = new_state
     self.widget:setup(self:render())
@@ -56,6 +54,12 @@ local M = {
     }
   end,
   init = function(props) end,
+  set_state = function(self, new_state)
+    if not M.compare_state(new_state, self.state) then
+      self.state = gears.table.crush(self.state, new_state)
+      self.widget:setup(self:render())
+    end
+  end,
 }
 
 local metatable = {}
@@ -65,11 +69,11 @@ function metatable.__call(self, args)
   local default_props = args.default_props or {}
   local default_states = args.default_states or {}
   local compare_props = args.compare_props or M.compare_props
-  local compare_state = args.compare_state or M.compare_state
+  -- local compare_state = args.compare_state or M.compare_state
   local index = {
     default_props = default_props,
     default_states = default_states,
-    compare_state = compare_state,
+    -- compare_state = compare_state,
     compare_props = compare_props,
     render = render,
     init = init,
@@ -87,6 +91,7 @@ function metatable.__call(self, args)
     return widget
   end
 end
+
 local M = {}
 setmetatable(M, metatable)
 return M
