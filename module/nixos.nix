@@ -31,4 +31,5 @@ with pkgs.flakes; {
     randomizedDelaySec = "30min";
     dates = "12:00";
   };
+  system.stateVersion = "22.05";
 }
