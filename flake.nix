@@ -30,7 +30,7 @@
     }:
     let
       system = "x86_64-linux";
-      pkgs = (import nixpkgs) {
+      pkgs-args = {
         inherit system;
         config = { allowUnfree = true; };
         overlays = with builtins;
@@ -66,7 +66,8 @@
           ] ++ (map (name: import (./overlays + "/${name}"))
             (attrNames (readDir ./overlays))));
       };
-      args = { inherit pkgs; } // inputs;
+      pkgs = (import nixpkgs) pkgs-args;
+      args = { inherit pkgs pkgs-args; } // inputs;
     in
     {
       nixosConfigurations = {

@@ -30,8 +30,6 @@ local lock_animation_icon = wibox.widget({
 local some_textbox = wibox.widget.textbox()
 
 local lock_screen_box = wibox({ visible = false, ontop = true, type = "splash", screen = screen.primary })
--- lock_screen_box.bgimage = beautiful.wallpaper
-lock_screen_box.bg = beautiful.background1
 awful.placement.maximize(lock_screen_box)
 
 local function screen_mask(s, bg)
@@ -45,6 +43,7 @@ local function screen_mask(s, bg)
   mask.bg = bg
   return mask
 end
+
 -- Add lockscreen to each screen
 awful.screen.connect_for_each_screen(function(s)
   if s == screen.primary then
@@ -199,26 +198,50 @@ local function lock_screen_show()
   set_visibility(true)
   grab_password()
 end
+
 awesome.connect_signal("signal::lock", lock_screen_show)
 lock_screen_box:setup({
-  -- Horizontal centering
-  nil,
   {
-    -- Vertical centering
     nil,
     {
-      wibox.widget({
-        forced_height = dpi(20),
+      nil,
+      {
+        {
+          resize = false,
+          image = beautiful.wallpaper,
+          -- forced_height = screen.primary.geometry.height,
+          -- forced_width = screen.primary.geometry.width,
+          widget = wibox.widget.imagebox,
+          shape = gears.shape.rounded_bar,
+        },
+        spacing = dpi(60),
         layout = wibox.layout.fixed.vertical,
-      }),
-      time,
-      lock_animation,
-      spacing = dpi(60),
-      layout = wibox.layout.fixed.vertical,
+      },
+      expand = "outside",
+      layout = wibox.layout.align.vertical,
     },
-    expand = "none",
-    layout = wibox.layout.align.vertical,
+    expand = "outside",
+    layout = wibox.layout.align.horizontal,
   },
-  expand = "none",
-  layout = wibox.layout.align.horizontal,
+  {
+    nil,
+    {
+      nil,
+      {
+        wibox.widget({
+          forced_height = dpi(20),
+          layout = wibox.layout.fixed.vertical,
+        }),
+        time,
+        lock_animation,
+        spacing = dpi(60),
+        layout = wibox.layout.fixed.vertical,
+      },
+      expand = "outside",
+      layout = wibox.layout.align.vertical,
+    },
+    expand = "outside",
+    layout = wibox.layout.align.horizontal,
+  },
+  layout = wibox.layout.stack
 })

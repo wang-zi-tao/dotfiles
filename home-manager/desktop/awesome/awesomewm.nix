@@ -51,10 +51,23 @@ sha256 = "sha256-ELNWKnwHDOxgC30xP3gTT1pYLZgGvGd9eVJKd5Ok98A=";
     source = "${pkgs.lua-pam}";
     recursive = true;
   };
-  services.screen-locker = {
-    enable = true;
-    lockCmd = ''awesome-client " awesome.emit_signal ('signal::lock') "'';
-    inactiveInterval = 1;
-    xautolock = { enable = false; };
+  systemd.user.services.lock = {
+    Unit = {
+      Description = "xautolock, session locker service";
+      After = [ "graphical-session-pre.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Install = { WantedBy = [ "graphical-session.target" ]; };
+    Service = {
+      ExecStart =
+        let
+          lock_script = pkgs.writeShellScriptBin "lock" ''
+            #!${pkgs.busybox}/bin/sh
+            awesome-client " awesome.emit_signal ([[signal::lock]]) "
+          ''; in
+        ''
+          ${pkgs.xautolock}/bin/xautolock -time 10 -locker ${lock_script}/bin/lock
+        '';
+    };
   };
 }
