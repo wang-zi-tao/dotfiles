@@ -17,35 +17,40 @@
   xresources.properties = { "Xft.dpi" = 96; };
   home.file.".icons/default".source =
     "${pkgs.layan-cursor-theme}/share/icons/Layan-white Cursors";
-  gtk = {
-    enable = true;
-    theme.name = "Orchis-light";
-    theme.package = pkgs.orchis-theme;
-    iconTheme.name = "Tela-blue";
-    iconTheme.package = pkgs.tela-icon-theme;
-    font.package = pkgs.iosevka;
-    font.name = "Iosevka Terminal";
-    gtk3.extraConfig = {
-      gtk-application-prefer-dark-theme = false;
-      gtk-button-images = true;
-      gtk-cursor-theme-name = "Layan-white-cursors";
-      gtk-cursor-theme-size = 24;
-      gtk-decoration-layout = "close,maximize,minimize:";
-      gtk-enable-animations = true;
-      gtk-enable-event-sounds = 0;
-      gtk-enable-input-feedback-sounds = 0;
-      # gtk-font-name=Noto Sans,  10;
-      gtk-menu-images = true;
-      gtk-modules = "gail:atk-bridge:colorreload-gtk-module";
-      gtk-primary-button-warps-slider = false;
-      gtk-toolbar-icon-size = "GTK_ICON_SIZE_LARGE_TOOLBAR";
-      gtk-toolbar-style = 3;
-      gtk-xft-antialias = 1;
-      gtk-xft-hinting = 1;
-      gtk-xft-hintstyle = "hintslight";
-      gtk-xft-rgba = "rgb";
+  gtk =
+    let
+      extra_config = {
+        gtk-application-prefer-dark-theme = false;
+        gtk-button-images = true;
+        gtk-cursor-theme-name = "Layan-white-cursors";
+        gtk-cursor-theme-size = 24;
+        gtk-decoration-layout = "close,maximize,minimize:";
+        gtk-enable-animations = true;
+        gtk-enable-event-sounds = 0;
+        gtk-enable-input-feedback-sounds = 0;
+        # gtk-font-name=Noto Sans,  10;
+        gtk-menu-images = true;
+        gtk-modules = "gail:atk-bridge:colorreload-gtk-module";
+        gtk-primary-button-warps-slider = false;
+        gtk-toolbar-icon-size = "GTK_ICON_SIZE_LARGE_TOOLBAR";
+        gtk-toolbar-style = 3;
+        gtk-xft-antialias = 1;
+        gtk-xft-hinting = 1;
+        gtk-xft-hintstyle = "hintslight";
+        gtk-xft-rgba = "rgb";
+      };
+    in
+    {
+      enable = true;
+      theme.name = "Orchis-light";
+      theme.package = pkgs.orchis-theme;
+      iconTheme.name = "Tela-blue";
+      iconTheme.package = pkgs.tela-icon-theme;
+      font.package = pkgs.iosevka;
+      font.name = "Iosevka Terminal";
+      gtk3.extraConfig = extra_config;
+      gtk4.extraConfig = extra_config;
     };
-  };
   qt = {
     enable = true;
     platformTheme = "gtk";
@@ -62,6 +67,7 @@
   news.display = "notify";
   home.sessionVariables = with pkgs; {
     XMODIFIERS = "@im=ibus";
+    GTK_THEME = "Orchis-light";
     GTK_IM_MODULE = "ibus";
     QT_IM_MODULE = "ibus";
     http_proxy = "http://192.168.16.2:8889";
@@ -156,5 +162,8 @@
     adwaita-qt
     gnome.adwaita-icon-theme
     libadwaita
+
+    weston
+    waypipe
   ];
 }

@@ -20,11 +20,11 @@ awful.keyboard.append_global_keybindings({
     for _, tag in pairs(awful.screen.focused().selected_tags) do
       awful.spawn(
         apps.default.terminal
-          .. " --title=alacritty-workspace-"
-          .. tag.index
-          .. " -e tmuxinator s 'workspace-"
-          .. tag.index
-          .. "'"
+        .. " --title=alacritty-workspace-"
+        .. tag.index
+        .. " -e tmuxinator s 'workspace-"
+        .. tag.index
+        .. "'"
       )
       break
     end
@@ -113,6 +113,10 @@ awful.keyboard.append_global_keybindings({
   end, { description = "focus the previous screen", group = "screen" }),
   awful.key({ mod }, "l", function()
     awesome.emit_signal("signal::lock")
+  end, { description = "focus the previous screen", group = "screen" }),
+  awful.key({ mod, ctrl }, "l", function()
+    awesome.emit_signal("signal::lock")
+    awful.spawn("systemctl suspend")
   end, { description = "focus the previous screen", group = "screen" }),
   awful.key({ mod, ctrl }, "n", function()
     local c = awful.client.restore()

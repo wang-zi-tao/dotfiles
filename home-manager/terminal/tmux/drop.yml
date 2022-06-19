@@ -16,23 +16,23 @@ windows:
 - wangzi-nuc:
     layout: 57d6,191x50,0,0,36
     panes:
-    - retry ssh wangzi@wangzi-nuc -X -Y -t "tmux attach-session"
+    - '[[ $HOST == "wangzi-nuc" ]] || retry ssh wangzi@wangzi-nuc -X -Y -t "tmux attach-session"'
 - wangzi-pc:
     layout: 57d6,191x50,0,0,36
     panes:
-    - retry ssh wangzi@wangzi-pc -X -Y -t "tmux attach-session"
+    - '[[ $HOST == "wangzi-pc" ]] || retry ssh wangzi@wangzi-pc -X -Y -t "tmux attach-session"'
 - aliyun-ecs:
     layout: 57d6,191x50,0,0,36
     panes:
-    - retry ssh root@aliyun-ecs -X -Y -t "tmux attach-session"
+    - '[[ $HOST == "aliyun-ecs" ]] || retry ssh root@aliyun-ecs -X -Y -t "tmux attach-session"'
 - aliyun-hk:
     layout: 57d6,191x50,0,0,36
     panes:
-    - retry ssh root@aliyun-hk -X -Y -t "tmux attach-session"
+    - '[[ $HOST == "aliyun-hk" ]] || retry ssh root@aliyun-hk -X -Y -t "tmux attach-session"'
 - huawei-ecs:
     layout: 57d6,191x50,0,0,36
     panes:
-    - retry ssh root@huawei-ecs -X -Y -t "tmux attach-session"
+    - '[[ $HOST == "huawei-ecs" ]] || retry ssh root@huawei-ecs -X -Y -t "tmux attach-session"'
 - zsh:
     layout: 57d5,191x50,0,0,16
 - Temp:

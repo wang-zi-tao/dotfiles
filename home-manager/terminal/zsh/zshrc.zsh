@@ -134,7 +134,7 @@ new-nix-shell-flake() {
 {
   inputs.flake-utils.url = "github:numtide/flake-utils";
   # inputs.fenix.url = "github:nix-community/fenix";
-  outputs = inputs@{ self, nixpkgs, flake-utils }:
+  outputs = inputs@{ self, nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let pkgs = nixpkgs.legacyPackages.${system};
       in {

@@ -10,7 +10,7 @@ local util = require("widget.util")
 
 local info_center
 awful.screen.connect_for_each_screen(function(s)
-  local info_center_width = dpi(800)
+  local info_center_width = dpi(1000)
   local info_center_height = dpi(450)
 
   info_center = awful.popup({

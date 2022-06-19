@@ -151,7 +151,6 @@ else (map (server: server+".wg:302")
                   -a ${sync.from}.wg:302 \
                   -a.path=/${collection.name} \
                   -b ${sync.to}.wg:302 \
-                  -a.debug -b.debug \
                   -b.path=/${collection.name}
                 '';
               };

@@ -195,8 +195,10 @@ local function grab_password()
 end
 
 local function lock_screen_show()
-  set_visibility(true)
-  grab_password()
+  if not screen.primary.mylockscreen.visible then
+    set_visibility(true)
+    grab_password()
+  end
 end
 
 awesome.connect_signal("signal::lock", lock_screen_show)

@@ -2,7 +2,8 @@
 { lib, ... }:
 
 let mkTuple = lib.hm.gvariant.mkTuple;
-in {
+in
+{
   dconf.settings = {
     "apps/light-locker" = {
       idle-hint = false;

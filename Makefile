@@ -5,10 +5,10 @@ all:
 	make huawei-ecs || true
 	make aliyun-hk || true
 	make aliyun-ecs || true
-this:
-	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch
 self:
 	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch
+self-uncache:
+	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch --option binary-caches ""
 wangzi-pc:
 	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.32.128 switch || \
 	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.31.240 switch
