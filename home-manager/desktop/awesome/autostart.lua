@@ -26,8 +26,10 @@ local function run_once_grep(command)
     end
   end)
 end
+
 run_once_pgrep("picom --dbus --experimental-backend")
 run_once_pgrep("mpDris2")
 run_once_pgrep("ibus-daemon -x -r -R")
-run_once_grep("gpaste-client start")
-run_once_grep("xhost +")
+awful.spawn("gpaste-client start")
+awful.spawn("xhost +")
+awful.spawn([[sh -c "xpra shadow $DISPLAY --bind-tcp=$(hostname).wg:$((${DISPLAY:1}+6000))"]])

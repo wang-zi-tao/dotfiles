@@ -99,7 +99,7 @@
 
         virtualgl
         tigervnc
-        xpra
+        xpraWithNvenc
         qrcodegen
         cups
       ];
