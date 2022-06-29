@@ -1,4 +1,7 @@
 { pkgs, lib, config, ... }: {
+  xsession.windowManager.awesome = {
+    enable = true;
+  };
   home.file.".config/awesome/icons" = {
     source = ./icons;
     recursive = true;
@@ -37,6 +40,14 @@ sha256 = "sha256-ELNWKnwHDOxgC30xP3gTT1pYLZgGvGd9eVJKd5Ok98A=";
       url = "https://github.com/andOrlando/rubato";
       rev = "7ed12e183583a7ce3b59714452217af9a1f02ce6";
       sha256 = "sha256-BixO7PagHUm7pX5V7RTaC3/ffNErGw3bf77qeSLleqI=";
+    });
+    recursive = true;
+  };
+  home.file.".config/awesome/module/layout-machi" = {
+    source = (pkgs.fetchgit {
+      url = "https://github.com/xinhaoyuan/layout-machi";
+      rev = "3b3fcd82d7758f92acc601ed5e0b9d7612e318c7";
+      sha256 = "sha256-7FbO6iPi+h2dKOHqldHa8ZcAH4zI48BVgcq1/Mza+T8=";
     });
     recursive = true;
   };

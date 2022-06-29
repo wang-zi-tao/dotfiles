@@ -10,7 +10,7 @@
         };
         lxd = {
           enable = false;
-          package = pkgs.unstable.lxd;
+          package = pkgs.lxd;
           recommendedSysctlSettings = true;
         };
         lxc.lxcfs.enable = true;

@@ -5,7 +5,7 @@ local beautiful = require("beautiful")
 local xresources = require("beautiful.xresources")
 local dpi = xresources.apply_dpi
 local util = require("widget.util")
-local playerctl = require("module.bling").signal.playerctl.cli()
+local playerctl = require("module.bling").signal.playerctl.lib()
 local naughty = require("naughty")
 
 return require("react")({

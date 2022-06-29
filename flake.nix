@@ -43,8 +43,8 @@
                 system = system;
                 flakes = inputs;
                 nur = import inputs.nur {
-                  nurpkgs = final.unstable;
-                  pkgs = final.unstable;
+                  nurpkgs = prev;
+                  pkgs = prev;
                 };
                 unstable = import inputs.nixpkgs-unstable {
                   system = final.system;

@@ -38,15 +38,15 @@ in
   };
   sops.secrets."wireguard/private-key" =
     lib.mkIf nodeConfig.wireguard.enable { };
-  networking.wg-quick = lib.mkIf nodeConfig.wireguard.enable {
+  networking.interfaces.wg0.mtu = 1200;
+  networking.wireguard = lib.mkIf nodeConfig.wireguard.enable {
     interfaces = {
       wg0 = {
-        preUp = lib.optionalString nodeConfig.wireguard.iptables.enable "${pkgs.iptables}/bin/iptables -A FORWARD -i wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -A FORWARD -o wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE";
-        postDown = lib.optionalString nodeConfig.wireguard.iptables.enable "${pkgs.iptables}/bin/iptables -D FORWARD -i wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -D FORWARD -o wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE";
-        address = [ nodeConfig.wireguard.clusterIp ];
+        preSetup = lib.optionalString nodeConfig.wireguard.iptables.enable "${pkgs.iptables}/bin/iptables -A FORWARD -i wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -A FORWARD -o wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE";
+        postShutdown = lib.optionalString nodeConfig.wireguard.iptables.enable "${pkgs.iptables}/bin/iptables -D FORWARD -i wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -D FORWARD -o wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE";
+        ips = [ nodeConfig.wireguard.clusterIp ];
         listenPort = nodeConfig.wireguard.port;
         privateKeyFile = config.sops.secrets."wireguard/private-key".path;
-        mtu = 1200;
         peers = map
           (node:
             let w = node.wireguard;

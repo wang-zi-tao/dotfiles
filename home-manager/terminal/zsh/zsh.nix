@@ -78,56 +78,55 @@
     ];
     shellAliases = (builtins.listToAttrs (builtins.map(name: {name=name;value="nix-shell -p ${name} --run ${name}";})
     ["gimp" "kdenlive" "inkscape" "krita" "blender"]) )//{
-      grep = "${pkgs.ripgrep}/bin/rg --color=auto";
-      xclip = "${pkgs.xclip}/bin/xclip -selection c";
+      grep = "rg --color=auto";
+      xclip = "xclip -selection c";
       s = "sudo su";
       j = "z";
 
-      gclone = "${pkgs.git}/bin/git clone";
+      gclone = "git clone";
 
-      powertop = "sudo ${pkgs.powertop}/bin/powertop";
-      iotop = "sudo ${pkgs.iotop}/bin/iotop";
-      iftop = "sudo ${pkgs.iftop}/bin/iftop";
+      powertop = "sudo powertop";
+      iotop = "sudo iotop";
+      iftop = "sudo iftop";
       # nix-gc = "sudo nix-collect-garbage -d";
-      top = "${pkgs.htop}/bin/htop";
-      htop = "${pkgs.htop}/bin/htop";
-      ps = "${pkgs.procs}/bin/procs";
+      top = "htop";
+      htop = "htop";
+      ps = "procs";
 
-      rm = "${pkgs.rmtrash}/bin/rmtrash -Iv";
-      del = "${pkgs.busybox}/bin/rm -v ";
-      # mv = "${pkgs.rsync}/bin/rsync -avP --delete-delay";
-      # mv-origin = "${pkgs.busybox}/bin/mv";
-      bat = "${pkgs.bat}/bin/bat --theme=Coldark-Dark";
-      cat = "${pkgs.bat}/bin/bat --theme=Coldark-Dark --pager=never";
-      cat-origin = "${pkgs.busybox}/bin/cat";
-      less = "${pkgs.bat}/bin/bat --theme=Coldark-Dark";
+      rm = "rmtrash -Iv";
+      del = "command rm -v ";
+      # mv = "rsync -avP --delete-delay";
+      # mv-origin = "mv";
+      bat = "bat --theme=Coldark-Dark";
+      cat = "bat --theme=Coldark-Dark --pager=never";
+      less = "bat --theme=Coldark-Dark";
       man = ''
-        MANPAGER="sh -c 'col -bx | ${pkgs.bat}/bin/bat --theme=Coldark-Dark -l man -p'" man'';
+        MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';
 
-      ls = "${pkgs.exa}/bin/exa --icons";
-      l = "${pkgs.exa}/bin/exa -la --icons";
-      ll = "${pkgs.exa}/bin/exa --git -la --icons";
+      ls = "exa --icons";
+      l = "exa -la --icons";
+      ll = "exa --git -la --icons";
 
-      du = "${pkgs.du-dust}/bin/dust";
-      df = "${pkgs.duf}/bin/duf";
+      du = "dust";
+      df = "duf";
 
-      mux = "${pkgs.tmuxinator}/bin/tmuxinator";
-      tt = "${pkgs.tmux}/bin/tmux split -p 10";
-      tsh = "${pkgs.tmux}/bin/tmux split -h";
-      tsv = "${pkgs.tmux}/bin/tmux split -v";
+      mux = "tmuxinator";
+      tt = "tmux split -p 10";
+      tsh = "tmux split -h";
+      tsv = "tmux split -v";
 
 
       ".." = "cd ..";
 
     } // (if nixosConfig.cluster.nodeConfig.develop.enable then {
       mvn = "unset JAVA_TOOL_OPTIONS && ${pkgs.maven}/bin/mvn";
-      dc = "${pkgs.docker-compose}/bin/docker-compose";
-      dcl = "${pkgs.docker-compose}/bin/docker-compose logs";
-      dcb = "${pkgs.docker-compose}/bin/docker-compose build";
-      dcd = "${pkgs.docker-compose}/bin/docker-compose down";
-      dcu = "${pkgs.docker-compose}/bin/docker-compose up";
-      dcud = "${pkgs.docker-compose}/bin/docker-compose up -d";
-      diff = "${pkgs.neovim-remote}/bin/nvr -s -d";
+      dc = "docker-compose";
+      dcl = "docker-compose logs";
+      dcb = "docker-compose build";
+      dcd = "docker-compose down";
+      dcu = "docker-compose up";
+      dcud = "docker-compose up -d";
+      diff = "nvr -s -d";
     } else {});
     sessionVariables = {
       _ZO_EXCLUDE_DIRS = "/nix";
@@ -151,5 +150,5 @@
     enable = true;
     enableZshIntegration = true;
   };
-
+  home.packages = with pkgs;[ ripgrep xclip powertop iotop iftop htop procs rmtrash bat exa du-dust duf tmuxinator tmux ];
 }

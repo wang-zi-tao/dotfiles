@@ -202,6 +202,7 @@ local function notify_widget(notify)
     widget = wibox.container.background,
   }
 end
+
 local notify_center_react = require("react")({
   default_states = {
     notifys = {},
@@ -243,7 +244,7 @@ local notify_center_react = require("react")({
           margins = { bottom = dpi(20), right = dpi(20) },
           widget = wibox.container.margin,
         },
-        layout = wibox.layout.fixed.vertical,
+        layout = wibox.container.scroll.vertical,
       },
     }
   end,

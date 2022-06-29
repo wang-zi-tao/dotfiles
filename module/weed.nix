@@ -11,6 +11,7 @@ let
       description = "seaweedfs server";
       wantedBy = [ "multi-user.target" ];
       before = [ "multi-user.target" ];
+      after = [ "seaweedfs-master.service" ];
       path = with pkgs; [ busybox seaweedfs fuse ];
       serviceConfig = {
         Type = "simple";
@@ -24,6 +25,7 @@ let
             -resumeState \
             -ip=${nodeConfig.wireguard.clusterIp} \
             -dir=${weed.server.path}/weed \
+            -master=true \
             -master.port=301 \
             -master.dir=${weed.server.path}/master \
             -master.defaultReplication=000 \
@@ -52,6 +54,7 @@ let
         Type = "simple";
         Restart = "always";
         RestartSec = "2s";
+        LimitNOFILE = 500000;
         ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${nodeConfig.hostname} ${weed.client.path}/${nodeConfig.hostname}";
         ExecStart =
           ''${pkgs.seaweedfs}/bin/weed mount \
@@ -79,9 +82,9 @@ let
             Type = "simple";
             Restart = "always";
             RestartSec = "2s";
+            LimitNOFILE = 500000;
             ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${nasNode.hostname} ${weed.client.path}/${nasNode.hostname}";
-            ExecStart =
-              ''${pkgs.seaweedfs}/bin/weed mount \
+            ExecStart = ''${pkgs.seaweedfs}/bin/weed mount \
               -filer=${nasNode.hostname}.wg:302 \
               -dir=${weed.client.mount}/${nasNode.hostname} \
               -dirAutoCreate \
@@ -106,6 +109,7 @@ let
             Type = "simple";
             Restart = "always";
             RestartSec = "2s";
+            LimitNOFILE = 500000;
             ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${collection.name} ${weed.client.path}/${collection.name}";
             ExecStart =
               ''${pkgs.seaweedfs}/bin/weed mount \
@@ -147,11 +151,13 @@ else (map (server: server+".wg:302")
                 Type = "simple";
                 Restart = "always";
                 RestartSec = "2s";
+                LimitNOFILE = 500000;
                 ExecStart = ''${pkgs.seaweedfs}/bin/weed filer.sync \
                   -a ${sync.from}.wg:302 \
                   -a.path=/${collection.name} \
                   -b ${sync.to}.wg:302 \
-                  -b.path=/${collection.name}
+                  -b.path=/${collection.name} \
+                  # -a.debug -b.debug
                 '';
               };
             }

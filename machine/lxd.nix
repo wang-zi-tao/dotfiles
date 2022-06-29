@@ -67,7 +67,7 @@ nixos-generators.nixosGenerate {
       sound.enable = true;
       i18n.inputMethod = {
         enabled = "ibus";
-        ibus = { engines = with pkgs.unstable.ibus-engines; [ libpinyin ]; };
+        ibus = { engines = with pkgs.ibus-engines; [ libpinyin ]; };
         uim.toolbar = "qt4";
       };
       services.xserver = {

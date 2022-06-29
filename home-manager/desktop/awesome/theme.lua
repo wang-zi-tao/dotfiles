@@ -48,8 +48,10 @@ theme.foreground = "#ffffff"
 theme.foreground1 = "#D8DEE9"
 theme.foreground2 = "#C8CED9"
 theme.background = "#10171e"
-theme.background1 = "#131a21"
-theme.background2 = "#1a222a"
+-- theme.background1 = "#131a21"
+-- theme.background2 = "#1a222a"
+theme.background1 = "#1a222a"
+theme.background2 = "#2d2a33"
 theme.black = "#1C252C"
 theme.red = "#DF5B61"
 theme.green = "#78B892"
@@ -127,8 +129,8 @@ theme.tabbar_style = "default" -- style of the tabbar ("default", "boxes" or "mo
 theme.tabbar_font = "Sans 11" -- font of the tabbar
 theme.tabbar_size = 40 -- size of the tabbar
 theme.tabbar_position = "top" -- position of the tabbar
-theme.tabbar_bg_normal = "#000000" -- background color of the focused client on the tabbar
-theme.tabbar_fg_normal = "#ffffff" -- foreground color of the focused client on the tabbar
+theme.tabbar_bg_normal = theme.background -- background color of the focused client on the tabbar
+theme.tabbar_fg_normal = theme.foreground -- foreground color of the focused client on the tabbar
 theme.tabbar_bg_focus = "#1A2026" -- background color of unfocused clients on the tabbar
 theme.tabbar_fg_focus = theme.blue -- foreground color of unfocused clients on the tabbar
 theme.tabbar_bg_focus_inactive = nil -- background color of the focused client on the tabbar when inactive
@@ -166,7 +168,7 @@ theme.tag_preview_client_bg = theme.background -- The bg color of each client
 theme.tag_preview_client_border_color = theme.xcolor12 -- The border color of each client
 theme.tag_preview_client_border_width = 2 -- The border width of each client
 theme.tag_preview_widget_bg = theme.background -- The bg color of the widget
-theme.tag_preview_widget_border_color = theme.blue -- The border color of the widget
+theme.tag_preview_widget_border_color = theme.background -- The border color of the widget
 theme.tag_preview_widget_border_width = 3 -- The border width of the widget
 theme.tag_preview_widget_margin = 2 -- The margin of the widget
 
@@ -219,5 +221,42 @@ theme.progressbar_bar_border_width = 1
 theme.progressbar_bar_border_color = theme.foreground
 theme.progressbar_margins = 1
 theme.progressbar_paddings = 1
+
+theme.machi_switcher_border_color = theme.darker_bg
+-- theme.machi_switcher_border_opacity = 0.25
+theme.machi_editor_border_color = theme.darker_bg
+-- theme.machi_editor_border_opacity = 0.25
+-- theme.machi_editor_active_opacity = 0.25
+theme.fade_duration = 250
+
+-- mstab
+theme.mstab_bar_disable = false -- disable the tabbar
+theme.mstab_bar_ontop = false -- whether you want to allow the bar to be ontop of clients
+theme.mstab_dont_resize_slaves = false -- whether the tabbed stack windows should be smaller than the
+-- currently focused stack window (set it to true if you use
+-- transparent terminals. False if you use shadows on solid ones
+theme.mstab_bar_padding = "default" -- how much padding there should be between clients and your tabbar
+-- by default it will adjust based on your useless gaps.
+-- If you want a custom value. Set it to the number of pixels (int)
+theme.mstab_border_radius = 12 -- border radius of the tabbar
+theme.mstab_bar_height = 24 -- height of the tabbar
+theme.mstab_tabbar_position = "top" -- position of the tabbar (mstab currently does not support left,right)
+theme.mstab_tabbar_style = "default" -- style of the tabbar ("default", "boxes" or "modern")
+-- defaults to the tabbar_style so only change if you want a
+-- different style for mstab and tabbed
+
+theme.tasklist_shape = function(cr, w, h)
+  gears.shape.rounded_rect(cr, w, h, dpi(2))
+end
+theme.tasklist_bg_focus = theme.blue
+theme.tasklist_bg_normal = theme.background1
+theme.tasklist_bg_urgent = theme.orange
+theme.tasklist_bg_minimize = theme.gray
+
+theme.task_preview_widget_border_radius = 16 -- Border radius of the widget (With AA)
+theme.task_preview_widget_bg = theme.background -- The bg color of the widget
+theme.task_preview_widget_border_color = theme.background -- The border color of the widget
+theme.task_preview_widget_border_width = 3 -- The border width of the widget
+theme.task_preview_widget_margin = 8 -- The margin of the widget
 
 return theme

@@ -63,6 +63,15 @@ awful.rules.rules = {
   { rule_any = { type = { "normal", "dialog" } }, properties = { titlebars_enabled = false } },
 
   { rule = { class = "firefox" }, properties = { opacity = 1, maximized = false, floating = false } },
+  {
+    rule = {
+      instance = "alacrittydrop"
+    },
+    callback = function(c)
+      c.skip_taskbar = true
+    end
+  },
+
   -- Set Firefox to always map on the tag named "2" on screen 1.
   -- { rule = { class = "Firefox" },
   --   properties = { screen = 1, tag = "2" } },

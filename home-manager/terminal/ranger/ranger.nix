@@ -1,6 +1,6 @@
 { config, pkgs, lib, ... }: {
   home.packages = with pkgs; [
-    unstable.ranger
+    ranger
     unrar
     unzip
     odt2txt

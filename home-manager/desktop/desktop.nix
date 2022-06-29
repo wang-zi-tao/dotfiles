@@ -9,7 +9,6 @@
     ./dunst.nix
     ./picom.nix
   ];
-  xsession.windowManager.awesome = { enable = true; };
   services.unclutter = {
     enable = true;
     timeout = 8;

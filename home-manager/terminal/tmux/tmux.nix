@@ -11,7 +11,7 @@
     terminal = "tmux-256color";
     historyLimit = 16384;
     baseIndex = 1;
-    plugins = (with pkgs.unstable.tmuxPlugins;
+    plugins = (with pkgs.tmuxPlugins;
       with pkgs.tmuxPlugins; [
         {
           plugin = resurrect;

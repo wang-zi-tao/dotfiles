@@ -6,6 +6,7 @@ local xresources = require("beautiful.xresources")
 local dpi = xresources.apply_dpi
 local util = require("widget.util")
 local apps = require("apps")
+local launcher = require("widget.launcher")
 
 local info_center = require("widget.info_center")
 
@@ -15,7 +16,7 @@ awful.screen.connect_for_each_screen(function(s)
     stretch = true,
     visible = true,
     height = dpi(36),
-    ontop = true,
+    ontop = false,
     width = s.geometry.width - dpi(16),
     screen = s,
     position = "top",
@@ -28,15 +29,17 @@ awful.screen.connect_for_each_screen(function(s)
   local tray = require("widget.tray")()
   local system_monitor = require("widget.system_monitor").panel(s)
   local volume_widget = require("widget.volume").panel(s)
+  local mytasklist = require("widget.tasklist")(s)
   s.mywibar:setup({
     {
       util.block({
         util.button({ text = "", widget = wibox.widget.textbox }, function()
-          awful.spawn(apps.default.app_launcher)
+          launcher:toggle()
         end),
         {
           mytaglist,
           util.block1(mylayoutbox),
+          mytasklist,
           spacing = 8,
           layout = wibox.layout.fixed.horizontal,
         },

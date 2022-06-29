@@ -76,7 +76,7 @@ in
     ninja
     cmake
     meson
-    unstable.clang-tools
+    clang-tools
     # clang
     libcxx
     clang-analyzer

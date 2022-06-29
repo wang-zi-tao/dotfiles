@@ -1,5 +1,7 @@
 local awful = require("awful")
 local apps = require("apps")
+local machi = require("module.layout-machi")
+local launcher = require("widget.launcher")
 mod = "Mod4"
 local alt = "Mod1"
 local ctrl = "Control"
@@ -39,21 +41,23 @@ awful.keyboard.append_global_keybindings({
   end, { description = "open broswer", group = "app" }),
 
   awful.key({ mod }, "d", function()
-    awful.spawn(apps.default.app_launcher)
-  end, { description = "open app launcher", group = "app" }),
-  awful.key({ mod }, "e", function()
-    local a
-    a()
+    launcher:toggle()
   end, { description = "open app launcher", group = "app" }),
   awful.key({ mod }, "p", function()
     awful.spawn("gpaste-client ui")
-  end, { description = "open app launcher", group = "app" }),
+  end, { description = "open gpaste", group = "app" }),
   awful.key({ mod }, "q", function()
     if client.focus then
       client.focus:kill()
     end
   end, { description = "open app launcher", group = "app" }),
   awful.key({ mod, shift }, "q", awesome.quit, { description = "quit awesome", group = "WM" }),
+  awful.key({ mod }, ".", function()
+    machi.default_editor.start_interactive(awful.screen.focused())
+  end, { description = "edit the current layout if it is a machi layout", group = "layout" }),
+  awful.key({ mod }, "/", function()
+    machi.switcher.start(client.focus)
+  end, { description = "switch between windows for a machi layout", group = "layout" }),
 })
 for i = 1, 9 do
   awful.keyboard.append_global_keybindings({
@@ -105,6 +109,12 @@ awful.keyboard.append_global_keybindings({
       client.focus:raise()
     end
   end, { description = "go back", group = "client" }),
+  awful.key({ mod }, "f", function()
+    local c = client.focus
+    if c then
+      c.floating = not c.floating
+    end
+  end, { description = "float window", group = "client" }),
   awful.key({ mod, ctrl }, "j", function()
     awful.screen.focus_relative(1)
   end, { description = "focus the next screen", group = "screen" }),

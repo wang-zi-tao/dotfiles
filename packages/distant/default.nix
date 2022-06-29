@@ -10,16 +10,16 @@
 rustPlatform.buildRustPackage
 rec {
   pname = "distant";
-  version = "2022.3.31";
+  version = "v0.16.4";
 
   src = fetchFromGitHub {
     owner = "chipsenkbeil";
     repo = pname;
-    rev = "268ec948d602f9ffe03ce959cc2c6c3cf8defa99";
-    sha256 = "sha256-ccZfQPvBSNMDyeMbGVshotU9hQ6jGl3/DHwr3OQ3nyY=";
+    rev = version;
+    sha256 = "sha256-lCiTlyzp+q3NnwrILQZYM60fmbjfWFWYAy1rn7HqP54=";
   };
 
-  cargoSha256 = "sha256-1IVJKiLHh0DbXv7U9H41FxhbFgFGLAaYY8ynonSI6vM=";
+  cargoSha256 = "sha256-Yeht9Sv0/B1QC26jHMIfD2xmOtm48pZzxZXFcJ9rAXg=";
 
   nativeBuildInputs = [ pkg-config perl openssl openssl.dev ];
 

@@ -28,12 +28,14 @@
   '';
   home.packages = with pkgs;
     scripts ++ [
+      neovim-remote
       wangzi-neovim
-      distant
+      # distant
       iperf2
 
       wcp
 
+      lm_sensors
       nix-tree
       nload
       killall
@@ -49,11 +51,17 @@
       exa
       fd
       jq
+      tldr
+      just
+      tokei
       lsof
       pistol
       poppler
       ps
       ripgrep
+      silver-searcher
+      choose
+      sd
       sudo
       trash-cli
       wget
@@ -62,6 +70,7 @@
       unzip
       xclip
       pfetch
+      watchexec
       neofetch
     ];
 }

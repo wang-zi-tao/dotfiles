@@ -125,6 +125,26 @@ own() {
   fi
 }
 mkcd() { mkdir -p "$1" && cd "$1"; }
+new-nix-shell() {
+  if [[ ! -e flake.nix ]]; then
+    cat > shell.nix <<'EOF'
+{ pkgs ? import <nixpkgs> {} }:
+  pkgs.mkShell {
+    nativeBuildInputs = with pkgs; [
+      
+    ];
+}
+EOF
+    ${EDITOR:-vim} flake.nix
+  fi
+  if [ -e ./.git ]; then 
+    git add flake.nix
+  fi
+  if [ ! -e ./.envrc ]; then
+    echo "use flake" > .envrc
+    direnv allow
+  fi
+}
 new-nix-shell-flake() {
   if [ ! -e ./.direnv ]; then
     mkdir .direnv
