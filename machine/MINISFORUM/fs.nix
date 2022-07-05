@@ -1,6 +1,5 @@
 { config, lib, pkgs, modulesPath, ... }: {
   programs.fuse = { userAllowOther = true; };
-  environment.systemPackages = with pkgs; [ duperemove btrfs-progs ];
   services.cron.enable = true;
   services.rsnapshot = {
     enable = true;
@@ -28,4 +27,10 @@
       '';
     };
   };
+  environment.systemPackages = with pkgs; [
+    bcache-tools
+    bcachefs-tools
+    duperemove
+    btrfs-progs
+  ];
 }

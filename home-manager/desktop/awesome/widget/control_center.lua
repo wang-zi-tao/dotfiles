@@ -129,10 +129,10 @@ local control_center_react = react({
   render = function(self)
     return {
       slider("", self.state.volume, function(v)
-        awful.spawn("amixer set Master " .. v .. "%")
+        awful.spawn("amixer set Master " .. v .. "%", false)
       end),
       slider("", self.state.brightness, function(v)
-        awful.spawn("brightness set " .. v .. "%")
+        awful.spawn("brightness set " .. v .. "%", false)
         self:set_state({ brightness = v })
       end),
       {

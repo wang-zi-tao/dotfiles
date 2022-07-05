@@ -186,6 +186,13 @@ M.lspsaga = function()
   saga.init_lsp_saga({})
 end
 M.rust_tools = function()
+  local adapter
+  if n.vscode_lldb then
+    adapter = require("rust-tools.dap").get_codelldb_adapter(
+      n.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/adapter/codelldb",
+      n.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/lldb/lib/liblldb.so"
+    )
+  end
   require("rust-tools").setup({
     tools = {
       inlay_hints = {
@@ -193,10 +200,7 @@ M.rust_tools = function()
       },
     },
     dap = {
-      adapter = require("rust-tools.dap").get_codelldb_adapter(
-        n.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/adapter/codelldb",
-        n.lldb_lib .. "/lib/liblldb.so"
-      ),
+      adapter = adapter
     },
   })
 end
@@ -205,7 +209,7 @@ M.dap_ui = function()
   local dap = require("dap")
   dap.adapters.lldb = {
     type = "executable",
-    command = n.lldb .. "/bin/lldb-vscode", -- adjust as needed
+    command = "lldb-vscode", -- adjust as needed
     name = "lldb",
   }
   local path_cache = vim.fn.getcwd() .. "/"

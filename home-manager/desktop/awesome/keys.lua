@@ -103,12 +103,12 @@ awful.keyboard.append_global_keybindings({
   awful.key({ mod }, "k", function()
     awful.client.focus.byidx(-1)
   end, { description = "focus previous by index", group = "client" }),
-  awful.key({ mod }, "Tab", function()
-    awful.client.focus.history.previous()
-    if client.focus then
-      client.focus:raise()
-    end
-  end, { description = "go back", group = "client" }),
+  -- awful.key({ mod }, "Tab", function()
+  --   awful.client.focus.history.previous()
+  --   if client.focus then
+  --     client.focus:raise()
+  --   end
+  -- end, { description = "go back", group = "client" }),
   awful.key({ mod }, "f", function()
     local c = client.focus
     if c then

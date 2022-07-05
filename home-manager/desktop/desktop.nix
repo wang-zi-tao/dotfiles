@@ -69,14 +69,6 @@
     GTK_THEME = "Orchis-light";
     GTK_IM_MODULE = "ibus";
     QT_IM_MODULE = "ibus";
-    http_proxy = "http://192.168.16.2:8889";
-    https_proxy = "http://192.168.16.2:8889";
-    HTTP_PROXY = "http://192.168.16.2:8889";
-    HTTPS_PROXY = "http://192.168.16.2:8889";
-    # ALL_PROXY = "socks5://127.0.0.1:1089";
-    # NO_PROXY =
-    #   "localhost,127.0.0.1,10.96.0.0/12,192.168.99.0/24,192.168.39.0/24";
-    CURL_NIX_FLAGS = "-x http://192.168.16.2:8889";
     __NV_PRIME_RENDER_OFFLOAD = "1";
     __NV_PRIME_RENDER_OFFLOAD_PROVIDER = "NVIDIA-G0";
     __GLX_VENDOR_LIBRARY_NAME = "nvidia";

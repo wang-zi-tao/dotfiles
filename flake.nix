@@ -10,6 +10,7 @@
     nixpkgs-21.url = "github:nixos/nixpkgs/release-21.11";
     nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-wayland.url = "github:nix-community/nixpkgs-wayland";
     fenix = { url = "github:nix-community/fenix"; };
     flake-compat = {
       url = "github:edolstra/flake-compat";
@@ -24,6 +25,7 @@
     , nur
     , fenix
     , nixpkgs
+    , nixpkgs-wayland
     , flake-compat
     , flake-utils
     , ...
@@ -37,6 +39,7 @@
           ([
             nur.overlay
             fenix.overlay
+            nixpkgs-wayland.overlay
             (final: prev:
               {
                 flake-compat = inputs.flake-compat;

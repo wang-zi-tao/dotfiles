@@ -22,8 +22,8 @@
   home.file.".config/awesome/module/bling" = {
     source = pkgs.fetchgit {
       url = "https://github.com/BlingCorp/bling";
-      rev = "6e4ecb334c3764483d04b4e6bfc15abf98043bef";
-      sha256 = "sha256-TBEaxHRYtEyOVxtym/IaXuq0CVbizWTx8mAqIRww/r4=";
+      rev = "e384951c321420dcaada7ad4381a644f2c7eea83";
+      sha256 = "sha256-P725jMxPK7TOhLvvwQyyJBSOU48EDQeXIfcuweq6TUw=";
     };
     recursive = true;
   };

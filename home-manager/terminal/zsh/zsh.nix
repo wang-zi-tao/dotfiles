@@ -4,8 +4,8 @@
     enable = true;
     autocd = true;
     enableCompletion = true;
-    #enableAutosuggestions = false;
-    enableVteIntegration = true;
+    # enableAutosuggestions = false;
+    # enableVteIntegration = true;
     # enableSyntaxHighlighting = true;
     oh-my-zsh = {
       enable = false;
@@ -119,7 +119,7 @@
       ".." = "cd ..";
 
     } // (if nixosConfig.cluster.nodeConfig.develop.enable then {
-      mvn = "unset JAVA_TOOL_OPTIONS && ${pkgs.maven}/bin/mvn";
+      mvn = "unset JAVA_TOOL_OPTIONS && mvn";
       dc = "docker-compose";
       dcl = "docker-compose logs";
       dcb = "docker-compose build";

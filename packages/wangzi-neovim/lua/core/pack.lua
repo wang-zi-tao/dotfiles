@@ -435,13 +435,15 @@ packer.startup(function()
     end,
     ft = { "rs", "rust", "toml" },
   })
-  use({
-    -- "davidgranstrom/nvim-markdown-preview",
-    n.markdown_preview,
-    as = "markdown_preview",
-    ft = "markdown",
-    cmd = "MarkdownPreview",
-  })
+  if n.markdown_preview then
+    use({
+      -- "davidgranstrom/nvim-markdown-preview",
+      n.markdown_preview,
+      as = "markdown_preview",
+      ft = "markdown",
+      cmd = "MarkdownPreview",
+    })
+  end
   use({
     -- "chentau/marks.nvim",
     n.marks,

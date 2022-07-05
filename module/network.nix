@@ -3,6 +3,8 @@ let nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
 in
 {
   networking = {
+    # proxy.default = "http://192.168.16.2:8889";
+    proxy.noProxy = "mirrors.ustc.edu.cn,mirrors.tuna.tsinghua.edu.cn,127.0.0.1,localhost,.localdomain";
     firewall.enable = false;
     hosts = (builtins.listToAttrs (builtins.map
       ({ hostname, publicIp, ... }: {
@@ -38,15 +40,15 @@ in
   };
   sops.secrets."wireguard/private-key" =
     lib.mkIf nodeConfig.wireguard.enable { };
-  networking.interfaces.wg0.mtu = 1200;
-  networking.wireguard = lib.mkIf nodeConfig.wireguard.enable {
+  networking.wg-quick = lib.mkIf nodeConfig.wireguard.enable {
     interfaces = {
       wg0 = {
-        preSetup = lib.optionalString nodeConfig.wireguard.iptables.enable "${pkgs.iptables}/bin/iptables -A FORWARD -i wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -A FORWARD -o wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE";
-        postShutdown = lib.optionalString nodeConfig.wireguard.iptables.enable "${pkgs.iptables}/bin/iptables -D FORWARD -i wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -D FORWARD -o wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE";
-        ips = [ nodeConfig.wireguard.clusterIp ];
+        preUp = lib.optionalString nodeConfig.wireguard.iptables.enable "${pkgs.iptables}/bin/iptables -A FORWARD -i wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -A FORWARD -o wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE";
+        postDown = lib.optionalString nodeConfig.wireguard.iptables.enable "${pkgs.iptables}/bin/iptables -D FORWARD -i wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -D FORWARD -o wg0 -j ACCEPT; ${pkgs.iptables}/bin/iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE";
+        address = [ nodeConfig.wireguard.clusterIp ];
         listenPort = nodeConfig.wireguard.port;
         privateKeyFile = config.sops.secrets."wireguard/private-key".path;
+        mtu = 1600;
         peers = map
           (node:
             let w = node.wireguard;
@@ -96,7 +98,7 @@ in
                 RestartSec = "5s";
                 LimitNOFILE = 500000;
                 LimitNPROC = 500000;
-                ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -c -l127.0.0.1:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (nodeConfig.wireguard.index + 40000)}";
+                ExecStart = "${pkgs.udp2raw}/bin/udp2raw --fix-gro -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -c -l127.0.0.1:${builtins.toString (node.wireguard.index + 40000)} -r ${ip}:${builtins.toString (nodeConfig.wireguard.index + 40000)}";
               };
             }
           ))
@@ -116,7 +118,7 @@ in
               RestartSec = "5s";
               LimitNOFILE = 500000;
               LimitNPROC = 500000;
-              ExecStart = "${pkgs.udp2raw}/bin/udp2raw -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -s -l0.0.0.0:${builtins.toString (node.wireguard.index + 40000)} -r 127.0.0.1:${builtins.toString nodeConfig.wireguard.port}";
+              ExecStart = "${pkgs.udp2raw}/bin/udp2raw --fix-gro -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -s -l0.0.0.0:${builtins.toString (node.wireguard.index + 40000)} -r 127.0.0.1:${builtins.toString nodeConfig.wireguard.port}";
             };
           }
         ))

@@ -42,7 +42,7 @@ awful.rules.rules = {
         "kdeconnect-app",
         "org.jackhuang.hmcl.Launcher",
         "dolphin",
-        "nautilus",
+        "org.gnome.Nautilus",
       },
 
       -- Note that the name property shown in xprop might be set slightly after creation of the client

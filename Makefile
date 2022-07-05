@@ -1,5 +1,5 @@
 all: 
-	make this ARGS="$(ARGS)" || true
+	make self ARGS="$(ARGS)" || true
 	make wangzi-pc ARGS="$(ARGS)" || true
 	make wangzi-nuc ARGS="$(ARGS)" || true
 	make huawei-ecs ARGS="$(ARGS)" || true

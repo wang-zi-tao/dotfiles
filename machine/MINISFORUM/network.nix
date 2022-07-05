@@ -3,7 +3,6 @@
     #useDHCP = true;
     hostName = "wangzi-nuc";
     networkmanager = { enable = true; };
-    proxy.default = "http://192.168.16.2:8889";
     nat.enable = true;
     interfaces = {
       eno1 = {

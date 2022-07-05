@@ -131,7 +131,7 @@ theme.tabbar_size = 40 -- size of the tabbar
 theme.tabbar_position = "top" -- position of the tabbar
 theme.tabbar_bg_normal = theme.background -- background color of the focused client on the tabbar
 theme.tabbar_fg_normal = theme.foreground -- foreground color of the focused client on the tabbar
-theme.tabbar_bg_focus = "#1A2026" -- background color of unfocused clients on the tabbar
+theme.tabbar_bg_focus = theme.background1 -- background color of unfocused clients on the tabbar
 theme.tabbar_fg_focus = theme.blue -- foreground color of unfocused clients on the tabbar
 theme.tabbar_bg_focus_inactive = nil -- background color of the focused client on the tabbar when inactive
 theme.tabbar_fg_focus_inactive = nil -- foreground color of the focused client on the tabbar when inactive
@@ -185,13 +185,13 @@ theme.bling_tabbed_misc_titlebar_indicator = {
   icon_size = dpi(20),
   icon_margin = dpi(4),
   bg_color_focus = theme.background2,
-  bg_color = "#00000000",
+  bg_color = theme.background,
   icon_shape = function(cr, w, h)
     gears.shape.rounded_rect(cr, w, h, 0)
   end,
   layout = wibox.layout.fixed.horizontal,
 }
-theme.window_switcher_widget_bg = theme.background .. "c0" -- The bg color of the widget
+theme.window_switcher_widget_bg = theme.background -- The bg color of the widget
 theme.window_switcher_widget_border_width = 3 -- The border width of the widget
 theme.window_switcher_widget_border_radius = 8 -- The border radius of the widget
 theme.window_switcher_widget_border_color = theme.background2 -- The border color of the widget
@@ -206,8 +206,8 @@ theme.window_switcher_name_margins = 10 -- The margin of one clients title to th
 theme.window_switcher_name_valign = "top" -- How to vertically align one clients title
 theme.window_switcher_name_forced_width = 400 -- The width of one title
 theme.window_switcher_name_font = theme.font_name -- The font of all titles
-theme.window_switcher_name_normal_color = "#ffffff" -- The color of one title if the client is unfocused
-theme.window_switcher_name_focus_color = theme.foreground2 -- The color of one title if the client is focused
+theme.window_switcher_name_normal_color = theme.foreground -- The color of one title if the client is unfocused
+theme.window_switcher_name_focus_color = theme.blue -- The color of one title if the client is focused
 theme.window_switcher_icon_valign = "top" -- How to vertically align the one icon
 theme.window_switcher_icon_width = 32 -- The width of one icon
 

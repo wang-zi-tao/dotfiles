@@ -3,10 +3,15 @@ with pkgs.flakes; {
   nix = {
     binaryCaches = [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
+      "https://mirrors.ustc.edu.cn/nix-channels/store"
       "https://cache.nixos.org/"
       "https://nix-community.cachix.org"
-      "https://mirrors.ustc.edu.cn/nix-channels/store"
+      "https://nixpkgs-wayland.cachix.org"
       /* "https://mirror.sjtu.edu.cn/nix-channels/store" */
+    ];
+    binaryCachePublicKeys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
     ];
     extraOptions = "experimental-features = nix-command flakes";
     package = pkgs.nixFlakes;

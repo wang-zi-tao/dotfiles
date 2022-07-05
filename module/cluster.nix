@@ -43,6 +43,10 @@ with lib; with builtins;{
                     type = nullOr str;
                     default = null;
                   };
+                  ips = mkOption {
+                    type = nullOr listOf str;
+                    default = [ ];
+                  };
                   localIp = mkOption {
                     type = nullOr str;
                     default = null;
@@ -194,27 +198,29 @@ with lib; with builtins;{
                 };
               }));
         };
-        collections = mkOption {
-          default = { };
-          type = attrsOf
-            (submodule ({ name, config, ... }: {
-              options = {
-                name = mkOption { type = str; default = name; };
-                servers = mkOption { type = listOf str; };
-                clients = mkOption { type = listOf str; };
-                sync = mkOption
-                  {
-                    type = listOf
-                      (submodule ({ config, ... }: {
-                        options = {
-                          from = mkOption { type = str; };
-                          to = mkOption { type = str; };
-                        };
-                      }));
+        collections =
+          mkOption
+            {
+              default = { };
+              type = attrsOf
+                (submodule ({ name, config, ... }: {
+                  options = {
+                    name = mkOption { type = str; default = name; };
+                    servers = mkOption { type = listOf str; };
+                    clients = mkOption { type = listOf str; };
+                    sync = mkOption
+                      {
+                        type = listOf
+                          (submodule ({ config, ... }: {
+                            options = {
+                              from = mkOption { type = str; };
+                              to = mkOption { type = str; };
+                            };
+                          }));
+                      };
                   };
-              };
-            }));
-        };
+                }));
+            };
       };
     };
   imports = [
@@ -230,6 +236,7 @@ with lib; with builtins;{
     ./sshd.nix
     ./container.nix
     ./virtualbox.nix
+    ./develop.nix
 
     ./proxy.nix
     ./mySQL.nix
@@ -261,12 +268,13 @@ with lib; with builtins;{
           ];
         };
         workspace = {
-          servers = [ "wangzi-nuc" "wangzi-pc" "aliyun-hk" ];
-          clients = [ "wangzi-nuc" "wangzi-pc" "aliyun-hk" ];
+          servers = [ "wangzi-nuc" "wangzi-pc" "aliyun-hk" "aliyun-ecs" ];
+          clients = [ "wangzi-nuc" "wangzi-pc" "aliyun-hk" "aliyun-ecs" ];
           sync = [
-            { from = "wangzi-nuc"; to = "wangzi-pc"; }
+            # { from = "wangzi-nuc"; to = "wangzi-pc"; }
             { from = "aliyun-hk"; to = "wangzi-pc"; }
             { from = "aliyun-hk"; to = "wangzi-nuc"; }
+            { to = "aliyun-hk"; from = "aliyun-ecs"; }
           ];
         };
       };
@@ -279,7 +287,7 @@ with lib; with builtins;{
             port = 16538;
             publicKey = "jh1sHn85aq4Hkb3/s8AeQwfzpQ5PtNU7p0dqyeUOTWQ=";
             gateway = "aliyun-hk";
-            tunnel = true;
+            tunnel = false;
           };
           guiServer.enable = true;
           guiClient.enable = true;
@@ -306,7 +314,7 @@ with lib; with builtins;{
             port = 16538;
             publicKey = "Vk2vw8TbtI7GgktauuppvfhKAAxyEeNC8+/nxt10t1s=";
             gateway = "aliyun-hk";
-            tunnel = true;
+            tunnel = false;
           };
           wayland.enable = true;
           guiServer.enable = true;
@@ -399,7 +407,7 @@ with lib; with builtins;{
             };
           };
           CodeServer.enable = true;
-          redis.enable = true;
+          # redis.enable = true;
           inVM = true;
         };
         lxd = {
