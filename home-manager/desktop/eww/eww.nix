@@ -4,7 +4,7 @@ let
   eww = "${pkgs.eww}/bin/eww";
 in
 {
-  home.packages = [ pkgs.eww pkgs.jq pkgs.i3lock pkgs.wmctrl pkgs.brightnessctl pkgs.alsa-utils pkgs.networkmanager ];
+  home.packages = [ pkgs.unstable.eww pkgs.jq pkgs.i3lock pkgs.wmctrl pkgs.brightnessctl pkgs.alsa-utils pkgs.networkmanager ];
   home.file.".config/eww/images".source = ./images;
   home.file.".config/eww/eww.yuck".text = ''
     ${builtins.readFile ./util.yuck}

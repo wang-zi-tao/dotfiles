@@ -1,6 +1,7 @@
 { pkgs, ... }:
 let nvr = "${pkgs.neovim-remote}/bin/nvr";
-in {
+in
+{
   programs.git = {
     enable = true;
     lfs.enable = true;
@@ -26,6 +27,9 @@ in {
             ${nvr} -s -d $LOCAL $MERGED $BASE $REMOTE -c 'wincmd w' -c 'wincmd J|wincmd ='
           '';
         };
+      };
+      safe = {
+        directory = [ "/mnt/weed/mount/self/config/nixos" ];
       };
       credential = { helper = "store"; };
     };

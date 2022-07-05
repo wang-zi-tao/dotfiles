@@ -4,8 +4,8 @@ with pkgs.flakes; {
     binaryCaches = [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
       "https://mirrors.ustc.edu.cn/nix-channels/store"
-      "https://cache.nixos.org/"
       "https://nix-community.cachix.org"
+      "https://cache.nixos.org/"
       "https://nixpkgs-wayland.cachix.org"
       /* "https://mirror.sjtu.edu.cn/nix-channels/store" */
     ];
