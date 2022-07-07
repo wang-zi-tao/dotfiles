@@ -7,7 +7,6 @@ with lib; with builtins;{
   options =
     with types; {
       cluster = {
-        weedFilers = mkOption { type = listOf str; };
         ssh.publicKeySops = mkOption { type = path; };
         nodeName = mkOption {
           type = str;
@@ -281,7 +280,7 @@ with lib; with builtins;{
       nodes = {
         wangzi-pc = {
           users = [ "wangzi" ];
-          localIp = "192.168.32.128";
+          /* localIp = "192.168.32.128"; */
           wireguard = {
             index = 11;
             port = 16538;
@@ -308,7 +307,7 @@ with lib; with builtins;{
         };
         wangzi-nuc = {
           users = [ "wangzi" ];
-          localIp = "192.168.32.1";
+          /* localIp = "192.168.32.1"; */
           wireguard = {
             index = 12;
             port = 16538;

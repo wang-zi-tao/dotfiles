@@ -14,11 +14,23 @@ in
       config.adminuser = "wang-zi-tao";
       config.adminpassFile = config.sops.secrets."nextcloud/admin_password".path;
       autoUpdateApps.enable = true;
+      https = true;
     };
     sops.secrets."nextcloud/admin_password" = {
       owner = "nextcloud";
       mode = "0700";
       restartUnits = [ "phpfpm.service" ];
     };
+    services.caddy = {
+      enable = true;
+      virtualHosts = {
+        "https://${nodeConfig.publicIp}" = {
+          extraConfig = ''
+            reverse_proxy http://localhost:80
+          '';
+        };
+      };
+    };
   };
 }
+

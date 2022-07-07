@@ -61,7 +61,7 @@ in
                   (builtins.map
                     (p: p.wireguard.clusterIp)
                     (builtins.filter
-                      (p: p.wireguard.enable && p.publicIp == null && p.localIp == null)
+                      (p: p.wireguard.enable && p.publicIp == null)
                       (builtins.attrValues config.cluster.nodes))));
               # allowedIPs = [ w.clusterIp ] ++ (lib.lists.optional "192.168.16.0/24");
               publicKey = w.publicKey;
@@ -70,8 +70,6 @@ in
                   "127.0.0.1:${builtins.toString (w.index + 40000)}"
                 else if node.publicIp != null then
                   "${node.publicIp}:${builtins.toString w.port}"
-                else if node.localIp != null then
-                  "${node.localIp}:${builtins.toString w.port}"
                 else
                   null;
             })
@@ -176,4 +174,15 @@ in
   environment.systemPackages = with pkgs; [
     wireguard-tools
   ];
+  services.caddy = {
+    globalConfig = ''
+      servers {
+        protocol {
+          experimental_http3
+        }
+      }
+      http_port 89
+      default_sni ${nodeConfig.publicIp}
+    '';
+  };
 }
