@@ -21,10 +21,10 @@ in
       mode = "0700";
       restartUnits = [ "phpfpm.service" ];
     };
-    services.caddy = {
+    services.caddy = lib.optionalAttrs nodeConfig.NextCloudServer.enable {
       enable = true;
       virtualHosts = {
-        "https://${nodeConfig.publicIp}" = {
+        "https://${builtins.toString nodeConfig.publicIp}" = {
           extraConfig = ''
             reverse_proxy http://localhost:80
           '';

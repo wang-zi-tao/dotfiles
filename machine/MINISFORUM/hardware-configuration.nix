@@ -70,13 +70,4 @@
     modules = with pkgs.xorg; [ xf86videoamdgpu xf86inputlibinput xf86videodummy xf86videovesa ];
     videoDrivers = [ "amdgpu" ];
   };
-  systemd.timers.poweroff = {
-    timerConfig.OnCalendar = "23:59:59 Asia/Shanghai";
-    wantedBy = [ "timers.target" ];
-  };
-  systemd.services.poweroff = {
-    path = with pkgs; [ systemd ];
-    serviceConfig.Type = "oneshot";
-    script = "systemctl poweroff";
-  };
 }

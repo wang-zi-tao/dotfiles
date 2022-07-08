@@ -99,7 +99,8 @@
 
         virtualgl
         tigervnc
-        xpraWithNvenc
+        # xpraWithNvenc
+        xpra
         xwayland
         weston
         qrcodegen

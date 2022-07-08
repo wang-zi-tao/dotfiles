@@ -95,6 +95,7 @@
 
 
     v2ray
+    xiezuo
     wpsoffice
     # libreoffice
     libsForQt5.kdeconnect-kde

@@ -16,10 +16,10 @@ in
     domain = "grafana.wangzicloud.cn";
     #security.adminPasswordFile = config.sops.secrets."prometheus/admin_password".path;
   };
-  services.caddy = {
+  services.caddy = lib.optionalAttrs nodeConfig.prometheus.server {
     enable = true;
     virtualHosts = {
-      "https://${nodeConfig.publicIp}:9003" = {
+      "https://${builtins.toString nodeConfig.publicIp}:9003" = {
         extraConfig = ''
           reverse_proxy http://localhost:9002
         '';

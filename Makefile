@@ -8,10 +8,13 @@ all:
 self:
 	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch $(ARGS)
 wangzi-pc:
-	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.32.128 switch $(ARGS) || \
-	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.31.240 switch $(ARGS)
+	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.2.8 switch $(ARGS) || \
+	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.16.11 switch $(ARGS) || \
+	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.17.11 switch $(ARGS)
 wangzi-nuc:
-	nixos-rebuild --flake '.#wangzi-nuc' --target-host root@192.168.16.12 switch $(ARGS)
+	nixos-rebuild --flake '.#wangzi-nuc' --target-host root@192.168.2.9 switch $(ARGS) || \
+	nixos-rebuild --flake '.#wangzi-nuc' --target-host root@192.168.16.12 switch $(ARGS) || \
+	nixos-rebuild --flake '.#wangzi-nuc' --target-host root@192.168.17.12 switch $(ARGS)
 huawei-ecs:
 	nixos-rebuild --flake '.#huawei-ecs' --target-host root@139.9.235.87 switch $(ARGS)
 aliyun-hk:

@@ -11,10 +11,10 @@ in
       ];
       ports = [ "6610:6610" "6611:6611" ];
     };
-    services.caddy = {
+    services.caddy = lib.optionalAttrs nodeConfig.OnedevServer.enable {
       enable = true;
       virtualHosts = {
-        "https://${nodeConfig.publicIp}:6613" = {
+        "https://${builtins.toString nodeConfig.publicIp}:6613" = {
           extraConfig = ''
             reverse_proxy http://localhost:6610
           '';
