@@ -3,8 +3,8 @@ let nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
 in
 {
   networking = {
-    # proxy.default = "http://192.168.16.2:8889";
-    proxy.noProxy = "mirrors.ustc.edu.cn,mirrors.tuna.tsinghua.edu.cn,127.0.0.1,localhost,.localdomain";
+    proxy.default = lib.mkIf nodeConfig.wireguard.enable "http://192.168.16.2:8889";
+    proxy.noProxy = "127.0.0.1,localhost,.localdomain";
     firewall.enable = false;
     hosts = (builtins.listToAttrs (builtins.map
       ({ hostname, publicIp, ... }: {

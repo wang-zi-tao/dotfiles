@@ -8,11 +8,7 @@
       fonts = {
         fontconfig = {
           enable = true;
-          defaultFonts.emoji = [ "Noto Color Emoji" ];
-          defaultFonts.monospace = [ "Iosevka Custom Medium" "Powerline" ];
-          defaultFonts.sansSerif =
-            [ "Inter" "Liberation Sans" "Soruce Han Sans SC" "Powerline" ];
-          defaultFonts.serif = [ "Liberation Serif" "Source Han Serif SC" "Powerline" ];
+          defaultFonts.monospace = [ "Iosevka Custom Medium" ];
         };
         fonts = with pkgs; [
           noto-fonts
@@ -27,6 +23,8 @@
           powerline-fonts
           powerline-symbols
           iosevka
+          iosevka-nerd
+          # nerdfonts
           fira-code-symbols
         ];
         fontDir.enable = true;

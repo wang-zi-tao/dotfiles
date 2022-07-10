@@ -131,13 +131,13 @@ local control_center_react = react({
       slider("", self.state.volume, function(v)
         awful.spawn("amixer set Master " .. v .. "%", false)
       end),
-      slider("", self.state.brightness, function(v)
+      slider(" ", self.state.brightness, function(v)
         awful.spawn("brightness set " .. v .. "%", false)
         self:set_state({ brightness = v })
       end),
       {
         util.big_block1({
-          button("直", "睊", "wifi " .. (self.state.wifi or "on"), "wifi off", self.state.wifi ~= nil, function()
+          button("直 ", "睊 ", "wifi " .. (self.state.wifi or "on"), "wifi off", self.state.wifi ~= nil, function()
             if self.state.wifi then
               for _, device in pairs(config.wifi_devices) do
                 awful.spawn("nmcli device disconnect " .. device)
@@ -149,7 +149,7 @@ local control_center_react = react({
             end
           end),
           button("", "", "bluetooth on", "bluetooth off", self.state.bluetooth_enable, function() end),
-          button("", "舘", "float on", "float off", self.state.old_layout, function()
+          button(" ", "舘", "float on", "float off", self.state.old_layout, function()
             if self.state.old_layout then
               awful.layout.set(self.state.old_layout)
               self:set_state({ old_layout = false })
@@ -163,13 +163,13 @@ local control_center_react = react({
           layout = wibox.layout.fixed.vertical,
         }),
         util.big_block1({
-          button("ﲳ", "", "remote cli on", "remote cli off", self.state.remote_hosts_cli_enable, function()
+          button(" ﲳ", " ", "remote cli on", "remote cli off", self.state.remote_hosts_cli_enable, function()
             self:set_state({ remote_hosts_cli_enable = not self.state.remote_hosts_cli_enable })
           end),
-          button("ﲳ", "", "remote shell on", "remote shell off", self.state.remote_hosts_shell_enable, function()
+          button(" ﲳ", " ", "remote shell on", "remote shell off", self.state.remote_hosts_shell_enable, function()
             self:set_state({ remote_hosts_shell_enable = not self.state.remote_hosts_shell_enable })
           end),
-          button("", "", "remote gui on", "remote gui off", self.state.remote_hosts_gui_enable, function()
+          button(" ", " ", "remote gui on", "remote gui off", self.state.remote_hosts_gui_enable, function()
             self:set_state({ remote_hosts_gui_enable = not self.state.remote_hosts_gui_enable })
           end),
           spacing = 8,

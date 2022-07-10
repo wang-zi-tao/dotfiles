@@ -33,10 +33,11 @@ local function process(id, icon, icon_color, colors)
     widget = wibox.container.arcchart,
   })
 end
+
 function M.panel(screen)
-  local cpu_usage = process("cpu_usage", "", beautiful.foreground1, { beautiful.foreground })
-  local ram_usage = process("ram_usage", "ﲮ", beautiful.foreground1, { beautiful.foreground })
-  local hdd_usage = process("hdd_usage", "", beautiful.foreground1, { beautiful.foreground })
+  local cpu_usage = process("cpu_usage", " ", beautiful.foreground1, { beautiful.foreground })
+  local ram_usage = process("ram_usage", " ﲮ", beautiful.foreground1, { beautiful.foreground })
+  local hdd_usage = process("hdd_usage", " ", beautiful.foreground1, { beautiful.foreground })
   local temp_status = process("temp_status", "", beautiful.foreground1, { beautiful.foreground })
   local slider = {
     cpu_usage,
@@ -90,7 +91,7 @@ function M.panel(screen)
   		exit;
   	fi
   done
-  ]],
+  ]] ,
     function(stdout)
       local temp_path = stdout:gsub("%\n", "")
       if temp_path == "" or not temp_path then
@@ -105,4 +106,5 @@ function M.panel(screen)
   )
   return slider
 end
+
 return M

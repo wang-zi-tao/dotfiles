@@ -1,6 +1,6 @@
 { pkgs, ... }: {
   programs.tmux = {
-    enable = true;
+    enable = false;
     clock24 = true;
     # keyMode = "vi";
     shortcut = "x";

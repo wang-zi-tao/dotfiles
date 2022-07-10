@@ -10,9 +10,11 @@ function M.rounded_shape(r)
     gears.shape.rounded_rect(cr, w, h, dpi(r))
   end
 end
+
 function M.colorize_text(txt, fg)
   return "<span foreground='" .. fg .. "'>" .. txt .. "</span>"
 end
+
 function M.big_block(inner)
   return {
     {
@@ -25,6 +27,7 @@ function M.big_block(inner)
     widget = wibox.container.margin,
   }
 end
+
 function M.big_block1(inner)
   return {
     {
@@ -37,6 +40,7 @@ function M.big_block1(inner)
     widget = wibox.container.margin,
   }
 end
+
 function M.block(inner)
   return {
     {
@@ -51,6 +55,7 @@ function M.block(inner)
     widget = wibox.container.margin,
   }
 end
+
 function M.block1(inner)
   return {
     {
@@ -63,6 +68,7 @@ function M.block1(inner)
     widget = wibox.container.background,
   }
 end
+
 function M.symbol(symbol, args)
   args = args or {}
   return {
@@ -73,6 +79,7 @@ function M.symbol(symbol, args)
     widget = wibox.widget.textbox,
   }
 end
+
 function M.big_button(inner, callback, arg)
   arg = arg or {}
   local widgets = wibox.widget({
@@ -95,6 +102,7 @@ function M.big_button(inner, callback, arg)
   widgets:buttons(gears.table.join(awful.button({}, 1, nil, callback)))
   return widgets
 end
+
 function M.button(inner, callback)
   local widgets = wibox.widget({
     {
@@ -116,6 +124,7 @@ function M.button(inner, callback)
   widgets:buttons(gears.table.join(awful.button({}, 1, nil, callback)))
   return widgets
 end
+
 function M.map(list, f, table)
   table = table or {}
   for k, v in pairs(list) do
@@ -124,4 +133,5 @@ function M.map(list, f, table)
   end
   return table
 end
+
 return M

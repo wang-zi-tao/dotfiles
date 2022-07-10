@@ -118,13 +118,13 @@ return require("react")({
         {
           {
             {
-              markup = temp_current .. "糖",
+              markup = temp_current .. "糖 ",
               align = "right",
               font = beautiful.font_name .. "Bold 16",
               widget = wibox.widget.textbox,
             },
             {
-              markup = "体感温度: " .. feels_like .. "糖",
+              markup = "体感温度: " .. feels_like .. "糖 ",
               font = beautiful.font_name .. "Bold 10",
               widget = wibox.widget.textbox,
             },

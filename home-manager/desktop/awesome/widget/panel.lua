@@ -33,7 +33,7 @@ awful.screen.connect_for_each_screen(function(s)
   s.mywibar:setup({
     {
       util.block({
-        util.button({ text = "", widget = wibox.widget.textbox }, function()
+        util.button({ text = " ", widget = wibox.widget.textbox }, function()
           launcher:toggle()
         end),
         {

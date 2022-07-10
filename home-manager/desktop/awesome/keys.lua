@@ -52,6 +52,9 @@ awful.keyboard.append_global_keybindings({
     end
   end, { description = "open app launcher", group = "app" }),
   awful.key({ mod, shift }, "q", awesome.quit, { description = "quit awesome", group = "WM" }),
+  awful.key({ mod, ctrl }, "q", function()
+    awesome.emit_signal("module::exit_screen:show")
+  end, { description = "power", group = "WM" }),
   awful.key({ mod }, ".", function()
     machi.default_editor.start_interactive(awful.screen.focused())
   end, { description = "edit the current layout if it is a machi layout", group = "layout" }),
