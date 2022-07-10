@@ -10,15 +10,16 @@ local util = require("widget.util")
 
 local info_center
 awful.screen.connect_for_each_screen(function(s)
-  local info_center_width = dpi(1000)
-  local info_center_height = dpi(450)
-
   info_center = awful.popup({
     type = "dock",
     screen = s,
-    width = dpi(info_center_width),
-    maximum_width = dpi(info_center_width),
-    maximum_height = dpi(info_center_height),
+    placement = function(c)
+      awful.placement.top(c, {
+        margins = {
+          top = 40,
+        },
+      })
+    end,
     bg = beautiful.transparent,
     ontop = true,
     visible = false,
@@ -55,7 +56,6 @@ awful.screen.connect_for_each_screen(function(s)
         image = beautiful.wallpaper,
         horizontal_fit_policy = "fit",
         vertical_fit_policy = "fit",
-        -- clip_shape = helpers.rrect(dpi(5)),
         shape = util.rounded_shape(4),
         widget = wibox.widget.imagebox,
       },
@@ -83,10 +83,7 @@ awful.screen.connect_for_each_screen(function(s)
           wallpaper_box,
           util.big_block1(s.player),
         },
-        {
-          layout = wibox.layout.fixed.vertical,
-          s.notifys,
-        },
+        s.notifys,
       },
       margins = dpi(10),
       widget = wibox.container.margin,

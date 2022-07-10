@@ -15,12 +15,25 @@ function M.colorize_text(txt, fg)
   return "<span foreground='" .. fg .. "'>" .. txt .. "</span>"
 end
 
-function M.big_block(inner)
+function M.rounded_box(inner, bg, r, margins)
+  return {
+    {
+      inner,
+      margins = margins,
+      widget = wibox.container.margin,
+    },
+    bg = bg or beautiful.background,
+    shape = M.rounded_shape(r or 16),
+    widget = wibox.container.background,
+  }
+end
+
+function M.big_block(inner, bg, r)
   return {
     {
       { inner, widget = wibox.container.margin },
-      bg = beautiful.background,
-      shape = M.rounded_shape(16),
+      bg = bg or beautiful.background,
+      shape = M.rounded_shape(r or 16),
       widget = wibox.container.background,
     },
     margins = 0,
@@ -28,11 +41,11 @@ function M.big_block(inner)
   }
 end
 
-function M.big_block1(inner)
+function M.big_block1(inner, bg)
   return {
     {
       { inner, margins = 8, widget = wibox.container.margin },
-      bg = beautiful.background1,
+      bg = bg or beautiful.background1,
       shape = M.rounded_shape(16),
       widget = wibox.container.background,
     },
@@ -103,7 +116,8 @@ function M.big_button(inner, callback, arg)
   return widgets
 end
 
-function M.button(inner, callback)
+function M.button(inner, callback, bg)
+  bg = bg or wibox.container.background1
   local widgets = wibox.widget({
     {
       inner,
@@ -112,13 +126,14 @@ function M.button(inner, callback)
       widget = wibox.container.margin,
     },
     shape = M.rounded_shape(3),
+    bg = bg,
     widget = wibox.container.background,
   })
   widgets:connect_signal("mouse::enter", function(widget)
-    widget.bg = beautiful.background1
+    widget.bg = beautiful.blue
   end)
   widgets:connect_signal("mouse::leave", function(widget)
-    widget.bg = beautiful.background
+    widget.bg = bg
   end)
   widgets:connect_signal("mouse::press", callback)
   widgets:buttons(gears.table.join(awful.button({}, 1, nil, callback)))

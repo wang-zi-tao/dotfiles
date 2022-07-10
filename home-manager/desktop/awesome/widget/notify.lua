@@ -50,49 +50,38 @@ naughty.config.presets.ok = naughty.config.presets.normal
 naughty.config.presets.info = naughty.config.presets.normal
 naughty.config.presets.warn = naughty.config.presets.critical
 local function notify_widget(notify)
-  return {
+  return util.rounded_box({
     {
-      {
+      util.rounded_box({
         {
           {
             {
-              {
-                {
-                  {
-                    image = notify.appicon,
-                    resize = true,
-                    widget = wibox.widget.imagebox,
-                  },
-                  strategy = "max",
-                  height = dpi(20),
-                  widget = wibox.container.constraint,
-                },
-                right = dpi(10),
-                widget = wibox.container.margin,
-              },
-              {
-                markup = notify.app_name,
-                align = "left",
-                font = beautiful.font_name .. "Bold 12",
-                widget = wibox.widget.textbox,
-              },
-              {
-                markup = notify.time,
-                align = "right",
-                font = beautiful.font_name .. "Bold 12",
-                widget = wibox.widget.textbox,
-              },
-              layout = wibox.layout.align.horizontal,
+              image = notify.appicon,
+              resize = true,
+              widget = wibox.widget.imagebox,
             },
-            top = dpi(10),
-            left = dpi(20),
-            right = dpi(20),
-            bottom = dpi(10),
-            widget = wibox.container.margin,
+            strategy = "max",
+            height = dpi(20),
+            widget = wibox.container.constraint,
           },
-          bg = beautiful.background,
-          widget = wibox.container.background,
+          right = dpi(10),
+          widget = wibox.container.margin,
         },
+        {
+          markup = notify.app_name,
+          align = "left",
+          font = beautiful.font_name .. "Bold 12",
+          widget = wibox.widget.textbox,
+        },
+        {
+          markup = notify.time,
+          align = "right",
+          font = beautiful.font_name .. "Bold 12",
+          widget = wibox.widget.textbox,
+        },
+        layout = wibox.layout.align.horizontal,
+      }, beautiful.background1, dpi(12), dpi(8)),
+      {
         {
           {
             {
@@ -193,14 +182,12 @@ local function notify_widget(notify)
         },
         layout = wibox.layout.fixed.vertical,
       },
-      top = dpi(0),
-      bottom = dpi(5),
-      widget = wibox.container.margin,
+      spacing = 8,
+      layout = wibox.layout.fixed.vertical,
     },
-    bg = beautiful.background1,
-    shape = util.rounded_shape(8),
-    widget = wibox.container.background,
-  }
+    margins = 8,
+    widget = wibox.container.margin,
+  }, beautiful.background, dpi(12))
 end
 
 local notify_center_react = require("react")({
@@ -208,35 +195,27 @@ local notify_center_react = require("react")({
     notifys = {},
   },
   render = function(self)
-    return {
-      expand = "none",
-      layout = wibox.layout.align.vertical,
-      forced_width = dpi(400),
-      {
+    if #self.state.notifys ~= 0 then
+      return util.big_block1({
+        layout = wibox.layout.fixed.vertical,
+        -- forced_width = dpi(400),
         {
-          util.big_button(util.symbol("﫨"), function()
-            self:set_state({ notifys = {} })
-          end, {
-            shape = gears.shape.rounded_rect,
-            bg_default = beautiful.background,
-            bg = beautiful.blue,
-          }),
-          layout = wibox.layout.fixed.horizontal,
+          {
+            util.big_button(util.symbol("﫨"), function()
+              self:set_state({ notifys = {} })
+            end, {
+              shape = gears.shape.rounded_rect,
+              bg_default = beautiful.background,
+              bg = beautiful.background,
+            }),
+            layout = wibox.layout.fixed.horizontal,
+          },
+          margins = dpi(8),
+          widget = wibox.container.margin,
         },
-        margins = dpi(20),
-        widget = wibox.container.margin,
-      },
-      nil,
-      {
         {
           util.map(self.state.notifys, function(notify)
-            return {
-              notify_widget(notify),
-              shape_border_width = 4,
-              shape_border_color = beautiful.background1,
-              shape = util.rounded_shape(8),
-              widget = wibox.container.background,
-            }
+            return notify_widget(notify)
           end, {
             spacing = 8,
             widget = wibox.layout.fixed.vertical,
@@ -244,9 +223,10 @@ local notify_center_react = require("react")({
           margins = { bottom = dpi(20), right = dpi(20) },
           widget = wibox.container.margin,
         },
-        layout = wibox.container.scroll.vertical,
-      },
-    }
+      })
+    else
+      return nil
+    end
   end,
 })
 local notify_center = notify_center_react()
