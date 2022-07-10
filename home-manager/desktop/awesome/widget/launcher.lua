@@ -21,5 +21,6 @@ local launcher = require("module.bling.widget.app_launcher")({
   prompt_text = "",
   prompt_height = dpi(64);
   prompt_paddings = dpi(8);
+  prompt_icon = " ";
 })
 return launcher

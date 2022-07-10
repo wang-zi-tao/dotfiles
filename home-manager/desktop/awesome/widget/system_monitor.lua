@@ -34,16 +34,16 @@ local function process(id, icon, icon_color, colors)
   })
 end
 
+local cpu_usage_on_panel = process("cpu_usage", " ", beautiful.foreground1, { beautiful.foreground })
+local ram_usage_on_panel = process("ram_usage", " ﲮ", beautiful.foreground1, { beautiful.foreground })
+local hdd_usage_on_panel = process("hdd_usage", " ", beautiful.foreground1, { beautiful.foreground })
+local temp_status_on_panel = process("temp_status", "", beautiful.foreground1, { beautiful.foreground })
 function M.panel(screen)
-  local cpu_usage = process("cpu_usage", " ", beautiful.foreground1, { beautiful.foreground })
-  local ram_usage = process("ram_usage", " ﲮ", beautiful.foreground1, { beautiful.foreground })
-  local hdd_usage = process("hdd_usage", " ", beautiful.foreground1, { beautiful.foreground })
-  local temp_status = process("temp_status", "", beautiful.foreground1, { beautiful.foreground })
   local slider = {
-    cpu_usage,
-    ram_usage,
-    hdd_usage,
-    temp_status,
+    cpu_usage_on_panel,
+    ram_usage_on_panel,
+    hdd_usage_on_panel,
+    temp_status_on_panel,
     spacing = 1,
     layout = wibox.layout.fixed.horizontal,
   }
@@ -57,7 +57,7 @@ function M.panel(screen)
     local diff_idle = idle - idle_prev
     local diff_total = total - total_prev
     local diff_usage = (1000 * (diff_total - diff_idle) / diff_total + 5) / 10
-    cpu_usage.value = diff_usage
+    cpu_usage_on_panel.value = diff_usage
     total_prev = total
     idle_prev = idle
     collectgarbage("collect")
@@ -66,12 +66,12 @@ function M.panel(screen)
     local total, used, free, shared, buff_cache, available, total_swap, used_swap, free_swap = stdout:match(
       "(%d+)%s*(%d+)%s*(%d+)%s*(%d+)%s*(%d+)%s*(%d+)%s*Swap:%s*(%d+)%s*(%d+)%s*(%d+)"
     )
-    ram_usage.value = (used / total * 100)
+    ram_usage_on_panel.value = (used / total * 100)
     collectgarbage("collect")
   end)
   watch([[bash -c "df -h / |grep '^/' | awk '{print $5}'"]], 10, function(_, stdout)
     local space_consumed = stdout:match("(%d+)")
-    hdd_usage.value = (tonumber(space_consumed))
+    hdd_usage_on_panel.value = (tonumber(space_consumed))
     collectgarbage("collect")
   end)
   local max_temp = 80
@@ -99,7 +99,7 @@ function M.panel(screen)
       end
       watch([[ sh -c "cat ]] .. temp_path .. [[" ]], 10, function(_, stdout)
         local temp = stdout:match("(%d+)")
-        temp_status.value = ((temp / 1000) / max_temp * 100)
+        temp_status_on_panel.value = ((temp / 1000) / max_temp * 100)
         collectgarbage("collect")
       end)
     end

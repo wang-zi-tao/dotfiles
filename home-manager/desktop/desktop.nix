@@ -41,7 +41,7 @@
     in
     {
       enable = true;
-      theme.name = "Orchis-light";
+      theme.name = "Orchis";
       theme.package = pkgs.orchis-theme;
       iconTheme.name = "Tela-blue";
       iconTheme.package = pkgs.tela-icon-theme;

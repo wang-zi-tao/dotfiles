@@ -3,9 +3,9 @@ local apps = require("apps")
 local machi = require("module.layout-machi")
 local launcher = require("widget.launcher")
 mod = "Mod4"
-local alt = "Mod1"
-local ctrl = "Control"
-local shift = "Shift"
+alt = "Mod1"
+ctrl = "Control"
+shift = "Shift"
 
 awful.keyboard.append_global_keybindings({
   awful.key({ mod }, "r", awesome.restart, { description = "reload awesome", group = "WM" }),
@@ -106,12 +106,22 @@ awful.keyboard.append_global_keybindings({
   awful.key({ mod }, "k", function()
     awful.client.focus.byidx(-1)
   end, { description = "focus previous by index", group = "client" }),
-  -- awful.key({ mod }, "Tab", function()
-  --   awful.client.focus.history.previous()
-  --   if client.focus then
-  --     client.focus:raise()
-  --   end
-  -- end, { description = "go back", group = "client" }),
+  awful.key({ mod }, "Tab", function()
+    -- awful.client.focus.history.previous()
+    local c = awful.client.focus.history.list[2]
+    client.focus = c
+    local t = client.focus and client.focus.first_tag or nil
+    if t then
+      t:view_only()
+    end
+    c:raise()
+  end, { description = "go back", group = "client" }),
+  awful.key({ shift, mod }, "Tab", function()
+    awful.tag.history.restore(awful.screen.focused(), 1)
+  end, { description = "go back", group = "client" }),
+  awful.key({ alt }, "Tab", function()
+    awesome.emit_signal("bling::window_switcher::turn_on")
+  end, { description = "Window Switcher", group = "bling" }),
   awful.key({ mod }, "f", function()
     local c = client.focus
     if c then

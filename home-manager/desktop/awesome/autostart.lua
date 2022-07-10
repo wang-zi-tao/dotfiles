@@ -36,15 +36,15 @@ awful.spawn("gpaste-client start")
 awful.spawn("xhost +")
 awful.spawn([[sh -c "
   if command -v nvidia-smi ; then 
-    xpra shadow $DISPLAY --bind-tcp=$(hostname).wg:$((${DISPLAY:1}+6000)) --video-encoders=nvenc
+    xpra shadow $DISPLAY --bind-tcp=$(hostname).wg1:$((${DISPLAY:1}+6000)) --video-encoders=nvenc
   else 
-    xpra shadow $DISPLAY --bind-tcp=$(hostname).wg:$((${DISPLAY:1}+6000))
+    xpra shadow $DISPLAY --bind-tcp=$(hostname).wg1:$((${DISPLAY:1}+6000))
   fi
 "]])
 awful.spawn([[sh -c "
   if command -v nvidia-smi ; then 
-    xpra start :$((${DISPLAY:1}+1000)) --bind-tcp=$(hostname).wg:$((${DISPLAY:1}+7000)) --video-encoders=nvenc
+    xpra start :$((${DISPLAY:1}+1000)) --bind-tcp=$(hostname).wg1:$((${DISPLAY:1}+7000)) --video-encoders=nvenc
   else 
-    xpra start :$((${DISPLAY:1}+1000)) --bind-tcp=$(hostname).wg:$((${DISPLAY:1}+7000))
+    xpra start :$((${DISPLAY:1}+1000)) --bind-tcp=$(hostname).wg1:$((${DISPLAY:1}+7000))
   fi
 "]])
