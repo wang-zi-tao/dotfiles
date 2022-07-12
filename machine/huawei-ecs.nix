@@ -50,7 +50,6 @@ nixpkgs.lib.nixosSystem {
         };
       };
       networking = {
-        firewall.enable = false;
         dhcpcd.enable = true;
       };
       boot.cleanTmpDir = true;

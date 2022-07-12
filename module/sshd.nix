@@ -18,16 +18,8 @@ in
         ClientAliveCountMax 360
         ClientAliveInterval 360
       '';
-      listenAddresses = [
-        {
-          addr = "0.0.0.0";
-          port = 22;
-        }
-        {
-          addr = "0.0.0.0";
-          port = 64022;
-        }
-      ];
+      ports = [ 22 64022 ];
+      openFirewall = true;
     };
     boot.initrd.network.ssh.enable = true;
     boot.initrd.network.ssh.shell = "${pkgs.zsh}/bin/zsh";

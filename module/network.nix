@@ -3,9 +3,12 @@ let nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
 in
 {
   networking = {
+    firewall = {
+      enable = true;
+      trustedInterfaces = [ "wg" "wg1" ];
+    };
     proxy.default = lib.mkIf nodeConfig.wireguard.enable "http://192.168.16.2:8889";
     proxy.noProxy = "127.0.0.1,localhost,.localdomain";
-    firewall.enable = false;
     hosts = (builtins.listToAttrs (builtins.map
       ({ hostname, publicIp, ... }: {
         name = publicIp;
@@ -40,6 +43,18 @@ in
   };
   sops.secrets."wireguard/private-key" =
     lib.mkIf nodeConfig.wireguard.enable { };
+  networking.firewall.allowedUDPPorts = lib.mkIf nodeConfig.wireguard.enable [ nodeConfig.wireguard.port ];
+  networking.firewall.allowedTCPPorts = (lib.optionals (nodeConfig.wireguard.enable && nodeConfig.publicIp != null) (
+    (builtins.concatLists
+      (builtins.map
+        (node: lib.optionals node.wireguard.enable
+          [ (node.wireguard.index + 40000) ])
+        (builtins.attrValues config.cluster.nodes)))
+  )) ++ lib.optionals nodeConfig.wireguard.enable [ 52343 (nodeConfig.wireguard.port + 1) ];
+  networking.firewall.allowedUDPPortRanges = lib.mkIf nodeConfig.wireguard.enable [{
+    from = 50000;
+    to = 55555;
+  }];
   networking.wireguard = lib.mkIf nodeConfig.wireguard.enable {
     interfaces = {
       wg0 = {
@@ -77,7 +92,6 @@ in
       };
     };
   };
-
   systemd.services =
     (lib.optionalAttrs (nodeConfig.wireguard.enable && nodeConfig.wireguard.tunnel)
       (builtins.listToAttrs
@@ -120,7 +134,6 @@ in
           }
         ))
         (builtins.filter (node: node.wireguard.enable && node.hostname != nodeConfig.hostname && node.wireguard.tunnel) (builtins.attrValues config.cluster.nodes))))
-
     // {
       wg-netmanager = lib.mkIf nodeConfig.wireguard.enable
         {

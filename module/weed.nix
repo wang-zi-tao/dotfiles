@@ -24,6 +24,7 @@ let
           ''${pkgs.seaweedfs}/bin/weed server \
             -resumeState \
             -ip=${nodeConfig.wireguard.clusterIp} \
+            -ip.bind=0.0.0.0 \
             -dir=${weed.server.path}/weed \
             -master=true \
             -master.port=301 \
@@ -58,7 +59,7 @@ let
         ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${nodeConfig.hostname} ${weed.client.path}/${nodeConfig.hostname}";
         ExecStart =
           ''${pkgs.seaweedfs}/bin/weed mount \
-            -filer=${nodeConfig.wireguard.clusterIp}:302 \
+            -filer=${nodeConfig.hostname}:302 \
             -dir=${weed.client.mount}/${nodeConfig.hostname} \
             -dirAutoCreate \
             -cacheDir=${weed.client.path}/${nodeConfig.hostname} \
@@ -85,7 +86,7 @@ let
             LimitNOFILE = 500000;
             ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${nasNode.hostname} ${weed.client.path}/${nasNode.hostname}";
             ExecStart = ''${pkgs.seaweedfs}/bin/weed mount \
-              -filer=${nasNode.hostname}.wg:302 \
+              -filer=${nasNode.hostname}.wg1:302 \
               -dir=${weed.client.mount}/${nasNode.hostname} \
               -dirAutoCreate \
               -cacheDir=${weed.client.path}/${nasNode.hostname} \
@@ -153,9 +154,9 @@ else (map (server: server+".wg:302")
                 RestartSec = "2s";
                 LimitNOFILE = 500000;
                 ExecStart = ''${pkgs.seaweedfs}/bin/weed filer.sync \
-                  -a ${sync.from}.wg:302 \
+                  -a ${sync.from}.wg1:302 \
                   -a.path=/${collection.name} \
-                  -b ${sync.to}.wg:302 \
+                  -b ${sync.to}.wg1:302 \
                   -b.path=/${collection.name} \
                   # -a.debug -b.debug
                 '';

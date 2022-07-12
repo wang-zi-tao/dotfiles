@@ -10,5 +10,6 @@
         settings = { maxmemory = 512 * 1024 * 1024; };
       };
     };
+    networking.firewall.allowedTCPPorts = [ 6379 ];
   };
 }

@@ -1,5 +1,6 @@
 { pkgs, config, lib, ... }: {
   config = lib.mkIf config.cluster.nodeConfig.MySQL.enable {
+    networking.firewall.allowedTCPPorts = [ 3306 ];
     containers = {
       mysql = {
         autoStart = true;

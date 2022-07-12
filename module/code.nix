@@ -22,5 +22,7 @@ with lib; with builtins; {
         };
       };
     };
+    networking.firewall.allowedUDPPorts = [ 4443 ];
+    networking.firewall.allowedTCPPorts = [ 4443 4444 ];
   };
 }
