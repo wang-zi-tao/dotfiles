@@ -5,7 +5,8 @@ in
   networking = {
     firewall = {
       enable = true;
-      trustedInterfaces = [ "wg" "wg1" ];
+      rejectPackets = true;
+      trustedInterfaces = [ "wg0" "wg1" ];
     };
     proxy.default = lib.mkIf nodeConfig.wireguard.enable "http://192.168.16.2:8889";
     proxy.noProxy = "127.0.0.1,localhost,.localdomain";
@@ -43,14 +44,14 @@ in
   };
   sops.secrets."wireguard/private-key" =
     lib.mkIf nodeConfig.wireguard.enable { };
-  networking.firewall.allowedUDPPorts = lib.mkIf nodeConfig.wireguard.enable [ nodeConfig.wireguard.port ];
+  networking.firewall.allowedUDPPorts = lib.mkIf nodeConfig.wireguard.enable [ nodeConfig.wireguard.port (nodeConfig.wireguard.port + 1) ];
   networking.firewall.allowedTCPPorts = (lib.optionals (nodeConfig.wireguard.enable && nodeConfig.publicIp != null) (
     (builtins.concatLists
       (builtins.map
         (node: lib.optionals node.wireguard.enable
           [ (node.wireguard.index + 40000) ])
         (builtins.attrValues config.cluster.nodes)))
-  )) ++ lib.optionals nodeConfig.wireguard.enable [ 52343 (nodeConfig.wireguard.port + 1) ];
+  )) ++ lib.optionals nodeConfig.wireguard.enable [ 52343 ];
   networking.firewall.allowedUDPPortRanges = lib.mkIf nodeConfig.wireguard.enable [{
     from = 50000;
     to = 55555;

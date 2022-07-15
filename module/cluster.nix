@@ -286,7 +286,7 @@ with lib; with builtins;{
             port = 16538;
             publicKey = "jh1sHn85aq4Hkb3/s8AeQwfzpQ5PtNU7p0dqyeUOTWQ=";
             gateway = "aliyun-hk";
-            tunnel = false;
+            tunnel = true;
           };
           guiServer.enable = true;
           guiClient.enable = true;
@@ -313,7 +313,7 @@ with lib; with builtins;{
             port = 16538;
             publicKey = "Vk2vw8TbtI7GgktauuppvfhKAAxyEeNC8+/nxt10t1s=";
             gateway = "aliyun-hk";
-            tunnel = false;
+            tunnel = true;
           };
           wayland.enable = true;
           guiServer.enable = true;
