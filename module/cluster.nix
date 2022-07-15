@@ -286,7 +286,7 @@ with lib; with builtins;{
             port = 16538;
             publicKey = "jh1sHn85aq4Hkb3/s8AeQwfzpQ5PtNU7p0dqyeUOTWQ=";
             gateway = "aliyun-hk";
-            tunnel = true;
+            /* tunnel = true; */
           };
           guiServer.enable = true;
           guiClient.enable = true;
@@ -313,7 +313,7 @@ with lib; with builtins;{
             port = 16538;
             publicKey = "Vk2vw8TbtI7GgktauuppvfhKAAxyEeNC8+/nxt10t1s=";
             gateway = "aliyun-hk";
-            tunnel = true;
+            /* tunnel = true; */
           };
           wayland.enable = true;
           guiServer.enable = true;
@@ -418,6 +418,14 @@ with lib; with builtins;{
             index = 21;
             port = 53555;
             publicKey = "Xy1ofNbrxk2Gm8Q29hzCxtu5djfAvv9EFg6yOkbkBhw=";
+            gateway = "aliyun-hk";
+          };
+        };
+        M6 = {
+          wireguard = {
+            index = 22;
+            port = 53555;
+            publicKey = "2/GD91ji4EU1eT4Jbdv4j4cLjK70xwaz/54lqrqhD1I=";
             gateway = "aliyun-hk";
           };
         };
