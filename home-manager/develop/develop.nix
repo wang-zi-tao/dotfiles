@@ -115,7 +115,7 @@ in
     kubectl
     kubernetes-helm
 
-    (wangzi-neovim.override { enable-all = config.home.username != "root"; })
+    (wangzi-neovim.override { enable-all = config.home.username == "wangzi"; })
     neovim-remote
     python2
     luajitPackages.luacheck

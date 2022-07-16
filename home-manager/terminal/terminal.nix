@@ -37,7 +37,7 @@
   home.packages = with pkgs;
     scripts ++ [
       neovim-remote
-      (wangzi-neovim.override { enable-all = config.home.username != "root"; })
+      (wangzi-neovim.override { enable-all = config.home.username == "wangzi"; })
       # distant
       iperf2
 
