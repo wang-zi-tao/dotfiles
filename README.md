@@ -1,6 +1,15 @@
 # My Personal NixOS
 个人定制分布式linux操作系统,基于[NixOS](https://nixos.org/)。适用于PC,云服务器，虚拟机，LXD容器，Android 平板电脑(termux)，Android 手机(termux)。
 此仓库包含系统所有配置文件，可以自动打包为ISO镜像，可以实现完全自动部署服务器节点。
+
+## 截图
+
+![neovim](./static/vim-boost.png)
+![neovim](./static/vim.png)
+![awesomewm](./static/info_center.png)
+![awesomewm](./static/control_center.png)
+![集群监控](./static/cloud-monitor.png)
+
 ## 系统架构
 
 ## 分布式操作系统组件
@@ -61,9 +70,9 @@ Fio: (groupid=0, jobs=1): err= 0: pid=25469: Mon Nov 15 17:46:16 2021
 </details>
 
 ### 桌面环境
-- 基于xmonad框架编程定制平铺式桌面
+- 基于awesomewm框架编程定制平铺式桌面
 - 使用xpra访问远程应用程序
-- 使用eww编程定制桌面控件
+- 使用awesomewm编程定制桌面控件
 - 使用alacritty终端，内部使用tmux复用终端，使用zsh。
 ### 开发环境
 - neovim: 主要IDE

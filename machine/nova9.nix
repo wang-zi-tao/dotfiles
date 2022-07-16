@@ -4,7 +4,9 @@ in nix-on-droid.lib.nixOnDroidConfiguration {
   config= {pkgs,config,...}: {
     environment.packages = with pkgs;[];
     environment.etcBackupExtension = ".bak";
-    home-manager.config = import ../home-manager/home.nix;
+    home-manager.config = { ... }: {
+      imports = [ ../home-manager/terminal/terminal.nix ];
+    };
     home-manager.useGlobalPkgs = true;
   };
   system = "aarch64-linux";
