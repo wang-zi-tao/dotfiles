@@ -10,6 +10,7 @@
 , enable-all ? true
 , enable-debuger ? enable-all
 , enable-markdown-preview ? enable-all
+, enable-tabnine ? enable-all
 }:
 
 stdenvNoCC.mkDerivation {
@@ -76,7 +77,7 @@ stdenvNoCC.mkDerivation {
           null_ls = "${null-ls-nvim}",
           symbols_outline = "${symbols-outline-nvim}",
           rust_tools = "${rust-tools-nvim}",
-          cmp_tabnine = "${cmp-tabnine}",
+          cmp_tabnine = ${if enable-tabnine then ''"${cmp-tabnine}"'' else "false" },
           cmp_spell = "${cmp-spell}",
           cmp_zsh = "${pkgs.fetchgit {
             url = "https://github.com/tamago324/cmp-zsh";

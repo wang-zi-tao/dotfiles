@@ -247,18 +247,20 @@ packer.startup(function()
       require("cmp").register_source("buffer", require("cmp_buffer").new())
     end,
   })
-  use({
-    -- "tzachar/cmp-tabnine",
-    n.cmp_tabnine,
-    as = "cmp_tabnine",
-    run = "./install.sh",
-    requires = "nvim_cmp",
-    after = "nvim_cmp",
-    config = function()
-      require("cmp_tabnine").setup()
-      require("core.plugins.others").cmp_tabnine()
-    end,
-  })
+  if n.cmp_tabnine then
+    use({
+      -- "tzachar/cmp-tabnine",
+      n.cmp_tabnine,
+      as = "cmp_tabnine",
+      run = "./install.sh",
+      requires = "nvim_cmp",
+      after = "nvim_cmp",
+      config = function()
+        require("cmp_tabnine").setup()
+        require("core.plugins.others").cmp_tabnine()
+      end,
+    })
+  end
   use({
     -- "f3fora/cmp-spell",
     n.cmp_spell,
