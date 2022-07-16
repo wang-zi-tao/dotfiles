@@ -12,7 +12,6 @@ nix-on-droid.lib.nixOnDroidConfiguration {
     };
     home-manager.useGlobalPkgs = true;
   };
-  system = "aarch64-linux";
   extraModules = [
     # import source out-of-tree modules like:
     # flake.nixOnDroidModules.module
