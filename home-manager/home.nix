@@ -1,4 +1,4 @@
-{ nixosConfig, pkgs, lib, config, ... }:
+{ pkgs, lib, config, ... }:
 let cfg-node = config.cluster.nodes."${cfg.cluster.nodeName}";
 in
 with lib; {

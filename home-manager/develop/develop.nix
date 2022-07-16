@@ -141,4 +141,14 @@ in
       ignoreCollisions = true;
     })
   ];
+  programs.zsh.shellAliases = {
+    mvn = "unset JAVA_TOOL_OPTIONS && mvn";
+    dc = "docker-compose";
+    dcl = "docker-compose logs";
+    dcb = "docker-compose build";
+    dcd = "docker-compose down";
+    dcu = "docker-compose up";
+    dcud = "docker-compose up -d";
+    diff = "nvr -s -d";
+  };
 }

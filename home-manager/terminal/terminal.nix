@@ -1,4 +1,4 @@
-{ nixosConfig, pkgs, config, lib, ... }: {
+{ pkgs, config, lib, ... }: {
   imports = [
     ./tmux/tmux.nix
     ./zsh/zsh.nix
