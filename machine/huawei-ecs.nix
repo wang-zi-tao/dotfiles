@@ -1,8 +1,9 @@
 { pkgs, nixpkgs, home-manager, sops-nix, ... }:
-let hostname = "huawei-ecs";
+let
+  hostname = "huawei-ecs";
+  system = "x86_64-linux";
 in
 nixpkgs.lib.nixosSystem {
-  system = "x86_64-linux";
   modules = [
     ../module/cluster.nix
     home-manager.nixosModules.home-manager
@@ -56,5 +57,6 @@ nixpkgs.lib.nixosSystem {
       zramSwap.enable = true;
     })
   ];
-  inherit pkgs;
+  pkgs = pkgs system;
+  inherit system;
 }

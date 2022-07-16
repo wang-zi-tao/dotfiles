@@ -1,8 +1,9 @@
 { pkgs, nixpkgs, home-manager, sops-nix, ... }@inputs:
-let hostname = "wangzi-nuc";
+let
+  hostname = "wangzi-nuc";
+  system = "x86_64-linux";
 in
 nixpkgs.lib.nixosSystem {
-  system = "x86_64-linux";
   modules = [
     ../../module/cluster.nix
 
@@ -19,5 +20,6 @@ nixpkgs.lib.nixosSystem {
       sops.age.generateKey = true;
     })
   ];
-  inherit pkgs;
+  pkgs = pkgs system;
+  inherit system;
 }

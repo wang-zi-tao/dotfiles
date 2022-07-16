@@ -1,5 +1,7 @@
 { pkgs, nixpkgs, home-manager, nix-on-droid, ... }:
-let hostname = "wangzi-phone";
+let
+  hostname = "wangzi-phone";
+  system = "aarch64-linux";
 in
 nix-on-droid.lib.nixOnDroidConfiguration {
   config = { pkgs, config, ... }: {
@@ -10,7 +12,6 @@ nix-on-droid.lib.nixOnDroidConfiguration {
     };
     home-manager.useGlobalPkgs = true;
   };
-  system = "aarch64-linux";
   extraModules = [
     # import source out-of-tree modules like:
     # flake.nixOnDroidModules.module
@@ -18,5 +19,6 @@ nix-on-droid.lib.nixOnDroidConfiguration {
   extraSpecialArgs = {
     # arguments to be available in every nix-on-droid module
   };
-  inherit pkgs;
+  pkgs = pkgs system;
+  inherit system;
 }

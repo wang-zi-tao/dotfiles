@@ -38,8 +38,7 @@
     , ...
     }:
     let
-      system = "x86_64-linux";
-      pkgs-args = {
+      pkgs-args = system: {
         inherit system;
         config = { allowUnfree = true; };
         overlays = with builtins;
@@ -65,7 +64,7 @@
                   config = { allowUnfree = true; };
                 };
                 scripts = (map
-                  (f: pkgs.writeScriptBin f (readFile (./scripts + "/${f}")))
+                  (f: prev.writeScriptBin f (readFile (./scripts + "/${f}")))
                   (attrNames (readDir ./scripts)));
               } // (listToAttrs (map
                 (name: {
@@ -76,8 +75,10 @@
           ] ++ (map (name: import (./overlays + "/${name}"))
             (attrNames (readDir ./overlays))));
       };
-      pkgs = (import nixpkgs) pkgs-args;
-      args = { inherit pkgs pkgs-args; } // inputs;
+      args = {
+        pkgs = system: (import nixpkgs) (pkgs-args system);
+        inherit pkgs-args;
+      } // inputs;
     in
     {
       nixosConfigurations = {
@@ -107,5 +108,9 @@
           nix repl $confnix
         '';
       };
-    }) // { pkgs = pkgs; lib = pkgs.lib; unstable = pkgs.unstable; nur = pkgs.nur; };
+      pkgs = pkgs;
+      lib = pkgs.lib;
+      unstable = pkgs.unstable;
+      nur = pkgs.nur;
+    });
 }

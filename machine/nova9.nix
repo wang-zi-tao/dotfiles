@@ -1,8 +1,11 @@
 { pkgs, nixpkgs, home-manager, nix-on-droid, ... }:
-let hostname = "wangzi-phone";
-in nix-on-droid.lib.nixOnDroidConfiguration {
-  config= {pkgs,config,...}: {
-    environment.packages = with pkgs;[];
+let
+  hostname = "wangzi-phone";
+  system = "aarch64-linux";
+in
+nix-on-droid.lib.nixOnDroidConfiguration {
+  config = { pkgs, config, ... }: {
+    environment.packages = with pkgs;[ ];
     environment.etcBackupExtension = ".bak";
     home-manager.config = { ... }: {
       imports = [ ../home-manager/terminal/terminal.nix ];
@@ -17,5 +20,6 @@ in nix-on-droid.lib.nixOnDroidConfiguration {
   extraSpecialArgs = {
     # arguments to be available in every nix-on-droid module
   };
-  inherit pkgs;
+  pkgs = pkgs system;
+  inherit system;
 }

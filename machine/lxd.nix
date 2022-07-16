@@ -1,9 +1,10 @@
 { pkgs, nixpkgs, nixos-generators, home-manager, sops-nix, ... }:
-let hostname = "lxd";
+let
+  hostname = "lxd";
+  system = "x86_64-linux";
 in
 nixos-generators.nixosGenerate {
   format = "lxc";
-  # system = "x86_64-linux";
   modules = [
     ../module/cluster.nix
     home-manager.nixosModules.home-manager
@@ -84,5 +85,6 @@ nixos-generators.nixosGenerate {
       };
     })
   ];
-  inherit pkgs;
+  pkgs = pkgs system;
+  inherit system;
 }

@@ -1,8 +1,9 @@
 { pkgs, nixpkgs, home-manager, sops-nix, ... }:
-let hostname = "aliyun-ecs";
+let
+  hostname = "aliyun-ecs";
+  system = "x86_64-linux";
 in
 nixpkgs.lib.nixosSystem {
-  system = "x86_64-linux";
   modules = [
     ../module/cluster.nix
     home-manager.nixosModules.home-manager
@@ -54,5 +55,6 @@ nixpkgs.lib.nixosSystem {
       };
     })
   ];
-  inherit pkgs;
+  pkgs = pkgs system;
+  inherit system;
 }
