@@ -6,11 +6,17 @@
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-on-droid = {
+      url = "github:t184256/nix-on-droid";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
     nur.url = "github:nix-community/NUR";
     nixpkgs-21.url = "github:nixos/nixpkgs/release-21.11";
     nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-wayland.url = "github:nix-community/nixpkgs-wayland";
+    nixpkgs-wayland.inputs.master.follows = "master";
     fenix = { url = "github:nix-community/fenix"; };
     flake-compat = {
       url = "github:edolstra/flake-compat";
@@ -28,6 +34,7 @@
     , nixpkgs-wayland
     , flake-compat
     , flake-utils
+    , nix-on-droid
     , ...
     }:
     let
@@ -80,6 +87,10 @@
         aliyun-hk = import ./machine/aliyun-hk.nix args;
         aliyun-ecs = import ./machine/aliyun-ecs.nix args;
         lxd = import ./machine/lxd.nix args;
+      };
+      nixOnDroidConfigurations = {
+        nova9 = import ./machine/nova9.nix args;
+        M6 = import ./machine/M6.nix args;
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let pkgs = nixpkgs.legacyPackages.${system};
