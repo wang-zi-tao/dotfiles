@@ -14,7 +14,7 @@ nix-on-droid.lib.nixOnDroidConfiguration {
     home-manager.config = { lib, ... }: {
       imports = [ ../home-manager/terminal/terminal.nix ];
       programs.zsh.enableCompletion = false;
-      home.activation.neovim = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      home.activation.termux-font = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         if [[ -f $HOME/.termux/font.ttf ]]; then
           mkdir .termux
           cp ${pkgs.iosevka-nerd}/share/fonts/truetype/Iosevka Nerd Font Complete.ttf $HOME/.termux/font.ttf
