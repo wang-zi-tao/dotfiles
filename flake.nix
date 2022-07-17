@@ -93,6 +93,54 @@
         nova9 = import ./machine/nova9.nix args;
         M6 = import ./machine/M6.nix args;
       };
+      homeConfigurations = {
+        wangzi =
+          let
+            system = "x86_64-linux";
+            pkgs = (import nixpkgs) (pkgs-args system);
+          in
+          home-manager.lib.homeManagerConfiguration {
+            pkgs = pkgs;
+            system = system;
+            username = "wangzi";
+            homeDirectory = "/home/wangzi";
+            configuration.imports = [
+              home-manager/application/application.nix
+              home-manager/desktop/desktop.nix
+              home-manager/terminal/terminal.nix
+              home-manager/develop/develop.nix
+            ];
+          };
+        wangzi-develop =
+          let
+            system = "x86_64-linux";
+            pkgs = (import nixpkgs) (pkgs-args system);
+          in
+          home-manager.lib.homeManagerConfiguration {
+            pkgs = pkgs;
+            system = system;
+            username = "wangzi";
+            homeDirectory = "/home/wangzi";
+            configuration.imports = [
+              home-manager/terminal/terminal.nix
+              home-manager/develop/develop.nix
+            ];
+          };
+        root =
+          let
+            system = "x86_64-linux";
+            pkgs = (import nixpkgs) (pkgs-args system);
+          in
+          home-manager.lib.homeManagerConfiguration {
+            pkgs = pkgs;
+            system = system;
+            username = "root";
+            homeDirectory = "/root";
+            configuration.imports = [
+              home-manager/terminal/terminal.nix
+            ];
+          };
+      };
     } // flake-utils.lib.eachDefaultSystem (system:
     let pkgs = nixpkgs.legacyPackages.${system};
     in

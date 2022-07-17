@@ -19,20 +19,21 @@ function M.panel(screen)
   -- When UPower updates the battery status, the widget is notified
   -- and calls a signal you need to connect to:
   my_battery_widget:connect_signal("upower::update", function(widget, device)
-    local icon = ""
+    local icon = " "
     if device.percentage < 20 then
-      icon = ""
+      icon = " "
     elseif device.percentage < 40 then
-      icon = ""
+      icon = " "
     elseif device.percentage < 60 then
-      icon = ""
+      icon = " "
     elseif device.percentage < 80 then
-      icon = ""
+      icon = " "
     else
-      icon = ""
+      icon = " "
     end
     widget.text = string.format(icon .. "%3d", device.percentage) .. "%"
   end)
   return my_battery_widget
 end
+
 return M

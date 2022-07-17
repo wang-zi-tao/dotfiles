@@ -24,6 +24,12 @@ aliyun-ecs:
 lxd:
 	nix build '.#nixosConfigurations.lxd' $(ARGS)
 	lxc image import --alias nixos `nixos-generate -f lxc-metadata` result/tarball/nixos-system-x86_64-linux.tar.xz local: --force-local --verbose
+nova9: 
+	nix-on-droid --flake ".#nova9" switch
+M6: 
+	nix-on-droid --flake ".#M6" switch
 update:
 	nix flake update
 	make ARGS="$(ARGS)"
+home:
+	home-manager switch --flake ".#$(PROFILE)"
