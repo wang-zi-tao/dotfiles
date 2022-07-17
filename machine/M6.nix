@@ -12,7 +12,10 @@ nix-on-droid.lib.nixOnDroidConfiguration {
     ];
     environment.etcBackupExtension = ".bak";
     home-manager.config = { lib, ... }: {
-      imports = [ ../home-manager/terminal/terminal.nix ];
+      imports = [
+        ../home-manager/terminal/terminal.nix
+        ../home-manager/sshd.nix
+      ];
       programs.zsh.enableCompletion = false;
       home.activation.termux-font = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         if [[ -f $HOME/.termux/font.ttf ]]; then
