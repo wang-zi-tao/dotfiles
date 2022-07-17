@@ -17,7 +17,7 @@ nix-on-droid.lib.nixOnDroidConfiguration {
       ];
       programs.zsh.enableCompletion = false;
       home.activation.termux-font = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        if [[ -f $HOME/.termux/font.ttf ]]; then
+        if [[ ! -f $HOME/.termux/font.ttf ]]; then
           mkdir .termux || true
           cp ${pkgs.iosevka-nerd}/share/fonts/truetype/Iosevka Nerd Font Complete.ttf $HOME/.termux/font.ttf || true
         fi
