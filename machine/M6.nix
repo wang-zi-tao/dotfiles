@@ -4,14 +4,14 @@ let
   system = "aarch64-linux";
 in
 nix-on-droid.lib.nixOnDroidConfiguration {
-  config = { pkgs, config, lib, ... }: {
+  config = { pkgs, config, ... }: {
     environment.packages = with pkgs;[
       nix
       zig
       nix-zsh-completions
     ];
     environment.etcBackupExtension = ".bak";
-    home-manager.config = { ... }: {
+    home-manager.config = { lib, ... }: {
       imports = [ ../home-manager/terminal/terminal.nix ];
       programs.zsh.enableCompletion = false;
       home.activation.neovim = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
