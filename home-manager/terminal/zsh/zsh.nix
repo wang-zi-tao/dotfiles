@@ -3,10 +3,6 @@
   programs.zsh = {
     enable = true;
     autocd = true;
-    enableCompletion = true;
-    # enableAutosuggestions = false;
-    # enableVteIntegration = true;
-    # enableSyntaxHighlighting = true;
     oh-my-zsh = {
       enable = false;
       # theme = "agnoster";

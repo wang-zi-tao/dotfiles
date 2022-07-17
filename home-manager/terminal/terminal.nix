@@ -41,7 +41,6 @@
       # distant
       iperf2
 
-      wcp
 
       lm_sensors
       nix-tree
@@ -81,6 +80,8 @@
       pfetch
       watchexec
       neofetch
+      gzip
+      openssh
     ];
   home.file.".code-server/bin/node" = { source = "${pkgs.nodejs-16_x}/bin/node"; executable = true; };
 }
