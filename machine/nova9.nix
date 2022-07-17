@@ -14,7 +14,6 @@ nix-on-droid.lib.nixOnDroidConfiguration {
     home-manager.config = { lib, ... }: {
       imports = [
         ../home-manager/terminal/terminal.nix
-        ../home-manager/sshd.nix
       ];
       programs.zsh.enableCompletion = false;
       home.activation.termux-font = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -29,6 +28,7 @@ nix-on-droid.lib.nixOnDroidConfiguration {
   extraModules = [
     # import source out-of-tree modules like:
     # flake.nixOnDroidModules.module
+    ../home-manager/sshd.nix
   ];
   extraSpecialArgs = {
     # arguments to be available in every nix-on-droid module
