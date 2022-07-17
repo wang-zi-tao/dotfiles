@@ -4,7 +4,7 @@ let
   system = "aarch64-linux";
 in
 nix-on-droid.lib.nixOnDroidConfiguration {
-  config = { pkgs, config, ... }: {
+  config = { pkgs, config, lib, ... }: {
     environment.packages = with pkgs;[
       nix
       zig
