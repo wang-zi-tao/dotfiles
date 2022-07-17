@@ -32,7 +32,9 @@
     CURL_NIX_FLAGS = "-x http://192.168.16.2:8889";
   };
   home.activation.neovim = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    rm $HOME/.cache/nvim/luacache $HOME/.cache/nvim/luacache_chunks $HOME/.cache/nvim/luacache_modpaths || true
+    [[ -f $HOME/.cache/nvim/luacache ]] && rm $HOME/.cache/nvim/luacache || true
+    [[ -f $HOME/.cache/nvim/luacache_chunks ]] && rm $HOME/.cache/nvim/luacache_chunks || true
+    [[ -f $HOME/.cache/nvim/luacache_modpaths ]] && rm $HOME/.cache/nvim/luacache_modpaths || true
   '';
   home.packages = with pkgs;
     scripts ++ [

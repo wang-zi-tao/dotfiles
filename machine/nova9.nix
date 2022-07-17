@@ -6,7 +6,7 @@ in
 nix-on-droid.lib.nixOnDroidConfiguration {
   config = { pkgs, config, ... }: {
     environment.packages = with pkgs;[
-      nix 
+      nix
       zig
       nix-zsh-completions
     ];
@@ -14,7 +14,12 @@ nix-on-droid.lib.nixOnDroidConfiguration {
     home-manager.config = { ... }: {
       imports = [ ../home-manager/terminal/terminal.nix ];
       programs.zsh.enableCompletion = false;
-      home.file.".termux/font.ttf".source = "${pkgs.iosevka-nerd}/share/fonts/truetype/Iosevka Nerd Font Complete.ttf";
+      home.activation.neovim = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        if [[ -f $HOME/.termux/font.ttf ]]; then
+          mkdir .termux
+          cp ${pkgs.iosevka-nerd}/share/fonts/truetype/Iosevka Nerd Font Complete.ttf $HOME/.termux/font.ttf
+        fi
+      '';
     };
     home-manager.useGlobalPkgs = true;
   };
