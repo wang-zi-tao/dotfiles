@@ -7,7 +7,7 @@ nix-on-droid.lib.nixOnDroidConfiguration {
   config = { pkgs, config, ... }: {
     environment.packages = with pkgs;[
       nix
-      zig
+      gcc
       nix-zsh-completions
     ];
     environment.etcBackupExtension = ".bak";
