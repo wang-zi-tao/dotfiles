@@ -141,7 +141,7 @@ EOF
     git add flake.nix
   fi
   if [ ! -e ./.envrc ]; then
-    echo "use flake" > .envrc
+    echo "use_nix" > .envrc
     direnv allow
   fi
 }

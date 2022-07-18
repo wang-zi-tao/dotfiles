@@ -1,10 +1,12 @@
 local function map(mod, key, exec)
   vim.keymap.set(mod, key, exec)
 end
+
 local wk = require("which-key")
 local function telescope()
   return require("telescope.builtin")
 end
+
 wk.register({
   q = { "<cmd>close<CR>", "close" },
   w = { "<cmd>wa<CR>", "save" },
@@ -142,23 +144,52 @@ wk.register({
       "PreviewDefinition",
     },
   },
-  p = { name = "packer", s = {
-    function()
-      require("core.pack").status()
-    end,
-    "PackerStatus",
-  } },
+  p = { name = "perf",
+    l = {
+      name = "perf load",
+      f = { ":PerfLoadFlat<CR>", "perf load flat" },
+      g = { ":PerfLoadCallGraph<CR>", "perf load call graph" },
+      o = { ":PerfLoadFlameGraph<CR>", "perf load flame graph" },
+    },
+    e = { ":PerfPickEvent<CR>", "perf pick event" },
+    a = { ":PerfAnnotate<CR>", "perf annotate" },
+    f = { ":PerfAnnotateFunction<CR>", "perf annotate function" },
+    A = { ":PerfAnnotateSelection<CR>", "perf annotate selection" },
+    n = { ":PerfToggleAnnotations<CR>", "perf toggle annotate" },
+    h = { ":PerfHottestLines<CR>", "perf hottest lines" },
+    s = { ":PerfHottestSymbols<CR>", "perf hottest symbols" },
+    c = { ":PerfHottestCallersFunction<CR>", "perf hottest callers function" },
+    C = { ":PerfHottestCallersSelection<CR>", "perf hottest callers selection" },
+  },
+  c = {
+    name = "CMake",
+    m = { ":CMake<CR>", "CMake" },
+    c = { ":CMake configure<CR>", "CMake configure" },
+    C = { ":CMake clean<CR>", "CMake clean" },
+    r = { ":CMake run<CR>", "CMake run" },
+    d = { ":CMake build_and_debug<CR>", "CMake debug" },
+    t = { ":CMake selete_build_type<CR>", "CMake build type" },
+    s = { ":CMake selete_target<CR>", "CMake select target" },
+    B = { ":CMake build_all<CR>", "CMake build all" },
+    b = { ":CMake build<CR>", "CMake build" },
+  },
   d = {
     name = "debug",
     b = {
       function()
-        require("dap").toggle_breakpoint()
+        require('persistent-breakpoints.api').toggle_breakpoint()
+      end,
+      "BreakPoint",
+    },
+    d = {
+      function()
+        require('persistent-breakpoints.api').set_conditional_breakpoint()
       end,
       "BreakPoint",
     },
     B = {
       function()
-        require("dap").clear_breakpoint()
+        require('persistent-breakpoints.api').clear_all_breakpoints()
       end,
       "Clear BreakPoint",
     },
@@ -246,6 +277,33 @@ wk.register({
       "Delete Buffer",
     },
   },
+  j = { function()
+    require 'hop'.hint_char1()
+  end, "hop char1" },
+  k = { function()
+    require 'hop'.hint_char2()
+  end, "hop char1" },
+  t = {
+    name = "Hop",
+    a = { function()
+      require 'hop'.hint_anywhere()
+    end, "any" },
+    w = { function()
+      require 'hop'.hint_words()
+    end, "words" },
+    c = { function()
+      require 'hop'.hint_char1()
+    end, "char1" },
+    h = { function()
+      require 'hop'.hint_char1()
+    end, "char1" },
+    e = { function()
+      require 'hop'.hint_char1({ direction = require 'hop.hint'.HintDirection.AFTER_CURSOR })
+    end, "back" },
+    b = { function()
+      require 'hop'.hint_char1({ direction = require 'hop.hint'.HintDirection.BEFORE_CURSOR })
+    end, "forward" },
+  }
 }, { prefix = "<leader>" })
 wk.register({
   g = {
@@ -312,10 +370,10 @@ map("n", "<leader>hu", "<cmd>Gitsigns undo_stage_hunk<CR>")
 map("n", "<leader>bs", "<cmd>Gitsigns stage_buffer<CR>")
 map("n", "<leader>br", "<cmd>Gitsigns reset_buffer<CR>")
 map("n", "<leader>hb", "<cmd>Gitsigns reset_buffer<CR>")
-map("n", "<leader>tb", "<cmd>Gitsigns toggle_current_line_blame<CR>")
+map("n", "<leader>wgb", "<cmd>Gitsigns toggle_current_line_blame<CR>")
 map("n", "<leader>hd", "<cmd>Gitsigns diffthis<CR>")
 map("n", "<leader>hD", "<cmd>Gitsigns diffthis<CR>")
-map("n", "<leader>td", "<cmd>Gitsigns toggle_deleted<CR>")
+map("n", "<leader>wgd", "<cmd>Gitsigns toggle_deleted<CR>")
 map("o", "ih", "<cmd><C-U>Gitsigns select_hunk<CR>")
 map("x", "ih", "<cmd><C-U>Gitsigns select_hunk<CR>")
 

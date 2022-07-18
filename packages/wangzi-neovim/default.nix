@@ -122,6 +122,11 @@ stdenvNoCC.mkDerivation {
           dap = "${nvim-dap}",
           dap_ui = "${nvim-dap-ui}",
           dap_virtual_text = "${nvim-dap-virtual-text}",
+          persistent_breakpoints_nvim = "${pkgs.fetchgit {
+      url = "https://github.com/Weissle/persistent-breakpoints.nvim";
+      rev = "5c8eb4736c1ce74527f42c6046acdc40e19b6709";
+      sha256 = "sha256-Hs+zMpZLnBq3y1Bt4PA0WDcExpx7wT31e18Sma/Xp/Q=";
+    }}",
           vscode_lldb = ${if enable-debuger then ''"${pkgs.vscode-extensions.vadimcn.vscode-lldb}"'' else "false" },
           fterm = "${FTerm-nvim}",
           mini = "${mini-nvim}",
@@ -144,6 +149,17 @@ stdenvNoCC.mkDerivation {
     rev = "612443b27f5feda45ea478bd6ddc8f95d4ec7b77";
     sha256 = "sha256-fGzcceS5veUgxVGXWHZb1PNCTBvYp0HFeesU0GY0Acc=";
     }}",
+        cmake = "${pkgs.fetchgit {
+    url = "https://github.com/Shatur/neovim-cmake";
+    rev = "d0ffe317b0fba28e935b305ba9afb998024ea424";
+    sha256 = "sha256-dfdSpg4FtsYtJ98DuKt/Dr2j85KvjUCHtiNSkTSxu7E=";
+    }}",
+         perfanno_nvim = "${pkgs.fetchgit {
+    url = "https://github.com/t-troebst/perfanno.nvim";
+    rev = "0e2048ebded332ff3a2185f883646e2f7d210d8d";
+    sha256 = "sha256-tyB0qWtKTJfg3+qHvE7AZQZnrzKP5ucGf/Qd97UfbLI=";
+    }}",
+        hop_nvim = "${hop-nvim}",
         compile_path = "$out/plugins.lua",
         }
         return setmetatable({},{

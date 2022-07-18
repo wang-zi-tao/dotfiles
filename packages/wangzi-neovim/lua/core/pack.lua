@@ -571,6 +571,15 @@ packer.startup(function()
     end,
   })
   use({
+    n.persistent_breakpoints_nvim,
+    as = "persistent_breakpoints_nvim",
+    after = "dap",
+    module = { "persistent-breakpoints", "persistent-breakpoints.api" },
+    config = function()
+      require("core.plugins.others").persistent_breakpoints_nvim()
+    end,
+  })
+  use({
     n.telescope_dap_nvim,
     as = "telescope_dap_nvim",
     module = "telescope._extensions.dap",
@@ -604,6 +613,31 @@ packer.startup(function()
     requires = "core",
     run = function()
       vim.fn["firenvim#install"](0)
+    end,
+  })
+  use({
+    n.cmake,
+    as = "cmake",
+    cmd = { "CMake" },
+    ft = { "cpp", "c", "hpp", "h", "CMakeLists.txt" },
+    config = function()
+      require("core.plugins.cmake")
+    end,
+  })
+  use({
+    n.perfanno_nvim,
+    as = "perfanno_nvim",
+    cmd = { "PerfLoadFlat", "PerfLoadCallGraph", "PerfLoadFlameGraph", "PerfLuaProfileStart", "PerfLuaProfileStop", "PerfPickEvent", "PerfCycleFormat", "PerfAnnotate", "PerfToggleAnnotations", "PerfAnnotateSelection", "PerfAnnotateFunction", "PerfHottestLines", "PerfHottestSymbols", "PerfHottestCallersSelection", "PerfHottestCallersFunction" },
+    config = function()
+      require("core.plugins.perf")
+    end,
+  })
+  use({
+    n.hop_nvim,
+    as = "hop_nvim",
+    module = "hop",
+    config = function()
+      require("core.plugins.others").hop()
     end,
   })
 end)

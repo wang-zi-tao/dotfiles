@@ -5,7 +5,7 @@ local sources = {
   -- Rust
   -- b.formatting.rustfmt,
   -- C++
-  b.formatting.clang_format,
+  -- b.formatting.clang_format,
   -- java
   b.formatting.google_java_format,
   -- mark

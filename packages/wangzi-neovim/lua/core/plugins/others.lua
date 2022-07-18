@@ -232,6 +232,13 @@ end
 M.dap_virtual_text = function()
   require("nvim-dap-virtual-text").setup()
 end
+M.persistent_breakpoints_nvim = function()
+  require('persistent-breakpoints').setup {
+    save_dir = vim.fn.stdpath('data') .. '/nvim_checkpoints',
+    -- record the performance of different function. run :lua require('persistent-breakpoints.api').print_perf_data() to see the result.
+    perf_record = false,
+  }
+end
 M.dap_install = function()
   local dap_install = require("dap-install")
   dap_install.setup({
@@ -268,7 +275,7 @@ M.session_manager = function()
     sessions_dir = Path:new(vim.fn.stdpath("data"), "sessions"), -- The directory where the session files will be saved.
     path_replacer = "__", -- The character to which the path separator will be replaced for session files.
     colon_replacer = "++", -- The character to which the colon symbol will be replaced for session files.
-    autoload_mode = require("session_manager.config").AutoloadMode.CurrentDir, -- Define what to do when Neovim is started without arguments. Possible values: Disabled, CurrentDir, LastSession
+    autoload_mode = require("session_manager.config").AutoloadMode.Disabled, -- Define what to do when Neovim is started without arguments. Possible values: Disabled, CurrentDir, LastSession
     autosave_last_session = true, -- Automatically save last session on exit and on session switch.
     autosave_ignore_not_normal = true, -- Plugin will not save a session when no buffers are opened, or all of them aren't writable or listed.
     autosave_ignore_filetypes = { -- All buffers of these file types will be closed before the session is saved.
@@ -277,6 +284,11 @@ M.session_manager = function()
       "NvimTree",
     },
     autosave_only_in_session = false, -- Always autosaves session. If true, only autosaves after a session is active.
+  })
+end
+M.hop = function()
+  require 'hop'.setup({
+
   })
 end
 return M
