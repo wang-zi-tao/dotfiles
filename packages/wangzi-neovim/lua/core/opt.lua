@@ -36,18 +36,33 @@ opt.title = true
 opt.undofile = true
 opt.updatetime = 250
 opt.whichwrap:append("<>[]hl")
-g.clipboard = {
-  name = "xclip-xfce4-clipman",
-  copy = {
-    ["+"] = "xclip -selection clipboard",
-    ["*"] = "xclip -selection clipboard",
-  },
-  paste = {
-    ["+"] = "xclip -selection clipboard -o",
-    ["*"] = "xclip -selection clipboard -o",
-  },
-  cache_enabled = 1,
-}
+if (vim.env.WSL_DISTRO_NAME) then
+  g.clipboard = {
+    name = "wsl",
+    copy = {
+      ["+"] = "win32yank.exe -i",
+      ["*"] = "win32yank.exe -i",
+    },
+    paste = {
+      ["+"] = "win32yank.exe -o",
+      ["*"] = "win32yank.exe -o",
+    },
+    cache_enabled = 1,
+  }
+else
+  g.clipboard = {
+    name = "xclip-xfce4-clipman",
+    copy = {
+      ["+"] = "xclip -selection clipboard",
+      ["*"] = "xclip -selection clipboard",
+    },
+    paste = {
+      ["+"] = "xclip -selection clipboard -o",
+      ["*"] = "xclip -selection clipboard -o",
+    },
+    cache_enabled = 1,
+  }
+end
 local disabled_built_ins = {
   "2html_plugin",
   "filetype",
