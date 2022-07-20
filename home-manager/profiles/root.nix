@@ -1,4 +1,4 @@
-{ nixpkgs, home-manager, ... }:
+{ nixpkgs, home-manager, pkgs-args, ... }:
 let
   system = "x86_64-linux";
   pkgs = (import nixpkgs) (pkgs-args system);

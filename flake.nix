@@ -95,9 +95,15 @@
         M6 = import ./machine/M6.nix args;
       };
       homeConfigurations =
-        with builtins;listToAttrs (map (profile: nameValuePair profile (home-manager.lib.homeManagerConfiguration profile)) (attrKeys (readDir ./home-manager/profiles)));
+        with builtins;listToAttrs (map
+          (profile: {
+            name = substring 0 (stringLength profile - 4) profile;
+            value = home-manager.lib.homeManagerConfiguration (import (./home-manager/profiles + ("/" + profile)) args);
+          })
+          (attrNames (readDir ./home-manager/profiles)));
     } // flake-utils.lib.eachDefaultSystem (system:
-    let pkgs = nixpkgs.legacyPackages.${system}; in
+    let pkgs = nixpkgs.legacyPackages.${system};
+    in
     {
       devShell = pkgs.mkShell {
         buildInputs = with pkgs; [ sops gnumake git rnix-lsp nixfmt nix-du sumneko-lua-language-server nixos-generators ];
@@ -105,7 +111,7 @@
       apps.repl = flake-utils.lib.mkApp {
         drv = pkgs.writeShellScriptBin "repl" ''
           confnix=$(mktemp)
-          echo "(builtins.getFlake (toString $(git rev-parse --show-toplevel))).vars.${system}" >$confnix
+          echo "(builtins.getFlake (toString $(git rev-parse --show-toplevel))).vars.${system}//(builtins.getFlake (toString $(git rev-parse --show-toplevel)))" >$confnix
           trap "rm $confnix" EXIT
           nix repl $confnix
         '';
