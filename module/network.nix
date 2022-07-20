@@ -8,7 +8,6 @@ in
       rejectPackets = true;
       trustedInterfaces = [ "wg0" "wg1" ];
     };
-    proxy.default = lib.mkIf nodeConfig.wireguard.enable "http://192.168.16.2:8889";
     proxy.noProxy = "127.0.0.1,localhost,.localdomain";
     hosts = (builtins.listToAttrs (builtins.map
       ({ hostname, publicIp, ... }: {

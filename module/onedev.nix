@@ -9,19 +9,21 @@ in
         "onedev:/opt/onedev"
         "/var/run/docker.sock:/var/run/docker.sock"
       ];
-      ports = [ "6610:6610" "6611:6611" ];
+      ports = [ "6610:6610" "6612:6611" ];
     };
     services.caddy = lib.optionalAttrs nodeConfig.OnedevServer.enable {
       enable = true;
       virtualHosts = {
         "https://${builtins.toString nodeConfig.publicIp}:6613" = {
           extraConfig = ''
+            respond / 404
+            respond /favicon.ico 404
             reverse_proxy http://localhost:6610
           '';
         };
       };
     };
     networking.firewall.allowedUDPPorts = [ 6613 ];
-    networking.firewall.allowedTCPPorts = [ 6611 6613 ];
+    networking.firewall.allowedTCPPorts = [ 6612 6613 ];
   };
 }

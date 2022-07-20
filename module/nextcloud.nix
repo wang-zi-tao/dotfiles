@@ -18,7 +18,7 @@ in
     };
     sops.secrets."nextcloud/admin_password" = {
       owner = "nextcloud";
-      mode = "0700";
+      mode = "0500";
       restartUnits = [ "phpfpm.service" ];
     };
     services.caddy = lib.optionalAttrs nodeConfig.NextCloudServer.enable {
@@ -26,6 +26,8 @@ in
       virtualHosts = {
         "https://${builtins.toString nodeConfig.publicIp}" = {
           extraConfig = ''
+            respond / 404
+            respond /favicon.ico 404
             reverse_proxy http://localhost:80
           '';
         };

@@ -53,6 +53,13 @@ nixpkgs.lib.nixosSystem {
       networking = {
         dhcpcd.enable = true;
       };
+      sops.secrets."script" = {
+        mode = "0500";
+        restartUnits = [ "run-secrets-scripts" ];
+      };
+      sops.secrets."script_config/config1" = {
+        restartUnits = [ "run-secrets-scripts" ];
+      };
     })
   ];
   pkgs = pkgs system;

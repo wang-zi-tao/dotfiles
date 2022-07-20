@@ -126,6 +126,9 @@
     '';
     initExtra = builtins.readFile ./p10k.zsh +  builtins.readFile ./zshrc.zsh + ''
       # source ${pkgs.tmuxinator}/share/zsh/site-functions/_tmuxinator
+      if [[ -e /run/secrets/shell/${config.home.username} ]];then
+        source /run/secrets/shell/${config.home.username}
+      fi
     '';
   };
   # programs.command-not-found.enable = true;

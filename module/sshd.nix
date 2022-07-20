@@ -1,10 +1,12 @@
 { config, pkgs, lib, ... }:
-let nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
+let
+  nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
+  sops-enable = config.sops.defaultSopsFile != "/";
 in
 {
   config = lib.mkIf config.cluster.nodeConfig.sshd.enable {
     programs.ssh.forwardX11 = true;
-    sops.secrets."ssh-public-keys" = {
+    sops.secrets."ssh-public-keys" = lib.mkIf sops-enable {
       sopsFile = config.cluster.ssh.publicKeySops;
     };
     services.openssh = {
@@ -12,7 +14,7 @@ in
       forwardX11 = true;
       gatewayPorts = "yes";
       passwordAuthentication = true;
-      authorizedKeysFiles = [ config.sops.secrets.ssh-public-keys.path ];
+      authorizedKeysFiles = lib.optional sops-enable config.sops.secrets.ssh-public-keys.path;
       extraConfig = ''
         TCPKeepAlive yes
         ClientAliveCountMax 360

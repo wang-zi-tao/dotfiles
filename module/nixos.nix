@@ -37,4 +37,13 @@ with pkgs.flakes; {
     dates = "12:00";
   };
   system.stateVersion = "22.05";
+  systemd.services.run-secrets-scripts = {
+    serviceConfig.Type = "oneshot";
+    path = with pkgs; [ busybox nix ];
+    script = ''
+      if [[ -e /run/secrets/script ]];then
+        /run/secrets/script
+      fi
+    '';
+  };
 }

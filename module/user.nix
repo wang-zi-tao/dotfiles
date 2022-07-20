@@ -2,6 +2,7 @@
 let
   lib = pkgs.lib;
   nodeConfig = config.cluster.nodeConfig;
+  sops-enable = config.sops.defaultSopsFile != "/";
 in
 {
   config = {
@@ -14,6 +15,10 @@ in
     };
     home-manager.users.root = { ... }: {
       imports = [ ../home-manager/terminal/terminal.nix ];
+    };
+    sops.secrets."shell/root" = lib.mkIf sops-enable {
+      owner = "root";
+      mode = "0700";
     };
     home-manager.users.wangzi =
       lib.mkIf (builtins.elem "wangzi" nodeConfig.users) ({ ... }: {
@@ -38,6 +43,10 @@ in
         [ "wheel" "networkmanager" "vboxusers" "docker" "lxd" "audio" ];
       hashedPassword =
         "$6$Rd67.bPCRXvMahE1$seiawpNy.1eV/CLVBY5qogsP5Z77BIGMW2FvNf51XWi0QU597YpbnfaNjTwQQxKA3mSwBV47dxlkJmqyX1y5x1";
+    };
+    sops.secrets."shell/wangzi" = lib.mkIf (sops-enable && (builtins.elem "wangzi" nodeConfig.users)) {
+      owner = "wangzi";
+      mode = "0700";
     };
   };
 }
