@@ -68,5 +68,5 @@ in
     };
   };
   networking.firewall.allowedUDPPorts = [ 9003 ];
-  networking.firewall.allowedTCPPorts = [ 9002 9003 ];
+  networking.firewall.allowedTCPPorts = [ 9003 ];
 }

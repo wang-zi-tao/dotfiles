@@ -88,62 +88,16 @@
         aliyun-hk = import ./machine/aliyun-hk.nix args;
         aliyun-ecs = import ./machine/aliyun-ecs.nix args;
         lxd = import ./machine/lxd.nix args;
+        vm = import ./machine/vm.nix args;
       };
       nixOnDroidConfigurations = {
         nova9 = import ./machine/nova9.nix args;
         M6 = import ./machine/M6.nix args;
       };
-      homeConfigurations = {
-        wangzi =
-          let
-            system = "x86_64-linux";
-            pkgs = (import nixpkgs) (pkgs-args system);
-          in
-          home-manager.lib.homeManagerConfiguration {
-            pkgs = pkgs;
-            system = system;
-            username = "wangzi";
-            homeDirectory = "/home/wangzi";
-            configuration.imports = [
-              home-manager/application/application.nix
-              home-manager/desktop/desktop.nix
-              home-manager/terminal/terminal.nix
-              home-manager/develop/develop.nix
-            ];
-          };
-        wangzi-develop =
-          let
-            system = "x86_64-linux";
-            pkgs = (import nixpkgs) (pkgs-args system);
-          in
-          home-manager.lib.homeManagerConfiguration {
-            pkgs = pkgs;
-            system = system;
-            username = "wangzi";
-            homeDirectory = "/home/wangzi";
-            configuration.imports = [
-              home-manager/terminal/terminal.nix
-              home-manager/develop/develop.nix
-            ];
-          };
-        root =
-          let
-            system = "x86_64-linux";
-            pkgs = (import nixpkgs) (pkgs-args system);
-          in
-          home-manager.lib.homeManagerConfiguration {
-            pkgs = pkgs;
-            system = system;
-            username = "root";
-            homeDirectory = "/root";
-            configuration.imports = [
-              home-manager/terminal/terminal.nix
-            ];
-          };
-      };
+      homeConfigurations =
+        with builtins;listToAttrs (map (profile: nameValuePair profile (home-manager.lib.homeManagerConfiguration profile)) (attrKeys (readDir ./home-manager/profiles)));
     } // flake-utils.lib.eachDefaultSystem (system:
-    let pkgs = nixpkgs.legacyPackages.${system};
-    in
+    let pkgs = nixpkgs.legacyPackages.${system}; in
     {
       devShell = pkgs.mkShell {
         buildInputs = with pkgs; [ sops gnumake git rnix-lsp nixfmt nix-du sumneko-lua-language-server nixos-generators ];
@@ -151,14 +105,16 @@
       apps.repl = flake-utils.lib.mkApp {
         drv = pkgs.writeShellScriptBin "repl" ''
           confnix=$(mktemp)
-          echo "builtins.getFlake (toString $(git rev-parse --show-toplevel))" >$confnix
+          echo "(builtins.getFlake (toString $(git rev-parse --show-toplevel))).vars.${system}" >$confnix
           trap "rm $confnix" EXIT
           nix repl $confnix
         '';
       };
-      pkgs = pkgs;
-      lib = pkgs.lib;
-      unstable = pkgs.unstable;
-      nur = pkgs.nur;
+      vars = {
+        pkgs = pkgs;
+        lib = pkgs.lib;
+        unstable = pkgs.unstable;
+        nur = pkgs.nur;
+      };
     });
 }
