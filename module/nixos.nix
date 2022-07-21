@@ -37,9 +37,9 @@ with pkgs.flakes; {
     dates = "12:00";
   };
   system.stateVersion = "22.05";
-  systemd.services.run-secrets-scripts = {
-    serviceConfig.Type = "oneshot";
-    path = with pkgs; [ busybox nix ];
+  systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {
+    path = with pkgs; [ busybox nix nixpkgs ];
+    environment = { inherit (config.environment.sessionVariables) NIX_PATH; };
     script = ''
       if [[ -e /run/secrets/script ]];then
         /run/secrets/script
