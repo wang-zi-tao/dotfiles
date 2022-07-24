@@ -1,13 +1,14 @@
 { pkgs, lib, config, ... }:
 let
   nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
+  networkConfig = config.cluster.network.edges.${config.cluster.nodeName}.config;
 in
 {
   config = lib.mkIf nodeConfig.NextCloudServer.enable {
     services.nextcloud = {
       enable = true;
       package = pkgs.nextcloud24;
-      hostName = nodeConfig.publicIp;
+      hostName = networkConfig.publicIp;
       caching.redis = true;
       appstoreEnable = true;
       enableImagemagick = true;
@@ -24,7 +25,7 @@ in
     services.caddy = lib.optionalAttrs nodeConfig.NextCloudServer.enable {
       enable = true;
       virtualHosts = {
-        "https://${builtins.toString nodeConfig.publicIp}" = {
+        "https://${builtins.toString networkConfig.publicIp}" = {
           extraConfig = ''
             respond / 404
             respond /favicon.ico 404
@@ -34,7 +35,7 @@ in
       };
     };
     networking.firewall.allowedUDPPorts = [ 443 ];
-    networking.firewall.allowedTCPPorts = [ 443 ];
+    networking.firewall.allowedTCPPorts = [ 80 443 ];
   };
 }
 

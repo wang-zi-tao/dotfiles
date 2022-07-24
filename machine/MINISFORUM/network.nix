@@ -2,7 +2,9 @@
   networking = {
     #useDHCP = true;
     hostName = "wangzi-nuc";
-    networkmanager = { enable = true; };
+    networkmanager = {
+      enable = true;
+    };
     nat.enable = true;
     interfaces = {
       eno1 = {

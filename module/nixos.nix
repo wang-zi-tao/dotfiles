@@ -1,6 +1,7 @@
 { config, pkgs, lib, ... }:
 with pkgs.flakes; {
   nix = {
+    # settings.trusted-substituters = [ "http://${config.cluster.nodes.aliyun-hk.publicIp}" ];
     binaryCaches = [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
       "https://mirrors.ustc.edu.cn/nix-channels/store"
@@ -32,18 +33,10 @@ with pkgs.flakes; {
   nix.registry.nur.flake = nur;
   system.autoUpgrade = {
     enable = true;
-    flake = "ssh://wangzi@wangzi-nuc.wg/home/wangzi/workspace/nixos/";
+    flake = "github:wang-zi-tao/dotfiles";
     randomizedDelaySec = "30min";
     dates = "12:00";
   };
   system.stateVersion = "22.05";
-  systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {
-    path = with pkgs; [ busybox nix nixpkgs ];
-    environment = { inherit (config.environment.sessionVariables) NIX_PATH; };
-    script = ''
-      if [[ -e /run/secrets/script ]];then
-        /run/secrets/script
-      fi
-    '';
-  };
+  programs.nix-ld.enable = true;
 }

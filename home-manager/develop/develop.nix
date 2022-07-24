@@ -82,7 +82,6 @@ in
     clang-analyzer
     ccls
     # gcc-unwrapped
-    llvm
     rust-env
 
     fzf
@@ -115,7 +114,7 @@ in
     kubectl
     kubernetes-helm
 
-    (wangzi-neovim.override { enable-all = config.home.username == "wangzi"; })
+    (wangzi-neovim.override { enable-all = config.neovim.full; })
     neovim-remote
     python2
     luajitPackages.luacheck

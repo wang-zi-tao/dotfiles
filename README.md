@@ -4,7 +4,6 @@
 
 ## 截图
 
-![neovim](./static/vim-boost.png)
 ![neovim](./static/vim.png)
 ![awesomewm](./static/info_center.png)
 ![awesomewm](./static/control_center.png)

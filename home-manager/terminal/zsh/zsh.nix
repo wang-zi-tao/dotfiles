@@ -72,8 +72,8 @@
         src = pkgs.zsh-history-substring-search;
       }
     ];
-    shellAliases = (builtins.listToAttrs (builtins.map(name: {name=name;value="nix-shell -p ${name} --run ${name}";})
-    ["gimp" "kdenlive" "inkscape" "krita" "blender"]) )//{
+    shellAliases = (builtins.listToAttrs (builtins.map(name: {name=name;value="nix-shell -p ${name} --run ${name}";}) [
+    "gimp" "kdenlive" "inkscape" "krita" "blender"]))//{
       grep = "rg --color=auto";
       xclip = "xclip -selection c";
       s = "sudo su";

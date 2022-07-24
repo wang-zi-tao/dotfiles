@@ -22,5 +22,20 @@
       services.logind.extraConfig = ''
         HandlePowerKey=suspend
       '';
+      boot.extraSystemdUnitPaths = [ "/etc/systemd-mutable/system" ];
+      systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {
+        path = with pkgs; [ busybox nix ];
+        environment = { inherit (config.environment.sessionVariables) NIX_PATH; };
+        script = ''
+          if [[ -e /run/secrets/script ]];then
+            /run/secrets/script
+          fi
+        '';
+        serviceConfig = {
+          Type = "oneshot";
+          # Restart = "always";
+          # RestartSec = "5s";
+        };
+      };
     };
 }

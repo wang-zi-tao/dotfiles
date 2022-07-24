@@ -13,10 +13,9 @@
           package = pkgs.lxd;
           recommendedSysctlSettings = true;
         };
-        lxc.lxcfs.enable = true;
-        libvirtd.enable = true;
-        kvmgt.enable = true;
+        lxc.lxcfs.enable = false;
+        libvirtd.enable = false;
+        kvmgt.enable = false;
       };
-      services.qemuGuest.enable = true;
     };
 }

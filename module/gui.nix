@@ -56,7 +56,7 @@
             enable = true;
             exportConfiguration = true;
             displayManager.startx.enable = true;
-            windowManager.xmonad.enable = true;
+            # windowManager.xmonad.enable = true;
             windowManager.awesome.enable = true;
             desktopManager.gnome.enable = true;
             displayManager.xpra = {

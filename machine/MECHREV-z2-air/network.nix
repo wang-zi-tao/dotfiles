@@ -2,7 +2,9 @@
   networking = {
     #useDHCP = true;
     hostName = "wangzi-pc";
-    networkmanager = { enable = true; };
+    networkmanager = {
+      enable = true;
+    };
   };
   systemd.services.NetworkManager-wait-online.enable = false;
 }

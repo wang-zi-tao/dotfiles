@@ -1,6 +1,6 @@
 { pkgs, ... }: {
   programs.vscode = {
-    enable = true;
+    enable = false;
     /* package = pkgs.vscodium; */
     extensions = with pkgs.vscode-extensions; [
       # markdowm
@@ -8,30 +8,30 @@
       # sh
       mads-hartmann.bash-ide-vscode
       # nix
-      bbenoist.nix
-      jnoortheen.nix-ide
-      brettm12345.nixfmt-vscode
+      # bbenoist.nix
+      # jnoortheen.nix-ide
+      # brettm12345.nixfmt-vscode
       # go
-      golang.go
+      # golang.go
       # java
-      redhat.java
-      scala-lang.scala
+      # redhat.java
+      # scala-lang.scala
       # python
-      ms-toolsai.jupyter
+      # ms-toolsai.jupyter
       # ms-python.python
-      ms-python.vscode-pylance
+      # ms-python.vscode-pylance
       # rust
-      matklad.rust-analyzer
+      # matklad.rust-analyzer
       # haskell
-      justusadam.language-haskell
+      # justusadam.language-haskell
       # mark
       redhat.vscode-yaml
       dotjoshjohnson.xml
       tamasfe.even-better-toml
       mechatroner.rainbow-csv
       # C/C++
-      vadimcn.vscode-lldb
-      xaver.clang-format
+      # vadimcn.vscode-lldb
+      # xaver.clang-format
       # misc
       gruntfuggly.todo-tree
       codezombiech.gitignore

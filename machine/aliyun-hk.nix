@@ -57,9 +57,10 @@ nixpkgs.lib.nixosSystem {
         mode = "0500";
         restartUnits = [ "run-secrets-scripts" ];
       };
-      sops.secrets."script_config/config1" = {
-        restartUnits = [ "run-secrets-scripts" ];
-      };
+      networking.firewall.allowedTCPPortRanges = [{
+        from = 8882;
+        to = 8888;
+      }];
     })
   ];
   pkgs = pkgs system;

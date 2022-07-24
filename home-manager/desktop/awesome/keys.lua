@@ -158,6 +158,12 @@ awful.keyboard.append_global_keybindings({
     awful.client.swap.byidx(-1)
   end, { description = "swap with previous client by index", group = "client" }),
   awful.key({ mod }, "u", awful.client.urgent.jumpto, { description = "jump to urgent client", group = "client" }),
+  awful.key({ mod }, "PageDown", function()
+    awful.tag.viewnext(screen)
+  end, { description = "next tagg", group = "layout" }),
+  awful.key({ mod }, "PageUp", function()
+    awful.tag.viewprev(screen)
+  end, { description = "previous tag", group = "layout" }),
   awful.key({ mod }, "l", function()
     awful.tag.incmwfact(0.05)
   end, { description = "increase master width factor", group = "layout" }),

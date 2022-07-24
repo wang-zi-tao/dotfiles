@@ -58,6 +58,7 @@ nixpkgs.lib.nixosSystem {
       };
       boot.cleanTmpDir = true;
       zramSwap.enable = true;
+      virtualisation.virtualbox.guest.enable = true;
     })
   ];
   pkgs = pkgs system;

@@ -1,5 +1,7 @@
 { pkgs, config, lib, ... }:
-let nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
+let
+  nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
+  networkConfig = config.cluster.network.edges.${config.cluster.nodeName}.config;
 in
 {
   config = lib.mkIf nodeConfig.OnedevServer.enable {
@@ -14,7 +16,7 @@ in
     services.caddy = lib.optionalAttrs nodeConfig.OnedevServer.enable {
       enable = true;
       virtualHosts = {
-        "https://${builtins.toString nodeConfig.publicIp}:6613" = {
+        "https://${builtins.toString networkConfig.publicIp}:6613" = {
           extraConfig = ''
             respond / 404
             respond /favicon.ico 404
@@ -23,6 +25,7 @@ in
         };
       };
     };
+    virtualisation.docker.enable = true;
     networking.firewall.allowedUDPPorts = [ 6613 ];
     networking.firewall.allowedTCPPorts = [ 6612 6613 ];
   };

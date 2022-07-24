@@ -1,12 +1,12 @@
 { pkgs, config, ... }: {
   imports = [
-    ./eww/eww.nix
-    ./rofi/rofi.nix
-    ./xmonad/xmonad.nix
+    # ./eww/eww.nix
+    # ./rofi/rofi.nix
+    # ./xmonad/xmonad.nix
     ./awesome/awesomewm.nix
     ./gnome.nix
-    ./polybar/polybar.nix
-    ./dunst.nix
+    # ./polybar/polybar.nix
+    # ./dunst.nix
     ./picom.nix
   ];
   services.unclutter = {
@@ -81,20 +81,15 @@
     libmpc
     mpd
     mpv
-    redshift
     scrot
     brightnessctl
     pamixer
-    pipewire
     polkit_gnome
     inotify-tools
-    jq
     upower
     acpid
     acpi
 
-
-    v2ray
     xiezuo
     wpsoffice
     # libreoffice
@@ -104,13 +99,13 @@
     # inkscape
     # krita
     # shotcut
-    drawio
-    lens
+    # drawio
+    # lens
     feh
 
     # winePackages.stable
 
-    wewechat
+    # wewechat
     # deepin-wine-tim
     # icalingua
     # nur.repos.linyinfeng.icalingua
@@ -135,7 +130,7 @@
     gnome.gnome-screenshot
     gnome.gnome-system-monitor
     gnome.nautilus
-    pkgs.gnome-connections
+    gnome-connections
     gnome.totem
     gnome.gnome-software
     # dolphin

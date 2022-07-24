@@ -1,7 +1,8 @@
 { pkgs, config, lib, ... }:
 let
   cfg = config.cluster;
-  nodeConfig = cfg.nodes."${cfg.nodeName}";
+  nodeConfig = cfg.nodes.${cfg.nodeName};
+  networkConfig = config.cluster.network.nodes.${config.cluster.nodeName}.config;
 in
 with lib; with builtins; {
   config = lib.mkIf nodeConfig.CodeServer.enable {
@@ -15,7 +16,7 @@ with lib; with builtins; {
     services.caddy = lib.optionalAttrs nodeConfig.CodeServer.enable {
       enable = true;
       virtualHosts = {
-        "https://${builtins.toString nodeConfig.publicIp}:4443" = {
+        "https://${builtins.toString networkConfig.publicIp}:4443" = {
           extraConfig = ''
             reverse_proxy http://localhost:4444
           '';

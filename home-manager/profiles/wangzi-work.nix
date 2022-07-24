@@ -16,6 +16,7 @@ in
       ../terminal/terminal.nix
       ../develop/develop.nix
     ];
+    neovim.full = true;
     programs.git.userName = lib.mkForce "wangzitao";
     programs.git.userEmail = lib.mkForce "wangzitao@kingsoft.com";
   };

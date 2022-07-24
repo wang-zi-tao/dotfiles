@@ -1,1 +1,4 @@
-{ config, pkgs, lib, ... }: { imports = [ ./firefox.nix ./alacritty.nix ./dconf.nix ]; }
+{ config, pkgs, lib, ... }:
+{
+  imports = [ ./firefox.nix ./alacritty.nix ./dconf.nix ];
+}

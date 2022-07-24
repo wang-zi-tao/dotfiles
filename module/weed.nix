@@ -1,29 +1,96 @@
 { pkgs, config, lib, ... }:
-with lib;
-with builtins;
+with builtins; with pkgs.lib;with pkgs.lib.types; with pkgs.lib.attrsets;
 let
-  nodeConfig = config.cluster.nodeConfig;
-  weed = nodeConfig.weed;
-  collections = config.cluster.collections;
-  server = nameValuePair "seaweedfs-server"
-    {
-      enable = true;
-      description = "seaweedfs server";
-      wantedBy = [ "multi-user.target" ];
-      before = [ "multi-user.target" ];
-      after = [ "seaweedfs-master.service" ];
-      path = with pkgs; [ busybox seaweedfs fuse ];
-      serviceConfig = {
-        Type = "simple";
-        Restart = "always";
-        RestartSec = "5s";
-        LimitNOFILE = 500000;
-        LimitNPROC = 500000;
-        ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.server.path}/weed ${weed.server.path}/master ${weed.server.path}/volume";
-        ExecStart =
-          ''${pkgs.seaweedfs}/bin/weed server \
+  seaweedfsGraph = pkgs.graphType {
+    nodeOption = { nodeName, nodeConfig, ... }: {
+      server = {
+        enable = mkOption { type = bool; default = true; };
+        path = mkOption { type = path; default = "/mnt/weed/server"; };
+      };
+      client = {
+        enable = mkOption { type = bool; default = true; };
+        path = mkOption { type = path; default = "/tmp/weed-cache"; };
+        size = mkOption { type = int; default = 8192; };
+        mount = mkOption { type = path; default = "/mnt/weed/mount"; };
+      };
+    };
+    directed = true;
+    edgeOption = { nodeName, nodeConfig, name, config, ... }:
+      let edgeName = name; in
+      {
+        syncDirs = mkOption {
+          type = attrsOf
+            (submodule {
+              options = {
+                ipA = mkOption { type = str; default = "${nodeName}.wg"; };
+                ipB = mkOption { type = str; default = "${edgeName}.wg"; };
+              };
+            });
+          default = { };
+        };
+        mountDirs = mkOption {
+          type = attrsOf
+            (submodule {
+              options = {
+                cacheSize = mkOption {
+                  type = int;
+                  default = nodeConfig.config.client.size;
+                };
+                ip = mkOption { type = str; default = "${edgeName}.wg"; };
+              };
+            });
+          default = { };
+        };
+      };
+  };
+  hostname = config.networking.hostName;
+  enabled = hasAttr hostname config.cluster.seaweedfs.edges;
+  mkIfEnbled = mkIf enabled;
+in
+{
+  options = {
+    cluster.seaweedfs = mkOption {
+      type = seaweedfsGraph.type;
+      default = { };
+    };
+  };
+  imports = [
+    { cluster.seaweedfs = seaweedfsGraph.function config.cluster.seaweedfs; }
+    ./wireguard.nix
+  ];
+  config = {
+    environment.systemPackages = with pkgs; mkIfEnbled [
+      seaweedfs
+    ];
+    system.activationScripts.weed-self = mkIfEnbled ''
+      ln -sfn /mnt/weed/mount/${hostname} /mnt/weed/mount/self
+    '';
+    systemd.services =
+      optionalAttrs enabled (
+        let
+          seaweedfs = config.cluster.seaweedfs.edges.${hostname};
+          wireguardCluster = config.cluster.wireguard.edges;
+          wireguardConfig = wireguardCluster.${hostname}.config;
+          weed = seaweedfs.config;
+        in
+        listToAttrs ((
+          optional seaweedfs.config.server.enable (nameValuePair "seaweedfs-server" {
+            enable = true;
+            description = "seaweedfs server";
+            wantedBy = [ "multi-user.target" ];
+            before = [ "multi-user.target" ];
+            after = [ "seaweedfs-master.service" ];
+            serviceConfig = {
+              Type = "simple";
+              Restart = "always";
+              RestartSec = "5s";
+              LimitNOFILE = 500000;
+              LimitNPROC = 500000;
+              ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.server.path}/weed ${weed.server.path}/master ${weed.server.path}/volume";
+              ExecStart =
+                ''${pkgs.seaweedfs}/bin/weed server \
             -resumeState \
-            -ip=${nodeConfig.wireguard.clusterIp} \
+            -ip=${wireguardConfig.clusterIp} \
             -ip.bind=0.0.0.0 \
             -dir=${weed.server.path}/weed \
             -master=true \
@@ -39,150 +106,85 @@ let
             -volume.index=leveldb \
             -volume.port=303 \
             -volume.max=256 \
-            -volume.publicUrl=${nodeConfig.wireguard.clusterIp}:303 \
+            -volume.publicUrl=${wireguardConfig.clusterIp}:303 \
             -metricsPort=9101
           '';
-      };
-    };
-  client = nameValuePair "seaweedfs-mount-${nodeConfig.hostname}"
-    {
-      enable = true;
-      description = "mount seaweedfs";
-      wantedBy = [ "multi-user.target" ];
-      before = [ "multi-user.target" ];
-      path = with pkgs; [ busybox seaweedfs fuse ];
-      serviceConfig = {
-        Type = "simple";
-        Restart = "always";
-        RestartSec = "2s";
-        LimitNOFILE = 500000;
-        ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${nodeConfig.hostname} ${weed.client.path}/${nodeConfig.hostname}";
-        ExecStart =
-          ''${pkgs.seaweedfs}/bin/weed mount \
-            -filer=${nodeConfig.hostname}:302 \
-            -dir=${weed.client.mount}/${nodeConfig.hostname} \
-            -dirAutoCreate \
-            -cacheDir=${weed.client.path}/${nodeConfig.hostname} \
-            -cacheCapacityMB=${builtins.toString weed.client.size}
-          '';
-      };
-      postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${nodeConfig.hostname} -l";
-    };
-  nas-client =
-    map
-      (nas:
-        let nasNode = config.cluster.nodes."${nas}";
-        in
-        nameValuePair "seaweedfs-mount-${nasNode.hostname}" {
+            };
+          })
+        )
+        ++ (optional seaweedfs.config.client.enable (nameValuePair "seaweedfs-mount-${hostname}" {
           enable = true;
-          description = "mount seaweedfs from ${nasNode.hostname}";
+          description = "mount seaweedfs";
           wantedBy = [ "multi-user.target" ];
           before = [ "multi-user.target" ];
-          path = with pkgs; [ busybox seaweedfs fuse ];
+          path = with pkgs; [ fuse ];
           serviceConfig = {
             Type = "simple";
             Restart = "always";
             RestartSec = "2s";
             LimitNOFILE = 500000;
-            ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${nasNode.hostname} ${weed.client.path}/${nasNode.hostname}";
-            ExecStart = ''${pkgs.seaweedfs}/bin/weed mount \
-              -filer=${nasNode.hostname}.wg1:302 \
-              -dir=${weed.client.mount}/${nasNode.hostname} \
-              -dirAutoCreate \
-              -cacheDir=${weed.client.path}/${nasNode.hostname} \
-              -cacheCapacityMB=${builtins.toString weed.nas.cacheSize} \
-              -filer.path=/${nasNode.hostname}
-            '';
-          };
-          postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${nasNode.hostname} -l";
-        })
-      weed.nas.attach;
-  collections-client =
-    (map
-      (collection:
-        nameValuePair "seaweedfs-mount-${collection.name}" {
-          enable = true;
-          description = "mount seaweedfs from ${collection.name}";
-          wantedBy = [ "multi-user.target" ];
-          before = [ "multi-user.target" ];
-          path = with pkgs; [ busybox seaweedfs fuse ];
-          serviceConfig = {
-            Type = "simple";
-            Restart = "always";
-            RestartSec = "2s";
-            LimitNOFILE = 500000;
-            ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${collection.name} ${weed.client.path}/${collection.name}";
+            ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${hostname} ${weed.client.path}/${hostname}";
             ExecStart =
               ''${pkgs.seaweedfs}/bin/weed mount \
-            -filer=${builtins.concatStringsSep "," (
-if (any (client: client == nodeConfig.hostname) collection.clients)
-then["${nodeConfig.wireguard.clusterIp}:302"]
-++(map (server: server+".wg:302")
-    (lib.lists.remove nodeConfig.hostname collection.clients))
-else (map (server: server+".wg:302")
-    collections.clients)) } \
-            -dir=${weed.client.mount}/${collection.name} \
+            -filer=${hostname}:302 \
+            -dir=${weed.client.mount}/${hostname} \
             -dirAutoCreate \
-            -cacheDir=${weed.client.path}/${collection.name} \
-            -cacheCapacityMB=${builtins.toString weed.nas.cacheSize} \
-            -filer.path=/${collection.name}
+            -cacheDir=${weed.client.path}/${hostname} \
+            -cacheCapacityMB=${builtins.toString weed.client.size}
           '';
           };
-          postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${collection.name} -l";
-        }
-      )
-      (filter
-        (collection:
-          (any (client: client == nodeConfig.hostname) collection.clients)
-          && !(any (server: server == nodeConfig.hostname) collection.servers)
-        )
-        (attrValues collections)));
-  collections-sync =
-    (concatLists
-      (map
-        (collection: (map
-          (sync:
-            nameValuePair "seaweedfs-sync-${collection.name}-${sync.from}-${sync.to}" {
-              enable = true;
-              description = "sync seaweedfs in ${collection.name} from ${sync.from} to ${sync.to}";
-              wantedBy = [ "multi-user.target" ];
-              before = [ "multi-user.target" ];
-              path = with pkgs; [ busybox seaweedfs fuse ];
-              serviceConfig = {
-                Type = "simple";
-                Restart = "always";
-                RestartSec = "2s";
-                LimitNOFILE = 500000;
-                ExecStart = ''${pkgs.seaweedfs}/bin/weed filer.sync \
-                  -a ${sync.from}.wg1:302 \
-                  -a.path=/${collection.name} \
-                  -b ${sync.to}.wg1:302 \
-                  -b.path=/${collection.name} \
+          postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${hostname} -l";
+        }))
+        ++ (concatLists
+          (mapAttrsToList
+            (remoteHostname: link: (mapAttrsToList
+              (dir: mountConfig: nameValuePair "seaweedfs-mount-${remoteHostname}" {
+                enable = true;
+                description = "mount seaweedfs from ${remoteHostname}";
+                wantedBy = [ "multi-user.target" ];
+                before = [ "multi-user.target" ];
+                path = with pkgs; [ fuse ];
+                serviceConfig = {
+                  Type = "simple";
+                  Restart = "always";
+                  RestartSec = "2s";
+                  LimitNOFILE = 500000;
+                  ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${remoteHostname} ${weed.client.path}/${remoteHostname}";
+                  ExecStart = ''${pkgs.seaweedfs}/bin/weed mount \
+              -filer=${mountConfig.ip}:302 \
+              -dir=${weed.client.mount}/${remoteHostname} \
+              -dirAutoCreate \
+              -cacheDir=${weed.client.path}/${remoteHostname} \
+              -cacheCapacityMB=${builtins.toString mountConfig.cacheSize} \
+              -filer.path=/${remoteHostname}
+            '';
+                };
+                postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${remoteHostname} -l";
+              })
+              link.mountDirs) ++ (mapAttrsToList
+              (dir: syncConfig: nameValuePair "seaweedfs-sync-${dir}-${remoteHostname}-${hostname}" {
+                enable = true;
+                description = "sync seaweedfs in ${dir} from ${remoteHostname} to ${hostname}";
+                wantedBy = [ "multi-user.target" ];
+                before = [ "multi-user.target" ];
+                path = with pkgs; [ fuse ];
+                serviceConfig = {
+                  Type = "simple";
+                  Restart = "always";
+                  RestartSec = "2s";
+                  LimitNOFILE = 500000;
+                  ExecStart = ''${pkgs.seaweedfs}/bin/weed filer.sync \
+                  -a ${syncConfig.ipA}:302 \
+                  -a.path=/${dir} \
+                  -b ${syncConfig.ipB}:302 \
+                  -b.path=/${dir} \
                   # -a.debug -b.debug
                 '';
-              };
-            }
-          )
-          (filter (sync: sync.from == nodeConfig.hostname) collection.sync)))
-        (filter
-          (collection:
-            any (server: server == nodeConfig.hostname) collection.servers)
-          (attrValues collections)))
-    );
-in
-{
-  config = lib.mkIf nodeConfig.weed.enable {
-    systemd.services =
-      (listToAttrs (lib.lists.optional weed.server.enable server))
-      // (listToAttrs (lib.lists.optional weed.client.enable client))
-      // (listToAttrs nas-client)
-      // (listToAttrs collections-client)
-      // (listToAttrs collections-sync);
-    environment.systemPackages = with pkgs; [
-      seaweedfs
-    ];
-    system.activationScripts.weed-self = ''
-      ln -sfn /mnt/weed/mount/${nodeConfig.hostname} /mnt/weed/mount/self
-    '';
+                };
+              })
+              link.syncDirs))
+            (optionalAttrs (hasAttr hostname wireguardCluster) seaweedfs.to)
+          )))
+      );
   };
 }
