@@ -24,6 +24,8 @@
       '';
       boot.extraSystemdUnitPaths = [ "/etc/systemd-mutable/system" ];
       systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {
+        wantedBy = [ "multi-user.target" ];
+        before = [ "multi-user.target" ];
         path = with pkgs; [ busybox nix ];
         environment = { inherit (config.environment.sessionVariables) NIX_PATH; };
         script = ''
