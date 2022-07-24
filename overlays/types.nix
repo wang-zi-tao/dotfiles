@@ -18,7 +18,7 @@ in
                   type = attrsOf (submodule
                     ({ name, config, ... }: {
                       options = edgeOption
-                        ({ inherit name config; nodeName = name; nodeConfig = nodeArgs.config; });
+                        ({ inherit name config; nodeName = nodeArgs.name; nodeConfig = nodeArgs.config; });
                     }));
                   default = defaultEdgeConfig;
                 };
@@ -49,7 +49,7 @@ in
                   type = attrsOf (submodule
                     ({ name, config, ... }: {
                       options = edgeOption
-                        ({ inherit name config; nodeName = name; nodeConfig = config; });
+                        ({ inherit name config; nodeName = nodeArgs.name; nodeConfig = nodeArgs.config; });
                     }));
                   default = defaultEdgeConfig;
                 };
