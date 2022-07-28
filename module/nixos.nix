@@ -9,7 +9,7 @@ with pkgs.flakes; {
       "https://cache.nixos.org/"
       "https://nixpkgs-wayland.cachix.org"
       "https://mirror.sjtu.edu.cn/nix-channels/store"
-    ] ++ lib.options (config.cluster.network.edges.${config.networking.hostName}.config.publicIp != "47.243.22.114") [
+    ] ++ lib.optionals (config.cluster.network.edges.${config.networking.hostName}.config.publicIp != "47.243.22.114") [
       /* "http://47.243.22.114:5000" */
     ];
     binaryCachePublicKeys = [
