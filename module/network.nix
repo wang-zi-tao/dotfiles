@@ -25,7 +25,6 @@ in
         enable = true;
         rejectPackets = true;
       };
-      proxy.noProxy = "127.0.0.1,localhost,.localdomain";
       hosts = listToAttrs (concatLists (mapAttrsToList
         (nodeName: node:
           let publicIp = networkCluster.${nodeName}.config.publicIp; in

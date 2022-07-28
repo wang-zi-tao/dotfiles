@@ -8,9 +8,11 @@ with pkgs.flakes; {
       "https://nix-community.cachix.org"
       "https://cache.nixos.org/"
       "https://nixpkgs-wayland.cachix.org"
-      /* "https://mirror.sjtu.edu.cn/nix-channels/store" */
+      "https://mirror.sjtu.edu.cn/nix-channels/store"
+      "http://47.243.22.114:5000"
     ];
     binaryCachePublicKeys = [
+      "47.243.22.114:5000:wfL5ei3BfHGUVpiOihncv1LmbBzjqDm6uTFtJ95wueI="
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
     ];
@@ -21,6 +23,7 @@ with pkgs.flakes; {
     gc.options = "-d";
     optimise.automatic = true;
   };
+  networking.proxy.noProxy = "mirrors.tuna.tsinghua.edu.cn,mirrors.ustc.edu.cn,127.0.0.1,localhost";
   # environment.memoryAllocator.provider = "jemalloc";
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "Asia/Shanghai";

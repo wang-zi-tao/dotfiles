@@ -8,6 +8,5 @@ in
       enable = true;
       openFirewall = true;
     };
-    networking.firewall.allowedTCPPorts = [ 8883 ];
   };
 }
