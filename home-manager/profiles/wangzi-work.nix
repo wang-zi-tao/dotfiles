@@ -1,9 +1,5 @@
-{ nixpkgs, home-manager, pkgs-args, ... }:
-let
-  system = "x86_64-linux";
-  pkgs = (import nixpkgs) (pkgs-args system);
-  lib = pkgs.lib;
-in
+{ nixpkgs, home-manager, pkgs, system, ... }:
+let lib = pkgs.lib; in
 {
   pkgs = pkgs;
   system = system;
@@ -12,7 +8,7 @@ in
   configuration = {
     imports = [
       ../application/application.nix
-      ../desktop/desktop.nix
+      ../desktop/cpp.nix
       ../terminal/terminal.nix
       ../develop/develop.nix
     ];

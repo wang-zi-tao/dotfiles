@@ -16,14 +16,27 @@ with lib; with builtins; {
     services.caddy = lib.optionalAttrs nodeConfig.CodeServer.enable {
       enable = true;
       virtualHosts = {
-        "https://${builtins.toString networkConfig.publicIp}:4443" = {
+        "https://${builtins.toString networkConfig.publicIp}:43243" = {
           extraConfig = ''
-            reverse_proxy http://localhost:4444
+            @folder {
+              query folder=*
+            }
+            @type {
+              query type=*
+            }
+            reverse_proxy @folder http://localhost:4444
+            reverse_proxy @type http://localhost:4444
+            reverse_proxy /fake.html http://localhost:4444
+            reverse_proxy /update/* http://localhost:4444
+            reverse_proxy /static/* http://localhost:4444
+            reverse_proxy /webview/* http://localhost:4444
+            reverse_proxy /vscode-remote-resource http://localhost:4444
+            # reverse_proxy http://localhost:4444
           '';
         };
       };
     };
-    networking.firewall.allowedUDPPorts = [ 4443 ];
-    networking.firewall.allowedTCPPorts = [ 4443 ];
+    networking.firewall.allowedUDPPorts = [ 43243 ];
+    networking.firewall.allowedTCPPorts = [ 43243 ];
   };
 }

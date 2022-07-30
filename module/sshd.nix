@@ -13,6 +13,7 @@ in
       enable = true;
       forwardX11 = true;
       gatewayPorts = "yes";
+      permitRootLogin = "yes";
       passwordAuthentication = true;
       authorizedKeysFiles = lib.optional sops-enable config.sops.secrets.ssh-public-keys.path;
       extraConfig = ''

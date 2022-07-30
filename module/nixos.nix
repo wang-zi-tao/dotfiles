@@ -1,5 +1,5 @@
-{ config, pkgs, lib, ... }:
-with pkgs.flakes; {
+{ config, pkgs, lib, inputs, ... }:
+with inputs; {
   nix = {
     # settings.trusted-substituters = [ "http://${config.cluster.nodes.aliyun-hk.publicIp}" ];
     binaryCaches = [
@@ -28,7 +28,6 @@ with pkgs.flakes; {
   # environment.memoryAllocator.provider = "jemalloc";
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "Asia/Shanghai";
-  i18n.defaultLocale = "zh_CN.UTF-8";
   nix.nixPath = [ "nixpkgs=${nixpkgs}" ];
   nix.registry.n.flake = nixpkgs;
   nix.registry.nixpkgs.flake = nixpkgs;

@@ -1,9 +1,4 @@
-{ nixpkgs, home-manager, pkgs-args, ... }:
-let
-  system = "x86_64-linux";
-  pkgs = (import nixpkgs) (pkgs-args system);
-in
-home-manager.lib.homeManagerConfiguration {
+{ nixpkgs, home-manager, pkgs, system, ... }: {
   pkgs = pkgs;
   system = system;
   username = "wangzi";

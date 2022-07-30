@@ -31,7 +31,10 @@ let
     ]);
 in
 {
-  imports = [ ./git.nix ./vscode.nix ];
+  imports = [
+    ./git.nix
+    ./cpp.nix
+  ];
   programs.go = {
     enable = true;
     goBin = ".go/bin";
@@ -41,24 +44,15 @@ in
     [global]
     index-url = https://pypi.mirrors.ustc.edu.cn/simple
   '';
-  home.file.".config/direnv/direnvrc".text = ''
-    use_flake() {
-      watch_file flake.nix
-      watch_file flake.lock
-      eval "$(nix print-dev-env --profile "$(direnv_layout_dir)/flake-profile")"
-    }
-  '';
   home.sessionVariables = with pkgs; {
     RUSTUP_DIST_SERVER = "http://mirrors.ustc.edu.cn/rust-static";
     RUSTUP_UPDATE_ROOT = "http://mirrors.ustc.edu.cn/rust-static/rustup";
     RUST_BACKTRACE = "1";
-    PKG_CONFIG_PATH = "${openssl.dev}/lib/pkgconfig";
-    # PATH = "$HOME/.local/bin:$HOME/.cargo/bin:$PATH";
+    PATH = "$PATH:$HOME/.local/bin:$HOME/.cargo/bin";
   };
   home.packages = with pkgs; [
     rnix-lsp
     nixfmt
-    x11docker
     socat
     pandoc
     devtodo
@@ -67,31 +61,18 @@ in
     curlie
     highlight
     xlsx2csv
-    inotify-tools
 
     pkg-config
     ctags
     global
-    gnumake
     ninja
-    cmake
     meson
-    clang-tools
-    # clang
-    libcxx
-    clang-analyzer
-    ccls
-    # gcc-unwrapped
     rust-env
 
     fzf
     ptags
     global
     file
-
-    timewarrior
-    taskwarrior
-    taskwarrior-tui
 
     unixtools.xxd
     gh
@@ -108,8 +89,12 @@ in
     maven
     gradle
 
+    ctop
+    # distant
+    iperf2
+    tokei
+    nix-prefetch
     docker-compose
-    beekeeper-studio
     k9s
     kubectl
     kubernetes-helm
@@ -127,18 +112,6 @@ in
     nodePackages.live-server
     nodePackages.yaml-language-server
 
-    (pkgs.buildEnv {
-      name = "cpp_compiler";
-      paths = with pkgs;[
-        clang
-        gcc
-        gdb
-        lldb
-        bintools-unwrapped
-        python3-env
-      ];
-      ignoreCollisions = true;
-    })
   ];
   programs.zsh.shellAliases = {
     mvn = "unset JAVA_TOOL_OPTIONS && mvn";

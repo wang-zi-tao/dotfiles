@@ -118,6 +118,12 @@ wk.register({
       end,
       "Close Diff",
     },
+    h = {
+      function()
+        require("diffview").file_history()
+      end,
+      "Git Log",
+    },
     a = { ":!git add .<CR>", "git add ." },
     c = { ":terminal git commit<CR>", "git commit" },
     p = { ":!git push<CR>", "git push" },
@@ -166,7 +172,7 @@ wk.register({
     m = { ":CMake<CR>", "CMake" },
     c = { ":CMake configure<CR>", "CMake configure" },
     C = { ":CMake clean<CR>", "CMake clean" },
-    r = { ":CMake run<CR>", "CMake run" },
+    r = { ":CMake build_and_run<CR>", "CMake run" },
     d = { ":CMake build_and_debug<CR>", "CMake debug" },
     t = { ":CMake select_build_type<CR>", "CMake build type" },
     s = { ":CMake select_target<CR>", "CMake select target" },

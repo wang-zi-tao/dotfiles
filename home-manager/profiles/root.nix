@@ -1,8 +1,5 @@
-{ nixpkgs, home-manager, pkgs-args, ... }:
-let
-  system = "x86_64-linux";
-  pkgs = (import nixpkgs) (pkgs-args system);
-in
+{ nixpkgs, home-manager, pkgs, ... }:
+let system = "x86_64-linux"; in
 {
   pkgs = pkgs;
   system = system;

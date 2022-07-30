@@ -1,5 +1,5 @@
 { pkgs, config, lib, ... }:
-with builtins; with pkgs.lib;with pkgs.lib.types; with pkgs.lib.attrsets; let
+with builtins; with lib;with lib.types; with lib.attrsets; let
   hostname = config.networking.hostName;
   networkCluster = config.cluster.network.edges;
   network = networkCluster.${hostname};

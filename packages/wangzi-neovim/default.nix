@@ -154,6 +154,7 @@ stdenvNoCC.mkDerivation {
     rev = "d0ffe317b0fba28e935b305ba9afb998024ea424";
     sha256 = "sha256-dfdSpg4FtsYtJ98DuKt/Dr2j85KvjUCHtiNSkTSxu7E=";
     }}",
+         crates_nvim = "${crates-nvim}",
          perfanno_nvim = "${pkgs.fetchgit {
     url = "https://github.com/t-troebst/perfanno.nvim";
     rev = "0e2048ebded332ff3a2185f883646e2f7d210d8d";

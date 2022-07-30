@@ -129,7 +129,7 @@ packer.startup(function()
   use({
     n.vgit_nvim,
     as = "vgit_nvim",
-    requires = "nvim-lua/plenary.nvim",
+    requires = "plenary_nvim",
     cmd = "VGit",
     config = function()
       require("core.plugins.vgit")
@@ -622,6 +622,16 @@ packer.startup(function()
     ft = { "cpp", "c", "hpp", "h", "CMakeLists.txt" },
     config = function()
       require("core.plugins.cmake")
+    end,
+  })
+  use({
+    n.crates_nvim,
+    as = "crates_nvim",
+    requires = { 'plenary_nvim' },
+    ft = { "Cargo.toml" },
+    module = "cmp_crates",
+    config = function()
+      require("core.plugins.crates")
     end,
   })
   use({

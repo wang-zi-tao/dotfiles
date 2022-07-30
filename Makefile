@@ -23,7 +23,7 @@ aliyun-hk:
 aliyun-ecs:
 	nixos-rebuild --flake '.#aliyun-ecs' --target-host root@116.62.23.116 switch $(ARGS)
 lxd:
-	nix build '.#nixosConfigurations.lxd' $(ARGS)
+	nixos-generate -f lxc --flake '.#lxd' $(ARGS)
 	lxc image import --alias nixos `nixos-generate -f lxc-metadata` result/tarball/nixos-system-x86_64-linux.tar.xz local: --force-local --verbose
 nova9: 
 	nix-on-droid --flake ".#nova9" switch

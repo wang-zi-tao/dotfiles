@@ -8,6 +8,7 @@
     # ./polybar/polybar.nix
     # ./dunst.nix
     ./picom.nix
+    ../develop/vscode.nix
   ];
   services.unclutter = {
     enable = true;
@@ -152,5 +153,11 @@
 
     weston
     waypipe
+    x11docker
+    inotify-tools
+    timewarrior
+    taskwarrior
+    taskwarrior-tui
+    beekeeper-studio
   ];
 }

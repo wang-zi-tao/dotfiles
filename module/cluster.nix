@@ -19,11 +19,11 @@ with lib; with builtins;{
                   hostname = mkOption { type = str; default = name; };
                   inVM = mkOption { type = bool; default = false; };
                   inContainer = mkOption { type = bool; default = false; };
-                  users = mkOption { type = listOf str; default = [ ]; };
-                  sshd.enable = mkOption {
-                    type = bool;
-                    default = true;
+                  users = mkOption {
+                    type = attrsOf path;
+                    default = { root = ../home-manager/profiles/root.nix; };
                   };
+                  sshd.enable = mkOption { type = bool; default = true; };
                   prometheus = {
                     server = mkOption { type = bool; default = false; };
                     nodeExporter = mkOption { type = bool; default = true; };
@@ -33,6 +33,7 @@ with lib; with builtins;{
                   redis.enable = mkOption { type = bool; default = false; };
                   OnedevServer.enable = mkOption { type = bool; default = false; };
                   CodeServer.enable = mkOption { type = bool; default = false; };
+                  webssh.enable = mkOption { type = bool; default = false; };
                   binary-cache.enable = mkOption { type = bool; default = false; };
                   wayland.enable = mkOption { type = bool; default = false; };
                   guiServer.enable = mkOption { type = bool; default = false; };
@@ -67,6 +68,7 @@ with lib; with builtins;{
     ./nextcloud.nix
     ./onedev.nix
     ./code.nix
+    ./webssh.nix
     ./redis.nix
     ./weed.nix
     ./prometheus.nix
@@ -154,7 +156,7 @@ with lib; with builtins;{
       ssh.publicKeySops = ../secrets/public-key.yaml;
       nodes = {
         wangzi-pc = {
-          users = [ "wangzi" ];
+          users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
           guiServer.enable = true;
           guiClient.enable = true;
           develop.enable = true;
@@ -163,7 +165,7 @@ with lib; with builtins;{
           CodeServer.enable = true;
         };
         wangzi-nuc = {
-          users = [ "wangzi" ];
+          users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
           /* localIp = "192.168.32.1"; */
           wayland.enable = true;
           guiServer.enable = true;
@@ -177,6 +179,7 @@ with lib; with builtins;{
           container.enable = true;
           MySQL.enable = true;
           CodeServer.enable = true;
+          webssh.enable = true;
           redis.enable = true;
           prometheus.server = true;
           # weedServer.enable = true;
@@ -184,7 +187,7 @@ with lib; with builtins;{
         };
         aliyun-hk = {
           NextCloudServer.enable = true;
-          CodeServer.enable = true;
+          webssh.enable = true;
           OnedevServer.enable = true;
           binary-cache.enable = true;
           redis.enable = true;
@@ -192,6 +195,7 @@ with lib; with builtins;{
         };
         aliyun-ecs = {
           CodeServer.enable = true;
+          webssh.enable = true;
           # redis.enable = true;
           inVM = true;
         };

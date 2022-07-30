@@ -49,10 +49,10 @@
     lazyPackage = with pkgs;[ nmap ];
     home.packages = with pkgs;
       scripts ++ (builtins.map (pkg: let name = pkg.pname; in pkgs.writeShellScriptBin name "nix-shell -p ${name} --run ${name} $@") config.lazyPackage) ++ [
+        rnix-lsp
+        nixfmt
         neovim-remote
         (wangzi-neovim.override { enable-all = config.neovim.full; })
-        # distant
-        iperf2
 
         lm_sensors
         nix-tree
@@ -61,11 +61,9 @@
         atool
         bat
         choose
-        ctop
         #nmap
         curl
         direnv
-        nix-prefetch
         (nix-direnv.override { enableFlakes = true; })
         duf
         exa
@@ -73,16 +71,13 @@
         jq
         tldr
         just
-        tokei
         lsof
         pistol
-        poppler
         ps
         ripgrep
         silver-searcher
         choose
         sd
-        sudo
         trash-cli
         wget
         xh
@@ -96,5 +91,12 @@
         openssh
       ];
     home.file.".code-server/bin/node" = { source = "${pkgs.nodejs-16_x}/bin/node"; executable = true; };
+    home.file.".config/direnv/direnvrc".text = ''
+      use_flake() {
+        watch_file flake.nix
+        watch_file flake.lock
+        eval "$(nix print-dev-env --profile "$(direnv_layout_dir)/flake-profile")"
+      }
+    '';
   };
 }

@@ -3,7 +3,6 @@
     (config.cluster.nodeConfig.guiClient.enable
       || config.cluster.nodeConfig.guiClient.enable)
     {
-      i18n.defaultLocale = "zh_CN.UTF-8";
       gtk = { iconCache.enable = true; };
       fonts = {
         fontconfig = {
@@ -39,6 +38,11 @@
           "text/xml" = [ "nvim.desktop" ];
         };
       };
+      i18n.defaultLocale = "zh_CN.UTF-8";
+      i18n.supportedLocales = [
+        "en_US.UTF-8/UTF-8"
+        "zh_CN.UTF-8/UTF-8"
+      ];
       i18n.inputMethod = {
         enabled = "ibus";
         ibus = { engines = with pkgs.ibus-engines; [ libpinyin ]; };

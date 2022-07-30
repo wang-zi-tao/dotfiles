@@ -1,4 +1,4 @@
-{ pkgs, config, ... }: {
+{ pkgs, config,lib, ... }: {
   imports=[];
   programs.zsh = {
     enable = true;
@@ -11,7 +11,7 @@
         "extract"
         "colored-man-pages"
         "sudo"
-        # "command-not-found"
+        "command-not-found"
         "python"
         "vi-mode"
         # "autojump"
@@ -131,11 +131,16 @@
       fi
     '';
   };
-  # programs.command-not-found.enable = true;
+  programs.command-not-found.enable = !config.programs.nix-index.enable;
   programs.nix-index = {
-    enable=true;
     enableZshIntegration=true;
   };
+  home.activation.nix-index = lib.mkIf config.programs.nix-index.enable (lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [[ ! -e $HOME/.cache/nix-index/files ]]; then
+     mkdir $HOME/.cache/nix-index/ -p || true
+     nix-index &
+    fi
+  '');
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;

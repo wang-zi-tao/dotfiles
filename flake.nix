@@ -35,10 +35,23 @@
     , flake-compat
     , flake-utils
     , nix-on-droid
+    , sops-nix
     , ...
-    }:
+    }: flake-utils.lib.eachDefaultSystem (system:
     let
-      pkgs-args = system: {
+      import-dir = dir: file:
+        builtins.listToAttrs (builtins.attrValues (builtins.mapAttrs
+          (name: value:
+            if value == "directory" then {
+              name = name;
+              value = import (dir + "/${name}/${file}");
+            } else {
+              name = builtins.substring 0 (builtins.stringLength name - 4) name;
+              value = import (dir + "/${name}");
+            })
+          (builtins.readDir dir))
+        );
+      pkgs = import nixpkgs {
         inherit system;
         config = { allowUnfree = true; };
         overlays = with builtins;
@@ -48,70 +61,44 @@
             nixpkgs-wayland.overlay
             (final: prev:
               {
-                flake-compat = inputs.flake-compat;
-                system = system;
-                flakes = inputs;
-                nur = import inputs.nur {
-                  nurpkgs = prev;
-                  pkgs = prev;
-                };
-                unstable = import inputs.nixpkgs-unstable {
-                  system = final.system;
-                  config = { allowUnfree = true; };
-                };
-                nixpkgs-21 = import inputs.nixpkgs-21 {
-                  system = final.system;
-                  config = { allowUnfree = true; };
-                };
+                unstable = import inputs.nixpkgs-unstable { system = final.system; config = { allowUnfree = true; }; };
                 scripts = (map
                   (f: prev.writeScriptBin f (readFile (./scripts + "/${f}")))
                   (attrNames (readDir ./scripts)));
-              } // (listToAttrs (map
-                (name: {
-                  inherit name;
-                  value = final.callPackage (./packages + "/${name}") { };
-                })
-                (attrNames (readDir ./packages)))))
+              } // (listToAttrs (map (name: { inherit name; value = final.callPackage (./packages + "/${name}") { }; }) (attrNames (readDir ./packages)))))
           ] ++ (map (name: import (./overlays + "/${name}"))
             (attrNames (readDir ./overlays))));
       };
-      args = {
-        pkgs = system: (import nixpkgs) (pkgs-args system);
-        inherit pkgs-args;
-      } // inputs;
     in
     {
-      nixosConfigurations = {
-        wangzi-pc = import ./machine/MECHREV-z2-air/machine.nix args;
-        wangzi-nuc = import ./machine/MINISFORUM/machine.nix args;
-        huawei-ecs = import ./machine/huawei-ecs.nix args;
-        aliyun-hk = import ./machine/aliyun-hk.nix args;
-        aliyun-ecs = import ./machine/aliyun-ecs.nix args;
-        lxd = import ./machine/lxd.nix args;
-        vm = import ./machine/vm.nix args;
-      };
-      nixOnDroidConfigurations = {
-        nova9 = import ./machine/nova9.nix args;
-        M6 = import ./machine/M6.nix args;
-      };
-      homeConfigurations =
-        with builtins;listToAttrs (map
-          (profile: {
-            name = substring 0 (stringLength profile - 4) profile;
-            value = home-manager.lib.homeManagerConfiguration (import (./home-manager/profiles + ("/" + profile)) args);
+      packages = {
+        nixosConfigurations = builtins.mapAttrs
+          (name: value: nixpkgs.lib.nixosSystem {
+            inherit pkgs system;
+            specialArgs = inputs // { inherit inputs system; };
+            modules = [
+              value
+              sops-nix.nixosModules.sops
+              home-manager.nixosModules.home-manager
+            ];
           })
-          (attrNames (readDir ./home-manager/profiles)));
-    } // flake-utils.lib.eachDefaultSystem (system:
-    let pkgs = nixpkgs.legacyPackages.${system};
-    in
-    {
+          (import-dir ./machine "machine.nix");
+        nixOnDroidConfigurations = builtins.mapAttrs (name: value: nix-on-droid.lib.nixOnDroidConfiguration (value (inputs // { inherit inputs system; }))) (import-dir ./nix-on-droid/profiles "profile.nix");
+        homeConfigurations = builtins.mapAttrs
+          (name: value: home-manager.lib.homeManagerConfiguration
+            (value (inputs // { inherit inputs system pkgs; })))
+          (import-dir ./home-manager/profiles "home.nix");
+      };
       devShell = pkgs.mkShell {
-        buildInputs = with pkgs; [ sops gnumake git rnix-lsp nixfmt nix-du sumneko-lua-language-server nixos-generators ];
+        buildInputs = with pkgs;
+          [ sops gnumake git rnix-lsp nixfmt nix-du sumneko-lua-language-server nixos-generators ];
       };
       apps.repl = flake-utils.lib.mkApp {
         drv = pkgs.writeShellScriptBin "repl" ''
           confnix=$(mktemp)
-          echo "(builtins.getFlake (toString $(git rev-parse --show-toplevel))).vars.${system}//(builtins.getFlake (toString $(git rev-parse --show-toplevel)))" >$confnix
+          echo "(builtins.getFlake (toString $(git rev-parse --show-toplevel))).vars.${system}
+            //(builtins.getFlake (toString $(git rev-parse --show-toplevel))).packages.${system}
+            //(builtins.getFlake (toString $(git rev-parse --show-toplevel)))" >$confnix
           trap "rm $confnix" EXIT
           nix repl $confnix
         '';
