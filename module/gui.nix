@@ -10,6 +10,7 @@
             # windowManager.xmonad.enable = true;
             windowManager.awesome.enable = true;
             desktopManager.gnome.enable = true;
+            windowManager.default = "awesome";
             displayManager.xpra = {
               enable = false;
               bindTcp = "0.0.0.0:10000";
@@ -27,17 +28,35 @@
       services = {
         xserver = {
           enable = true;
-          exportConfiguration = true;
+          # exportConfiguration = true;
           displayManager.xpra = {
             enable = true;
             bindTcp = "0.0.0.0:10000";
             pulseaudio = true;
           };
-          modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
-          extraConfig = ''
-          '';
+          # modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
+          # extraConfig = '' '';
         };
       };
+      systemd.services.display-manager.path = with pkgs;[ python39Full xdummy ];
+      services.xserver.displayManager.job.execCmd = lib.mkForce ''
+        export PULSE_COOKIE=/run/pulse/.config/pulse/cookie
+        exec ${pkgs.xpra}/bin/xpra start \
+          --daemon=off \
+          --log-dir=/var/log \
+          --log-file=xpra.log \
+          --opengl=on \
+          --clipboard=on \
+          --notifications=on \
+          --speaker=yes \
+          --mdns=no \
+          --pulseaudio=no \
+          --sound-source=pulse \
+          --socket-dirs=/run/xpra \
+          --bind-tcp=0.0.0.0:10000 \
+          --auth=pam \
+          --xvfb="xdummy ${builtins.concatStringsSep " " config.services.xserver.displayManager.xserverArgs}" \
+      '';
     })
     (lib.mkIf
       (config.cluster.nodeConfig.guiServer.enable

@@ -160,4 +160,8 @@
     taskwarrior-tui
     beekeeper-studio
   ];
+  home.file.".xinitrc-vgl".text = ''
+    ${pkgs.xorg.xrdb}/bin/xrdb ~/.Xresources
+    exec ${pkgs.slock}/bin/slock
+  '';
 }
