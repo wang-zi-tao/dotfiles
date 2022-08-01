@@ -19,13 +19,13 @@ naughty.connect_signal("request::icon", function(n, context, hints)
 end)
 
 naughty.config.defaults.ontop = true
-naughty.config.defaults.screen = awful.screen.focused()
-naughty.config.defaults.timeout = 3
+naughty.config.defaults.timeout = 5
 naughty.config.defaults.title = "Notification"
 naughty.config.defaults.position = "top_middle"
 
 naughty.config.presets.low.timeout = 3
-naughty.config.presets.critical.timeout = 10
+naughty.config.presets.normal.timeout = 5
+naughty.config.presets.critical.timeout = 1
 
 naughty.config.presets.normal = {
   font = beautiful.font_name .. "Regular 12",
@@ -43,7 +43,6 @@ naughty.config.presets.critical = {
   font = beautiful.font_name .. "Bold 12",
   fg = beautiful.xcolor1,
   bg = beautiful.bg_normal,
-  timeout = 0,
 }
 
 naughty.config.presets.ok = naughty.config.presets.normal
@@ -238,6 +237,14 @@ naughty.connect_signal("request::display", function(notify, _)
     bg = beautiful.transparent,
     widget_template = notify_widget(notify),
   })
+  gears.timer {
+    timeout   = notify.timeout,
+    call_now  = true,
+    autostart = true,
+    callback  = function()
+      notify:destory()
+    end
+  }
   local state = notify_center.react.state
   state.notifys[#(notify_center.react.state.notifys or {}) + 1] = notify
   notify_center.react:set_state_force(state)

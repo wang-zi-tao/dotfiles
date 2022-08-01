@@ -2,6 +2,7 @@
   xsession.windowManager.awesome = {
     enable = true;
   };
+  home.file.".config/awesome/resources/".source = "${pkgs.resources}/";
   home.file.".config/awesome/icons" = {
     source = ./icons;
     recursive = true;

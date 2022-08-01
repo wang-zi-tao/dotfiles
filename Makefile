@@ -12,7 +12,7 @@ wangzi-pc:
 	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.16.11 switch $(ARGS) || \
 	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.17.11 switch $(ARGS)
 wangzi-nuc:
-	nixos-rebuild --flake '.#wangzi-nuc' --target-host root@192.168.2.9 switch $(ARGS) || \
+	nixos-rebuild --flake '.#wangzi-nuc' --target-host root@192.168.32.1 switch $(ARGS) || \
 	nixos-rebuild --flake '.#wangzi-nuc' --target-host root@192.168.16.12 switch $(ARGS) || \
 	nixos-rebuild --flake '.#wangzi-nuc' --target-host root@192.168.17.12 switch $(ARGS)
 huawei-ecs:

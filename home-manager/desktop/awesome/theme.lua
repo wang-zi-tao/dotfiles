@@ -92,8 +92,8 @@ theme.taglist_fg_urgent = theme.blue
 theme.taglist_bg_urgent = theme.background1
 theme.taglist_bg_empty = theme.background1
 
-theme.wallpaper = ".xmonad/wallpapers/大鱼海棠8.jpg"
-theme.pfp = gears.surface.load_uncached(".config/eww/images/profile.jpg")
+theme.wallpaper = ".config/awesome/resources/share/backgrounds/大鱼海棠8.jpg"
+-- theme.pfp = gears.surface.load_uncached(".config/eww/images/profile.jpg")
 
 theme.systray_icon_spacing = 4
 theme.bg_systray = theme.background2

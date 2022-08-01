@@ -169,7 +169,7 @@ with lib; with builtins;{
           /* localIp = "192.168.32.1"; */
           wayland.enable = true;
           guiServer.enable = true;
-          guiClient.enable = true;
+          # guiClient.enable = true;
           develop.enable = true;
           container.enable = true;
           virtualisation.enable = true;
