@@ -71,7 +71,7 @@
       };
     in
     {
-      packages = {
+      packages = pkgs // {
         nixosConfigurations = builtins.mapAttrs
           (name: value: nixpkgs.lib.nixosSystem {
             inherit pkgs system;

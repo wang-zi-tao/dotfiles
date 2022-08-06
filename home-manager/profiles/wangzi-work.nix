@@ -8,7 +8,7 @@ let lib = pkgs.lib; in
   configuration = {
     imports = [
       ../application/application.nix
-      ../desktop/cpp.nix
+      ../develop/cpp.nix
       ../terminal/terminal.nix
       ../develop/develop.nix
     ];
