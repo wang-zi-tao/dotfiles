@@ -13,7 +13,7 @@ return react({
       return util.block1({
         { widget = wibox.widget.systray },
         util.button({
-          text = " ",
+          text = "",
           widget = wibox.widget.textbox,
         }, function()
           self:set_state({ expand = false })
@@ -24,7 +24,7 @@ return react({
     else
       return {
         util.button({
-          text = " ",
+          text = "",
           widget = wibox.widget.textbox,
         }, function()
           self:set_state({ expand = true })

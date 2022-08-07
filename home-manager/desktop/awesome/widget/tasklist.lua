@@ -44,7 +44,9 @@ bling.widget.task_preview.enable {
       resize = true,
       valign = 'center',
       halign = 'center',
-      widget = wibox.widget.imagebox,
+      forced_width = 32,
+      forced_height = 32,
+      awful.widget.clienticon,
     },
     layout = wibox.layout.fixed.vertical
   }

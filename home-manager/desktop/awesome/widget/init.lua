@@ -1,6 +1,5 @@
 require("widget.panel")
 require("widget.window_switcher")
--- require("widget.notifycations")
 require("widget.scratchpad")
 require("widget.info_center")
 require("widget.control_center")

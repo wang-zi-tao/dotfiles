@@ -36,6 +36,7 @@ return function(s)
       shape = util.rounded_shape(2),
     },
     layout = {
+      spacing = 1,
       layout = wibox.layout.flex.horizontal,
     },
     widget_template = {

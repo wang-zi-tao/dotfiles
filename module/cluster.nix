@@ -142,7 +142,12 @@ with lib; with builtins;{
           wangzi-pc.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
           wangzi-pc.to.wangzi-nuc = {
             mountDirs = { "wangzi-nuc" = { }; };
-            syncDirs = { "wangzi" = { }; };
+            syncDirs = {
+              "wangzi" = {
+                ipA = "wangzi-pc.wg1";
+                ipB = "wangzi-nuc.wg1";
+              };
+            };
           };
           wangzi-nuc.config = { client.size = 64 * 1024; };
           wangzi-nuc.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };

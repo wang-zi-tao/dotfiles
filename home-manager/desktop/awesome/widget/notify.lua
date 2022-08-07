@@ -63,14 +63,25 @@ local function notify_widget(notify)
             height = dpi(20),
             widget = wibox.container.constraint,
           },
-          right = dpi(10),
-          widget = wibox.container.margin,
+          {
+            markup = notify.app_name,
+            align = "left",
+            font = beautiful.font_name .. "Bold 12",
+            widget = wibox.widget.textbox,
+          },
+          layout = wibox.layout.fixed.horizontal,
         },
         {
-          markup = notify.app_name,
-          align = "left",
-          font = beautiful.font_name .. "Bold 12",
-          widget = wibox.widget.textbox,
+          step_function = wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth,
+          speed = 50,
+          {
+            markup = notify.title,
+            font = beautiful.font_name .. "Bold 11",
+            align = "left",
+            widget = wibox.widget.textbox,
+          },
+          forced_width = dpi(400),
+          widget = wibox.container.scroll.horizontal,
         },
         {
           markup = notify.time,
@@ -83,64 +94,30 @@ local function notify_widget(notify)
       {
         {
           {
+
             {
-              -- util.vertical_pad(10),
+              step_function = wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth,
+              speed = 50,
               {
-                {
-                  step_function = wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth,
-                  speed = 50,
-                  {
-                    markup = notify.title,
-                    font = beautiful.font_name .. "Bold 11",
-                    align = "left",
-                    widget = wibox.widget.textbox,
-                  },
-                  forced_width = dpi(400),
-                  widget = wibox.container.scroll.horizontal,
-                },
-                {
-                  step_function = wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth,
-                  speed = 50,
-                  {
-                    markup = notify.message,
-                    align = "left",
-                    font = beautiful.font_name .. "Regular 11",
-                    widget = wibox.widget.textbox,
-                  },
-                  forced_width = dpi(210),
-                  widget = wibox.container.scroll.horizontal,
-                },
-                spacing = 0,
-                layout = wibox.layout.flex.vertical,
+                markup = notify.message,
+                align = "left",
+                font = beautiful.font_name .. "Regular 11",
+                widget = wibox.widget.textbox,
               },
-              -- util.vertical_pad(10),
-              layout = wibox.layout.align.vertical,
+              widget = wibox.container.scroll.horizontal,
             },
             left = dpi(20),
             right = dpi(20),
             widget = wibox.container.margin,
           },
-          {
-            {
-              nil,
-              {
-                {
-                  image = notify.icon,
-                  resize = true,
-                  -- clip_shape = util.rrect(beautiful.border_radius),
-                  widget = wibox.widget.imagebox,
-                },
-                strategy = "max",
-                height = dpi(40),
-                widget = wibox.container.constraint,
-              },
-              nil,
-              expand = "none",
-              layout = wibox.layout.align.vertical,
-            },
-            margins = dpi(10),
-            widget = wibox.container.margin,
-          },
+          notify.icon and {
+            image = notify.icon,
+            resize = true,
+            forced_height = dpi(64),
+            forced_width = dpi(64),
+            -- clip_shape = util.rrect(beautiful.border_radius),
+            widget = wibox.widget.imagebox,
+          } or nil,
           layout = wibox.layout.fixed.horizontal,
         },
         {
@@ -185,6 +162,7 @@ local function notify_widget(notify)
       layout = wibox.layout.fixed.vertical,
     },
     margins = 8,
+    forced_width = 400,
     widget = wibox.container.margin,
   }, beautiful.background, dpi(12))
 end
@@ -197,8 +175,8 @@ local notify_center_react = require("react")({
     if #self.state.notifys ~= 0 then
       return util.big_block1({
         layout = wibox.layout.fixed.vertical,
-        -- forced_width = dpi(400),
-        {
+        spacing = 16,
+        util.big_block {
           {
             util.big_button(util.symbol("﫨"), function()
               self:set_state({ notifys = {} })
@@ -207,20 +185,27 @@ local notify_center_react = require("react")({
               bg_default = beautiful.background,
               bg = beautiful.background,
             }),
-            layout = wibox.layout.fixed.horizontal,
+            layout = wibox.layout.flex.horizontal,
           },
           margins = dpi(8),
           widget = wibox.container.margin,
         },
         {
-          util.map(self.state.notifys, function(notify)
-            return notify_widget(notify)
-          end, {
-            spacing = 8,
-            widget = wibox.layout.fixed.vertical,
+          step_function = wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth,
+          speed = 50,
+          util.big_block1({
+            util.map(self.state.notifys, function(notify)
+              return notify_widget(notify)
+            end, {
+              spacing = 8,
+              widget = wibox.layout.fixed.vertical,
+            }),
+            forced_height = dpi(90 * #self.state.notifys),
+            widget = wibox.container.margin,
           }),
-          margins = { bottom = dpi(20), right = dpi(20) },
-          widget = wibox.container.margin,
+          max_size = dpi(300),
+          forced_width = dpi(400),
+          widget = wibox.container.scroll.vertical,
         },
       })
     else
@@ -231,20 +216,12 @@ local notify_center_react = require("react")({
 local notify_center = notify_center_react()
 naughty.connect_signal("request::display", function(notify, _)
   notify.time = os.date("%H:%M")
-  naughty.layout.box({
+  local box = naughty.layout.box({
     notification = notify,
     type = "notification",
     bg = beautiful.transparent,
     widget_template = notify_widget(notify),
   })
-  gears.timer {
-    timeout   = notify.timeout,
-    call_now  = true,
-    autostart = true,
-    callback  = function()
-      notify:destory()
-    end
-  }
   local state = notify_center.react.state
   state.notifys[#(notify_center.react.state.notifys or {}) + 1] = notify
   notify_center.react:set_state_force(state)

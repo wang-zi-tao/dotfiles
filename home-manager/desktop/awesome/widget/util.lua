@@ -111,8 +111,10 @@ function M.big_button(inner, callback, arg)
   widgets:connect_signal("mouse::leave", function(widget)
     widget.bg = arg.bg_default or "#00000000"
   end)
-  widgets:connect_signal("mouse::press", callback)
-  widgets:buttons(gears.table.join(awful.button({}, 1, nil, callback)))
+  if callback then
+    widgets:connect_signal("mouse::press", callback)
+    widgets:buttons(gears.table.join(awful.button({}, 1, nil, callback)))
+  end
   return widgets
 end
 
@@ -135,8 +137,10 @@ function M.button(inner, callback, bg)
   widgets:connect_signal("mouse::leave", function(widget)
     widget.bg = bg
   end)
-  widgets:connect_signal("mouse::press", callback)
-  widgets:buttons(gears.table.join(awful.button({}, 1, nil, callback)))
+  if callback then
+    widgets:connect_signal("mouse::press", callback)
+    widgets:buttons(gears.table.join(awful.button({}, 1, nil, callback)))
+  end
   return widgets
 end
 

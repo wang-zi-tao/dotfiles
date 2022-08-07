@@ -107,21 +107,14 @@ awful.keyboard.append_global_keybindings({
     awful.client.focus.byidx(-1)
   end, { description = "focus previous by index", group = "client" }),
   awful.key({ mod }, "Tab", function()
-    -- awful.client.focus.history.previous()
-    local c = awful.client.focus.history.list[2]
-    client.focus = c
-    local t = client.focus and client.focus.first_tag or nil
-    if t then
-      t:view_only()
-    end
-    c:raise()
+    awesome.emit_signal("signal::window_switcher::open")
   end, { description = "go back", group = "client" }),
   awful.key({ shift, mod }, "Tab", function()
     awful.tag.history.restore(awful.screen.focused(), 1)
   end, { description = "go back", group = "client" }),
   awful.key({ alt }, "Tab", function()
-    awesome.emit_signal("bling::window_switcher::turn_on")
-  end, { description = "Window Switcher", group = "bling" }),
+    awesome.emit_signal("signal::window_switcher::open")
+  end, { description = "Window Switcher", group = "client" }),
   awful.key({ mod }, "f", function()
     local c = client.focus
     if c then

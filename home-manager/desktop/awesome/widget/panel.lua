@@ -38,7 +38,7 @@ awful.screen.connect_for_each_screen(function(s)
         end),
         {
           mytaglist,
-          util.block1(mylayoutbox),
+          util.button(mylayoutbox),
           mytasklist,
           spacing = 8,
           layout = wibox.layout.fixed.horizontal,
@@ -48,7 +48,7 @@ awful.screen.connect_for_each_screen(function(s)
       }),
       util.block(util.button({
         font = beautiful.font_name .. "Bold 12",
-        format = "%B%e日 %H:%M:%S",
+        format = "%A %B%e日 %H:%M:%S",
         align = "center",
         valign = "center",
         refresh = 1,

@@ -213,6 +213,8 @@ lock_screen_box:setup({
           image = beautiful.wallpaper,
           -- forced_height = screen.primary.geometry.height,
           -- forced_width = screen.primary.geometry.width,
+          horizontal_fit_policy = "full",
+          vertical_fit_policy = "full",
           widget = wibox.widget.imagebox,
           shape = gears.shape.rounded_bar,
         },
