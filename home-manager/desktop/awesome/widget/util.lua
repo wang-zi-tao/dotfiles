@@ -57,9 +57,9 @@ end
 function M.block(inner)
   return {
     {
-      { inner, left = 8, right = 8, widget = wibox.container.margin },
+      { inner, left = 16, right = 16, widget = wibox.container.margin },
       bg = beautiful.background,
-      shape = M.rounded_shape(8),
+      shape = M.rounded_shape(16),
       widget = wibox.container.background,
     },
     top = 7,
@@ -123,11 +123,11 @@ function M.button(inner, callback, bg)
   local widgets = wibox.widget({
     {
       inner,
-      left = 4,
-      right = 4,
+      left = 8,
+      right = 8,
       widget = wibox.container.margin,
     },
-    shape = M.rounded_shape(3),
+    shape = M.rounded_shape(16),
     bg = bg,
     widget = wibox.container.background,
   })

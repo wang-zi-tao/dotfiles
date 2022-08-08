@@ -94,7 +94,6 @@ local function notify_widget(notify)
       {
         {
           {
-
             {
               step_function = wibox.container.scroll.step_functions.waiting_nonlinear_back_and_forth,
               speed = 50,
@@ -110,6 +109,7 @@ local function notify_widget(notify)
             right = dpi(20),
             widget = wibox.container.margin,
           },
+          nil,
           notify.icon and {
             image = notify.icon,
             resize = true,
@@ -118,7 +118,7 @@ local function notify_widget(notify)
             -- clip_shape = util.rrect(beautiful.border_radius),
             widget = wibox.widget.imagebox,
           } or nil,
-          layout = wibox.layout.fixed.horizontal,
+          layout = wibox.layout.align.horizontal,
         },
         {
           {

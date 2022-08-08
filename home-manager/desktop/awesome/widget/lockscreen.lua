@@ -204,28 +204,17 @@ end
 awesome.connect_signal("signal::lock", lock_screen_show)
 lock_screen_box:setup({
   {
-    nil,
-    {
-      nil,
-      {
-        {
-          resize = false,
-          image = beautiful.wallpaper,
-          -- forced_height = screen.primary.geometry.height,
-          -- forced_width = screen.primary.geometry.width,
-          horizontal_fit_policy = "full",
-          vertical_fit_policy = "full",
-          widget = wibox.widget.imagebox,
-          shape = gears.shape.rounded_bar,
-        },
-        spacing = dpi(60),
-        layout = wibox.layout.fixed.vertical,
-      },
-      expand = "outside",
-      layout = wibox.layout.align.vertical,
-    },
-    expand = "outside",
-    layout = wibox.layout.align.horizontal,
+    resize = true,
+    image = beautiful.wallpaper,
+    valign = "center",
+    halign = "center",
+    forced_width = 2586,
+    forced_height = 1080,
+    upscale = true,
+    downscale = true,
+    scaling_quality = "best",
+    widget = wibox.widget.imagebox,
+    shape = gears.shape.rounded_bar,
   },
   {
     nil,

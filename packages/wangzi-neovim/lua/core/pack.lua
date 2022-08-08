@@ -500,6 +500,7 @@ packer.startup(function()
     n.navigator,
     as = "navigator",
     requires = "core",
+    module = "Navigator",
     config = function()
       require("core.plugins.others").navigator()
     end,

@@ -7,11 +7,13 @@ local dpi = xresources.apply_dpi
 local util = require("widget.util")
 local react = require("react")
 return react({
-  default_states = { expand = false },
+  default_states = { expand = true },
   render = function(self)
     if self.state.expand then
       return util.block1({
-        { widget = wibox.widget.systray },
+        {
+          widget = wibox.widget.systray
+        },
         util.button({
           text = "",
           widget = wibox.widget.textbox,

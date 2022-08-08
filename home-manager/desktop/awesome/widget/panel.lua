@@ -48,7 +48,7 @@ awful.screen.connect_for_each_screen(function(s)
       }),
       util.block(util.button({
         font = beautiful.font_name .. "Bold 12",
-        format = "%A %B%e日 %H:%M:%S",
+        format = " %B%e日  %H:%M:%S  %A ",
         align = "center",
         valign = "center",
         refresh = 1,

@@ -1,6 +1,29 @@
 ---
 name: workspace-7
-project_root: "/home/wangzi"
+project_root: "workspace/nixos"
 windows:
-- zsh:
-    layout: 61b3,105x55,0,0,33
+- nixos:
+    layout: af43,191x50,0,0,6
+    root: workspace/nixos
+    panes:
+    - vim
+- wangzi-nuc:
+    layout: 57d6,191x50,0,0,36
+    panes:
+    - '[[ $HOST == "wangzi-nuc" ]] || retry ssh wangzi@wangzi-nuc.wg1 -p 64022 -X -Y -t "tmux attach-session"'
+- wangzi-pc:
+    layout: 57d6,191x50,0,0,36
+    panes:
+    - '[[ $HOST == "wangzi-pc" ]] || retry ssh wangzi@wangzi-pc.wg1 -p 64022 -X -Y -t "tmux attach-session"'
+- aliyun-ecs:
+    layout: 57d6,191x50,0,0,36
+    panes:
+    - '[[ $HOST == "aliyun-ecs" ]] || retry ssh root@aliyun-ecs -p 64022 -X -Y -t "tmux attach-session"'
+- aliyun-hk:
+    layout: 57d6,191x50,0,0,36
+    panes:
+    - '[[ $HOST == "aliyun-hk" ]] || retry ssh root@aliyun-hk -p 64022 -X -Y -t "tmux attach-session"'
+- huawei-ecs:
+    layout: 57d6,191x50,0,0,36
+    panes:
+    - '[[ $HOST == "huawei-ecs" ]] || retry ssh root@huawei-ecs -p 64022 -X -Y -t "tmux attach-session"'

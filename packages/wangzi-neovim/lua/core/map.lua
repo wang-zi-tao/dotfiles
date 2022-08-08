@@ -79,6 +79,12 @@ wk.register({
       end,
       "GitCommits",
     },
+    B = {
+      function()
+        telescope().git_branches()
+      end,
+      "GitBranches",
+    },
     m = {
       function()
         telescope().marks()
@@ -451,3 +457,8 @@ end)
 map("n", "<S-Tab>", function()
   require("bufferline").cycle(-1)
 end)
+map("n", "<C-h>", function() require('Navigator').left() end)
+map("n", "<C-k>", function() require('Navigator').up() end)
+map("n", "<C-l>", function() require('Navigator').right() end)
+map("n", "<C-j>", function() require('Navigator').down() end)
+map("n", "<A-p>", function() require('Navigator').previous() end)

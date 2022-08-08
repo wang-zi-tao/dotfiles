@@ -9,7 +9,7 @@ local window_switcher_box
 local window_switcher_minimized_clients = {}
 local window_switcher_first_client
 local window_switcher_grabber
-local history_index = 2
+local history_index = 3
 local function get_num_clients()
   local minimized_clients_in_tag = 0
   local matcher = function(c)
@@ -82,9 +82,8 @@ local keyboard_keys = {
         t:view_only()
       end
       c:raise()
-      history_index = 1
     end
-    if history_index == #awful.client.focus.history.list then
+    if history_index >= #awful.client.focus.history.list then
       history_index = 1
     else
       history_index = history_index + 1
@@ -98,9 +97,23 @@ local keyboard_keys = {
     awful.client.focus.byidx(-1)
   end,
 }
+for i = 1, 9 do
+  keyboard_keys[tostring(i)] = function()
+    local c = awful.client.focus.history.list[i]
+    if c then
+      client.focus = c
+      local t = client.focus and client.focus.first_tag or nil
+      if t then
+        t:view_only()
+      end
+      c:raise()
+      hide()
+    end
+  end
+end
 
 local function show()
-  history_index = 2
+  history_index = 3
   window_switcher_first_client = client.focus
   window_switcher_box.visible = true;
   awful.client.focus.history.disable_tracking()
@@ -112,7 +125,6 @@ local function show()
       t:view_only()
     end
     c:raise()
-    history_index = 1
   end
   window_switcher_grabber = awful.keygrabber.run(function(_, key, event)
     if event == "release" then
@@ -148,9 +160,9 @@ default_states = { enabled = false }
   if self.state.enabled then
     return {
       awful.widget.tasklist({
-        -- source = function()
-        --   return capi.client.get()
-        -- end,
+        source = function()
+          return awful.client.focus.history.list
+        end,
         screen = awful.screen.focused(),
         filter = awful.widget.tasklist.filter.alltags,
         layout = {
@@ -251,6 +263,13 @@ default_states = { enabled = false }
                   switch_to_tag = true,
                 })
               end
+            end,
+          }),
+          awful.button({
+            modifiers = { "Any" },
+            button = 2,
+            on_press = function(c)
+              c:kill()
             end,
           }),
           awful.button({
