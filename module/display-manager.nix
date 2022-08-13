@@ -6,12 +6,21 @@ let nodeConfig = config.cluster.nodeConfig; in
       enable = true;
       greeter.enable = true;
       greeters.gtk.theme.package = pkgs.orchis-theme;
-      greeters.gtk.theme.name = "Orchis-light";
+      greeters.gtk.theme.name = "Orchis";
       greeters.gtk.iconTheme.package = pkgs.tela-icon-theme;
-      greeters.gtk.iconTheme.name = "Tela";
+      greeters.gtk.iconTheme.name = "Tela-bule";
       greeters.gtk.cursorTheme.package = pkgs.layan-cursor-theme;
       greeters.gtk.cursorTheme.name = "Layan-white Cursors";
-      background = "${pkgs.resources}/share/backgrounds/大鱼海棠8.jpg";
+      greeters.gtk.indicators = [
+        "~spacer"
+        "~clock"
+        "~spacer"
+        "~session"
+        "~a11y"
+        "~power"
+      ];
+      greeters.gtk.clock-format = "%H:%M:%S";
+      background = "${pkgs.resources}/share/backgrounds/locked_wallpaper.png";
     };
     services.xserver.displayManager.gdm = {
       enable = false;
