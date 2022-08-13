@@ -144,8 +144,8 @@ with lib; with builtins;{
             mountDirs = { "wangzi-nuc" = { }; };
             syncDirs = {
               "wangzi" = {
-                ipA = "wangzi-pc.wg1";
-                ipB = "wangzi-nuc.wg1";
+                ipA = "192.168.32.128";
+                ipB = "192.168.32.1";
               };
             };
           };
@@ -174,7 +174,7 @@ with lib; with builtins;{
           /* localIp = "192.168.32.1"; */
           wayland.enable = true;
           guiServer.enable = true;
-          # guiClient.enable = true;
+          guiClient.enable = true;
           develop.enable = true;
           container.enable = true;
           virtualisation.enable = true;

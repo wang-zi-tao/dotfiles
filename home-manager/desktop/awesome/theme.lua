@@ -93,6 +93,7 @@ theme.taglist_bg_urgent = theme.background1
 theme.taglist_bg_empty = theme.background1
 
 theme.wallpaper = ".config/awesome/resources/share/backgrounds/大鱼海棠8.jpg"
+theme.lockscreen_wallpaper = ".config/awesome/resources/share/backgrounds/locked_wallpaper.png"
 -- theme.pfp = gears.surface.load_uncached(".config/eww/images/profile.jpg")
 
 theme.systray_icon_spacing = 4

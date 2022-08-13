@@ -10,7 +10,7 @@
             # windowManager.xmonad.enable = true;
             windowManager.awesome.enable = true;
             desktopManager.gnome.enable = true;
-            windowManager.default = "awesome";
+            displayManager.defaultSession = "none+awesome";
             displayManager.xpra = {
               enable = false;
               bindTcp = "0.0.0.0:10000";

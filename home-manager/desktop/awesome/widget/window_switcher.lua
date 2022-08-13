@@ -160,12 +160,12 @@ default_states = { enabled = false }
   if self.state.enabled then
     return {
       awful.widget.tasklist({
-        source = function()
+        source          = function()
           return awful.client.focus.history.list
         end,
-        screen = awful.screen.focused(),
-        filter = awful.widget.tasklist.filter.alltags,
-        layout = {
+        screen          = awful.screen.focused(),
+        filter          = awful.widget.tasklist.filter.alltags,
+        layout          = {
           forced_num_cols = 4,
           -- min_cols_size = 400,
           -- min_rows_size = 300,
@@ -177,6 +177,9 @@ default_states = { enabled = false }
           horizontal_spacing = 8,
           vertical_spacing = 8,
           layout = wibox.layout.grid.horizontal,
+        },
+        style           = {
+          bg_normal = beautiful.background,
         },
         widget_template = {
           widget = wibox.container.background,
@@ -207,50 +210,58 @@ default_states = { enabled = false }
                 {
                   {
                     {
-                      awful.widget.clienticon,
-                      forced_width = 32,
-                      forced_height = 32,
-                      valign = "center",
-                      widget = wibox.container.place,
+                      {
+                        awful.widget.clienticon,
+                        forced_width = 32,
+                        forced_height = 32,
+                        valign = "center",
+                        widget = wibox.container.place,
+                      },
+                      {
+                        valign = "center",
+                        id = "text_role",
+                        ellipsize = "end",
+                        font = beautiful.font_name .. "Bold 10",
+                        forced_height = 32,
+                        forced_width = 380,
+                        widget = wibox.widget.textbox,
+                      },
+                      spacing = 8,
+                      layout = wibox.layout.fixed.horizontal,
                     },
                     {
-                      valign = "center",
-                      id = "text_role",
-                      ellipsize = "end",
-                      font = beautiful.font_name .. "Bold 10",
-                      forced_height = 32,
-                      forced_width = 380,
-                      widget = wibox.widget.textbox,
+                      {
+                        halign = "center",
+                        valign = "center",
+                        resize = true,
+                        id = "thumbnail",
+                        clip_shape = util.rounded_shape(16),
+                        widget = wibox.widget.imagebox,
+                      },
+                      forced_width = 443,
+                      forced_height = 239,
+                      layout = wibox.layout.fixed.vertical,
                     },
-                    spacing = 8,
-                    layout = wibox.layout.fixed.horizontal,
-                  },
-                  {
-                    {
-                      halign = "center",
-                      valign = "center",
-                      resize = true,
-                      id = "thumbnail",
-                      clip_shape = util.rounded_shape(16),
-                      widget = wibox.widget.imagebox,
-                    },
-                    forced_width = 443,
-                    forced_height = 239,
+                    spacing = 4,
                     layout = wibox.layout.fixed.vertical,
                   },
-                  layout = wibox.layout.fixed.vertical,
+                  margins = 4,
+                  widget = wibox.container.margin,
                 },
-                margins = 8,
-                widget = wibox.container.margin,
-              }, widget = wibox.container.margin
+                bg = beautiful.background,
+                shape = util.rounded_shape(16),
+                widget = wibox.container.background,
+              },
+              margins = 4,
+              widget = wibox.container.margin,
             },
             bg = beautiful.background,
-            shape = util.rounded_shape(16),
+            shape = util.rounded_shape(20),
             id = "background_role",
             widget = wibox.container.background,
           },
         },
-        buttons = gears.table.join(
+        buttons         = gears.table.join(
           awful.button({
             modifiers = { "Any" },
             button = 1,

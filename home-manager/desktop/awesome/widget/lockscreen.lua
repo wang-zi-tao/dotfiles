@@ -49,7 +49,7 @@ awful.screen.connect_for_each_screen(function(s)
   if s == screen.primary then
     s.mylockscreen = lock_screen_box
   else
-    s.mylockscreen = screen_mask(s, beautiful.wallpaper)
+    s.mylockscreen = screen_mask(s, beautiful.lockscreen_wallpaper)
   end
 end)
 
@@ -63,33 +63,28 @@ end
 ----------------
 
 local time = wibox.widget({
-  forced_num_cols = 11,
-  spacing = dpi(6),
-  layout = wibox.layout.grid,
+  font = beautiful.font_name .. "Normal 128",
+  format = "%H : %M : %S",
+  align = "center",
+  valign = "center",
+  refresh = 1,
+  widget = wibox.widget.textclock,
 })
 
--- Lock animation
-local lock_animation_widget_rotate = wibox.container.rotate()
 
-local arc = function()
-  return function(cr, width, height)
-    gears.shape.arc(cr, width, height, dpi(5), 0, math.pi / 2, true, true)
-  end
-end
 
 local lock_animation_arc = wibox.widget({
-  shape = arc(),
-  bg = beautiful.background,
   forced_width = dpi(256),
   forced_height = dpi(256),
-  widget = wibox.container.background,
+  min_value = 0,
+  max_value = 1,
+  thickness = 16,
+  rounded_edge = true,
+  widget = wibox.container.arcchart,
 })
 
 local lock_animation = {
-  {
-    lock_animation_arc,
-    widget = lock_animation_widget_rotate,
-  },
+  lock_animation_arc,
   lock_animation_icon,
   layout = wibox.layout.stack,
 }
@@ -99,15 +94,13 @@ local characters_entered = 0
 local function reset()
   characters_entered = 0
   lock_animation_icon.markup = lock_screen_symbol
-  lock_animation_widget_rotate.direction = "north"
-  lock_animation_arc.bg = "#00000000"
+  lock_animation_arc.colors = { "#00000000" }
 end
 
 local function fail()
   characters_entered = 0
   lock_animation_icon.markup = lock_screen_fail_symbol
-  lock_animation_widget_rotate.direction = "north"
-  lock_animation_arc.bg = "#00000000"
+  lock_animation_arc.colors = { "#00000000" }
 end
 
 local animation_colors = {
@@ -120,14 +113,12 @@ local animation_colors = {
   beautiful.xcolor3,
 }
 
-local animation_directions = { "north", "west", "south", "east" }
 
 -- Function that "animates" every key press
 local function key_animation(char_inserted)
   local color
-  local direction = animation_directions[(characters_entered % 4) + 1]
   if char_inserted then
-    color = animation_colors[(characters_entered % 6) + 1]
+    color = animation_colors[math.random(7)]
     lock_animation_icon.markup = lock_screen_symbol
   else
     if characters_entered == 0 then
@@ -136,9 +127,9 @@ local function key_animation(char_inserted)
       color = beautiful.xcolor7 .. "55"
     end
   end
-
-  lock_animation_arc.bg = color
-  lock_animation_widget_rotate.direction = direction
+  lock_animation_arc.start_angle = 2 * math.pi * math.random()
+  lock_animation_arc.value = math.random()
+  lock_animation_arc.colors = { color }
 end
 
 -- Get input from user
@@ -205,7 +196,7 @@ awesome.connect_signal("signal::lock", lock_screen_show)
 lock_screen_box:setup({
   {
     resize = true,
-    image = beautiful.wallpaper,
+    image = beautiful.lockscreen_wallpaper,
     valign = "center",
     halign = "center",
     forced_width = 2586,
