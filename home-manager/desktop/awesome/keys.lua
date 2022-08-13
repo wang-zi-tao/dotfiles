@@ -152,15 +152,49 @@ awful.keyboard.append_global_keybindings({
   end, { description = "swap with previous client by index", group = "client" }),
   awful.key({ mod }, "u", awful.client.urgent.jumpto, { description = "jump to urgent client", group = "client" }),
   awful.key({ mod }, "PageDown", function()
-    awful.tag.viewnext(screen)
+    awful.tag.viewnext()
+  end, { description = "next tagg", group = "layout" }),
+  awful.key({ mod }, "Right", function()
+    local t = awful.screen.focused().selected_tag
+    local start_index = t.index
+    local index = start_index
+    local tags = awful.screen.focused().tags
+    local tag
+    repeat
+      index = index % #tags + 1
+      tag = tags[index]
+    until index == start_index or tag and 0 ~= #tag:clients()
+    if tag then
+      tag:view_only()
+    end
   end, { description = "next tagg", group = "layout" }),
   awful.key({ mod }, "PageUp", function()
-    awful.tag.viewprev(screen)
+    awful.tag.viewprev()
   end, { description = "previous tag", group = "layout" }),
-  awful.key({ mod }, "l", function()
+  awful.key({ mod }, "Left", function()
+    local t = awful.screen.focused().selected_tag
+    local start_index = t.index
+    local index = start_index
+    local tags = awful.screen.focused().tags
+    local tag
+    repeat
+      index = (index + #tags - 2) % #tags + 1
+      tag = tags[index]
+    until index == start_index or tag and 0 ~= #tag:clients()
+    if tag then
+      tag:view_only()
+    end
+  end, { description = "previous tag", group = "layout" }),
+  awful.key({ mod, alt }, "l", function()
     awful.tag.incmwfact(0.05)
   end, { description = "increase master width factor", group = "layout" }),
-  awful.key({ mod }, "h", function()
+  awful.key({ mod }, "Up", function()
+    awful.tag.incmwfact(0.05)
+  end, { description = "increase master width factor", group = "layout" }),
+  awful.key({ mod, alt }, "h", function()
+    awful.tag.incmwfact(-0.05)
+  end, { description = "decrease master width factor", group = "layout" }),
+  awful.key({ mod }, "Down", function()
     awful.tag.incmwfact(-0.05)
   end, { description = "decrease master width factor", group = "layout" }),
   awful.key({ mod, "Shift" }, "h", function()

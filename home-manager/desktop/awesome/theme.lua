@@ -14,6 +14,7 @@ end
 theme.layoutlist_bg_selected = theme.lighter_bg
 
 theme.font_name = "Iosevka "
+theme.font_name2 = "Iosevka "
 theme.icon_font_name = "Iosevka "
 theme.font = theme.font_name .. "Medium 15"
 theme.title_font = theme.font_name .. "Medium 15"
