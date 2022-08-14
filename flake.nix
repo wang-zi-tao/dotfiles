@@ -12,8 +12,8 @@
       inputs.home-manager.follows = "home-manager";
     };
     nur.url = "github:nix-community/NUR";
-    nixpkgs-21.url = "github:nixos/nixpkgs/release-21.11";
-    nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
+    nixpkgs-21.url = "github:nixos/nixpkgs/nixos-21.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-wayland.url = "github:nix-community/nixpkgs-wayland";
     nixpkgs-wayland.inputs.master.follows = "master";

@@ -40,6 +40,9 @@ with inputs; {
     randomizedDelaySec = "30min";
     dates = "12:00";
   };
+  environment.etc.nixos = {
+    source = ../.;
+  };
   system.stateVersion = "22.05";
   programs.nix-ld.enable = true;
 }
