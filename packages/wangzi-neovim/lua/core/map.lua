@@ -241,6 +241,12 @@ wk.register({
       end,
       "Run to Corsor",
     },
+    L = {
+      function()
+        require("dap").run_last()
+      end,
+      "Launch last",
+    },
     r = {
       function()
         require("dap").run()

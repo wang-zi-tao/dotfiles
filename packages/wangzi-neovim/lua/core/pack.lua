@@ -553,6 +553,9 @@ packer.startup(function()
     n.dap,
     as = "dap",
     module = "dap",
+    config = function()
+      require("core.plugins.dap")
+    end,
   })
   use({
     n.dap_ui,

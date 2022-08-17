@@ -7,6 +7,7 @@
     clang-tools
     # clang
     libcxx
+    libcxx.dev
     # clang-analyzer
     # ccls
     perf-tools
@@ -20,13 +21,19 @@
     # shfmt
     # shellcheck
 
+    # wineWowPackages.stable
+    # winetricks
+    wine
+    qt5.full
+    qtcreator
+
     (pkgs.buildEnv {
       name = "cpp_compiler";
       paths = with pkgs;[
-        clang_12
-        lldb_12
+        lldb
+        gdb
         gcc
-        # gdb
+        clang_12
         bintools-unwrapped
       ];
       ignoreCollisions = true;
