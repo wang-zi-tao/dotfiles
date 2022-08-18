@@ -1,6 +1,6 @@
 { pkgs, ... }: {
   programs.vscode = {
-    enable = true;
+    enable = false;
     /* package = pkgs.vscodium; */
     extensions = with pkgs.vscode-extensions; [
       # markdowm
@@ -30,9 +30,8 @@
       tamasfe.even-better-toml
       mechatroner.rainbow-csv
       # C/C++
-      vadimcn.vscode-lldb
-      xaver.clang-format
-      # ms-vscode.cpptools
+      # vadimcn.vscode-lldb
+      # xaver.clang-format
       # misc
       gruntfuggly.todo-tree
       codezombiech.gitignore

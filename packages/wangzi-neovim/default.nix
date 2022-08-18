@@ -128,7 +128,6 @@ stdenvNoCC.mkDerivation {
       sha256 = "sha256-Hs+zMpZLnBq3y1Bt4PA0WDcExpx7wT31e18Sma/Xp/Q=";
     }}",
           vscode_lldb = ${if enable-debuger then ''"${pkgs.vscode-extensions.vadimcn.vscode-lldb}"'' else "false" },
-          cpptools = ${if enable-debuger then ''"${pkgs.vscode-extensions.ms-vscode.cpptools}"'' else "false" },
           fterm = "${FTerm-nvim}",
           mini = "${mini-nvim}",
           session_manager = "${pkgs.fetchgit {

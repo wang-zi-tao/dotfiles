@@ -56,4 +56,5 @@
       }
     ];
   };
+  networking.firewall.trustedInterfaces = [ "eno1" ];
 }

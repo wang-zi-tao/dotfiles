@@ -8,6 +8,7 @@
     # ./polybar/polybar.nix
     # ./dunst.nix
     ./picom.nix
+    ../develop/vscode.nix
   ];
   services.unclutter = {
     enable = true;

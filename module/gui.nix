@@ -110,7 +110,6 @@
           uim.toolbar = "qt4";
         };
         services = {
-          mpd.enable = true;
           gnome.core-os-services.enable = true;
           gnome.sushi.enable = true;
           gvfs.enable = true;

@@ -1,11 +1,6 @@
 { config, pkgs, lib, ... }:
 {
-  imports = [
-    ./firefox.nix
-    ./alacritty.nix
-    ./dconf.nix
-    ../develop/vscode.nix
-  ];
+  imports = [ ./firefox.nix ./alacritty.nix ./dconf.nix ];
   home.packages = with pkgs; [
     mpdris2
     libmpc

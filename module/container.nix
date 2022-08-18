@@ -15,7 +15,7 @@
         # enableNvidia = config.services.xserver.enable;
       };
       docker = {
-        enable = true;
+        enable = false;
         # enableNvidia = config.services.xserver.enable;
       };
     };

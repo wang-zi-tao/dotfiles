@@ -182,8 +182,8 @@ M.rust_tools = function()
   local adapter
   if n.vscode_lldb then
     adapter = require("rust-tools.dap").get_codelldb_adapter(
-      (n.vscode_lldb .. '') .. "/share/vscode/extensions/vadimcn.vscode-lldb/adapter/codelldb",
-      (n.vscode_lldb .. '') .. "/share/vscode/extensions/vadimcn.vscode-lldb/lldb/lib/liblldb.so"
+      n.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/adapter/codelldb",
+      n.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/lldb/lib/liblldb.so"
     )
   end
   require("rust-tools").setup({

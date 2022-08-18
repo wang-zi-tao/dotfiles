@@ -1,34 +1,29 @@
 local dap = require("dap")
-local n = require("core.gen")
 dap.adapters.lldb = {
   type = "executable",
   command = "lldb-vscode", -- adjust as needed
   name = "lldb",
 }
 local path_cache = vim.fn.getcwd() .. "/"
-local program = function()
-  path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
-  return path_cache
-end
-dap.adapters.cppdbg = {
-  id = 'cppdbg',
-  type = 'executable',
-  command = (n.cpptools or '') .. '/share/vscode/extensions/ms-vscode.cpptools/debugAdapters/bin/OpenDebugAD7',
-}
 dap.configurations.cpp = {
   {
-    name = "Launch lldb",
+    name = "Launch",
     type = "lldb",
     request = "launch",
-    program = program,
+    program = function()
+      path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
+      return path_cache
+    end,
     cwd = "${workspaceFolder}",
     -- stopOnEntry = true,
   },
   {
-    name = "Launch gdb",
+    name = "Launch file",
     type = "cppdbg",
     request = "launch",
-    program = program,
+    program = function()
+      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+    end,
     cwd = '${workspaceFolder}',
     stopOnEntry = true,
   },
@@ -38,10 +33,17 @@ dap.configurations.cpp = {
     request = 'launch',
     MIMode = 'gdb',
     miDebuggerServerAddress = 'localhost:1234',
-    miDebuggerPath = 'gdb',
+    miDebuggerPath = '/usr/bin/gdb',
     cwd = '${workspaceFolder}',
-    program = program,
+    program = function()
+      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+    end,
   },
+}
+dap.adapters.cppdbg = {
+  id = 'cppdbg',
+  type = 'executable',
+  command = '/absolute/path/to/cpptools/extension/debugAdapters/bin/OpenDebugAD7',
 }
 
 dap.configurations.c = dap.configurations.cpp
