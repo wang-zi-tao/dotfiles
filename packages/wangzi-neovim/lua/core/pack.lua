@@ -374,6 +374,9 @@ packer.startup(function()
     n.project,
     as = "project",
     module = { "telescope._extensions.projects", "project_nvim" },
+    config = function()
+      require("core.plugins.others").project()
+    end,
   })
   use({
     -- "jose-elias-alvarez/null-ls.nvim",
