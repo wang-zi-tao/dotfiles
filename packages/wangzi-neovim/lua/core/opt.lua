@@ -36,6 +36,9 @@ opt.title = true
 opt.undofile = true
 opt.updatetime = 250
 opt.whichwrap:append("<>[]hl")
+if (vim.env.BOMB) then 
+  opt.bomb = true
+end
 if (vim.env.WSL_DISTRO_NAME) then
   g.clipboard = {
     name = "wsl",
