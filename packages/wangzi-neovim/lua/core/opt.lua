@@ -1,6 +1,7 @@
 local opt = vim.opt
 local g = vim.g
 local wo = vim.wo
+local o = vim.o
 
 g.mapleader = " "
 opt.swapfile = false
@@ -37,7 +38,7 @@ opt.undofile = true
 opt.updatetime = 250
 opt.whichwrap:append("<>[]hl")
 if (vim.env.BOMB) then 
-  opt.bomb = true
+  o.bomb = true
 end
 if (vim.env.WSL_DISTRO_NAME) then
   g.clipboard = {
