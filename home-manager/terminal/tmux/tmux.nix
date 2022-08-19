@@ -55,4 +55,5 @@
   home.file.".config/tmuxinator/workspace-7.yml".source = ./workspace-7.yml;
   home.file.".config/tmuxinator/workspace-8.yml".source = ./workspace-8.yml;
   home.file.".config/tmuxinator/workspace-9.yml".source = ./workspace-9.yml;
+  programs.fzf.tmux.enableShellIntegration = true;
 }

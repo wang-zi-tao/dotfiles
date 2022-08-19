@@ -70,4 +70,11 @@
     modules = with pkgs.xorg; [ xf86videoamdgpu xf86inputlibinput xf86videodummy xf86videovesa ];
     videoDrivers = [ "amdgpu" ];
   };
+  services.xserver.monitorSection = ''Modeline "1920x1080" 23.53 1920 1952 2040 2072 1080 1106 1108 1135'';
+  services.xserver.resolutions = [{ x = "1920"; y = "1080"; }];
+  services.xserver.displayManager.autoLogin = {
+    enable = true;
+    user = "wangzi";
+  };
+  services.xserver.displayManager.defaultSession = lib.mkForce "gnome";
 }

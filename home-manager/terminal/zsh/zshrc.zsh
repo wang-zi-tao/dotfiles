@@ -1,3 +1,5 @@
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+
 # if [[ $TMUX != "" ]] then
     # export TERM="tmux-256color"
 # fi
@@ -65,7 +67,7 @@ bindkey '^[-' tmux split -v
 
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
-if [[ -e $SSH_CONNECTION ]];then
+if [[ -e $SSH_CONNECTION && -n $TMUX ]];then
   command tmux set prefix C-v
 fi
 

@@ -42,6 +42,9 @@
       editor.dotExpansion = true;
       historySubstring.foundColor = "fg=blue";
       historySubstring.notFoundColor = "dg=red";
+      tmux = {
+        autoStartRemote = true;
+      };
     };
     plugins = [
       {

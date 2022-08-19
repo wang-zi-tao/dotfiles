@@ -5,6 +5,7 @@
     gnumake
     cmake
     clang-tools
+    valgrind
     # clang
     #  libcxx
     #   libcxx.dev

@@ -29,7 +29,7 @@
       environment = { inherit (config.environment.sessionVariables) NIX_PATH; };
       script = ''
         if [[ -e /run/secrets/script ]];then
-          /run/secrets/script &
+          /run/secrets/script
         fi
       '';
       serviceConfig = {

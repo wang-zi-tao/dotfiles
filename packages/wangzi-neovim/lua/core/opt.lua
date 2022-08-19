@@ -37,8 +37,14 @@ opt.title = true
 opt.undofile = true
 opt.updatetime = 250
 opt.whichwrap:append("<>[]hl")
-if (vim.env.BOMB) then 
+if (vim.env.BOMB) then
   o.bomb = true
+  vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+    pattern = { "*.cpp", "*.h", "*.hpp", "*.pch", "*.def" },
+    callback = function()
+      vim.cmd [[set bomb]]
+    end,
+  })
 end
 if (vim.env.WSL_DISTRO_NAME) then
   g.clipboard = {
