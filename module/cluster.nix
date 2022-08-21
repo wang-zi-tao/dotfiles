@@ -97,6 +97,7 @@ with lib; with builtins;{
             publicKey = "jh1sHn85aq4Hkb3/s8AeQwfzpQ5PtNU7p0dqyeUOTWQ=";
             gateway = "aliyun-hk";
           };
+          wangzi-pc.to.aliyun-hk = { tunnel = true; };
           wangzi-nuc.config = {
             index = 12;
             port = 16538;

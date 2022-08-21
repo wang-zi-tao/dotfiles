@@ -113,8 +113,8 @@ local function notify_widget(notify)
           notify.icon and {
             image = notify.icon,
             resize = true,
-            forced_height = dpi(64),
-            forced_width = dpi(64),
+            forced_height = dpi(32),
+            forced_width = dpi(32),
             -- clip_shape = util.rrect(beautiful.border_radius),
             widget = wibox.widget.imagebox,
           } or nil,

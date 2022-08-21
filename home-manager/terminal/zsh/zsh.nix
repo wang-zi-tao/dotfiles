@@ -27,7 +27,11 @@
       screen.autoStartLocal = true;
       syntaxHighlighting.highlighters = ["main" "brackets" "line"];
       pmodules = [
+        "environment"
         "git"
+        "ssh"
+        "tmux"
+        "rsync"
         "archive"
         "directory"
         "editor"

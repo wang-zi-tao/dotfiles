@@ -16,7 +16,7 @@
     acpi
 
     xiezuo
-    # wpsoffice
+    wpsoffice
 
     # libreoffice
     libsForQt5.kdeconnect-kde

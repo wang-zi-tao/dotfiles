@@ -148,7 +148,6 @@ in
       font-hinting = "slight";
       # font-name = "Sans 10";
       gtk-im-module = "ibus";
-      # gtk-theme = "Orchis-light";
       icon-theme = "Tela-blue";
       locate-pointer = true;
       monospace-font-name = "Source Code Pro 10";

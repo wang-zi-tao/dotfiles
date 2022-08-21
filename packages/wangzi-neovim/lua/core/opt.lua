@@ -61,7 +61,7 @@ if (vim.env.WSL_DISTRO_NAME) then
   }
 else
   g.clipboard = {
-    name = "xclip-xfce4-clipman",
+    name = "xclip",
     copy = {
       ["+"] = "xclip -selection clipboard",
       ["*"] = "xclip -selection clipboard",

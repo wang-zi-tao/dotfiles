@@ -42,7 +42,7 @@
     in
     {
       enable = true;
-      theme.name = "Orchis";
+      theme.name = "Orchis-Light";
       theme.package = pkgs.orchis-theme;
       iconTheme.name = "Tela-blue";
       iconTheme.package = pkgs.tela-icon-theme;
@@ -67,7 +67,7 @@
   news.display = "notify";
   home.sessionVariables = with pkgs; {
     XMODIFIERS = "@im=ibus";
-    GTK_THEME = "Orchis-light";
+    GTK_THEME = "Orchis-Light";
     GTK_IM_MODULE = "ibus";
     QT_IM_MODULE = "ibus";
     __NV_PRIME_RENDER_OFFLOAD = "1";

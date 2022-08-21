@@ -24,8 +24,8 @@ let nodeConfig = config.cluster.nodeConfig; in
     };
     services.xserver.displayManager.gdm = {
       enable = false;
-      wayland = false;
-      # nvidiaWayland = true;
+      wayland = true;
+      debug = true;
     };
     # hardware.nvidia.modesetting.enable = true;
     services.touchegg.enable = true;

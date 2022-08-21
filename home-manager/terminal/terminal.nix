@@ -12,6 +12,10 @@
       type = listOf package;
       default = [ ];
     };
+    neovim.pkg = mkOption {
+      type = package;
+      default = pkgs.wangzi-neovim.override { enable-all = config.neovim.full; };
+    };
     neovim.full = mkOption {
       type = bool;
       default = false;
@@ -52,7 +56,7 @@
         rnix-lsp
         nixfmt
         neovim-remote
-        (wangzi-neovim.override { enable-all = config.neovim.full; })
+        config.neovim.pkg
 
         lm_sensors
         nix-tree

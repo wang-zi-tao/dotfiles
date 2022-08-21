@@ -40,7 +40,7 @@
 , libXtst
 , nspr
 , nss
-, openssl
+, curl
 , pango
 , sqlite
 , unixODBC
@@ -100,8 +100,9 @@ stdenv.mkDerivation rec {
     "swscale"
     "jpeg"
     # "png"
-    # "c++"
+    "stdc++"
     "ssl"
+    "curl"
     "crypto"
     "nspr"
     "nss"
@@ -144,7 +145,7 @@ stdenv.mkDerivation rec {
     xz
     nspr
     nss
-    openssl
+    curl
     pango
     qt4
     libsForQt5.qt5.qtbase
@@ -173,6 +174,7 @@ stdenv.mkDerivation rec {
           echo $lib
           rm -v "$prefix/office6/lib$lib"*.so{,.*}
         done
+        chmod +x $prefix/office6/lib*.so{,.*}
         for i in wps wpp et wpspdf; do
           patchelf \
             --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
