@@ -145,14 +145,18 @@ M.marks = function()
   })
 end
 M.auto_save = function()
-  require("autosave").setup({
+  require("auto-save").setup({
     enabled = true,
-    execution_message = function()
-      return "AutoSave: saved at " .. vim.fn.strftime("%H:%M:%S")
-    end,
-    events = { "InsertLeave", "TextChanged" },
+    execution_message = {
+      message = function() -- message to print on save
+        return ("AutoSave: saved at " .. vim.fn.strftime("%H:%M:%S"))
+      end,
+      dim = 0.18, -- dim the color of `message`
+      cleaning_interval = 1250, -- (milliseconds) automatically clean MsgArea after displaying `message`. See :h MsgArea
+    },
+    trigger_events = { "InsertLeave", "TextChanged" },
     conditions = {
-      exists = true,
+      exists = false,
       filename_is_not = {},
       filetype_is_not = {},
       modifiable = true,
@@ -161,6 +165,15 @@ M.auto_save = function()
     on_off_commands = true,
     clean_command_line_interval = 1000,
     debounce_delay = 135,
+    callbacks = { -- functions to be executed at different intervals
+      enabling = nil, -- ran when enabling auto-save
+      disabling = nil, -- ran when disabling auto-save
+      before_asserting_save = function()
+      end, -- ran before checking `condition`
+      before_saving = function()
+      end, -- ran before doing the actual save
+      after_saving = nil -- ran after doing the actual save
+    }
   })
 end
 M.diffview = function()

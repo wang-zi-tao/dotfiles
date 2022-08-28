@@ -37,7 +37,7 @@ require("nvim-tree").setup({
   hijack_netrw = true,
   open_on_setup = false,
   ignore_ft_on_setup = {},
-  auto_close = false,
+  -- auto_close = false,
   auto_reload_on_write = true,
   open_on_tab = true,
   hijack_cursor = false,
@@ -74,7 +74,7 @@ require("nvim-tree").setup({
     width = 25,
     hide_root_folder = false,
     side = "left",
-    auto_resize = true,
+    -- auto_resize = true,
   },
   trash = {
     cmd = "rmtrash",
