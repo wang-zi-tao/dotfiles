@@ -14,7 +14,7 @@ opt.expandtab = true
 opt.fillchars = { eob = " " }
 opt.foldenable = false
 opt.foldmethod = "indent"
-opt.foldnestmax = 8
+opt.foldnestmax = 4
 opt.hidden = true
 opt.ignorecase = true
 opt.lazyredraw = true
