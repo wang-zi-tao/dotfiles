@@ -177,6 +177,8 @@ in
                   -a.path=/${dir} \
                   -b ${syncConfig.ipB}:302 \
                   -b.path=/${dir} \
+                  -a.filerProxy \
+                  -b.filerProxy \
                   # -a.debug -b.debug
                 '';
                 };
