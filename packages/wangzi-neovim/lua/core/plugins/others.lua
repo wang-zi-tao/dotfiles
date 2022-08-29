@@ -374,4 +374,7 @@ M.project = function()
     datapath = vim.fn.stdpath("data"),
   }
 end
+M.pretty_fold_preview = function()
+  require('fold-preview').setup { border = "single" }
+end
 return M

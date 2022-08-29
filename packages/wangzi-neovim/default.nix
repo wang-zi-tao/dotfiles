@@ -112,6 +112,16 @@ stdenvNoCC.mkDerivation {
         rev = "a7d8b424abe0eedf50116c460fbe6dfd5783b1d5";
         sha256 = "sha256-PQPZw0qXwMtpVE4uSxR3xUvkHE9iG4T+ZwgV6H9pUjo=";
       }}",
+      pretty_fold_preview = "${pkgs.fetchgit {
+        url = "https://github.com/anuvyklack/fold-preview.nvim";
+        rev = "33c24101dc1b2be29876ee3354de98bb8bd14cb0";
+        sha256 = "sha256-kMjm+q9Jm+YRrdxZp7yGsQSB0BmJzBrowbJzl6LHkqs=";
+      }}",
+      keymap_amend = "${pkgs.fetchgit {
+        url = "https://github.com/anuvyklack/keymap-amend.nvim";
+        rev = "41964a7230b6a787d3121bf8d2d06c08dabe9449";
+        sha256 = "sha256-Zqos5LwjDzVQDpxKpWJVeZjmQ2+tKtub0f4wm6LFPOs=";
+      }}",
       ts_autotag = "${nvim-ts-autotag}",
       lspsaga = "${lspsaga-nvim}",
       dap = "${nvim-dap}",
@@ -182,12 +192,3 @@ stdenvNoCC.mkDerivation {
     cp $out/bin/wnvim $out/bin/v
   '';
 }
-
-
-
-
-
-
-
-
-

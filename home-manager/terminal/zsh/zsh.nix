@@ -122,7 +122,7 @@
       ".." = "cd ..";
 
     };
-    sessionVariables = {
+    sessionVariables = config.home.sessionVariables//{
       _ZO_EXCLUDE_DIRS = "/nix";
     };
     initExtraFirst = ''

@@ -1,21 +1,19 @@
-require("pretty-fold").setup({
-  fill_char = "━",
+local pretty_fold = require('pretty-fold')
+pretty_fold.setup({
+  fill_char = '•',
   sections = {
     left = {
-      "━ ",
-      function()
-        return string.rep("*", vim.v.foldlevel)
-      end,
-      " ━┫",
-      "content",
-      "┣",
+      '•',
+      function() return string.rep('-', vim.v.foldlevel) end,
+      '•',
+      'content',
     },
     right = {
-      "┫ ",
+      '•',
       "number_of_folded_lines",
       ": ",
       "percentage",
-      " ┣━━",
+      '•',
     },
   },
   remove_fold_markers = true,
@@ -34,14 +32,30 @@ require("pretty-fold").setup({
   },
   add_close_pattern = true, -- true, 'last_line' or false
   matchup_patterns = {
-    -- beginning of the line -> any number of spaces -> 'do' -> end of the line
-    { "^%s*do$", "end" }, -- `do ... end` blocks
-    { "^%s*if", "end" }, -- if
-    { "^%s*for", "end" }, -- for
-    { "function%s*%(", "end" }, -- 'function( or 'function (''
     { "{", "}" },
     { "%(", ")" }, -- % to escape lua pattern char
     { "%[", "]" }, -- % to escape lua pattern char
   },
 })
-require("pretty-fold.preview").setup()
+pretty_fold.ft_setup('lua', {
+  matchup_patterns = {
+    { '^%s*do$', 'end' }, -- do ... end blocks
+    { '^%s*if', 'end' }, -- if ... end
+    { '^%s*for', 'end' }, -- for
+    { 'function%s*%(', 'end' }, -- 'function( or 'function (''
+    { '{', '}' },
+    { '%(', ')' }, -- % to escape lua pattern char
+    { '%[', ']' }, -- % to escape lua pattern char
+  },
+})
+-- pretty_fold.ft_setup('cpp', {
+--   process_comment_signs = false,
+--   comment_signs = {
+--     '/**', -- C++ Doxygen comments
+--   },
+--   stop_words = {
+--     -- ╟─ "*" ──╭───────╮── "@brief" ──╭───────╮──╢
+--     --          ╰─ WSP ─╯              ╰─ WSP ─╯
+--     '%*%s*@brief%s*',
+--   },
+-- })

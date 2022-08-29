@@ -534,6 +534,21 @@ packer.startup(function()
     end,
   })
   use({
+    n.pretty_fold_preview,
+    as = "pretty_fold_preview",
+    -- requires = "keymap_amend",
+    after = "pretty_fold",
+    config = function()
+      require("core.plugins.others").pretty_fold_preview()
+    end,
+  })
+  use({
+    n.keymap_amend,
+    as = "keymap_amend",
+    -- module = "keymap-amend",
+  })
+
+  use({
     n.ts_autotag,
     as = "ts_autotag",
     after = "nvim_treesitter",
