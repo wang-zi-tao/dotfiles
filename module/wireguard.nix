@@ -12,6 +12,14 @@ with builtins; with lib;with lib.types; with lib.attrsets; let
         type = str;
         default = "192.168.16.${toString nodeConfig.config.index}";
       };
+      clusterIps = mkOption {
+        type = listOf str;
+        default = [ ];
+      };
+      clusterIpRange = mkOption {
+        type = str;
+        default = "10.16.${toString nodeConfig.config.index}.0/24";
+      };
       clusterIp2 = mkOption {
         type = str;
         default = "192.168.17.${toString nodeConfig.config.index}";
@@ -93,12 +101,14 @@ in
                     "${otherNodeNetworkConfig.publicIp}:${toString otherNodeWireguardConfig.port}"
                   else
                     null;
-                allowedIPs = [ otherNodeWireguardConfig.clusterIp ] ++
-                  optionals (wireguard.config.gateway == otherNodeName)
+                allowedIPs = [ otherNodeWireguardConfig.clusterIp otherNodeWireguardConfig.clusterIpRange ] ++ otherNodeWireguardConfig.clusterIps ++
+                  optionals
+                    (wireguard.config.gateway == otherNodeName)
                     (concatLists (mapAttrsToList
                       (nodeName: node:
-                        optional (networkCluster.${nodeName}.config.publicIp == null) node.config.clusterIp)
-                      wireguardCluster));
+                        optionals (networkCluster.${nodeName}.config.publicIp == null) [ node.config.clusterIp node.config.clusterIpRange ])
+                      wireguardCluster))
+                ;
               })
             wireguard.peers;
         };

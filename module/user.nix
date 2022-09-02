@@ -34,7 +34,7 @@ in
       group = "wangzi";
       description = "王子陶";
       extraGroups =
-        [ "wheel" "networkmanager" "vboxusers" "docker" "lxd" "audio" ];
+        [ "wheel" "networkmanager" "vboxusers" "docker" "lxd" "audio" "libvirtd" ];
       hashedPassword = lib.mkDefault
         "$6$Rd67.bPCRXvMahE1$seiawpNy.1eV/CLVBY5qogsP5Z77BIGMW2FvNf51XWi0QU597YpbnfaNjTwQQxKA3mSwBV47dxlkJmqyX1y5x1";
     };

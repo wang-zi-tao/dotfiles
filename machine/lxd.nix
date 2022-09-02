@@ -1,7 +1,7 @@
 { pkgs, ... }@inputs:
 let hostname = "lxd"; in
 {
-  modules = [
+  imports = [
     # ../module/cluster.nix
   ];
   boot.isContainer = true;

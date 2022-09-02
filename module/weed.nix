@@ -155,8 +155,9 @@ in
               -dirAutoCreate \
               -cacheDir=${weed.client.path}/${remoteHostname} \
               -cacheCapacityMB=${builtins.toString mountConfig.cacheSize} \
-              -filer.path=/${remoteHostname}
-            '';
+              -filer.path=/${remoteHostname} \
+              -volumeServerAccess=filerProxy
+                '';
                 };
                 postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${remoteHostname} -l";
               })

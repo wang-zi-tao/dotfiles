@@ -45,6 +45,10 @@ let hostname = "aliyun-ecs"; in
       '';
     };
   };
+  sops.secrets."script" = {
+    mode = "0500";
+    restartUnits = [ "run-secrets-scripts" ];
+  };
   networking = {
     dhcpcd.enable = true;
   };

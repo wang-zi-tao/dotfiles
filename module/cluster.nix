@@ -142,7 +142,7 @@ with lib; with builtins;{
           wangzi-pc.config = { client.size = 8 * 1024; };
           wangzi-pc.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
           wangzi-pc.to.wangzi-nuc = {
-            mountDirs = { "wangzi-nuc" = { }; };
+            mountDirs = { "wangzi-nuc" = { ip = "192.168.32.1"; }; };
             syncDirs = {
               "wangzi" = {
                 ipA = "192.168.32.128";

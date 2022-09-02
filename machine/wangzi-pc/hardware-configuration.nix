@@ -16,7 +16,7 @@
   boot.initrd.kernelModules = [ ];
   boot.blacklistedKernelModules = [ "uvcvideo" ];
   boot.kernelModules = [ "kvm-intel" "nvidia" ];
-  boot.kernelParams = [ ];
+  boot.kernelParams = [ "i915.enable_gvt=1" ];
   boot.extraModulePackages = [ ];
   boot.supportedFilesystems = [ "btrfs" "ext4" "fat32" "ntfs" "f2fs" ];
   hardware.enableAllFirmware = true;
@@ -45,5 +45,9 @@
   services.xserver = {
     modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput xf86videovesa ];
     videoDrivers = [ "nvidia" ];
+  };
+  virtualisation.kvmgt.vgpus = {
+    i915-GVTg_V5_8.uuid = [ "87545a5c-2932-11ed-8b6d-d3a17120d0e4" "7e881f68-293b-11ed-adc0-93a1cd0c6eb0" ];
+    i915-GVTg_V5_4.uuid = [ ];
   };
 }
