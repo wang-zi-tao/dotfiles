@@ -162,7 +162,7 @@ packer.startup(function()
   })
 
   use({
-    n.nvim_lspconfig,
+    n.nvim_lspconfig or "neovim/nvim-lspconfig",
     as = "nvim_lspconfig",
     module = "lspconfig",
     opt = true,
@@ -178,7 +178,7 @@ packer.startup(function()
   })
 
   use({
-    n.lsp_signature_nvim,
+    n.lsp_signature_nvim or "ray-x/lsp_signature.nvim",
     as = "lsp_signature_nvim",
     after = "nvim_lspconfig",
     config = function()
@@ -187,7 +187,7 @@ packer.startup(function()
   })
 
   use({
-    n.vim_matchup,
+    n.vim_matchup or "andymass/vim-matchup",
     as = "vim_matchup",
     opt = true,
     requires = "core",
@@ -199,7 +199,7 @@ packer.startup(function()
   })
 
   use({
-    n.better_escape_nvim,
+    n.better_escape_nvim or "max397574/better-escape.nvim",
     as = "better_escape_nvim",
     disable = true,
     config = function()
@@ -208,13 +208,13 @@ packer.startup(function()
   })
 
   use({
-    n.friendly_snippets,
+    n.friendly_snippets or "rafamadriz/friendly-snippets",
     as = "friendly_snippets",
     module = "cmp_nvim_lsp",
   })
 
   use({
-    n.nvim_cmp,
+    n.nvim_cmp or "hrsh7th/nvim-cmp",
     as = "nvim_cmp",
     after = "friendly_snippets",
     module = "cmp",
@@ -225,7 +225,7 @@ packer.startup(function()
   })
 
   use({
-    n.luasnip,
+    n.luasnip or "l3mon4d3/luasnip",
     as = "luasnip",
     module = "luasnip",
     after = "friendly_snippets",
@@ -235,7 +235,7 @@ packer.startup(function()
   })
 
   use({
-    n.cmp_luasnip,
+    n.cmp_luasnip or "saadparwaiz1/cmp_luasnip",
     as = "cmp_luasnip",
     after = "luasnip",
     config = function()
@@ -244,7 +244,7 @@ packer.startup(function()
   })
 
   use({
-    n.cmp_nvim_lua,
+    n.cmp_nvim_lua or "hrsh7th/cmp-nvim-lua",
     as = "cmp_nvim_lua",
     after = "cmp_luasnip",
     config = function()
@@ -253,7 +253,7 @@ packer.startup(function()
   })
 
   use({
-    n.cmp_nvim_lsp,
+    n.cmp_nvim_lsp or "hrsh7th/cmp-nvim-lsp",
     as = "cmp_nvim_lsp",
     after = "cmp_nvim_lua",
     module = "cmp_nvim_lsp",
@@ -263,7 +263,7 @@ packer.startup(function()
   })
 
   use({
-    n.cmp_buffer,
+    n.cmp_buffer or "hrsh7th/cmp-buffer",
     as = "cmp_buffer",
     after = "nvim_cmp",
     requires = "nvim_cmp",
@@ -295,7 +295,7 @@ packer.startup(function()
     end,
   })
   use({
-    n.cmp_path,
+    n.cmp_path or "hrsh7th/cmp-path",
     as = "cmp_path",
     after = "cmp_buffer",
     requires = "cmp_buffer",
@@ -327,7 +327,7 @@ packer.startup(function()
   })
 
   use({
-    n.nvim_autopairs,
+    n.nvim_autopairs or "windwp/nvim-autopairs",
     as = "nvim_autopairs",
     config = function()
       require("core.plugins.others").autopairs()
@@ -343,7 +343,7 @@ packer.startup(function()
   })
 
   use({
-    n.nvim_comment,
+    n.nvim_comment or "terrortylor/nvim-comment",
     as = "nvim_comment",
     requires = "core",
     module = "nvim_comment",
@@ -354,7 +354,7 @@ packer.startup(function()
   })
 
   use({
-    n.nvim_tree_lua,
+    n.nvim_tree_lua or "kyazdani42/nvim-tree.lua",
     as = "nvim_tree_lua",
     wants = "nvim_web_devicons",
     requires = "onedark_nvim",
