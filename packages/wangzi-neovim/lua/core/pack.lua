@@ -12,20 +12,17 @@ packer.init({
     clone_timeout = 6000, -- seconds
   },
   compile_path = n.compile_path,
-  max_jobs = 8,
   auto_clean = true,
   compile_on_sync = true,
 })
 packer.startup(function(use)
-  if n.core then
-    use({
-      n.core,
-      as = "core",
-      config = function()
-        require("core")
-      end,
-    })
-  end
+  use({
+    n.core or vim.fn.stdpath("config"),
+    as = "core",
+    config = function()
+      require("core")
+    end,
+  })
   use({
     n.packer or "wbthomason/packer.nvim",
     as = "packer.nvim",
@@ -671,3 +668,5 @@ local M = {}
 M.packer = packer
 M.status = packer.status
 return M
+
+
