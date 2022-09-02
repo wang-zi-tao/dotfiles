@@ -190,5 +190,6 @@ stdenvNoCC.mkDerivation {
     cp $out/bin/wnvim $out/bin/vim
     cp $out/bin/wnvim $out/bin/vi
     cp $out/bin/wnvim $out/bin/v
+    mkdir $out/cmake_samples
   '';
 }
