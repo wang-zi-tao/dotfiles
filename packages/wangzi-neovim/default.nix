@@ -31,7 +31,7 @@ stdenvNoCC.mkDerivation {
     mkdir -p $out/
     cp * -r $out
     mkdir -p $out/bin
-    cat << EOF > $out/lua/core/gen.lua
+    cat < EOF > $out/lua/core/gen.lua
     local M = {
       core = "$out",
       packer = "${packer-nvim}",

@@ -1,27 +1,7 @@
-local n = require("core.gen")
-if not n.packer then
-  local fn = vim.fn
-  local install_path = fn.stdpath('data') .. '/site/pack/packer/start/packer.nvim'
-  if fn.empty(fn.glob(install_path)) > 0 then
-    local packer_bootstrap = fn.system({ 'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path })
-    vim.cmd [[packadd packer.nvim]]
-  end
-
-  return require('packer').startup(function(use)
-    -- My plugins here
-    -- use 'foo1/bar1.nvim'
-    -- use 'foo2/bar2.nvim'
-
-    -- Automatically set up your configuration after cloning packer.nvim
-    -- Put this at the end after all plugins
-    if packer_bootstrap then
-      require('packer').sync()
-    end
-  end)
-end
+local n = require("core.gen") 
 local packer = require("packer")
 packer.init({
-  package_root = n.core .. "/site/pack",
+  package_root = n.core and n.core .. "/site/pack",
   display = {
     open_fn = function()
       return require("packer.util").float({ border = "single" })
@@ -32,10 +12,11 @@ packer.init({
     clone_timeout = 6000, -- seconds
   },
   compile_path = n.compile_path,
+  max_jobs = 8,
   auto_clean = true,
   compile_on_sync = true,
 })
-packer.startup(function()
+packer.startup(function(use)
   if n.core then
     use({
       n.core,
