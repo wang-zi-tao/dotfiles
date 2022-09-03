@@ -18,6 +18,9 @@
         kvmgt.enable = true;
       };
       environment.systemPackages = with pkgs; [ qemu virt-manager ];
-      systemd.services.libvirtd.path = [ pkgs.unstable.virtiofsd pkgs.swtpm-tpm2 ];
+      systemd.services.libvirtd = with pkgs; {
+        path = [ virtiofsd swtpm-tpm2 virglrenderer ];
+        environment.LD_LIBRARY_PATH = "${virglrenderer}/lib";
+      };
     };
 }

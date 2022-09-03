@@ -25,7 +25,10 @@ in
         };
       };
     };
-    virtualisation.docker.enable = true;
+    virtualisation.docker = {
+      enable = true;
+      enableOnBoot = true;
+    };
     networking.firewall.allowedUDPPorts = [ 6613 ];
     networking.firewall.allowedTCPPorts = [ 6612 6613 ];
   };

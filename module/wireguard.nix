@@ -157,7 +157,7 @@ in
             TMPFILE=$(mktemp /tmp/wg-XXXXX)
             trap "rm -f $TMPFILE" EXIT
             jq ".network += {\"sharedKey\": \"$(cat ${config.sops.secrets.wg-shared-keys.path})\"}" /etc/wg_netmanager/network.yaml > $TMPFILE
-            wg_netmanager ${if (network.config.publicIp == null) then "-H" else "-w ${toString (wireguard.config.port+1)}"} -v -v -c $TMPFILE
+            wg_netmanager ${if (network.config.publicIp == null) then "-H" else "-w ${toString (wireguard.config.port+1)}"} -c $TMPFILE
           '';
           serviceConfig = {
             Type = "simple";

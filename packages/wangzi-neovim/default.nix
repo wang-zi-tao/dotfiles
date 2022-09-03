@@ -29,9 +29,11 @@ stdenvNoCC.mkDerivation {
   installPhase = with pkgs.unstable.vimPlugins; ''
     rm default.nix
     mkdir -p $out/
-    cp * -r $out
+    cp * -r $out/
     mkdir -p $out/bin
-    cat < EOF > $out/lua/core/gen.lua
+    rm $out/lua/core/gen.lua
+    rm $out/init.lua
+    cat << EOF >> $out/lua/core/gen.lua
     local M = {
       core = "$out",
       packer = "${packer-nvim}",
@@ -190,6 +192,5 @@ stdenvNoCC.mkDerivation {
     cp $out/bin/wnvim $out/bin/vim
     cp $out/bin/wnvim $out/bin/vi
     cp $out/bin/wnvim $out/bin/v
-    mkdir $out/cmake_samples
   '';
 }
