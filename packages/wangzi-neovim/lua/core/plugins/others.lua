@@ -155,12 +155,6 @@ M.auto_save = function()
       cleaning_interval = 1250, -- (milliseconds) automatically clean MsgArea after displaying `message`. See :h MsgArea
     },
     trigger_events = { "InsertLeave", "TextChanged" },
-    conditions = {
-      exists = false,
-      filename_is_not = {},
-      filetype_is_not = {},
-      modifiable = true,
-    },
     write_all_buffers = false,
     on_off_commands = true,
     clean_command_line_interval = 1000,

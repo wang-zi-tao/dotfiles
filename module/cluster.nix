@@ -71,6 +71,7 @@ with lib; with builtins;{
     ./webssh.nix
     ./redis.nix
     ./weed.nix
+    ./nfs.nix
     ./prometheus.nix
   ];
   config = {
@@ -210,6 +211,9 @@ with lib; with builtins;{
         };
         nova9 = { };
         M6 = { };
+      };
+      nfs = {
+        nodes = { };
       };
     };
   };

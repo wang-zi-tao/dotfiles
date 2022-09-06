@@ -74,6 +74,8 @@ return function(s)
       shape           = util.rounded_shape(8),
       create_callback = function(self, c, _, _)
         self:connect_signal("button::press", function()
+          awesome.emit_signal("bling::task_preview::visibility", s,
+            false, c)
           if not c.active then
             c:activate({
               context = "through_dock",

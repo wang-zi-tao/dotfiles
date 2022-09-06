@@ -30,12 +30,14 @@ bling.widget.tag_preview.enable({
 })
 return function(s)
   return awful.widget.taglist({
-    screen = s,
-    filter = awful.widget.taglist.filter.all,
-    style = {
+    screen          = s,
+    filter          = function(tag)
+      return (awful.widget.taglist.filter.noempty(tag))
+    end,
+    style           = {
       shape = util.rounded_shape(2),
     },
-    layout = {
+    layout          = {
       spacing = 1,
       layout = wibox.layout.flex.horizontal,
     },
@@ -58,39 +60,44 @@ return function(s)
       id = "background_role",
       widget = wibox.container.background,
       -- Add support for hover colors and an index label
-      create_callback = function(self, c3, index, objects) --luacheck: no unused args
-        self:get_children_by_id("index_role")[1].text = workspace_names[tonumber(index)]
+      create_callback = function(self, tag, index, objects) --luacheck: no unused args
+        self:get_children_by_id("index_role")[1].text = workspace_names[tag.index]
         self:connect_signal("mouse::enter", function()
-          awesome.emit_signal("bling::tag_preview::update", c3)
+          awesome.emit_signal("bling::tag_preview::update", tag)
           awesome.emit_signal("bling::tag_preview::visibility", s, true)
         end)
         self:connect_signal("mouse::leave", function()
           awesome.emit_signal("bling::tag_preview::visibility", s, false)
         end)
       end,
-      update_callback = function(self, c3, index, objects) --luacheck: no unused args
-        self:get_children_by_id("index_role")[1].text = workspace_names[tonumber(index)]
+      pdate_callback = function(self, tag, index, objects) --luacheck: no unused args
+        self:get_children_by_id("index_role")[1].text = workspace_names[tag.index]
       end,
     },
-    buttons = gears.table.join(
+    buttons         = gears.table.join(
       awful.button({}, 1, function(t)
+        awesome.emit_signal("bling::tag_preview::visibility", s, false)
         t:view_only()
       end),
       awful.button({ mod }, 1, function(t)
+        awesome.emit_signal("bling::tag_preview::visibility", s, false)
         if client.focus then
           client.focus:move_to_tag(t)
         end
       end),
       awful.button({}, 3, awful.tag.viewtoggle),
       awful.button({ mod }, 3, function(t)
+        awesome.emit_signal("bling::tag_preview::visibility", s, false)
         if client.focus then
           client.focus:toggle_tag(t)
         end
       end),
       awful.button({}, 4, function(t)
+        awesome.emit_signal("bling::tag_preview::visibility", s, false)
         awful.tag.viewnext(t.screen)
       end),
       awful.button({}, 5, function(t)
+        awesome.emit_signal("bling::tag_preview::visibility", s, false)
         awful.tag.viewprev(t.screen)
       end)
     ),
