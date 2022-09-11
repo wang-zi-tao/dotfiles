@@ -151,8 +151,19 @@ awful.keyboard.append_global_keybindings({
     awful.client.swap.byidx(-1)
   end, { description = "swap with previous client by index", group = "client" }),
   awful.key({ mod }, "u", awful.client.urgent.jumpto, { description = "jump to urgent client", group = "client" }),
-  awful.key({ mod }, "PageDown", function()
-    awful.tag.viewnext()
+  awful.key({ mod }, "KP_Next", function()
+    local t = awful.screen.focused().selected_tag
+    local start_index = t.index
+    local index = start_index
+    local tags = awful.screen.focused().tags
+    local tag
+    repeat
+      index = index % #tags + 1
+      tag = tags[index]
+    until index == start_index or tag and 0 ~= #tag:clients()
+    if tag then
+      tag:view_only()
+    end
   end, { description = "next tagg", group = "layout" }),
   awful.key({ mod }, "Right", function()
     local t = awful.screen.focused().selected_tag
@@ -168,8 +179,19 @@ awful.keyboard.append_global_keybindings({
       tag:view_only()
     end
   end, { description = "next tagg", group = "layout" }),
-  awful.key({ mod }, "PageUp", function()
-    awful.tag.viewprev()
+  awful.key({ mod }, "KP_Prior", function()
+    local t = awful.screen.focused().selected_tag
+    local start_index = t.index
+    local index = start_index
+    local tags = awful.screen.focused().tags
+    local tag
+    repeat
+      index = (index + #tags - 2) % #tags + 1
+      tag = tags[index]
+    until index == start_index or tag and 0 ~= #tag:clients()
+    if tag then
+      tag:view_only()
+    end
   end, { description = "previous tag", group = "layout" }),
   awful.key({ mod }, "Left", function()
     local t = awful.screen.focused().selected_tag

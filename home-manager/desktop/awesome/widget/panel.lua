@@ -61,8 +61,11 @@ awful.screen.connect_for_each_screen(function(s)
         volume_widget,
         util.block1(system_monitor),
         mybatterybox,
-        util.button(util.symbol(""), function()
+        util.button(util.svg("menu.svg"), function()
           awesome.emit_signal("control_center::toggle")
+        end),
+        util.button(util.svg("power.svg"), function()
+          awesome.emit_signal("module::exit_screen:show")
         end),
         spacing = 8,
         layout = wibox.layout.fixed.horizontal,

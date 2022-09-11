@@ -49,10 +49,11 @@ theme.foreground = "#ffffff"
 theme.foreground1 = "#D8DEE9"
 theme.foreground2 = "#C8CED9"
 theme.background = "#10171e"
+theme.background = "#101213"
 -- theme.background1 = "#131a21"
 -- theme.background2 = "#1a222a"
-theme.background1 = "#1a222a"
-theme.background2 = "#2d2a33"
+theme.background1 = "#1b1d1e"
+theme.background2 = "#2b2d2e"
 theme.black = "#1C252C"
 theme.red = "#DF5B61"
 theme.green = "#78B892"
@@ -170,7 +171,7 @@ theme.tag_preview_client_bg = theme.background -- The bg color of each client
 theme.tag_preview_client_border_color = theme.xcolor12 -- The border color of each client
 theme.tag_preview_client_border_width = 2 -- The border width of each client
 theme.tag_preview_widget_bg = theme.background -- The bg color of the widget
-theme.tag_preview_widget_border_color = theme.background -- The border color of the widget
+theme.tag_preview_widget_border_color = theme.blue -- The border color of the widget
 theme.tag_preview_widget_border_width = 3 -- The border width of the widget
 theme.tag_preview_widget_margin = 2 -- The margin of the widget
 
@@ -205,11 +206,6 @@ theme.progressbar_bar_border_color = theme.foreground
 theme.progressbar_margins = 1
 theme.progressbar_paddings = 1
 
-theme.machi_switcher_border_color = theme.darker_bg
--- theme.machi_switcher_border_opacity = 0.25
-theme.machi_editor_border_color = theme.darker_bg
--- theme.machi_editor_border_opacity = 0.25
--- theme.machi_editor_active_opacity = 0.25
 theme.fade_duration = 250
 
 -- mstab
@@ -229,17 +225,27 @@ theme.mstab_tabbar_style = "default" -- style of the tabbar ("default", "boxes" 
 -- different style for mstab and tabbed
 
 theme.tasklist_shape = function(cr, w, h)
-  gears.shape.rounded_rect(cr, w, h, dpi(2))
+  gears.shape.rounded_rect(cr, w, h, dpi(4))
 end
 theme.tasklist_bg_focus = theme.blue
-theme.tasklist_bg_normal = theme.background1
+theme.tasklist_bg_normal = theme.background2
 theme.tasklist_bg_urgent = theme.orange
 theme.tasklist_bg_minimize = theme.gray
 
 theme.task_preview_widget_border_radius = 16 -- Border radius of the widget (With AA)
 theme.task_preview_widget_bg = theme.background -- The bg color of the widget
-theme.task_preview_widget_border_color = theme.background -- The border color of the widget
+theme.task_preview_widget_border_color = theme.blue -- The border color of the widget
 theme.task_preview_widget_border_width = 3 -- The border width of the widget
 theme.task_preview_widget_margin = 8 -- The margin of the widget
+
+theme.machi_switcher_border_color = theme.blue
+theme.machi_switcher_fill_color = theme.sky
+theme.machi_switcher_box_bg = theme.background
+theme.machi_switcher_fill_color_hl = theme.blue
+theme.machi_switcher_border_opacity = 0.25
+theme.machi_switcher_border_hl_opacity = 0.75
+theme.machi_switcher_fill_opacity = 0.25
+theme.machi_switcher_box_opacity = 0.85
+theme.machi_switcher_fill_hl_opacity = 1
 
 return theme

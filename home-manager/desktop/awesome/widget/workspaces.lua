@@ -22,7 +22,7 @@ bling.widget.tag_preview.enable({
     })
   end,
   background_widget = wibox.widget({ -- Set a background image (like a wallpaper) for the widget
-    image = beautiful.wallpaper,
+    image = beautiful.lockscreen_wallpaper,
     horizontal_fit_policy = "full",
     vertical_fit_policy = "full",
     widget = wibox.widget.imagebox,

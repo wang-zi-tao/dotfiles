@@ -62,6 +62,19 @@
       (config.cluster.nodeConfig.guiServer.enable
         || config.cluster.nodeConfig.guiClient.enable)
       {
+        services.xrdp.enable = true;
+        services.xrdp.defaultWindowManager = "${pkgs.awesome}/bin/awesome";
+        # services.xrdp.defaultWindowManager = "${pkgs.gnome-console}/bin/kgx";
+        environment.etc."X11/Xwrapper.config".text = "allowed_users=anybody";
+        environment.etc."xrdp/xrdp.ini".text = ''
+          [xrdp8]
+          name=Desktop
+          lib=libvnc.so
+          username=ask
+          password=ask
+          ip=0.0.0.0
+          port=5900
+        '';
         gtk = {
           iconCache.enable = true;
         };

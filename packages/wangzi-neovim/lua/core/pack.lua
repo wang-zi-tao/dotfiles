@@ -1,4 +1,4 @@
-local n = require("core.gen") 
+local n = require("core.gen")
 local packer = require("packer")
 packer.init({
   package_root = n.core and n.core .. "/site/pack",
@@ -67,7 +67,7 @@ packer.startup(function(use)
   })
 
   use({
-    n.feline_nvim or "Feline.nvim",
+    n.feline_nvim or "feline-nvim/feline.nvim",
     as = "feline_nvim",
     after = "nvim_web_devicons",
     requires = "nvim_web_devicons",
@@ -388,7 +388,7 @@ packer.startup(function(use)
     end,
   })
   use({
-    n.which_key or "liuchengxu/vim-which-key",
+    n.which_key or "folke/which-key.nvim",
     as = "which_key",
     requires = "onedark_nvim",
     module = "which-key",
@@ -446,7 +446,7 @@ packer.startup(function(use)
     })
   end
   use({
-    n.marks or "chentau/marks.nvim",
+    n.marks or "chentoast/marks.nvim",
     as = "marks",
     requires = "core",
     config = function()
@@ -531,7 +531,7 @@ packer.startup(function(use)
     end,
   })
   use({
-    n.keymap_amend or "keymap-amend.nvim",
+    n.keymap_amend or "anuvyklack/keymap-amend.nvim",
     as = "keymap_amend",
     -- module = "keymap-amend",
   })
@@ -668,5 +668,3 @@ local M = {}
 M.packer = packer
 M.status = packer.status
 return M
-
-

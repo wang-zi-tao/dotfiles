@@ -101,7 +101,7 @@ in
 
     (wangzi-neovim.override { enable-all = config.neovim.full; })
     neovim-remote
-    python2
+    python3
     luajitPackages.luacheck
     luajitPackages.luarocks
     google-java-format

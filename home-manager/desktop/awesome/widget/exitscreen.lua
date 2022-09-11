@@ -119,24 +119,47 @@ local create_exit_screen = function(s)
   ))
 
   s.exit_screen:setup({
-    nil,
+    {
+      resize = true,
+      image = beautiful.lockscreen_wallpaper,
+      valign = "center",
+      halign = "center",
+      forced_width = 2586,
+      forced_height = 1080,
+      upscale = true,
+      downscale = true,
+      scaling_quality = "best",
+      widget = wibox.widget.imagebox,
+      shape = gears.shape.rounded_bar,
+    },
     {
       nil,
       {
-        poweroff,
-        reboot,
-        suspend,
-        exit,
-        lock,
-        spacing = dpi(50),
-        layout = wibox.layout.fixed.horizontal,
+        nil,
+        {
+          {
+            poweroff,
+            reboot,
+            suspend,
+            exit,
+            lock,
+            spacing = dpi(24),
+            layout = wibox.layout.fixed.horizontal,
+          },
+          margins = 16,
+          widget = wibox.container.margin
+        },
+        expand = "outside",
+        layout = wibox.layout.align.horizontal,
       },
-      expand = "none",
-      layout = wibox.layout.align.horizontal,
+      expand = "outside",
+      layout = wibox.layout.align.vertical,
     },
-    expand = "none",
-    layout = wibox.layout.align.vertical,
+    layout = wibox.layout.stack,
   })
+  s.exit_screen:connect_signal("mouse::leave", function()
+    awesome.emit_signal("module::exit_screen:hide")
+  end)
 end
 
 screen.connect_signal("request::desktop_decoration", function(s)

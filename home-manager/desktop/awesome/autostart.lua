@@ -35,7 +35,7 @@ run_once_pgrep("ibus-daemon -x -r -R")
 awful.spawn("gpaste-client start")
 awful.spawn("xhost +")
 awful.spawn([[sh -c "
-  if command -v nvidia-smi ; then 
+  if command -v nvidia-smi; then 
     xpra shadow $DISPLAY --bind-tcp=$(hostname).wg1:$((${DISPLAY:1}+6000)) --video-encoders=nvenc
   else 
     xpra shadow $DISPLAY --bind-tcp=$(hostname).wg1:$((${DISPLAY:1}+6000))
@@ -48,3 +48,19 @@ awful.spawn([[sh -c "
     xpra start :$((${DISPLAY:1}+1000)) --bind-tcp=$(hostname).wg1:$((${DISPLAY:1}+7000))
   fi
 "]])
+
+-- List of apps to start once on start-up
+local autostart_app = {
+  -- Compositor
+  "picom --dbus --experimental-backend",
+  -- Playertctl support for mpd
+  "mpDris2",
+}
+
+for _, command in ipairs(autostart_app) do
+  awful.spawn.easy_async_with_shell(string.format("ps aux | grep '%s' | grep -v 'grep'", command), function(stdout)
+    if stdout == "" or stdout == nil then
+      awful.spawn(command, false)
+    end
+  end)
+end

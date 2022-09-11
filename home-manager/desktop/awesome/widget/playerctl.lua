@@ -29,7 +29,7 @@ return require("react")({
       })
     end)
     playerctl:connect_signal("playback_status", function(_, playing)
-      self.set_state({ playing = playing })
+      self:set_state({ playing = playing })
     end)
   end,
   render = function(self)

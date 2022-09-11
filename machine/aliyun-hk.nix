@@ -56,4 +56,8 @@ let hostname = "aliyun-hk"; in
     from = 8882;
     to = 8888;
   }];
+  users.users.virtlyst.group = "virtlyst";
+  users.groups.virtlyst = { };
+  services.virtlyst.enable = true;
+  services.virtlyst.adminPassword = "wfn5l5VpRK1W5Q9f";
 }

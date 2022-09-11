@@ -25,30 +25,39 @@ bling.widget.task_preview.enable {
     {
       {
         {
-          id = 'icon_role',
-          widget = awful.widget.clienticon, -- The client icon
+          {
+            {
+              id = 'icon_role',
+              widget = awful.widget.clienticon, -- The client icon
+            },
+            {
+              id = 'name_role', -- The client name / title
+              ellipsize = "end",
+              font = beautiful.font_name .. "Bold 11",
+              widget = wibox.widget.textbox,
+            },
+            layout = wibox.layout.flex.horizontal
+          },
+          margins = 4,
+          widget = wibox.container.margin,
         },
         {
-          id = 'name_role', -- The client name / title
-          ellipsize = "end",
-          font = beautiful.font_name .. "Bold 11",
-          widget = wibox.widget.textbox,
+          id = 'image_role', -- The client preview
+          resize = true,
+          valign = 'center',
+          halign = 'center',
+          forced_width = 32,
+          forced_height = 32,
+          awful.widget.clienticon,
         },
-        layout = wibox.layout.flex.horizontal
+        layout = wibox.layout.fixed.vertical
       },
-      margins = 8,
+      margins = 2,
       widget = wibox.container.margin,
     },
-    {
-      id = 'image_role', -- The client preview
-      resize = true,
-      valign = 'center',
-      halign = 'center',
-      forced_width = 32,
-      forced_height = 32,
-      awful.widget.clienticon,
-    },
-    layout = wibox.layout.fixed.vertical
+    bg     = beautiful.blue,
+    shape  = util.rounded_shape(8),
+    layout = wibox.container.background
   }
 }
 return function(s)

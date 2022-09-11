@@ -7,6 +7,7 @@
 -- ╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝ ╚══╝╚══╝ ╚═╝     ╚═╝ --
 -----------------------------------------------------------------------------------------
 local beautiful = require("beautiful")
+beautiful.init(".config/awesome/theme.lua")
 local naughty = require("naughty")
 if awesome.startup_errors then
   naughty.notify({
@@ -39,7 +40,6 @@ naughty.connect_signal("request::display_error", function(message, startup)
     message = message,
   })
 end)
-beautiful.init(".config/awesome/theme.lua")
 require("ui")
 require("keys")
 require("rule")

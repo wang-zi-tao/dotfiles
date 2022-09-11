@@ -9,37 +9,37 @@ local dpi = beautiful.xresources.apply_dpi
 local styles = {}
 
 styles.month = {
-  bg_color = "#00000000",
+  bg_color = beautiful.background1,
   border_width = 0,
 }
 
 styles.normal = {
   padding = dpi(6),
+  shape = gears.shape.circle,
+  markup = function(t) return "<b>" .. t .. "</b>" end,
 }
 
 styles.focus = {
-  fg_color = beautiful.foreground,
-  markup = function(t)
-    return "<b>" .. t .. "</b>"
-  end,
-  bg_color = beautiful.accent,
+  bg_color = beautiful.blue,
+  markup = function(t) return "<b>" .. t .. "</b>" end,
   padding = dpi(6),
   shape = gears.shape.circle,
 }
 
 styles.header = {
   fg_color = beautiful.foreground,
-  bg_color = beautiful.background1,
+  bg_color = beautiful.background,
+  shape = gears.shape.rounded_bar,
   markup = function(t)
     return '<span font="SF Pro Display Bold 12">' .. t .. "</span>"
   end,
 }
-
+local weekDayMap = { Su = "日", Mo = "一", Tu = "二", We = "三", Th = "四", Fr = "五", Sa = "六" }
 styles.weekday = {
-  fg_color = beautiful.foreground,
-  markup = function(t)
-    return string.upper(t)
-  end,
+  fg_color = beautiful.blue,
+  bg_color = beautiful.background1,
+  markup = function(t) return '<b>' .. (weekDayMap[t] or t) .. '</b>' end,
+  shape = gears.shape.circle,
 }
 
 local function decorate_cell(widget, flag, date)
@@ -53,7 +53,7 @@ local function decorate_cell(widget, flag, date)
   -- Change bg color for weekends
   local d = { year = date.year, month = (date.month or 1), day = (date.day or 1) }
   local weekday = tonumber(os.date("%w", os.time(d)))
-  local default_bg = (weekday == 0 or weekday == 7) and "#00000000" or "#00000000"
+  local default_bg = (weekday == 0 or weekday == 6) and beautiful.background1 or beautiful.background
   local ret = wibox.widget({
     {
       widget,

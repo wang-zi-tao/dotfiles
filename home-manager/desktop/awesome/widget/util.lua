@@ -3,6 +3,8 @@ local wibox = require("wibox")
 local gears = require("gears")
 local xresources = require("beautiful.xresources")
 local beautiful = require("beautiful")
+local filesystem = gears.filesystem
+local icon_dir = filesystem.get_configuration_dir() .. "/icons/"
 local dpi = xresources.apply_dpi
 local M = {}
 function M.rounded_shape(r)
@@ -57,9 +59,9 @@ end
 function M.block(inner)
   return {
     {
-      { inner, left = 16, right = 16, widget = wibox.container.margin },
+      { inner, left = 8, right = 8, widget = wibox.container.margin },
       bg = beautiful.background,
-      shape = M.rounded_shape(16),
+      shape = M.rounded_shape(8),
       widget = wibox.container.background,
     },
     top = 7,
@@ -79,6 +81,19 @@ function M.block1(inner)
     bg = beautiful.background1,
     shape = M.rounded_shape(3),
     widget = wibox.container.background,
+  }
+end
+
+function M.svg(icon, args)
+  args = args or {}
+  return {
+    image = icon_dir .. icon,
+    resize = true,
+    halign = "center",
+    valign = "center",
+    forced_width = args.width or 24,
+    forced_height = args.height or 24,
+    widget = wibox.widget.imagebox,
   }
 end
 
@@ -127,7 +142,7 @@ function M.button(inner, callback, bg)
       right = 8,
       widget = wibox.container.margin,
     },
-    shape = M.rounded_shape(16),
+    shape = M.rounded_shape(8),
     bg = bg,
     widget = wibox.container.background,
   })

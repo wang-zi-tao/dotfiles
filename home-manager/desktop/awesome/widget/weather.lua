@@ -79,7 +79,6 @@ return require("react")({
     feels_like = 20,
   },
   render = function(self)
-    print(self.state.icon)
     local icon = self.state.icon
     local description = self.state.description
     local humidity = self.state.humidity
