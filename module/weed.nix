@@ -175,9 +175,9 @@ in
                   LimitNOFILE = 500000;
                   ExecStart = ''${pkgs.seaweedfs}/bin/weed filer.sync \
                   -a ${syncConfig.ipA}:302 \
-                  -a.path=/${dir} \
+                  -a.path=/${dir}/ \
                   -b ${syncConfig.ipB}:302 \
-                  -b.path=/${dir} \
+                  -b.path=/${dir}/ \
                   -a.filerProxy \
                   -b.filerProxy \
                   # -a.debug -b.debug
