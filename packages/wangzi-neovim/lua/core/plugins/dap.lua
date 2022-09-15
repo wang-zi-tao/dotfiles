@@ -15,7 +15,6 @@ dap.configurations.cpp = {
       return path_cache
     end,
     cwd = "${workspaceFolder}",
-    sourceMap = "${workspaceFolder}",
     -- stopOnEntry = true,
   },
   {
@@ -116,6 +115,3 @@ dap.configurations.python = {
     end;
   },
 }
-dap.listeners.before.event_initialized["split_winow"] = function()
-  vim.cmd("vs")
-end

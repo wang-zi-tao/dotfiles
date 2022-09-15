@@ -23,14 +23,14 @@ opt.number = true
 opt.numberwidth = 2
 opt.relativenumber = true
 opt.ruler = false
-opt.shiftwidth = 2
 opt.shortmess:append("sI")
 opt.signcolumn = "yes"
 opt.smartcase = true
 opt.smartindent = true
 opt.splitbelow = true
 opt.splitright = true
-opt.tabstop = 8
+opt.tabstop = 4
+opt.shiftwidth = 4
 opt.termguicolors = true
 opt.timeoutlen = 400
 opt.title = true
@@ -46,7 +46,35 @@ if (vim.env.BOMB) then
     end,
   })
 end
-if (vim.env.WSL_DISTRO_NAME) then
+if(1 == vim.fn.has("linux"))then
+  if (vim.env.WSL_DISTRO_NAME) then
+    g.clipboard = {
+      name = "wsl",
+      copy = {
+        ["+"] = "win32yank.exe -i",
+        ["*"] = "win32yank.exe -i",
+      },
+      paste = {
+        ["+"] = "win32yank.exe -o",
+        ["*"] = "win32yank.exe -o",
+      },
+      cache_enabled = 1,
+    }
+  else
+    g.clipboard = {
+      name = "xclip",
+      copy = {
+        ["+"] = "xclip -selection clipboard",
+        ["*"] = "xclip -selection clipboard",
+      },
+      paste = {
+        ["+"] = "xclip -selection clipboard -o",
+        ["*"] = "xclip -selection clipboard -o",
+      },
+      cache_enabled = 1,
+    }
+  end
+else
   g.clipboard = {
     name = "wsl",
     copy = {
@@ -56,19 +84,6 @@ if (vim.env.WSL_DISTRO_NAME) then
     paste = {
       ["+"] = "win32yank.exe -o",
       ["*"] = "win32yank.exe -o",
-    },
-    cache_enabled = 1,
-  }
-else
-  g.clipboard = {
-    name = "xclip",
-    copy = {
-      ["+"] = "xclip -selection clipboard",
-      ["*"] = "xclip -selection clipboard",
-    },
-    paste = {
-      ["+"] = "xclip -selection clipboard -o",
-      ["*"] = "xclip -selection clipboard -o",
     },
     cache_enabled = 1,
   }
