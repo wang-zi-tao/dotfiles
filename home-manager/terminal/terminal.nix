@@ -36,7 +36,6 @@
       VISUAL = "nvim";
       NIX_AUTO_RUN = "1";
       NIXPKGS_ALLOW_UNFREE = "1";
-      PATH = "$PATH:/$HOME/.cargo/bin";
     };
     home.activation.neovim = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if [[ -e /run/secrets/shell/${config.home.username} ]];then

@@ -24,8 +24,6 @@ in
       ports = [ 22 64022 ];
       openFirewall = true;
     };
-    boot.initrd.network.ssh.enable = true;
-    boot.initrd.network.ssh.shell = "${pkgs.zsh}/bin/zsh";
     programs.ssh.extraConfig = ''
       ControlMaster auto
       ControlPath /tmp/ssh_mux_%h_%p_%r

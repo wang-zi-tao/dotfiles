@@ -13,6 +13,7 @@
         ];
       kernelParams = [ "quite" ];
     };
+    console.earlySetup = true;
     boot.kernel.sysctl = { "fs.file-max" = 65535; };
     environment.etc."security/limits.conf".text = ''
       * soft nofile 65535   

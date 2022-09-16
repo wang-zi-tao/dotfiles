@@ -24,6 +24,7 @@
   fileSystems."/" =
     {
       device = "/dev/disk/by-uuid/e7cafd36-879f-4bae-8cd3-060799c7ab74";
+      noCheck = false;
       fsType = "f2fs";
     };
 

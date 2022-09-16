@@ -14,6 +14,7 @@
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/1a2181e1-87a9-466f-8e44-715493f61f42";
     fsType = "f2fs";
+    noCheck = false;
     options = [ "rw" "noatime" ];
   };
   fileSystems."/mnt/weed/server" = {

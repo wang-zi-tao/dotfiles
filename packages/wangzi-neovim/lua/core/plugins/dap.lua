@@ -15,6 +15,7 @@ dap.configurations.cpp = {
       return path_cache
     end,
     cwd = "${workspaceFolder}",
+    sourceMap = "${workspaceFolder}",
     -- stopOnEntry = true,
   },
   {

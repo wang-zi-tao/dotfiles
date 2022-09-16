@@ -1,7 +1,0 @@
-.*
-tags
-.envrc
-shell.nix
-result
-.vim/
-.direnv

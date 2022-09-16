@@ -10,8 +10,8 @@ local bling = require("module.bling")
 bling.widget.task_preview.enable {
   x = 20, -- The x-coord of the popup
   y = 20, -- The y-coord of the popup
-  height = 600, -- The height of the popup
-  width = 800, -- The width of the popup
+  height = 300, -- The height of the popup
+  width = 400, -- The width of the popup
   placement_fn = function(c) -- Place the widget using awful.placement (this overrides x & y)
     awful.placement.top_left(c, {
       margins = {
@@ -21,43 +21,56 @@ bling.widget.task_preview.enable {
     })
   end,
   -- Your widget will automatically conform to the given size due to a constraint container.
-  widget_structure = {
+  structure = {
     {
       {
         {
           {
+            id = "icon_role",
+            resize = true,
+            forced_height = dpi(28),
+            forced_width = dpi(28),
+            widget = wibox.widget.imagebox,
+          },
+          {
             {
-              id = 'icon_role',
-              widget = awful.widget.clienticon, -- The client icon
-            },
-            {
-              id = 'name_role', -- The client name / title
+              id = "name_role",
+              align = "center",
               ellipsize = "end",
-              font = beautiful.font_name .. "Bold 11",
               widget = wibox.widget.textbox,
             },
-            layout = wibox.layout.flex.horizontal
+            left = dpi(4),
+            right = dpi(4),
+            widget = wibox.container.margin,
           },
-          margins = 4,
-          widget = wibox.container.margin,
+          layout = wibox.layout.align.horizontal,
         },
         {
-          id = 'image_role', -- The client preview
-          resize = true,
-          valign = 'center',
-          halign = 'center',
-          forced_width = 32,
-          forced_height = 32,
-          awful.widget.clienticon,
+          {
+            {
+              id = "image_role",
+              resize = true,
+              clip_shape = util.rounded_shape(16),
+              widget = wibox.widget.imagebox,
+            },
+            valign = "center",
+            halign = "center",
+            widget = wibox.container.place,
+          },
+          top = 8 * 0.25,
+          widget = wibox.container.margin,
         },
-        layout = wibox.layout.fixed.vertical
+        fill_space = true,
+        layout = wibox.layout.fixed.vertical,
       },
-      margins = 2,
+      margins = 8,
       widget = wibox.container.margin,
     },
-    bg     = beautiful.blue,
-    shape  = util.rounded_shape(8),
-    layout = wibox.container.background
+    bg = beautiful.background,
+    shape_border_width = 3,
+    shape_border_color = beautiful.blue,
+    shape = util.rounded_shape(16),
+    widget = wibox.container.background,
   }
 }
 return function(s)

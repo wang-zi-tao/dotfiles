@@ -5,6 +5,13 @@ all:
 	make huawei-ecs ARGS="$(ARGS)" || true
 	make aliyun-hk ARGS="$(ARGS)" || true
 	make aliyun-ecs ARGS="$(ARGS)" || true
+compile-all: 
+	make self ARGS="--option binary-caches '' $(ARGS)" 
+	make wangzi-pc ARGS="--option binary-caches '' $(ARGS)" 
+	make wangzi-nuc ARGS="--option binary-caches '' $(ARGS)" 
+	make huawei-ecs ARGS="--option binary-caches '' $(ARGS)" 
+	make aliyun-hk ARGS="--option binary-caches '' $(ARGS)" 
+	make aliyun-ecs ARGS="--option binary-caches '' $(ARGS)"
 self:
 	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch $(ARGS)
 wangzi-pc:

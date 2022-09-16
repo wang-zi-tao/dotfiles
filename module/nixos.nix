@@ -1,6 +1,7 @@
 { config, pkgs, lib, inputs, ... }:
 with inputs; {
   nix = {
+    package = pkgs.unstable.nix;
     # settings.trusted-substituters = [ "http://${config.cluster.nodes.aliyun-hk.publicIp}" ];
     settings.substituters = [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
@@ -18,7 +19,6 @@ with inputs; {
       "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
     ];
     extraOptions = "experimental-features = nix-command flakes";
-    package = pkgs.nixFlakes;
     gc.automatic = true;
     gc.dates = "weekly";
     gc.options = "-d";
