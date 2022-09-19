@@ -101,5 +101,8 @@
         eval "$(nix print-dev-env --profile "$(direnv_layout_dir)/flake-profile")"
       }
     '';
+    home.file.".config/nix/nix.conf".text = ''
+      experimental-features = nix-command flakes
+    '';
   };
 }

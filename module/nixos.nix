@@ -1,7 +1,6 @@
 { config, pkgs, lib, inputs, ... }:
 with inputs; {
   nix = {
-    package = pkgs.unstable.nix;
     # settings.trusted-substituters = [ "http://${config.cluster.nodes.aliyun-hk.publicIp}" ];
     settings.substituters = [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
@@ -21,7 +20,7 @@ with inputs; {
     extraOptions = "experimental-features = nix-command flakes";
     gc.automatic = true;
     gc.dates = "weekly";
-    gc.options = "-d";
+    gc.options = "-d --delete-older-than 7d";
     optimise.automatic = true;
   };
   networking.proxy.noProxy = "mirrors.tuna.tsinghua.edu.cn,mirrors.ustc.edu.cn,127.0.0.1,localhost";

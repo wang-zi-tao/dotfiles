@@ -3,6 +3,7 @@
   programs.zsh = {
     enable = true;
     autocd = true;
+    enableAutosuggestions = true;
     oh-my-zsh = {
       enable = false;
       # theme = "agnoster";
@@ -27,6 +28,7 @@
       screen.autoStartLocal = true;
       syntaxHighlighting.highlighters = ["main" "brackets" "line"];
       pmodules = [
+        "autosuggestions"
         "environment"
         "git"
         "ssh"
@@ -54,25 +56,11 @@
       {
         name = "zsh-nix-shell";
         file = "nix-shell.plugin.zsh";
-        src = pkgs.fetchFromGitHub {
-          owner = "chisui";
-          repo = "zsh-nix-shell";
-          rev = "v0.2.0";
-          sha256 = "1gfyrgn23zpwv1vj37gf28hf5z0ka0w5qm6286a7qixwv7ijnrx9";
-        };
+        src = pkgs.zsh-nix-shell;
       }
       {
         name = "zsh-syntax-highlighting";
         src = pkgs.zsh-syntax-highlighting;
-      }
-      {
-        name = "zsh-autosuggestions";
-        src = pkgs.fetchFromGitHub {
-          owner = "zsh-users";
-          repo = "zsh-autosuggestions";
-          rev = "v0.4.0";
-          sha256 = "0z6i9wjjklb4lvr7zjhbphibsyx51psv50gm07mbb0kj9058j6kc";
-        };
       }
       {
         name = "zsh-history-substring-search";

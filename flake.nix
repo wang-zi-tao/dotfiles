@@ -16,7 +16,6 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-wayland.url = "github:nix-community/nixpkgs-wayland";
-    nixpkgs-wayland.inputs.master.follows = "master";
     fenix = { url = "github:nix-community/fenix"; };
     flake-compat = {
       url = "github:edolstra/flake-compat";
@@ -72,6 +71,18 @@
     in
     {
       packages = pkgs // {
+        all =
+          let profiles = self.outputs.packages.${system}; in
+          pkgs.stdenv.mkDerivation rec{
+            name = "all";
+            src = ./.;
+            buildInputs = (builtins.map (profile: profile.config.system.build.toplevel) (builtins.attrValues (profiles.nixosConfigurations)))
+              ++ (builtins.map (profile: profile.activationPackage) (builtins.attrValues (profiles.homeConfigurations)));
+            installPhase = ''
+              mkdir $out
+              echo $buildInputs >> $out/all
+            '';
+          };
         nixosConfigurations = builtins.mapAttrs
           (name: value: nixpkgs.lib.nixosSystem {
             inherit pkgs system;
@@ -83,7 +94,7 @@
             ];
           })
           (import-dir ./machine "machine.nix");
-        nixOnDroidConfigurations = builtins.mapAttrs (name: value: nix-on-droid.lib.nixOnDroidConfiguration (value (inputs // { inherit inputs system; }))) (import-dir ./nix-on-droid/profiles "profile.nix");
+        nixOnDroidConfigurations = builtins.mapAttrs (name: value: nix-on-droid.lib.nixOnDroidConfiguration (value (inputs // { inherit pkgs inputs system; }))) (import-dir ./nix-on-droid/profiles "profile.nix");
         homeConfigurations = builtins.mapAttrs
           (name: value: home-manager.lib.homeManagerConfiguration
             (value (inputs // { inherit inputs system pkgs; })))

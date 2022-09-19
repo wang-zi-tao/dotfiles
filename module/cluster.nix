@@ -79,8 +79,8 @@ with lib; with builtins;{
     cluster = {
       network = {
         nodes = {
-          wangzi-pc = { };
-          wangzi-nuc = { };
+          wangzi-pc.config = { localIp = "192.168.32.128"; };
+          wangzi-nuc.config = { localIp = "192.168.32.1"; };
           huawei-ecs.config = { publicIp = "139.9.235.87"; };
           aliyun-hk.config = { publicIp = "47.243.22.114"; };
           aliyun-ecs.config = { publicIp = "116.62.23.116"; };

@@ -1,16 +1,17 @@
 { pkgs, ... }:
 let hostname = "default"; in
 {
-  modules = [
+  imports = [
     ../module/cluster.nix
   ];
   networking.hostName = hostname;
   sops.defaultSopsFile = "/";
-  cluster.nodes."${default}" = {
-    wireguard.enable = false;
+  cluster.network.nodes."${hostname}" = { };
+  cluster.nodes."${hostname}" = {
     guiClient.enable = true;
     guiServer.enable = true;
     develop.enable = true;
+    prometheus.nodeExporter = false;
   };
   boot.initrd.availableKernelModules = [
     "virtio_net"

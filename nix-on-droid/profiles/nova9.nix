@@ -1,10 +1,10 @@
-inputs@{ pkgs, nixpkgs, home-manager, nix-on-droid, ... }:
+inputs@{ pkgs, nixpkgs, home-manager, nix-on-droid, system, ... }:
 let hostname = "wangzi-phone"; in
 {
   config = { pkgs, config, ... }: {
     environment.packages = with pkgs;[ ];
     environment.etcBackupExtension = ".bak";
-    home-manager.config = { ... }: import ../home-manager/profiles/wangzi-mini.nix inputs;
+    home-manager.config = { ... }: import ../../home-manager/profiles/wangzi-mini.nix inputs;
     home-manager.useGlobalPkgs = true;
   };
   extraModules = [

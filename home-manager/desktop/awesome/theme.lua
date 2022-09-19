@@ -9,7 +9,7 @@ local themes_path = gfs.get_themes_dir()
 local theme = dofile(themes_path .. "default/theme.lua")
 
 theme.layoutlist_shape_selected = function(cr, w, h)
-  gears.shape.rounded_rect(cr, w, h, 4)
+    gears.shape.rounded_rect(cr, w, h, 4)
 end
 theme.layoutlist_bg_selected = theme.lighter_bg
 
@@ -168,7 +168,7 @@ theme.tag_preview_widget_border_radius = 16 -- Border radius of the widget (With
 theme.tag_preview_client_border_radius = 16 -- Border radius of each client in the widget (With AA)
 theme.tag_preview_client_opacity = 1 -- Opacity of each client
 theme.tag_preview_client_bg = theme.background -- The bg color of each client
-theme.tag_preview_client_border_color = theme.xcolor12 -- The border color of each client
+theme.tag_preview_client_border_color = theme.background2 -- The border color of each client
 theme.tag_preview_client_border_width = 2 -- The border width of each client
 theme.tag_preview_widget_bg = theme.background -- The bg color of the widget
 theme.tag_preview_widget_border_color = theme.blue -- The border color of the widget
@@ -184,15 +184,15 @@ theme.task_preview_widget_margin = 0 -- The margin of the widget
 
 -- tabbed misc widget(s)
 theme.bling_tabbed_misc_titlebar_indicator = {
-  layout_spacing = dpi(4),
-  icon_size = dpi(20),
-  icon_margin = dpi(4),
-  bg_color_focus = theme.background2,
-  bg_color = theme.background,
-  icon_shape = function(cr, w, h)
-    gears.shape.rounded_rect(cr, w, h, 0)
-  end,
-  layout = wibox.layout.fixed.horizontal,
+    layout_spacing = dpi(4),
+    icon_size = dpi(20),
+    icon_margin = dpi(4),
+    bg_color_focus = theme.background2,
+    bg_color = theme.background,
+    icon_shape = function(cr, w, h)
+        gears.shape.rounded_rect(cr, w, h, 0)
+    end,
+    layout = wibox.layout.fixed.horizontal,
 }
 
 theme.progressbar_bg = theme.background2
@@ -225,7 +225,7 @@ theme.mstab_tabbar_style = "default" -- style of the tabbar ("default", "boxes" 
 -- different style for mstab and tabbed
 
 theme.tasklist_shape = function(cr, w, h)
-  gears.shape.rounded_rect(cr, w, h, dpi(4))
+    gears.shape.rounded_rect(cr, w, h, dpi(4))
 end
 theme.tasklist_bg_focus = theme.blue
 theme.tasklist_bg_normal = theme.background2

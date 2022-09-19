@@ -26,7 +26,7 @@
         {
           plugin = yank;
           extraConfig = ''
-            set -g @custom_copy_command '${pkgs.xclip}/bin/xclip'
+            set -g @custom_copy_command 'xclip'
           '';
         }
         {

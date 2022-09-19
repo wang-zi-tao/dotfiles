@@ -1,4 +1,5 @@
 { config, lib, pkgs, modulesPath, ... }: {
+  services.power-profiles-daemon.enable = false;
   boot.loader =
     {
       systemd-boot.enable = true;

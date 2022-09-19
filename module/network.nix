@@ -7,6 +7,7 @@ with builtins; with lib;with lib.types; with lib.attrsets; let
     nodeOption = { nodeName, nodeConfig, ... }: {
       hostname = mkOption { type = str; default = nodeName; };
       publicIp = mkOption { type = nullOr str; default = null; };
+      localIp = mkOption { type = nullOr str; default = null; };
       ips = mkOption { type = listOf str; default = [ ]; };
     };
   };
@@ -25,15 +26,25 @@ in
         enable = true;
         rejectPackets = true;
       };
-      hosts = listToAttrs (concatLists (mapAttrsToList
-        (nodeName: node:
-          let publicIp = networkCluster.${nodeName}.config.publicIp; in
-          (optional (publicIp != null) {
-            name = publicIp;
-            value = [ nodeName ];
-          }))
-        network.peers)
-      );
+      hosts = listToAttrs
+        (concatLists
+          (mapAttrsToList
+            (nodeName: node:
+              let
+                publicIp = networkCluster.${nodeName}.config.publicIp;
+                localIp = networkCluster.${nodeName}.config.localIp;
+              in
+              (if (publicIp != null) then
+                [{
+                  name = publicIp;
+                  value = [ nodeName ];
+                }] else if (localIp != null) then
+                [{
+                  name = localIp;
+                  value = [ nodeName ];
+                }] else [ ]))
+            network.peers)
+        );
     };
     boot.kernel.sysctl = {
       "net.ipv4.ip_forward" = 1;
