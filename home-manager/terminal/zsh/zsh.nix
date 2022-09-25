@@ -85,7 +85,6 @@
       ps = "procs";
 
       rm = "rmtrash -Iv";
-      del = "command rm -v ";
       # mv = "rsync -avP --delete-delay";
       # mv-origin = "mv";
       bat = "bat --theme=Coldark-Dark";

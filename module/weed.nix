@@ -124,15 +124,19 @@ in
             LimitNOFILE = 500000;
             ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${hostname} ${weed.client.path}/${hostname}";
             ExecStart =
-              ''${pkgs.seaweedfs}/bin/weed mount \
-            -filer=${hostname}:302 \
-            -dir=${weed.client.mount}/${hostname} \
-            -dirAutoCreate \
-            -cacheDir=${weed.client.path}/${hostname} \
-            -cacheCapacityMB=${builtins.toString weed.client.size}
-          '';
+              builtins.toString (pkgs.writeScript "weed-mount" ''
+                #!${pkgs.busybox}/bin/sh
+                ${pkgs.util-linux}/bin/umount ${weed.client.mount}/${hostname} -l || true
+                ${pkgs.seaweedfs}/bin/weed mount \
+                  -filer=${hostname}:302 \
+                  -dir=${weed.client.mount}/${hostname} \
+                  -dirAutoCreate \
+                  -cacheDir=${weed.client.path}/${hostname} \
+                  -cacheCapacityMB=${builtins.toString weed.client.size}
+              '');
+            KillMode = "none";
+            ExecStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${hostname} -l";
           };
-          postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${hostname} -l";
         }))
         ++ (concatLists
           (mapAttrsToList
@@ -149,17 +153,23 @@ in
                   RestartSec = "2s";
                   LimitNOFILE = 500000;
                   ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${remoteHostname} ${weed.client.path}/${remoteHostname}";
-                  ExecStart = ''${pkgs.seaweedfs}/bin/weed mount \
-              -filer=${mountConfig.ip}:302 \
-              -dir=${weed.client.mount}/${remoteHostname} \
-              -dirAutoCreate \
-              -cacheDir=${weed.client.path}/${remoteHostname} \
-              -cacheCapacityMB=${builtins.toString mountConfig.cacheSize} \
-              -filer.path=/${remoteHostname} \
-              -volumeServerAccess=filerProxy
-                '';
+                  ExecStart =
+                    builtins.toString (pkgs.writeScript "weed-mount" ''
+                      #!${pkgs.busybox}/bin/sh
+                      ${pkgs.util-linux}/bin/umount ${weed.client.mount}/${remoteHostname} -l || true
+                      ${pkgs.seaweedfs}/bin/weed mount \
+                        -filer=${mountConfig.ip}:302 \
+                        -dir=${weed.client.mount}/${remoteHostname} \
+                        -dirAutoCreate \
+                        -cacheDir=${weed.client.path}/${remoteHostname} \
+                        -cacheCapacityMB=${builtins.toString mountConfig.cacheSize} \
+                        -filer.path=/${remoteHostname} \
+                        -volumeServerAccess=filerProxy
+                    ''
+                    );
+                  SendSIGKILL = "no";
+                  ExecStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${remoteHostname} -l";
                 };
-                postStop = "${pkgs.util-linux}/bin/umount ${weed.client.mount}/${remoteHostname} -l";
               })
               link.mountDirs) ++ (mapAttrsToList
               (dir: syncConfig: nameValuePair "seaweedfs-sync-${dir}-${remoteHostname}-${hostname}" {
