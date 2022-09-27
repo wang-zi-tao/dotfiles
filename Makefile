@@ -1,4 +1,5 @@
 all: 
+	nix build ".#all" $(ARGS) 
 	make self ARGS="$(ARGS)" || true
 	make wangzi-pc ARGS="$(ARGS)" || true
 	make wangzi-nuc ARGS="$(ARGS)" || true

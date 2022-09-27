@@ -57,6 +57,7 @@ let formatMeters = side: meters: {
         PERCENT_CPU
         PERCENT_MEM
         IO_READ_RATE
+        IO_WRITE_RATE
         COMM
       ];
     } // (with config.lib.htop;

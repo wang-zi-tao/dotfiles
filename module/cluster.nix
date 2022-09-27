@@ -140,10 +140,15 @@ with lib; with builtins;{
       keys.wireguard.sharedKeySops = ../secrets/public-key.yaml;
       seaweedfs = {
         nodes = {
-          wangzi-pc.config = { client.size = 8 * 1024; };
+          wangzi-pc.config = { client.size = 32 * 1024; };
           wangzi-pc.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
           wangzi-pc.to.wangzi-nuc = {
-            mountDirs = { "wangzi-nuc" = { ip = "192.168.32.1"; }; };
+            mountDirs = {
+              "wangzi-nuc" = {
+                ip = "192.168.32.1";
+                cacheSize = 8192;
+              };
+            };
             syncDirs = {
               "wangzi" = {
                 ipA = "192.168.32.128";
