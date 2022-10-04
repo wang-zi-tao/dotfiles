@@ -24,6 +24,7 @@
   home.file.".config/awesome/rule.lua".source = ./rule.lua;
   home.file.".config/awesome/theme.lua".source = ./theme.lua;
   home.file.".config/awesome/ui.lua".source = ./ui.lua;
+  home.file.".config/awesome/signals.lua".source = ./signals.lua;
   home.file.".config/awesome/module/bling" = {
     source = pkgs.fetchgit {
       url = "https://github.com/BlingCorp/bling";

@@ -7,10 +7,7 @@
           "f2fs"
         ];
       };
-      extraModulePackages = with config.boot.kernelPackages;
-        (lib.optional config.virtualisation.virtualbox.host.enable virtualbox) ++ [
-          acpi_call
-        ];
+      extraModulePackages = with config.boot.kernelPackages; (lib.optional config.virtualisation.virtualbox.host.enable virtualbox);
       kernelParams = [ "quite" ];
     };
     console.earlySetup = true;

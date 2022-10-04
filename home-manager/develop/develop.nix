@@ -99,7 +99,6 @@ in
     kubectl
     kubernetes-helm
 
-    (wangzi-neovim.override { enable-all = config.neovim.full; })
     neovim-remote
     python3
     luajitPackages.luacheck

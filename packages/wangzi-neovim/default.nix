@@ -27,6 +27,7 @@ stdenvNoCC.mkDerivation {
   ];
 
   installPhase = with pkgs.unstable.vimPlugins; ''
+    set -x
     rm default.nix
     mkdir -p $out/
     cp * -r $out/
@@ -187,7 +188,8 @@ stdenvNoCC.mkDerivation {
     cat $out/plugins.lua >> $out/init.lua
     rm $out/plugins.lua
     makeWrapper ${neovim-unwrapped}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
-    --set LUA_PATH "$out/lua/?.lua;${pkgs.vimPlugins.packer-nvim}/lua/?.lua;;"
+        --set LUA_PATH "$out/lua/?.lua;${pkgs.vimPlugins.packer-nvim}/lua/?.lua;;" \
+        --run  'export LD_LIBRARY_PATH="${pkgs.gcc-unwrapped.lib}/lib${"\$"+"{LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"}"'
     cp $out/bin/wnvim $out/bin/nvim
     cp $out/bin/wnvim $out/bin/vim
     cp $out/bin/wnvim $out/bin/vi

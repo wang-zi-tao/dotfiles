@@ -18,6 +18,7 @@
 
     cmake-language-server
     (wangzi-neovim.override { enable-all = config.neovim.full; })
+    gcc-unwrapped.lib
     neovim-remote
     # shfmt
     # shellcheck

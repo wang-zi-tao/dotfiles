@@ -2,7 +2,7 @@
   services = {
     power-profiles-daemon.enable = false;
     tlp = {
-      enable = true;
+      enable = false;
       settings = {
         USB_BLACKLIST = "248a:8368";
         PLATFORM_PROFILE_ON_BAT = "low-power";

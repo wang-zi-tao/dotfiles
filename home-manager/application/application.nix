@@ -12,8 +12,6 @@
     polkit_gnome
     inotify-tools
     upower
-    acpid
-    acpi
 
     xiezuo
     wpsoffice

@@ -85,6 +85,9 @@ return function(s)
                     client.focus:move_to_tag(t)
                 end
             end),
+            awful.button({ "Control" }, 1, function(t)
+                awful.tag.viewtoggle(t)
+            end),
             awful.button({}, 3, awful.tag.viewtoggle),
             awful.button({ mod }, 3, function(t)
                 awesome.emit_signal("bling::tag_preview::visibility", s, false)
@@ -93,12 +96,10 @@ return function(s)
                 end
             end),
             awful.button({}, 4, function(t)
-                awesome.emit_signal("bling::tag_preview::visibility", s, false)
-                awful.tag.viewnext(t.screen)
+                awesome.emit_signal("tag::next::nonempty")
             end),
             awful.button({}, 5, function(t)
-                awesome.emit_signal("bling::tag_preview::visibility", s, false)
-                awful.tag.viewprev(t.screen)
+                awesome.emit_signal("tag::last::nonempty")
             end)
         ),
     })

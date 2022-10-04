@@ -30,5 +30,9 @@ in
       ControlPersist yes
       ServerAliveInterval 360
     '';
+    services.sshguard = {
+      enable = true;
+      whitelist = [ "192.168.0.0/16" ];
+    };
   };
 }

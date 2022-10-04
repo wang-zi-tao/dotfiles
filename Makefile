@@ -1,5 +1,5 @@
 all: 
-	nix build ".#all" $(ARGS) 
+	# nix build ".#all" $(ARGS) 
 	make self ARGS="$(ARGS)" || true
 	make wangzi-pc ARGS="$(ARGS)" || true
 	make wangzi-nuc ARGS="$(ARGS)" || true
@@ -7,13 +7,13 @@ all:
 	make aliyun-hk ARGS="$(ARGS)" || true
 	make aliyun-ecs ARGS="$(ARGS)" || true
 compile-all: 
-	nix build ".#all" --option binary-caches ''
-	nixos-rebuild --flake ".#${HOST}" build $(ARGS) --option binary-caches ''
-	nixos-rebuild --flake '.#wangzi-pc' build $(ARGS) --option binary-caches ''
-	nixos-rebuild --flake '.#wangzi-nuc' build $(ARGS) --option binary-caches ''
-	nixos-rebuild --flake '.#huawei-ecs' build $(ARGS) --option binary-caches ''
-	nixos-rebuild --flake '.#aliyun-hk' build $(ARGS) --option binary-caches ''
-	nixos-rebuild --flake '.#aliyun-ecs' build $(ARGS) --option binary-caches ''
+	nix build ".#all" --option binary-caches '' $(ARGS)
+	nixos-rebuild --flake ".#${HOST}" switch $(ARGS) --target-host root@localhost --option binary-caches ''
+	nixos-rebuild --flake '.#wangzi-pc' switch $(ARGS) --target-host root@192.168.32.128 --option binary-caches ''
+	nixos-rebuild --flake '.#wangzi-nuc' switch $(ARGS) --target-host root@192.168.32.1 --option binary-caches ''
+	nixos-rebuild --flake '.#huawei-ecs' switch $(ARGS) --target-host root@139.9.235.87 --option binary-caches ''
+	nixos-rebuild --flake '.#aliyun-hk' switch $(ARGS) --target-host root@47.243.22.114 --option binary-caches ''
+	nixos-rebuild --flake '.#aliyun-ecs' switch $(ARGS) --target-host root@116.62.23.116 --option binary-caches ''
 compile-install-all: 
 	make self ARGS="--option binary-caches '' $(ARGS)" 
 	make wangzi-pc ARGS="--option binary-caches '' $(ARGS)" 

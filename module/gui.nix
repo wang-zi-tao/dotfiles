@@ -23,7 +23,7 @@
           };
       };
     })
-    (lib.mkIf (! config.cluster.nodeConfig.guiClient.enable) {
+    (lib.mkIf (config.cluster.nodeConfig.guiServer.enable && ! config.cluster.nodeConfig.guiClient.enable) {
       networking.firewall.allowedTCPPorts = [ 10000 ];
       services = {
         xserver = {

@@ -49,7 +49,7 @@
       historySubstring.foundColor = "fg=blue";
       historySubstring.notFoundColor = "dg=red";
       tmux = {
-        autoStartRemote = true;
+        autoStartRemote = false;
       };
     };
     plugins = [
