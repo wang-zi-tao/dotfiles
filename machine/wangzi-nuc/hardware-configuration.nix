@@ -20,6 +20,8 @@
   '';
   boot.extraModprobeConfig = ''
     alias pci:v000014C3d00000608sv*sd*bc*sc*i* mt7921e
+
+    options amdgpu virtual_display=0000:04:00.0,1
   '';
 
   fileSystems."/" =

@@ -8,7 +8,7 @@
     };
     timeout = 1;
   };
-  boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod_latest.extend (self: super: {
+  boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_19.extend (self: super: {
     virtualbox = super.virtualbox.override { inherit (self) kernel; };
   });
   boot.initrd.availableKernelModules =
@@ -19,7 +19,8 @@
   boot.kernelParams = [
     "i915.enable_gvt=1"
     "intel_iommu=on"
-    "i915.enable_guc=0"
+    "i915.enable_guc=1"
+    "i915.enable_fbc=1"
   ];
   boot.extraModulePackages = [ ];
   boot.supportedFilesystems = [ "btrfs" "ext4" "fat32" "ntfs" "f2fs" ];

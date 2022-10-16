@@ -21,6 +21,7 @@
       };
       kvmgt.enable = true;
     };
+    environment.etc."qemu/vhost-user".source = "${pkgs.qemu}/share/qemu/vhost-user";
     /* users.users.virtlyst.group = "virtlyst"; */
     /* users.groups.virtlyst = { }; */
     services.virtlyst.enable = true;

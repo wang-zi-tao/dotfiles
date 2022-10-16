@@ -406,9 +406,8 @@ packer.startup(function(use)
             "SymbolsOutlineOpen",
             "SymbolsOutlineClose",
         },
-        setup = "require('core.plugins.symbols_outline_pre')",
         config = function()
-            require("core.plugins.others").symbols_outline()
+            require("core.plugins.symbols_outline_pre")
         end,
     })
     use({

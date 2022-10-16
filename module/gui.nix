@@ -155,9 +155,11 @@
           alsa-lib
 
           virtualgl
-          tigervnc
+          turbovnc
           # xpraWithNvenc
           xpra
+          xpra-html5
+          pulseaudioFull
           xwayland
           weston
           qrcodegen
