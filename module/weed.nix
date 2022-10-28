@@ -88,7 +88,6 @@ in
               ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.server.path}/weed ${weed.server.path}/master ${weed.server.path}/volume";
               ExecStart =
                 ''${pkgs.seaweedfs}/bin/weed server \
-            -resumeState \
             -ip=${wireguardConfig.clusterIp} \
             -ip.bind=0.0.0.0 \
             -dir=${weed.server.path}/weed \

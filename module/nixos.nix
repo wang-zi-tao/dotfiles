@@ -8,13 +8,13 @@ with inputs; {
       "https://nix-community.cachix.org"
       "https://cache.nixos.org/"
       "https://nixpkgs-wayland.cachix.org"
-      "https://mirror.sjtu.edu.cn/nix-channels/store"
     ] ++ lib.optionals (config.cluster.network.edges.${config.networking.hostName}.config.publicIp != "47.243.22.114") [
-      /* "http://47.243.22.114:5000" */
+      # "http://47.243.22.114:5000"
     ];
-    binaryCachePublicKeys = [
-      /* "47.243.22.114:5000:wfL5ei3BfHGUVpiOihncv1LmbBzjqDm6uTFtJ95wueI=" */
+    settings.trusted-public-keys = [
+      # "47.243.22.114:5000:wfL5ei3BfHGUVpiOihncv1LmbBzjqDm6uTFtJ95wueI="
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
     ];
     extraOptions = "experimental-features = nix-command flakes";
@@ -45,3 +45,4 @@ with inputs; {
   system.stateVersion = "22.05";
   programs.nix-ld.enable = true;
 }
+

@@ -4,7 +4,7 @@ let hostname = "wangzi-phone"; in
   config = { pkgs, config, ... }: {
     environment.packages = with pkgs;[ ];
     environment.etcBackupExtension = ".bak";
-    home-manager.config = { ... }: import ../../home-manager/profiles/wangzi-mini.nix inputs;
+    home-manager.config = { ... }: (import ../../home-manager/profiles/wangzi-mini.nix inputs).configuration;
     home-manager.useGlobalPkgs = true;
   };
   extraModules = [

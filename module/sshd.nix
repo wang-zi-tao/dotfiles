@@ -9,6 +9,7 @@ in
     sops.secrets."ssh-public-keys" = lib.mkIf sops-enable {
       sopsFile = config.cluster.ssh.publicKeySops;
     };
+    nix.sshServe.enable = true;
     services.openssh = {
       enable = true;
       forwardX11 = true;

@@ -1,6 +1,5 @@
 ---
 name: workspace-7
-project_root: "workspace/nixos"
 windows:
 - nixos:
     layout: af43,191x50,0,0,6

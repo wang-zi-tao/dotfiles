@@ -7,6 +7,7 @@ in
     services.nix-serve = {
       enable = true;
       openFirewall = true;
+      secretKeyFile = "/var/cache-priv-key.pem";
     };
   };
 }
