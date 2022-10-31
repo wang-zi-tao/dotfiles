@@ -10,7 +10,7 @@ in
     home-manager.useUserPackages = true;
     users.users.root = {
       shell = pkgs.zsh;
-      hashedPassword =
+      hashedPassword = lib.mkDefault
         "$6$hKb9K3137LuNYU.n$ZZ0uRjIfMSOEyHtunuMorhVIo3QC3PlXgrHwW1Ysp3Bf4eqcouRoX20JHN4C.RYzlzow3MYu4GtugpJeOe0IB.";
     };
     home-manager.users.root = { ... }:
@@ -34,7 +34,7 @@ in
       group = "wangzi";
       description = "王子陶";
       extraGroups =
-        [ "wheel" "networkmanager" "vboxusers" "docker" "lxd" "audio" "libvirtd" ];
+        [ "wheel" "networkmanager" "vboxusers" "docker" "lxd" "audio" "libvirtd" "disk" ];
       hashedPassword = lib.mkDefault
         "$6$Rd67.bPCRXvMahE1$seiawpNy.1eV/CLVBY5qogsP5Z77BIGMW2FvNf51XWi0QU597YpbnfaNjTwQQxKA3mSwBV47dxlkJmqyX1y5x1";
     };

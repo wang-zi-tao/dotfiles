@@ -52,6 +52,12 @@ awful.keyboard.append_global_keybindings({
             client.focus:kill()
         end
     end, { description = "open app launcher", group = "app" }),
+    awful.key({ mod }, "m", function()
+        local focus = client.focus
+        if focus then
+            focus.maximized = not focus.maximized
+        end
+    end, { description = "maximized", group = "app" }),
     awful.key({ mod, shift }, "q", awesome.quit, { description = "quit awesome", group = "WM" }),
     awful.key({ mod, ctrl }, "q", function()
         awesome.emit_signal("module::exit_screen:show")

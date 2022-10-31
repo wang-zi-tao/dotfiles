@@ -8,15 +8,15 @@
         };
       };
       lxd = {
-        enable = false;
+        enable = true;
         package = pkgs.lxd;
         recommendedSysctlSettings = true;
       };
       lxc.lxcfs.enable = true;
       libvirtd = {
         enable = true;
-        /* onBoot = "ignore"; */
-        qemu.package = pkgs.qemu_full;
+        qemu.ovmf.enable = true;
+        qemu.ovmf.package = pkgs.OVMFFull;
       };
       kvmgt.enable = true;
     };

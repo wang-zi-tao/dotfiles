@@ -56,6 +56,7 @@ in
         "class_g = 'rofi'",
         "class_g = 'i3lock'",
         "class_g = 'awesome'",
+        "class_g = 'rdesktop'",
     ];
     frame-opacity = 0.5;
     round-borders = 1;
@@ -64,6 +65,7 @@ in
         "class_g = 'rofi'",
         "class_g = 'Dunst'",
         "class_g = 'awesome'",
+        "class_g = 'rdesktop'",
     ];
     fading = true;
     fade-out-step = 0.05;
@@ -71,3 +73,4 @@ in
     fade-delta = 4;
   '';
 }
+
