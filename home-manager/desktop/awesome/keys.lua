@@ -44,6 +44,9 @@ awful.keyboard.append_global_keybindings({
     awful.key({ mod }, "d", function()
         launcher:toggle()
     end, { description = "open app launcher", group = "app" }),
+    awful.key({ mod }, "s", function()
+        awful.spawn("rofi -combi-modi window -show combi -modi combi -theme ~/.config/rofi/apps.css")
+    end, { description = "open app launcher", group = "app" }),
     awful.key({ mod }, "p", function()
         awful.spawn("gpaste-client ui")
     end, { description = "open gpaste", group = "app" }),

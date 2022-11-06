@@ -177,7 +177,10 @@ return function(s)
                         -- not a widget instance.
                         widget_template = {
                             {
-                                awful.widget.clienticon,
+                                {
+                                    id = "clienticon",
+                                    widget = awful.widget.clienticon,
+                                },
                                 margins = 2,
                                 widget  = wibox.container.margin
                             },
@@ -186,9 +189,12 @@ return function(s)
                             forced_width    = 25,
                             forced_height   = 25,
                             create_callback = function(self, c, _, _)
+                                if (c.class == "rdesktop") then
+                                    local clienticon = self:get_children_by_id("clienticon")[1]
+                                    clienticon.visible = false
+                                end
                                 self:connect_signal("button::press", function()
-                                    awesome.emit_signal("bling::task_preview::visibility", s,
-                                        false, c)
+                                    awesome.emit_signal("bling::task_preview::visibility", s, false, c)
                                     if not c.active then
                                         c:activate({
                                             context = "through_dock",
@@ -200,12 +206,10 @@ return function(s)
                                 end)
                                 self:connect_signal('mouse::enter', function()
                                     awesome.emit_signal("bling::tag_preview::visibility", s, false)
-                                    awesome.emit_signal("bling::task_preview::visibility", s,
-                                        true, c)
+                                    awesome.emit_signal("bling::task_preview::visibility", s, true, c)
                                 end)
                                 self:connect_signal('mouse::leave', function()
-                                    awesome.emit_signal("bling::task_preview::visibility", s,
-                                        false, c)
+                                    awesome.emit_signal("bling::task_preview::visibility", s, false, c)
                                 end)
                             end,
                             layout          = wibox.container.background

@@ -56,7 +56,7 @@
       }
     ];
   };
-  networking.firewall.trustedInterfaces = [ "eno1" "wlp3s0" ];
+  networking.firewall.trustedInterfaces = [ "eno1" "wlp3s0" "lan@eno1" ];
   systemd.network.networks.main.routes.wg.routeConfig = {
     Gateway = "192.168.16.2";
   };

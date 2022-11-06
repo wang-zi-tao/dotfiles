@@ -31,7 +31,6 @@ awful.rules.rules = {
         rule = { class = "rdesktop" },
         properties = {
             maximized = true,
-            ontop = true,
             tag = "8",
         },
     },

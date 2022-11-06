@@ -74,7 +74,7 @@ bling.widget.task_preview.enable {
     }
 }
 return function(s)
-    s.mytasklist = awful.widget.tasklist {
+    local tasklist = awful.widget.tasklist {
         screen          = s,
         -- filter          = awful.widget.tasklist.filter.currenttags,
         filter          = awful.widget.tasklist.filter.alltags,
@@ -119,5 +119,5 @@ return function(s)
             layout          = wibox.container.background
         },
     }
-    return s.mytasklist
+    return tasklist
 end

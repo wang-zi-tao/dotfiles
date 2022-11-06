@@ -35,39 +35,37 @@
     , nix-on-droid
     , sops-nix
     , ...
-    }: flake-utils.lib.eachDefaultSystem (system:
-    let
-      import-dir = dir: file:
-        builtins.listToAttrs (builtins.attrValues (builtins.mapAttrs
-          (name: value:
-            if value == "directory" then {
-              name = name;
-              value = import (dir + "/${name}/${file}");
-            } else {
-              name = builtins.substring 0 (builtins.stringLength name - 4) name;
-              value = import (dir + "/${name}");
-            })
-          (builtins.readDir dir))
-        );
-      pkgs = import nixpkgs {
-        inherit system;
-        config = { allowUnfree = true; };
-        overlays = with builtins;
-          ([
-            nur.overlay
-            fenix.overlay
-            nixpkgs-wayland.overlay
-            (final: prev:
-              {
-                unstable = import inputs.nixpkgs-unstable { system = final.system; config = { allowUnfree = true; }; };
-                scripts = (map
-                  (f: prev.writeScriptBin f (readFile (./scripts + "/${f}")))
-                  (attrNames (readDir ./scripts)));
-              } // (listToAttrs (map (name: { inherit name; value = final.callPackage (./packages + "/${name}") { }; }) (attrNames (readDir ./packages)))))
-          ] ++ (map (name: import (./overlays + "/${name}"))
-            (attrNames (readDir ./overlays))));
-      };
-    in
+    }:
+    let import-dir = dir: file: builtins.listToAttrs (builtins.attrValues (builtins.mapAttrs
+      (name: value:
+        if value == "directory" then {
+          name = name;
+          value = import (dir + "/${name}/${file}");
+        } else {
+          name = builtins.substring 0 (builtins.stringLength name - 4) name;
+          value = import (dir + "/${name}");
+        })
+      (builtins.readDir dir))
+    ); in
+    {
+      nixosModules = (import-dir ./module "module.nix");
+    } // flake-utils.lib.eachDefaultSystem (system:
+    let pkgs = import nixpkgs {
+      inherit system;
+      config = { allowUnfree = true; };
+      overlays = with builtins; ([
+        nur.overlay
+        fenix.overlay
+        nixpkgs-wayland.overlay
+        (final: prev: {
+          unstable = import inputs.nixpkgs-unstable { system = final.system; config = { allowUnfree = true; }; };
+          scripts = (map
+            (f: prev.writeScriptBin f (readFile (./scripts + "/${f}")))
+            (attrNames (readDir ./scripts)));
+        } // (listToAttrs (map (name: { inherit name; value = final.callPackage (./packages + "/${name}") { }; }) (attrNames (readDir ./packages)))))
+      ] ++ (map (name: import (./overlays + "/${name}"))
+        (attrNames (readDir ./overlays))));
+    }; in
     {
       packages = pkgs // {
         all =
@@ -76,12 +74,13 @@
             name = "all";
             src = ./.;
             buildInputs = (builtins.map (profile: profile.config.system.build.toplevel) (builtins.attrValues (profiles.nixosConfigurations)))
-              ++ (builtins.map (profile: profile.activationPackage) (builtins.attrValues (profiles.homeConfigurations)));
+            ++ (builtins.map (profile: profile.activationPackage) (builtins.attrValues (profiles.homeConfigurations)));
             installPhase = ''
               mkdir $out
               echo $buildInputs >> $out/all
             '';
           };
+        nixosModules = (import-dir ./module "module.nix");
         nixosConfigurations = builtins.mapAttrs
           (name: value: nixpkgs.lib.nixosSystem {
             inherit pkgs system;

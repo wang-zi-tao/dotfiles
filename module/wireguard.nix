@@ -133,10 +133,11 @@ in
             let networkNodeConfig = networkCluster.${name}.config; in
             optional (networkNodeConfig.publicIp != null) {
               endPoint =
-                if networkNodeConfig.publicIp != null then
-                  "${networkNodeConfig.publicIp}:${toString (wireguardNode.config.port+1)}"
-                else
-                  "${networkNodeConfig.localIp}:${toString (wireguardNode.config.port+1)}";
+                "${networkNodeConfig.publicIp}:${toString (wireguardNode.config.port+1)}";
+              /* if networkNodeConfig.publicIp != null then */
+              /*   "${networkNodeConfig.publicIp}:${toString (wireguardNode.config.port+1)}" */
+              /* else */
+              /*   "${networkNodeConfig.localIp}:${toString (wireguardNode.config.port+1)}"; */
               adminPort = 52343;
               wgIp = wireguardNode.config.clusterIp2;
             })

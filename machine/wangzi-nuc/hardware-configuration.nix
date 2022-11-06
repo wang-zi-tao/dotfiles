@@ -9,6 +9,9 @@
       };
       timeout = 1;
     };
+  boot.kernelParams = [
+    "amdgpu.virtual_display=0000:04:00.0"
+  ];
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
   boot.initrd.kernelModules = [ "amdgpu" ];
   boot.kernelModules = [ "kvm-amd" "mt7921e" ];
@@ -20,7 +23,6 @@
   '';
   boot.extraModprobeConfig = ''
     alias pci:v000014C3d00000608sv*sd*bc*sc*i* mt7921e
-
     options amdgpu virtual_display=0000:04:00.0,1
   '';
 
