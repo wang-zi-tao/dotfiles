@@ -22,6 +22,16 @@
       };
       kvmgt.enable = true;
     };
+    systemd.services.balloond = {
+      enable = true;
+      wantedBy = [ "libvirtd.service" ];
+      serviceConfig = {
+        Type = "simple";
+        Restart = "always";
+        RestartSec = "5s";
+        ExecStart = "${pkgs.balloond}/bin/balloond -unix /run/libvirt/libvirt-sock -freeAllowance=500000 -interval=2s";
+      };
+    };
     environment.etc."qemu/vhost-user".source = "${pkgs.qemu_full}/share/qemu/vhost-user";
     /* users.users.virtlyst.group = "virtlyst"; */
     /* users.groups.virtlyst = { }; */

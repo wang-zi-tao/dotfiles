@@ -60,7 +60,7 @@ with lib; with builtins;{
     ./display-manager.nix
     ./sshd.nix
     ./container.nix
-    ./virtualmachine.nix
+    ./virtualisation.nix
     ./develop.nix
 
     ./binary-cache.nix

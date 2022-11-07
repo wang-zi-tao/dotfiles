@@ -3,7 +3,6 @@
 , buildGoModule
 , testVersion
 , seaweedfs
-, pkgs
 , buildGo118Module
 }:
 buildGo118Module rec {
