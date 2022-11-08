@@ -156,7 +156,10 @@ with lib; with builtins;{
               };
             };
           };
-          wangzi-nuc.config = { client.size = 64 * 1024; };
+          wangzi-nuc.config = {
+            server.path = "/srv/weed-server";
+            client.size = 8 * 1024;
+          };
           wangzi-nuc.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
           huawei-ecs.config = { client.size = 1 * 1024; };
           huawei-ecs.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };

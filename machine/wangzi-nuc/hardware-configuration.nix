@@ -10,7 +10,6 @@
       timeout = 1;
     };
   boot.kernelParams = [
-    "amdgpu.virtual_display=0000:04:00.0"
   ];
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
   boot.initrd.kernelModules = [ "amdgpu" ];
@@ -23,19 +22,17 @@
   '';
   boot.extraModprobeConfig = ''
     alias pci:v000014C3d00000608sv*sd*bc*sc*i* mt7921e
-    options amdgpu virtual_display=0000:04:00.0,1
   '';
 
   fileSystems."/" =
     {
-      device = "/dev/disk/by-uuid/e7cafd36-879f-4bae-8cd3-060799c7ab74";
-      noCheck = false;
-      fsType = "f2fs";
+      device = "/dev/disk/by-uuid/b0e6efba-4627-4326-96db-e649592ce2c9";
+      fsType = "ext4";
     };
 
   fileSystems."/boot" =
     {
-      device = "/dev/disk/by-uuid/EC25-D9C6";
+      device = "/dev/disk/by-uuid/21E6-1EB0";
       fsType = "vfat";
     };
   fileSystems."/mnt/weed/server" = {
