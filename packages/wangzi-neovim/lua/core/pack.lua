@@ -42,10 +42,10 @@ packer.startup(function(use)
             require("impatient")
         end,
     })
-    use({
-        n.filetype or "nathom/filetype.nvim",
-        as = "filetype"
-    })
+    -- use({
+    --     n.filetype or "nathom/filetype.nvim",
+    --     as = "filetype"
+    -- })
 
     use({
         n.onedark_nvim or "navarasu/onedark.nvim",
@@ -467,12 +467,12 @@ packer.startup(function(use)
         as = "undotree",
         cmd = "UndotreeToggle",
     })
-    use({
-        n.ts_rainbow or "p00f/nvim-ts-rainbow",
-        as = "ts_rainbow",
-        after = "nvim_treesitter",
-        requires = "nvim_treesitter",
-    })
+    -- use({
+    --     n.ts_rainbow or "p00f/nvim-ts-rainbow",
+    --     as = "ts_rainbow",
+    --     after = "nvim_treesitter",
+    --     requires = "nvim_treesitter",
+    -- })
     use({
         n.diffview or "sindrets/diffview.nvim",
         as = "diffview",

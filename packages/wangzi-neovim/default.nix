@@ -10,7 +10,7 @@
 , enable-all ? true
 , enable-debuger ? enable-all
 , enable-markdown-preview ? enable-all
-, enable-tabnine ? enable-all
+, enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux" || pkgs.system == "x86_64-darwin")
 }:
 
 stdenvNoCC.mkDerivation {
