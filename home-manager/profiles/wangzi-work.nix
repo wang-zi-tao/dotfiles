@@ -1,8 +1,8 @@
-{ nixpkgs, home-manager, pkgs, system, ... }:
+{ nixpkgs, home-manager, pkgs, ... }:
 let lib = pkgs.lib; in
 {
   pkgs = pkgs;
-  system = system;
+  system = pkgs.system;
   username = "wangzi";
   homeDirectory = "/home/wangzi";
   configuration = {

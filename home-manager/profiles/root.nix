@@ -1,8 +1,6 @@
-{ nixpkgs, home-manager, pkgs, ... }:
-let system = "x86_64-linux"; in
-{
+{ nixpkgs, home-manager, pkgs, ... }: {
   pkgs = pkgs;
-  system = system;
+  system = pkgs.system;
   username = "root";
   homeDirectory = "/root";
   configuration.imports = [

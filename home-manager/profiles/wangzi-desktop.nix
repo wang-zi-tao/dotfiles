@@ -1,6 +1,6 @@
-{ nixpkgs, home-manager, pkgs, system, ... }: {
+{ nixpkgs, home-manager, pkgs, ... }: {
   pkgs = pkgs;
-  system = system;
+  system = pkgs.system;
   username = "wangzi";
   homeDirectory = "/home/wangzi";
   configuration = {

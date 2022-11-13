@@ -1,5 +1,5 @@
-{ config, pkgs, lib, inputs, ... }:
-with inputs; {
+{ config, pkgs, lib, nixpkgs, nixpkgs-unstable, nur, ... }:
+{
   nix = {
     # settings.trusted-substituters = [ "http://${config.cluster.nodes.aliyun-hk.publicIp}" ];
     settings.substituters = [
@@ -34,7 +34,7 @@ with inputs; {
   nix.registry.unstable.flake = nixpkgs-unstable;
   nix.registry.nur.flake = nur;
   system.autoUpgrade = {
-    enable = true;
+    enable = false;
     flake = "github:wang-zi-tao/dotfiles";
     randomizedDelaySec = "30min";
     dates = "12:00";

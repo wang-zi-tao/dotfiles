@@ -7,22 +7,9 @@ all:
 	make aliyun-hk ARGS="$(ARGS)" || true
 	make aliyun-ecs ARGS="$(ARGS)" || true
 compile-all: 
-	nix build ".#all" --option binary-caches '' $(ARGS)
-	nixos-rebuild --flake ".#${HOST}" switch $(ARGS) --target-host root@localhost --option binary-caches ''
-	nixos-rebuild --flake '.#wangzi-pc' switch $(ARGS) --target-host root@192.168.32.128 --option binary-caches ''
-	nixos-rebuild --flake '.#wangzi-nuc' switch $(ARGS) --target-host root@192.168.32.1 --option binary-caches ''
-	nixos-rebuild --flake '.#huawei-ecs' switch $(ARGS) --target-host root@139.9.235.87 --option binary-caches ''
-	nixos-rebuild --flake '.#aliyun-hk' switch $(ARGS) --target-host root@47.243.22.114 --option binary-caches ''
-	nixos-rebuild --flake '.#aliyun-ecs' switch $(ARGS) --target-host root@116.62.23.116 --option binary-caches ''
-compile-install-all: 
-	make self ARGS="--option binary-caches '' $(ARGS)" 
-	make wangzi-pc ARGS="--option binary-caches '' $(ARGS)" 
-	make wangzi-nuc ARGS="--option binary-caches '' $(ARGS)" 
-	make huawei-ecs ARGS="--option binary-caches '' $(ARGS)" 
-	make aliyun-hk ARGS="--option binary-caches '' $(ARGS)" 
-	make aliyun-ecs ARGS="--option binary-caches '' $(ARGS)"
+	
 self:
-	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch $(ARGS)
+	nix run github:serokell/deploy-rs -- -d --fast-connection true -c
 wangzi-pc:
 	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.32.128 switch $(ARGS) || \
 	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.16.11 switch $(ARGS) || \

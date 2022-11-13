@@ -8,9 +8,7 @@
     };
     timeout = 1;
   };
-  boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_19.extend (self: super: {
-    virtualbox = super.virtualbox.override { inherit (self) kernel; };
-  });
+  boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_15;
   boot.initrd.availableKernelModules =
     [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" ];
   boot.initrd.kernelModules = [ ];

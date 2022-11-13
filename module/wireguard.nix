@@ -99,6 +99,8 @@ in
                     "127.0.0.1:${toString (otherNodeWireguardConfig.index + 40000)}"
                   else if otherNodeNetworkConfig.publicIp != null then
                     "${otherNodeNetworkConfig.publicIp}:${toString otherNodeWireguardConfig.port}"
+                  else if otherNodeNetworkConfig.localIp != null then
+                    "${otherNodeNetworkConfig.localIp}:${toString otherNodeWireguardConfig.port}"
                   else
                     null;
                 allowedIPs = [ otherNodeWireguardConfig.clusterIp otherNodeWireguardConfig.clusterIpRange ] ++ otherNodeWireguardConfig.clusterIps ++
