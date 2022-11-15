@@ -1,15 +1,9 @@
 all: 
-	# nix build ".#all" $(ARGS) 
-	make self ARGS="$(ARGS)" || true
-	make wangzi-pc ARGS="$(ARGS)" || true
-	make wangzi-nuc ARGS="$(ARGS)" || true
-	make huawei-ecs ARGS="$(ARGS)" || true
-	make aliyun-hk ARGS="$(ARGS)" || true
-	make aliyun-ecs ARGS="$(ARGS)" || true
+	nix run .\#deploy-rs -- -d --fast-connection true -c
 compile-all: 
 	
 self:
-	nix run github:serokell/deploy-rs -- -d --fast-connection true -c
+	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch $(ARGS)
 wangzi-pc:
 	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.32.128 switch $(ARGS) || \
 	nixos-rebuild --flake '.#wangzi-pc' --target-host root@192.168.16.11 switch $(ARGS) || \

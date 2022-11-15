@@ -1,5 +1,4 @@
 { stdenvNoCC
-, neovim-unwrapped
 , lib
 , fetchFromGitHub
 , pkgs
@@ -13,6 +12,9 @@
 , enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux" || pkgs.system == "x86_64-darwin")
 }:
 
+let
+  neovim-unwrapped = pkgs.unstable.neovim-unwrapped;
+in
 stdenvNoCC.mkDerivation {
   pname = "wangzi-neovim";
   version = "1.0.0";
