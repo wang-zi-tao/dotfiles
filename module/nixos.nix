@@ -4,10 +4,10 @@
     # settings.trusted-substituters = [ "http://${config.cluster.nodes.aliyun-hk.publicIp}" ];
     settings.substituters = [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
-      "https://mirrors.ustc.edu.cn/nix-channels/store"
-      "https://nix-community.cachix.org"
       "https://cache.nixos.org/"
+      "https://nix-community.cachix.org"
       "https://nixpkgs-wayland.cachix.org"
+      "https://mirrors.ustc.edu.cn/nix-channels/store"
     ] ++ lib.optionals (config.cluster.network.edges.${config.networking.hostName}.config.publicIp != "47.243.22.114") [
       # "http://47.243.22.114:5000"
     ];

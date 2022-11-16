@@ -1,4 +1,6 @@
-{ nixpkgs, home-manager, pkgs, ... }: {
+{ nixpkgs, home-manager, pkgs, ... }:
+let lib = pkgs.lib; in
+{
   pkgs = pkgs;
   system = pkgs.system;
   username = "wangzi";
@@ -7,5 +9,6 @@
     imports = [
       ../terminal/terminal.nix
     ];
+    programs.zsh.enableCompletion = lib.mkForce false;
   };
 }

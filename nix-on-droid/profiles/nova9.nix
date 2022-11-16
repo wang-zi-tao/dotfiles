@@ -6,17 +6,7 @@ let
 in
 nix-on-droid.lib.nixOnDroidConfiguration {
   config = { pkgs, config, ... }: {
-    environment.packages = with pkgs;[ ];
-    environment.etcBackupExtension = ".bak";
-    home-manager.config = { ... }: (import ../../home-manager/profiles/wangzi-mini.nix (inputs // { inherit pkgs; })).configuration;
-    home-manager.useGlobalPkgs = true;
-  };
-  extraModules = [
-    # import source out-of-tree modules like:
-    # flake.nixOnDroidModules.module
-  ];
-  extraSpecialArgs = {
-    # arguments to be available in every nix-on-droid module
+    imports = [ ../mobile.nix ];
   };
   inherit pkgs system;
 }

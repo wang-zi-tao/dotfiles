@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 command=$1
 shift
 case $command in
