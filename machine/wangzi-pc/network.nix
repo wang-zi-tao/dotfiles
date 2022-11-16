@@ -49,4 +49,5 @@
       };
     };
   };
+  networking.firewall.trustedInterfaces = [ "enp3s0" ];
 }

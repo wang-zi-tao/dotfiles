@@ -1,10 +1,14 @@
-inputs@{ pkgs, nixpkgs, home-manager, nix-on-droid, system, ... }:
-let hostname = "wangzi-phone"; in
-{
+inputs@{ pkgs-template, nixpkgs, home-manager, nix-on-droid, ... }:
+let
+  hostname = "wangzi-M6";
+  system = "aarch64-linux";
+  pkgs = pkgs-template system;
+in
+nix-on-droid.lib.nixOnDroidConfiguration {
   config = { pkgs, config, ... }: {
     environment.packages = with pkgs;[ ];
     environment.etcBackupExtension = ".bak";
-    home-manager.config = { ... }: import ../../home-manager/profiles/wangzi-mini.nix inputs;
+    home-manager.config = { ... }: import ../../home-manager/profiles/wangzi-mini.nix (inputs // { inherit pkgs; });
     home-manager.useGlobalPkgs = true;
   };
   extraModules = [

@@ -1,7 +1,6 @@
 all: 
 	nix run .\#deploy-rs -- -d --fast-connection true -c
 compile-all: 
-	
 self:
 	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch $(ARGS)
 wangzi-pc:
@@ -30,4 +29,9 @@ update:
 	nix flake update
 	make ARGS="$(ARGS)"
 home:
-	home-manager switch --flake ".#$(PROFILE)"
+	result=$(mktemp -d)
+	trap "rm $(result)" EXIT
+	os_name=$(uname)
+	echo nix build ".#homeConfigurations.$(uname -m)-${os_name,,}.$(PROFILE).activation-script" --out-link $(result)/result
+	echo bash $result/result/activate
+

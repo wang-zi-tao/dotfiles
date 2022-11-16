@@ -1,15 +1,15 @@
 { config, lib, pkgs, modulesPath, ... }: {
   services.power-profiles-daemon.enable = false;
-  boot.loader =
-    {
-      systemd-boot.enable = true;
-      systemd-boot.configurationLimit = 5;
-      efi = {
-        canTouchEfiVariables = true;
-      };
-      timeout = 1;
+  boot.loader = {
+    systemd-boot.enable = true;
+    systemd-boot.configurationLimit = 5;
+    efi = {
+      canTouchEfiVariables = true;
     };
+    timeout = 1;
+  };
   boot.kernelParams = [
+    "amdgpu.virtual_display=0000:04:00.0,1"
   ];
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
   boot.initrd.kernelModules = [ "amdgpu" ];

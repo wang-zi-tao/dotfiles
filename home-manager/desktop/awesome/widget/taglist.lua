@@ -6,7 +6,7 @@ local xresources = require("beautiful.xresources")
 local dpi = xresources.apply_dpi
 local util = require("widget.util")
 local bling = require("module.bling")
-local workspace_names = { " ", " ", "", " ", "", " ", " ", " ", "" }
+local workspace_names = { " ", " ", "", " ", "", "", " ", " ", "" }
 bling.widget.tag_preview.enable({
     show_client_content = true, -- Whether or not to show the client content x = 30, -- The x-coord of the popup
     y = 30, -- The y-coord of the popup

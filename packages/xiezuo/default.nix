@@ -7,50 +7,12 @@
 , libsForQt5
 , xorg
 , alsa-lib
-, atk
-, bzip2
-, cairo
 , cups
-, dbus
-, expat
-, ffmpeg
-, fontconfig
-, freetype
-, gdk-pixbuf
-, glib
-, gperftools
-, gtk2-x11
-, libICE
-, libpng12
-, libSM
-, libtool
-, libuuid
-, libX11
-, libxcb
-, libXcomposite
-, libXcursor
 , libXdamage
-, libXext
-, libXfixes
-, libXi
-, libxml2
-, libXrandr
-, libXrender
-, libXScrnSaver
-, libXtst
 , nspr
-, nss
-, openssl
-, pango
-, sqlite
-, unixODBC
-, xz
-, zlib
-, libcxxabi
 , libcxx
-, qt4
-, zulip
 , steam
+, mesa
 }:
 stdenv.mkDerivation rec {
   pname = "xiezuo";
@@ -73,88 +35,21 @@ stdenv.mkDerivation rec {
     hydraPlatforms = [ ];
     license = licenses.unfreeRedistributable;
   };
-
-
   dontPatchELF = true;
-
-  # wpsoffice uses `/build` in its own build system making nix things there
-  # references to nix own build directory
   noAuditTmpdir = true;
-
-  unvendoredLibraries = [
-    # Have to use parts of the vendored qt4
-    #"Qt"
-    # "SDL2"
-    # "bz2"
-    # "avcodec"
-    # "avdevice"
-    # "avformat"
-    # "avutil"
-    # "swresample"
-    # "swscale"
-    # "jpeg"
-    # "png"
-    # "c++"
-    # "ssl"
-    # "crypto"
-    # "nspr"
-    # "nss"
-    # "odbc"
-    # "tcmalloc" # gperftools
-  ];
   autoPatchelfIgnoreMissingDeps = [ ];
   buildInputs = with xorg; [
     alsa-lib
-    atk
-    bzip2
-    cairo
-    dbus.lib
-    expat
-    ffmpeg
-    fontconfig
-    freetype
-    gdk-pixbuf
-    glib
-    gperftools
-    gtk2-x11
-    libICE
-    libSM
-    libX11
-    libXScrnSaver
-    libXcomposite
-    libXcursor
     libXdamage
-    libXext
-    libXfixes
-    libXi
-    libXrandr
-    libXrender
-    libXtst
-    libpng12
-    libtool
-    libuuid
-    libxcb
-    libxml2
-    xz
     nspr
-    nss
-    openssl
-    pango
-    qt4
-    libsForQt5.qt5.qtbase
-    sqlite
-    unixODBC
-    zlib
     cups.lib
-    libcxxabi
     libcxx
-
-    xorg.libxshmfence
+    libxshmfence
     libsForQt5.fcitx-qt5
+    mesa
   ];
-  libPath = with xorg;
-    lib.makeLibraryPath (buildInputs ++ [ ]);
-
+  # libPath = with xorg;
+  #   lib.makeLibraryPath buildInputs;
   installPhase =
     let
       steam-run = (steam.override {
@@ -166,10 +61,10 @@ stdenv.mkDerivation rec {
       mkdir -p $out
       cp -r opt $out
       cp -r usr/* $out
-      patchelf \
-        --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-        --force-rpath --set-rpath "${stdenv.cc.cc.lib}/lib64:${libPath}:$(patchelf --print-rpath $prefix/xiezuo)" \
-        $prefix/xiezuo
+      # patchelf \
+      #   --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+      #   --force-rpath --set-rpath "${stdenv.cc.cc.lib}/lib64:$(patchelf --print-rpath $prefix/xiezuo)" \
+      #   $prefix/xiezuo
       mkdir $out/bin
       makeWrapper ${steam-run}/bin/steam-run $out/bin/xiezuo \
         --add-flags $prefix/xiezuo \

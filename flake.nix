@@ -75,11 +75,6 @@
       let pkgs = pkgs-template system; in
       {
         inherit pkgs;
-        nixOnDroidConfigurations = builtins.mapAttrs (name: value: nix-on-droid.lib.nixOnDroidConfiguration (value (inputs // { inherit pkgs inputs system; }))) (import-dir ./nix-on-droid/profiles "profile.nix");
-        homeConfigurations = builtins.mapAttrs
-          (name: value: home-manager.lib.homeManagerConfiguration
-            (value (inputs // { inherit inputs system pkgs; })))
-          (import-dir ./home-manager/profiles "home.nix");
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [ sops gnumake git rnix-lsp nixfmt nix-du sumneko-lua-language-server nixos-generators wangzi-neovim pkgs.home-manager deploy-rs.defaultPackage.${system} ];
         };
@@ -99,11 +94,18 @@
           unstable = pkgs.unstable;
           nur = pkgs.nur;
         };
+        homeConfigurations = builtins.mapAttrs
+          (name: value: home-manager.lib.homeManagerConfiguration
+            (value (inputs // { inherit inputs system pkgs; })))
+          (import-dir ./home-manager/profiles "home.nix");
       })
     // {
       nixosConfigurations = builtins.mapAttrs
         (name: value: value ({ inherit pkgs-template; } // inputs))
         (import-dir ./machine "machine.nix");
+      nixOnDroidConfigurations = builtins.mapAttrs
+        (name: value: (value (inputs // { inherit pkgs-template; })))
+        (import-dir ./nix-on-droid/profiles "profile.nix");
       nixosModules = (import-dir ./module "module.nix");
       checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
       deploy.nodes = builtins.listToAttrs (builtins.map
