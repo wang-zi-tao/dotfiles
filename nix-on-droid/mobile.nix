@@ -2,7 +2,6 @@ inputs@{ pkgs, lib, config, nixpkgs, nur, nixpkgs-unstable, ... }: {
   environment.packages = with pkgs;[
     gnugrep
     gnused
-    command-not-found
   ];
   home-manager.config = { ... }: (import ../home-manager/profiles/wangzi-mini.nix (inputs // { inherit pkgs; })).configuration;
   home-manager.useGlobalPkgs = true;
@@ -10,7 +9,6 @@ inputs@{ pkgs, lib, config, nixpkgs, nur, nixpkgs-unstable, ... }: {
   system.stateVersion = "22.05";
   terminal.font = "${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/Iosevka Nerd Font Complete Mono.ttf";
   time.timeZone = "Asia/Shanghai";
-
   nix = {
     substituters = [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
@@ -32,8 +30,6 @@ inputs@{ pkgs, lib, config, nixpkgs, nur, nixpkgs-unstable, ... }: {
     registry.unstable.flake = nixpkgs-unstable;
     registry.nur.flake = nur;
   };
-  nixpkgs.config.allowUnfree = true;
-  time.timeZone = "Asia/Shanghai";
   environment.etc.nixos = {
     source = ../.;
   };

@@ -5,8 +5,6 @@ let
   pkgs = pkgs-template system;
 in
 nix-on-droid.lib.nixOnDroidConfiguration {
-  config = { pkgs, config, ... }: {
-    imports = [ ../mobile.nix ];
-  };
+  modules = [ ../mobile.nix ];
   inherit pkgs system;
 }
