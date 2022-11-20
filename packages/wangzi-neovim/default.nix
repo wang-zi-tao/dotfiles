@@ -4,6 +4,7 @@
 , pkgs
 , makeWrapper
 , vimPlugins
+, neovim-unwrapped
 , neovim-remote
 , gcc
 , enable-all ? true
@@ -13,7 +14,7 @@
 }:
 
 let
-  neovim-unwrapped = pkgs.unstable.neovim-unwrapped;
+  #  neovim-unwrapped = pkgs.unstable.neovim-unwrapped;
 in
 stdenvNoCC.mkDerivation {
   pname = "wangzi-neovim";

@@ -47,7 +47,10 @@
   };
   services.xserver = {
     modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput xf86videovesa ];
-    videoDrivers = [ "nvidia" ];
+    videoDrivers = [
+      "nvidia"
+      /* "modesetting" */
+    ];
   };
   virtualisation.kvmgt.vgpus = {
     i915-GVTg_V5_8.uuid = [ ];

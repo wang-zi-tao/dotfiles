@@ -11,9 +11,9 @@ stdenv.mkDerivation rec {
     mkdir -p $out/bin
     cp . $out -r
     makeWrapper ${xpra}/bin/xpra $out/bin/xpra-html5-start \
-        --add-flags "start --html=$out"
+        --add-flags "--html=$out start"
     makeWrapper ${xpra}/bin/xpra $out/bin/xpra-html5-shadow \
-        --add-flags "shadow --html=$out"
+        --add-flags "--html=$out shadow"
   '';
   nativeBuildInputs = [ ];
   buildInputs = [ makeWrapper ];

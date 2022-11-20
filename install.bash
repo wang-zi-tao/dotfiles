@@ -33,4 +33,12 @@ nixos)
 		nixos-rebuild --flake ".#$host" --target-host root@$host.wg switch $@ ||
 		nixos-rebuild --flake ".#$host" --target-host root@$host.wg1 switch $@
 	;;
+repl)
+	SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+	exec nix run $SCRIPT_DIR\#repl
+	;;
+*)
+	echo "unknown subcommand $command"
+	false
+	;;
 esac

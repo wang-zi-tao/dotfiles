@@ -1,4 +1,4 @@
-{ nixpkgs, home-manager, pkgs, ... }:
+{ pkgs, ... }:
 let lib = pkgs.lib; in
 {
   pkgs = pkgs;

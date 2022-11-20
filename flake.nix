@@ -20,9 +20,6 @@
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-wayland.url = "github:nix-community/nixpkgs-wayland";
     fenix = { url = "github:nix-community/fenix"; };
-    flake-compat = {
-      url = "github:edolstra/flake-compat";
-    };
     sops-nix.url = "github:Mic92/sops-nix";
     flake-utils.url = "github:numtide/flake-utils";
   };
@@ -33,7 +30,6 @@
     , fenix
     , nixpkgs
     , nixpkgs-wayland
-    , flake-compat
     , flake-utils
     , nix-on-droid
     , sops-nix
@@ -58,7 +54,7 @@
         overlays = with builtins; ([
           deploy-rs.overlay
           nur.overlay
-          fenix.overlay
+          fenix.overlays.default
           nixpkgs-wayland.overlay
           (final: prev: {
             unstable = import inputs.nixpkgs-unstable { system = final.system; config = { allowUnfree = true; }; };
