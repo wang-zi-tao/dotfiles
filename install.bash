@@ -9,19 +9,15 @@ nix-boost) sh <(curl -L https://nixos.org/nix/install) --daemon ;;
 home-manager)
 	profile=$1
 	shift
-	result=$(mktemp -d)
-	trap "rm $result -r" EXIT
 	os_name=$(uname)
-	$nix build ".#homeConfigurations.$(uname -m)-${os_name,,}.$profile.activationPackage" --out-link $result/result $@
-	bash $result/result/activate
+	$nix build ".#homeConfigurations.$(uname -m)-${os_name,,}.$profile.activationPackage" $@
+	bash ./result/activate
 	;;
 nix-on-droid)
 	profile=$1
 	shift
-	result=$(mktemp -d)
-	trap "rm $result -r" EXIT
-	$nix build ".#nixOnDroidConfigurations.$profile.activationPackage" --out-link $result/result $@ --impure
-	bash $result/result/activate
+	$nix build ".#nixOnDroidConfigurations.$profile.activationPackage" $@ --impure
+	bash ./result/activate
 	;;
 nixos-self)
 	nixos-rebuild --flake ".#${HOST}" --target-host root@localhost switch $@ ||
