@@ -21,8 +21,7 @@ stdenv.mkDerivation rec {
     unzip -d . $src
     cp "Iosevka Term Nerd Font Complete.ttf" $out/share/fonts/truetype
     cp "Iosevka Nerd Font Complete.ttf" $out/share/fonts/truetype
-    ls $out/share/fonts/truetype/ -lah
-    ln -s "$out/share/fonts/truetype/Iosevka Nerd Font Complete Mono.ttf" "$out/share/fonts/truetype/IosevkaNerdFontCompleteMono.ttf"
+    ln -s "$out/share/fonts/truetype/Iosevka Term Nerd Font Complete.ttf" "$out/share/fonts/truetype/IosevkaTermNerdFontComplete.ttf"
     ln -s "$out/share/fonts/truetype/Iosevka Nerd Font Complete.ttf" "$out/share/fonts/truetype/IosevkaNerdFontComplete.ttf"
   '';
 

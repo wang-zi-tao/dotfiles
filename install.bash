@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
 command=$1
+nix=(nix --experimental-features "nix-command flakes")
 shift
 case $command in
 deploy) nix run .\#deploy-rs -- -d --fast-connection true -c ;;
@@ -11,7 +12,7 @@ home-manager)
 	result=$(mktemp -d)
 	trap "rm $result -r" EXIT
 	os_name=$(uname)
-	nix build ".#homeConfigurations.$(uname -m)-${os_name,,}.$profile.activationPackage" --out-link $result/result $@
+	$nix build ".#homeConfigurations.$(uname -m)-${os_name,,}.$profile.activationPackage" --out-link $result/result $@
 	bash $result/result/activate
 	;;
 nix-on-droid)
@@ -19,7 +20,7 @@ nix-on-droid)
 	shift
 	result=$(mktemp -d)
 	trap "rm $result -r" EXIT
-	nix build ".#nixOnDroidConfigurations.$profile.activationPackage" --out-link $result/result $@ --impure
+	$nix build ".#nixOnDroidConfigurations.$profile.activationPackage" --out-link $result/result $@ --impure
 	bash $result/result/activate
 	;;
 nixos-self)
@@ -35,7 +36,10 @@ nixos)
 	;;
 repl)
 	SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-	exec nix run $SCRIPT_DIR\#repl
+	$nix run $SCRIPT_DIR\#repl
+	;;
+nix)
+	$nix $@
 	;;
 *)
 	echo "unknown subcommand $command"

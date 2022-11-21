@@ -7,7 +7,7 @@ inputs@{ pkgs, lib, config, nixpkgs, nur, nixpkgs-unstable, ... }: {
   home-manager.useGlobalPkgs = true;
   user.shell = "${pkgs.zsh}/bin/zsh";
   system.stateVersion = "22.05";
-  terminal.font = "${pkgs.iosevka-nerd}/share/fonts/truetype/NerdFonts/IosevkaNerdFontCompleteMono.ttf";
+  terminal.font = "${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/IosevkaTermNerdFontComplete.ttf";
   time.timeZone = "Asia/Shanghai";
   nix = {
     substituters = [
