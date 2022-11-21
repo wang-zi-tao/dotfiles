@@ -72,7 +72,18 @@
       {
         inherit pkgs;
         devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [ sops gnumake git rnix-lsp nixfmt nix-du sumneko-lua-language-server nixos-generators wangzi-neovim pkgs.home-manager deploy-rs.defaultPackage.${system} ];
+          buildInputs = with pkgs; [
+            sops
+            git
+            rnix-lsp
+            nixfmt
+            nix-du
+            sumneko-lua-language-server
+            nixos-generators
+            (wangzi-neovim.override { enable-all = false; })
+            pkgs.home-manager
+            deploy-rs.defaultPackage.${system}
+          ];
         };
         apps.repl = flake-utils.lib.mkApp {
           drv = pkgs.writeShellScriptBin "repl" ''
@@ -117,4 +128,3 @@
         }) [ "wangzi-pc" "wangzi-nuc" "aliyun-hk" "aliyun-ecs" "huawei-ecs" ]);
     };
 }
-

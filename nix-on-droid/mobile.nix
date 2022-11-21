@@ -7,7 +7,7 @@ inputs@{ pkgs, lib, config, nixpkgs, nur, nixpkgs-unstable, ... }: {
   home-manager.useGlobalPkgs = true;
   user.shell = "${pkgs.zsh}/bin/zsh";
   system.stateVersion = "22.05";
-  terminal.font = "${pkgs.nerdfonts}/share/fonts/truetype/NerdFonts/Iosevka Nerd Font Complete Mono.ttf";
+  terminal.font = "${pkgs.iosevka-nerd}/share/fonts/truetype/NerdFonts/IosevkaNerdFontCompleteMono.ttf";
   time.timeZone = "Asia/Shanghai";
   nix = {
     substituters = [
@@ -23,7 +23,6 @@ inputs@{ pkgs, lib, config, nixpkgs, nur, nixpkgs-unstable, ... }: {
       "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
     ];
     extraOptions = "experimental-features = nix-command flakes";
-    nixPath = [ "nixpkgs=${nixpkgs}" ];
     registry.n.flake = nixpkgs;
     registry.nixpkgs.flake = nixpkgs;
     registry.u.flake = nixpkgs-unstable;
