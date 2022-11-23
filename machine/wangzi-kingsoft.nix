@@ -39,6 +39,7 @@ nixpkgs.lib.nixosSystem
       boot.initrd.kernelModules = [ ];
       boot.kernelModules = [ "kvm-intel" ];
       boot.extraModulePackages = [ ];
+      boot.kernelPackages = pkgs.linuxPackages_6_0;
       boot.kernelParams = [
         "i915.enable_gvt=1"
         "intel_iommu=on"

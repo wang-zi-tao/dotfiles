@@ -6,6 +6,8 @@ local xresources = require("beautiful.xresources")
 local dpi = xresources.apply_dpi
 local util = require("widget.util")
 local bling = require("module.bling")
+local icon_black_list = { rdesktop = 1, xz_helper = 1 }
+local window_class_black_list = { xz_helper = 1 }
 local workspace_names = { " ", " ", "", " ", "", "", " ", " ", "" }
 bling.widget.tag_preview.enable({
     show_client_content = true, -- Whether or not to show the client content x = 30, -- The x-coord of the popup
@@ -156,8 +158,8 @@ return function(s)
                 self:get_children_by_id("inner")[1]:setup {
                     awful.widget.tasklist {
                         screen          = s,
-                        filter          = function()
-                            return true;
+                        filter          = function(c)
+                            return window_class_black_list[c.class] == nil;
                         end,
                         source          = function()
                             return tag:clients()
@@ -189,7 +191,7 @@ return function(s)
                             forced_width    = 25,
                             forced_height   = 25,
                             create_callback = function(self, c, _, _)
-                                if (c.class == "rdesktop") then
+                                if (icon_black_list[c.class]) then
                                     local clienticon = self:get_children_by_id("clienticon")[1]
                                     clienticon.visible = false
                                 end

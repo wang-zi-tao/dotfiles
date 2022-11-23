@@ -128,7 +128,7 @@ own() {
 }
 mkcd() { mkdir -p "$1" && cd "$1"; }
 new-nix-shell() {
-  if [[ ! -e flake.nix ]]; then
+  if [[ ! -e shell.nix ]]; then
     cat > shell.nix <<'EOF'
 { pkgs ? import <nixpkgs> {} }:
   pkgs.mkShell {
@@ -137,10 +137,10 @@ new-nix-shell() {
     ];
 }
 EOF
-    ${EDITOR:-vim} flake.nix
+    ${EDITOR:-vim} shell.nix
   fi
   if [ -e ./.git ]; then 
-    git add flake.nix
+    git add shell.nix
   fi
   if [ ! -e ./.envrc ]; then
     echo "use_nix" > .envrc

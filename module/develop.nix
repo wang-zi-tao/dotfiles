@@ -8,5 +8,6 @@
         criu
       ];
       programs.criu.enable = true;
+      networking.firewall.allowedTCPPorts = [ 1716 ];
     };
 }

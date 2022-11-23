@@ -16,6 +16,7 @@ in
       "90:class_g  = 'Discord'",
       "100:class_g = 'keynav'",
       "100:class_g = 'i3lock'",
+      "100:class_g = 'xz_helper'",
     ];
 
     wintypes:
@@ -46,6 +47,7 @@ in
         "class_g ^= 'eww'",
         "class_g = 'Dunst'",
         "class_g = 'awesome'",
+        "class_g = 'xz_helper'",
     ];
     corner-radius = 12;
     rounded-corners-exclude = [
@@ -57,6 +59,7 @@ in
         "class_g = 'i3lock'",
         "class_g = 'awesome'",
         "class_g = 'rdesktop'",
+        "class_g = 'xz_helper'",
     ];
     frame-opacity = 0.5;
     round-borders = 1;
@@ -66,6 +69,7 @@ in
         "class_g = 'Dunst'",
         "class_g = 'awesome'",
         "class_g = 'rdesktop'",
+        "class_g = 'xz_helper'",
     ];
     fading = true;
     fade-out-step = 0.05;

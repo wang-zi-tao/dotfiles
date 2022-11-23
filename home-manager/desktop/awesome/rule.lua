@@ -20,6 +20,15 @@ awful.rules.rules = {
         properties = { tag = "6" },
     },
     {
+        rule = { class = "xz_helper" },
+        properties = {
+            focusable = false,
+            placement = function(d)
+                awful.placement.top(d, { margins = 50 })
+            end,
+        },
+    },
+    {
         rule = { class = "virt-manager" },
         properties = { tag = "8" },
     },

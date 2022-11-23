@@ -77,6 +77,8 @@ in
     unixtools.xxd
     gh
 
+    yasm
+
     sumneko-lua-language-server
     nodePackages.typescript-language-server
     nodejs
@@ -100,7 +102,10 @@ in
     kubernetes-helm
 
     neovim-remote
+
     python3
+    python39Packages.pip
+
     luajitPackages.luacheck
     luajitPackages.luarocks
     google-java-format

@@ -24,7 +24,7 @@
         Type = "simple";
         Restart = "always";
         RestartSec = "5s";
-        ExecStart = "${pkgs.balloond}/bin/balloond -unix /run/libvirt/libvirt-sock -interval=5s -verbose";
+        ExecStart = "${pkgs.balloond}/bin/balloond -unix /run/libvirt/libvirt-sock -freeAllowance=600000 -interval=5s -verbose";
       };
     };
     environment.etc."qemu/vhost-user".source = "${pkgs.qemu_full}/share/qemu/vhost-user";
