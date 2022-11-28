@@ -7,13 +7,14 @@ in
   config = lib.mkIf nodeConfig.NextCloudServer.enable {
     services.nextcloud = {
       enable = true;
-      package = pkgs.nextcloud24;
+      package = pkgs.nextcloud25;
       hostName = networkConfig.publicIp;
       caching.redis = true;
       appstoreEnable = true;
       enableImagemagick = true;
       config.adminuser = "wang-zi-tao";
       config.adminpassFile = config.sops.secrets."nextcloud/admin_password".path;
+      enableBrokenCiphersForSSE = false;
       autoUpdateApps.enable = true;
       https = true;
     };

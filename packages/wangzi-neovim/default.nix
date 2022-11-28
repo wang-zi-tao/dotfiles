@@ -29,7 +29,7 @@ stdenvNoCC.mkDerivation {
     gcc
   ];
 
-  installPhase = with pkgs.unstable.vimPlugins; ''
+  installPhase = with pkgs.unstable; with pkgs.unstable.vimPlugins; ''
     set -x
     rm default.nix
     mkdir -p $out/
@@ -66,23 +66,16 @@ stdenvNoCC.mkDerivation {
       lsp_signature_nvim = "${lsp_signature-nvim}",
       vim_matchup = "${vim-matchup}",
       better_escape_nvim = "${better-escape-nvim}",
+
       friendly_snippets = "${friendly-snippets}",
-      nvim_cmp = "${nvim-cmp}",
       luasnip = "${luasnip}",
+
+      nvim_cmp = "${nvim-cmp}",
       cmp_luasnip = "${cmp_luasnip}",
       cmp_nvim_lua = "${cmp-nvim-lua}",
       cmp_nvim_lsp = "${cmp-nvim-lsp}",
       cmp_buffer = "${cmp-buffer}",
       cmp_path = "${cmp-path}",
-      nvim_autopairs = "${nvim-autopairs}",
-      dashboard_nvim = "${dashboard-nvim}",
-      nvim_comment = "${nvim-comment}",
-      nvim_tree_lua = "${nvim-tree-lua}",
-      telescope_nvim = "${telescope-nvim}",
-      which_key = "${which-key-nvim}",
-      null_ls = "${null-ls-nvim}",
-      symbols_outline = "${symbols-outline-nvim}",
-      rust_tools = "${rust-tools-nvim}",
       cmp_tabnine = ${if enable-tabnine then ''"${cmp-tabnine}"'' else "false" },
       cmp_spell = "${cmp-spell}",
       cmp_zsh = "${pkgs.fetchgit {
@@ -95,6 +88,32 @@ stdenvNoCC.mkDerivation {
         rev = "fae6cdb407ad6c63a0b1928670bad1a67a55b887";
         sha256 = "sha256-/fHoZxtJFG9v1sw/rQU2fa0ybO7bIovvRvY6M/mU5sc=";
       }}",
+
+      nvim_autopairs = "${nvim-autopairs}",
+      dashboard_nvim = "${dashboard-nvim}",
+      nvim_comment = "${nvim-comment}",
+      nvim_tree_lua = "${nvim-tree-lua}",
+
+      telescope_nvim = "${telescope-nvim}",
+      telescope_ui_select = "${telescope-ui-select-nvim}",
+      telescope_dap_nvim = "${telescope-dap-nvim}",
+      telescope_project_nvim = "${telescope-project-nvim}",
+      telescope_live_grep_args_nvim = "${telescope-live-grep-args-nvim}",
+      telescope_fzf_native_nvim = "${telescope-fzf-native-nvim}",
+      telescope_frecency_nvim = "${telescope-frecency-nvim}",
+      telescope_file_browser_nvim = "${telescope-file-browser-nvim}",
+
+      libsqlite = "${sqlite.out}/lib/libsqlite3.so",
+      sqlite = "${pkgs.fetchgit {
+        url = "https://github.com/kkharji/sqlite.lua";
+        rev = "53cac3fdb5f5e4e63e243232b6eccf3c764ae18a";
+        sha256 = "sha256-F4xfIDZfhpQvsvS4Qwmp5qJQmDYWacIqRxdO06RZ42I=";
+      }}",
+
+      which_key = "${which-key-nvim}",
+      null_ls = "${null-ls-nvim}",
+      symbols_outline = "${symbols-outline-nvim}",
+      rust_tools = "${rust-tools-nvim}",
       markdown_preview = ${if enable-markdown-preview then ''"${markdown-preview-nvim}"'' else "false" },
       marks = "${marks-nvim}",
       auto_save = "${pkgs.fetchgit {
@@ -130,6 +149,7 @@ stdenvNoCC.mkDerivation {
       }}",
       ts_autotag = "${nvim-ts-autotag}",
       lspsaga = "${lspsaga-nvim}",
+
       dap = "${nvim-dap}",
       dap_ui = "${nvim-dap-ui}",
       dap_virtual_text = "${nvim-dap-virtual-text}",
@@ -139,6 +159,7 @@ stdenvNoCC.mkDerivation {
         sha256 = "sha256-uHvxAfz2hYDRu6ST/PsqtJ/LQitdLNhnwg5aoFJqW88=";
       }}",
       vscode_lldb = ${if enable-debuger then ''"${pkgs.unstable.vscode-extensions.vadimcn.vscode-lldb}"'' else "false" },
+
       fterm = "${FTerm-nvim}",
       mini = "${mini-nvim}",
       session_manager = "${pkgs.fetchgit {
@@ -152,14 +173,7 @@ stdenvNoCC.mkDerivation {
         sha256 = "sha256-aFRrOJr34newCyJ5glqd15Xz0vxRGR6XIRFz1Zy39XI=";
       }}",
       dressing_nvim = "${dressing-nvim}",
-      telescope_ui_select = "${telescope-ui-select-nvim}",
-      telescope_dap_nvim = "${telescope-dap-nvim}",
       trouble_nvim = "${trouble-nvim}",
-      project = "${pkgs.fetchgit {
-        url = "https://github.com/ahmedkhalf/project.nvim";
-        rev = "090bb11ee7eb76ebb9d0be1c6060eac4f69a240f";
-        sha256 = "sha256-NMNunJLkr3p2S4IrE0EIfo8rlMa3gNpW1ActCCt4DJg=";
-      }}",
       cmake = "${pkgs.fetchgit {
         url = "https://github.com/Shatur/neovim-cmake";
         rev = "92f009b029d95ecaf95c260bec66d06733cda37b";

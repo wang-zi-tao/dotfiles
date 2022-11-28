@@ -13,7 +13,7 @@ in
     sops.secrets = optionalAttrs nodeConfig.prometheus.server {
       "prometheus/admin_password" = { };
     };
-    services.grafana = mkIf nodeConfig.prometheus.server {
+    services.grafana.settings = mkIf nodeConfig.prometheus.server {
       enable = true;
       port = 9002;
       addr = "0.0.0.0";

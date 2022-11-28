@@ -2,10 +2,10 @@
 let
   rust-env = pkgs.fenix.combine (with pkgs.fenix.complete; [
     cargo
-    clippy-preview
+    clippy
     rust-std
     rustc
-    rustfmt-preview
+    rustfmt
     rust-src
     rust-docs
     rust-analyzer-preview
@@ -57,7 +57,6 @@ in
     pandoc
     devtodo
     graphviz
-    httpie
     curlie
     highlight
     xlsx2csv

@@ -54,9 +54,9 @@
     gnome.gnome-screenshot
     gnome.gnome-system-monitor
     gnome.nautilus
-    gnome-connections
+    # gnome-connections
     gnome.totem
-    gnome.gnome-software
+    # gnome.gnome-software
     # dolphin
 
     gnome.gnome-nettool

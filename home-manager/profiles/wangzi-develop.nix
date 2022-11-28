@@ -1,18 +1,15 @@
-{ nixpkgs, home-manager, pkgs, ... }: {
-  pkgs = pkgs;
-  system = pkgs.system;
-  username = "wangzi";
-  homeDirectory = "/home/wangzi";
-  configuration = {
-    imports = [
-      ../application/application.nix
-      ../terminal/terminal.nix
-      ../develop/develop.nix
-      ../develop/cpp.nix
-      ../desktop/desktop.nix
-    ];
-    neovim.full = true;
-    programs.git.userName = pkgs.lib.mkForce "wangzitao";
-    programs.git.userEmail = pkgs.lib.mkForce "wangzitao@kingsoft.com";
-  };
+{ lib, config, pkgs, ... }: {
+  imports = [
+    ../application/application.nix
+    ../terminal/terminal.nix
+    ../develop/develop.nix
+    ../develop/cpp.nix
+    ../desktop/desktop.nix
+  ];
+  home.stateVersion = "22.11";
+  home.username = "wangzi";
+  home.homeDirectory = "/home/wangzi";
+  neovim.full = true;
+  programs.git.userName = pkgs.lib.mkForce "wangzitao";
+  programs.git.userEmail = pkgs.lib.mkForce "wangzitao@kingsoft.com";
 }

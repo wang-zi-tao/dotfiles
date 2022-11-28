@@ -112,7 +112,6 @@ with lib;{
       __VK_LAYER_NV_optimus = "NVIDIA_only";
     };
     services.playerctld.enable = true;
-    services.mpd.enable = true;
     home.file.".xinitrc-vgl".text = ''
       ${pkgs.xorg.xrdb}/bin/xrdb ~/.Xresources
       exec ${pkgs.slock}/bin/slock

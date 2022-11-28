@@ -1,14 +1,9 @@
-{ pkgs, ... }:
-let lib = pkgs.lib; in
-{
-  pkgs = pkgs;
-  system = pkgs.system;
-  username = "wangzi";
-  homeDirectory = "/home/wangzi";
-  configuration = {
-    imports = [
-      ../terminal/terminal.nix
-    ];
-    programs.zsh.enableCompletion = lib.mkForce false;
-  };
+{ lib, config, pkgs, ... }: {
+  imports = [
+    ../terminal/terminal.nix
+  ];
+  home.stateVersion = "22.11";
+  home.username = "wangzi";
+  home.homeDirectory = "/home/wangzi";
+  programs.zsh.enableCompletion = lib.mkForce false;
 }

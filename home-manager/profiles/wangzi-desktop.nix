@@ -1,15 +1,12 @@
-{ nixpkgs, home-manager, pkgs, ... }: {
-  pkgs = pkgs;
-  system = pkgs.system;
-  username = "wangzi";
-  homeDirectory = "/home/wangzi";
-  configuration = {
-    imports = [
-      ../application/application.nix
-      ../desktop/desktop.nix
-      ../terminal/terminal.nix
-      ../develop/develop.nix
-    ];
-    neovim.full = true;
-  };
+{ lib, config, pkgs, ... }: {
+  imports = [
+    ../application/application.nix
+    ../desktop/desktop.nix
+    ../terminal/terminal.nix
+    ../develop/develop.nix
+  ];
+  home.stateVersion = "22.11";
+  home.username = "wangzi";
+  home.homeDirectory = "/home/wangzi";
+  neovim.full = true;
 }

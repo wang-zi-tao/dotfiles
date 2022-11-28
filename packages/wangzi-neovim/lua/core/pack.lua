@@ -1,4 +1,4 @@
-local n = require("core.gen")
+local n = require("core.gen") or {}
 local packer = require("packer")
 packer.init({
     package_root = n.core and n.core .. "/site/pack",
@@ -353,6 +353,50 @@ packer.startup(function(use)
         end,
     })
     use({
+        n.telescope_ui_select or "nvim-telescope/telescope-ui-select.nvim",
+        as = "telescope_ui_select",
+        module = "telescope._extensions.ui-select",
+    })
+    use({
+        n.telescope_dap_nvim or "nvim-telescope/telescope-dap.nvim",
+        as = "telescope_dap_nvim",
+        module = "telescope._extensions.dap",
+    })
+    use({
+        n.telescope_project_nvim or "nvim-telescope/telescope-project.nvim",
+        as = "telescope_project_nvim",
+        module = "telescope._extensions.project",
+    })
+    use({
+        n.telescope_live_grep_args_nvim or "nvim-telescope/telescope-live-grep-args.nvim",
+        as = "telescope_live_grep_args_nvim",
+        module = "telescope._extensions.live_grep_args",
+    })
+    use({
+        n.telescope_fzf_native_nvim or "nvim-telescope/telescope-fzf-native.nvim",
+        as = "telescope_fzf_native_nvim",
+        module = "telescope._extensions.fzf",
+        run = 'make',
+    })
+    use({
+        n.telescope_frecency_nvim or "nvim-telescope/telescope-frecency.nvim",
+        as = "telescope_frecency_nvim",
+        module = "telescope._extensions.frecency",
+    })
+    use({
+        n.sqlite or "kkharji/sqlite.lua",
+        as = "sqlite",
+        module = "sqlite",
+        setup = function()
+            require("core.plugins.others").sqlite()
+        end,
+    })
+    use({
+        n.telescope_file_browser_nvim or "nvim-telescope/telescope-file-browser.nvim",
+        as = "telescope_file_browser_nvim",
+        module = "telescope._extensions.file_browser",
+    })
+    use({
         n.dressing_nvim or "stevearc/dressing.nvim",
         as = "dressing_nvim",
         config = function()
@@ -365,19 +409,6 @@ packer.startup(function(use)
         requires = "nvim_web_devicons",
         config = function()
             require("core.plugins.trouble")
-        end,
-    })
-    use({
-        n.telescope_ui_select or "nvim-telescope/telescope-ui-select.nvim",
-        as = "telescope_ui_select",
-        module = "telescope._extensions.ui-select",
-    })
-    use({
-        n.project or "ahmedkhalf/project.nvim",
-        as = "project",
-        module = { "telescope._extensions.projects", "project_nvim" },
-        config = function()
-            require("core.plugins.others").project()
         end,
     })
     use({
@@ -588,11 +619,6 @@ packer.startup(function(use)
         config = function()
             require("core.plugins.others").persistent_breakpoints_nvim()
         end,
-    })
-    use({
-        n.telescope_dap_nvim or "nvim-telescope/telescope-dap.nvim",
-        as = "telescope_dap_nvim",
-        module = "telescope._extensions.dap",
     })
     use({
         n.fterm or "numToStr/FTerm.nvim",

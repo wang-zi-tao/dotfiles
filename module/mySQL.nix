@@ -28,7 +28,7 @@
           services.mysql = {
             enable = true;
             # Okq4ikoZVsxif1Q55GZauhASJQtEA1mS
-            package = pkgs.mysql57;
+            package = pkgs.mysql80;
             settings = {
               client = { default-character-set = "utf8mb4"; };
               mysql = { default-character-set = "utf8mb4"; };

@@ -13,16 +13,16 @@ in
       hashedPassword = lib.mkDefault
         "$6$hKb9K3137LuNYU.n$ZZ0uRjIfMSOEyHtunuMorhVIo3QC3PlXgrHwW1Ysp3Bf4eqcouRoX20JHN4C.RYzlzow3MYu4GtugpJeOe0IB.";
     };
-    home-manager.users.root = { ... }:
+    home-manager.users.root =
       if !(nodeConfig.users?root) then {
-        imports = [ ../home-manager/terminal/terminal.nix ];
-      } else (import nodeConfig.users.root inputs).configuration;
+        imports = [ ../home-manager/profiles/root.nix ];
+      } else import nodeConfig.users.root;
     sops.secrets."shell/root" = lib.mkIf sops-enable {
       owner = "root";
       mode = "0700";
     };
     home-manager.users.wangzi = lib.mkIf (nodeConfig.users?wangzi)
-      ({ ... }: (import nodeConfig.users.wangzi inputs).configuration);
+      (import nodeConfig.users.wangzi);
     users.groups.wangzi = lib.mkIf (nodeConfig.users?wangzi) {
       gid = 1000;
       name = "wangzi";
