@@ -14,7 +14,7 @@ local function run_once_pgrep(cmd)
 end
 
 local function run_once_ps(findme, cmd)
-    awful.spawn.easy_async_with_shell(string.format("ps -C %s|wc -l", findme), function(stdout)
+    awful.spawn.easy_async_with_shell(string.format("procs '%s'|wc -l", findme), function(stdout)
         if tonumber(stdout) ~= 2 then
             awful.spawn(cmd, false)
         end
@@ -32,6 +32,8 @@ end
 run_once_pgrep("picom --dbus --experimental-backend")
 run_once_pgrep("mpDris2")
 run_once_pgrep("ibus-daemon -x -r -R")
+run_once_ps("firefox")
+awful.spawn("xiezuo  --no-sandbox --no-zygote --package-format=deb")
 awful.spawn("gpaste-client start")
 awful.spawn("xhost +")
 awful.spawn([[sh -c "

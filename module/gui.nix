@@ -9,6 +9,7 @@
             displayManager.startx.enable = true;
             # windowManager.xmonad.enable = true;
             windowManager.awesome.enable = true;
+            windowManager.awesome.package = pkgs.nixpkgs-22-05.awesome;
             desktopManager.gnome.enable = true;
             displayManager.defaultSession = "none+awesome";
             displayManager.xpra = {

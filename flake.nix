@@ -53,6 +53,8 @@
           })
         (builtins.readDir dir))
       );
+      overlays = with builtins; map (name: import (./overlays + "/${name}"))
+        (attrNames (readDir ./overlays));
       pkgs-template = system: import nixpkgs {
         inherit system;
         config = { allowUnfree = true; };
@@ -62,14 +64,13 @@
           fenix.overlays.default
           nixpkgs-wayland.overlay
           (final: prev: {
-            unstable = import inputs.nixpkgs-unstable { system = final.system; config = { allowUnfree = true; }; };
-            nixpkgs-22-05 = import inputs.nixpkgs-22-05 { system = final.system; config = { allowUnfree = true; }; };
+            unstable = import inputs.nixpkgs-unstable { inherit system overlays; config = { allowUnfree = true; }; };
+            nixpkgs-22-05 = import inputs.nixpkgs-22-05 { inherit system overlays; config = { allowUnfree = true; }; };
             scripts = (map
               (f: prev.writeScriptBin f (readFile (./scripts + "/${f}")))
               (attrNames (readDir ./scripts)));
           } // (listToAttrs (map (name: { inherit name; value = final.callPackage (./packages + "/${name}") { }; }) (attrNames (readDir ./packages)))))
-        ] ++ (map (name: import (./overlays + "/${name}"))
-          (attrNames (readDir ./overlays))));
+        ] ++ overlays);
       };
     in
     flake-utils.lib.eachDefaultSystem
@@ -138,7 +139,7 @@
         (host: {
           name = host;
           value = {
-            hostname = "${host}.wg";
+            hostname = "${host}";
             profiles.system = {
               sshUser = "root";
               path = deploy-rs.lib.${self.nixos.${host}.pkgs.system}.activate.nixos self.nixos.${host};
