@@ -117,5 +117,27 @@ with lib;{
       exec ${pkgs.slock}/bin/slock
     '';
     home.file.".config/mimeapps.list".source = ./mineapps.list;
+    fonts.fontconfig.enable = true;
+    home.packages = with pkgs;[
+      noto-fonts
+      noto-fonts-cjk
+      noto-fonts-emoji
+      noto-fonts-extra
+      source-han-sans
+      source-han-sans-simplified-chinese
+      source-han-serif
+      source-han-serif-simplified-chinese
+      hack-font
+      powerline-fonts
+      powerline-symbols
+      iosevka
+      iosevka-nerd
+      # nerdfonts
+      fira-code-symbols
+
+      arphic-uming
+      source-han-mono
+      sarasa-gothic
+    ];
   };
 }

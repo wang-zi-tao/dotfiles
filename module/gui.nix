@@ -100,6 +100,10 @@
             iosevka-nerd
             # nerdfonts
             fira-code-symbols
+
+            arphic-uming
+            source-han-mono
+            sarasa-gothic
           ];
           fontDir.enable = true;
         };
