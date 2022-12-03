@@ -28,10 +28,6 @@
       };
     };
     environment.etc."qemu/vhost-user".source = "${pkgs.qemu_full}/share/qemu/vhost-user";
-    /* users.users.virtlyst.group = "virtlyst"; */
-    /* users.groups.virtlyst = { }; */
-    /* services.virtlyst.enable = true; */
-    /* services.virtlyst.adminPassword = "wfn5l5VpRK1W5Q9f"; */
     environment.systemPackages = with pkgs; [ qemu virt-manager virt-viewer rdesktop ];
     systemd.services.libvirtd = with pkgs; {
       path = [ virtiofsd swtpm-tpm2 virglrenderer ];

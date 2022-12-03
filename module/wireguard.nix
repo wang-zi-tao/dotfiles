@@ -89,8 +89,10 @@ in
           privateKeyFile = config.sops.secrets."wireguard/private-key".path;
           peers = mapAttrsToList
             (otherNodeName: edge:
-              let otherNodeNetworkConfig = networkCluster.${otherNodeName}.config; in
-              let otherNodeWireguardConfig = wireguardCluster.${otherNodeName}.config; in
+              let
+                otherNodeNetworkConfig = networkCluster.${otherNodeName}.config;
+                otherNodeWireguardConfig = wireguardCluster.${otherNodeName}.config;
+              in
               {
                 persistentKeepalive = if network.config.publicIp == null then 32 else 0;
                 publicKey = otherNodeWireguardConfig.publicKey;
@@ -108,7 +110,7 @@ in
                     (wireguard.config.gateway == otherNodeName)
                     (concatLists (mapAttrsToList
                       (nodeName: node:
-                        optionals (networkCluster.${nodeName}.config.publicIp == null) [ node.config.clusterIp node.config.clusterIpRange ])
+                        optionals (! hasAttr otherNodeName wireguard.peers) [ node.config.clusterIp node.config.clusterIpRange ])
                       wireguardCluster))
                 ;
               })

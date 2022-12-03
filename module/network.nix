@@ -56,7 +56,6 @@ in
         globalConfig = ''
           servers {
             protocol {
-              experimental_http3
             }
           }
           http_port 89

@@ -32,8 +32,8 @@ end
 run_once_pgrep("picom --dbus --experimental-backend")
 run_once_pgrep("mpDris2")
 run_once_pgrep("ibus-daemon -x -r -R")
-run_once_ps("firefox")
-awful.spawn("xiezuo  --no-sandbox --no-zygote --package-format=deb")
+run_once_ps("firefox","firefox")
+run_once_ps("xiezuo","xiezuo  --no-sandbox --no-zygote --package-format=deb")
 awful.spawn("gpaste-client start")
 awful.spawn("xhost +")
 awful.spawn([[sh -c "

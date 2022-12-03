@@ -35,6 +35,7 @@
     ];
     opengl.setLdLibraryPath = true;
     opengl.driSupport = true;
+    nvidia.open = true;
     nvidia.prime = {
       sync.enable = true;
       sync.allowExternalGpu = true;
