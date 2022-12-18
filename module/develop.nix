@@ -9,5 +9,8 @@
       ];
       programs.criu.enable = true;
       networking.firewall.allowedTCPPorts = [ 1716 ];
+      environment.etc.nixos = {
+        source = ../.;
+      };
     };
 }

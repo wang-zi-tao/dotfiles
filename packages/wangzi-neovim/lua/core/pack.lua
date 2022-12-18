@@ -251,14 +251,20 @@ packer.startup(function(use)
         end,
     })
     if n.cmp_tabnine ~= false then
+        local run
+        if (0== vim.fn.has("win32")) then
+            run='./install.sh'
+        else
+            run='powershell ./install.ps1'
+        end
         use({
             n.cmp_tabnine or "tzachar/cmp-tabnine",
             as = "cmp_tabnine",
-            run = "./install.sh",
+            run = run,
             requires = "nvim_cmp",
             after = "nvim_cmp",
+            module = "cmp_tabnine",
             config = function()
-                require("cmp_tabnine").setup()
                 require("core.plugins.others").cmp_tabnine()
             end,
         })
@@ -498,12 +504,12 @@ packer.startup(function(use)
         as = "undotree",
         cmd = "UndotreeToggle",
     })
-    -- use({
-    --     n.ts_rainbow or "p00f/nvim-ts-rainbow",
-    --     as = "ts_rainbow",
-    --     after = "nvim_treesitter",
-    --     requires = "nvim_treesitter",
-    -- })
+    use({
+        n.ts_rainbow or "p00f/nvim-ts-rainbow",
+        as = "ts_rainbow",
+        after = "nvim_treesitter",
+        requires = "nvim_treesitter",
+    })
     use({
         n.diffview or "sindrets/diffview.nvim",
         as = "diffview",
@@ -673,7 +679,10 @@ packer.startup(function(use)
     use({
         n.perfanno_nvim or "t-troebst/perfanno.nvim",
         as = "perfanno_nvim",
-        cmd = { "PerfLoadFlat", "PerfLoadCallGraph", "PerfLoadFlameGraph", "PerfLuaProfileStart", "PerfLuaProfileStop", "PerfPickEvent", "PerfCycleFormat", "PerfAnnotate", "PerfToggleAnnotations", "PerfAnnotateSelection", "PerfAnnotateFunction", "PerfHottestLines", "PerfHottestSymbols", "PerfHottestCallersSelection", "PerfHottestCallersFunction" },
+        cmd = { "PerfLoadFlat", "PerfLoadCallGraph", "PerfLoadFlameGraph", "PerfLuaProfileStart", "PerfLuaProfileStop",
+            "PerfPickEvent", "PerfCycleFormat", "PerfAnnotate", "PerfToggleAnnotations", "PerfAnnotateSelection",
+            "PerfAnnotateFunction", "PerfHottestLines", "PerfHottestSymbols", "PerfHottestCallersSelection",
+            "PerfHottestCallersFunction" },
         config = function()
             require("core.plugins.perf")
         end,
@@ -686,6 +695,16 @@ packer.startup(function(use)
             require("core.plugins.others").hop()
         end,
     })
+    use({
+        n.distant or "chipsenkbeil/distant.nvim",
+        as = "distant",
+        module = "distant",
+        cmd = { "DistantOpen", "DistantLaunch", "DistantInstall" },
+        config = function()
+            require("core.plugins.others").distant()
+        end,
+    })
+
 end)
 vim.cmd([[PackerInstall]])
 packer.compile(n.compile_path)

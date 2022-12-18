@@ -22,7 +22,6 @@
     nixpkgs-wayland = {
       url = "github:nix-community/nixpkgs-wayland";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.master.follows = "master";
     };
     fenix = { url = "github:nix-community/fenix"; };
     sops-nix.url = "github:Mic92/sops-nix";

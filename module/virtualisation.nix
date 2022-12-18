@@ -2,7 +2,7 @@
   config = lib.mkIf config.cluster.nodeConfig.virtualisation.enable {
     virtualisation = {
       lxd = {
-        enable = true;
+        enable = false;
         package = pkgs.lxd;
         recommendedSysctlSettings = true;
       };
@@ -10,12 +10,14 @@
       libvirtd = {
         enable = true;
         qemu.ovmf.enable = true;
-        qemu.ovmf.packages = [ pkgs.OVMFFull ];
+        qemu.ovmf.packages = [
+          pkgs.OVMF
+        ];
         qemu.package = pkgs.qemu_full;
         qemu.swtpm.enable = true;
       };
       kvmgt.enable = true;
-      waydroid.enable = true;
+      # waydroid.enable = true;
     };
     systemd.services.balloond = {
       enable = true;

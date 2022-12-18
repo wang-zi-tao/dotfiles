@@ -109,6 +109,7 @@ M.which_key = function()
     require("which-key").setup({})
 end
 M.cmp_tabnine = function()
+    require("cmp_tabnine").setup()
     require("cmp_tabnine.config"):setup({
         max_lines = 1000,
         max_num_results = 20,
@@ -118,6 +119,39 @@ M.cmp_tabnine = function()
         ignored_file_types = { -- default is not to ignore
             -- uncomment to ignore in lua:
             -- lua = true
+        },
+    })
+    local cmp_tabnine = require("cmp_tabnine")
+    local prefetch = vim.api.nvim_create_augroup("prefetch", { clear = true })
+    vim.api.nvim_create_autocmd('BufRead', {
+        group = prefetch,
+        pattern = '*.h',
+        callback = function()
+            cmp_tabnine:prefetch(vim.fn.expand('%:p'))
+        end
+    })
+    vim.api.nvim_create_autocmd('BufRead', {
+        group = prefetch,
+        pattern = '*.cpp',
+        callback = function()
+            cmp_tabnine:prefetch(vim.fn.expand('%:p'))
+        end
+    })
+    local compare = require('cmp.config.compare')
+    require("cmp").setup({
+        sorting = {
+            priority_weight = 2,
+            comparators = {
+                require('cmp_tabnine.compare'),
+                compare.offset,
+                compare.exact,
+                compare.score,
+                compare.recently_used,
+                compare.kind,
+                compare.sort_text,
+                compare.length,
+                compare.order,
+            },
         },
     })
 end
@@ -345,5 +379,49 @@ M.sqlite = function()
     if n.libsqlite then
         vim.g.sqlite_clib_path = n.libsqlite
     end
+end
+M.distant = function()
+    local actions = require('distant.nav.actions')
+
+    local settings = {
+        distant = {
+            args = { '--shutdown-after', '60' },
+        },
+        -- Settings that apply when editing a remote file
+        file = {
+            mappings = {
+                ['-'] = actions.up,
+            },
+        },
+        -- Settings that apply to the navigation interface
+        dir = {
+            mappings = {
+                ['<Return>'] = actions.edit,
+                ['-']        = actions.up,
+                ['K']        = actions.mkdir,
+                ['N']        = actions.newfile,
+                ['R']        = actions.rename,
+                ['D']        = actions.remove,
+            }
+        },
+        -- Maximimum time to wait (in milliseconds) for requests to finish
+        max_timeout = 15 * 1000,
+        -- Time to wait (in milliseconds) inbetween checks to see
+        -- if a request timed out
+        timeout_interval = 250,
+        -- Time to wait (in milliseconds) inbetween polling checks to
+        -- see if an async function has completed
+        poll_interval = 200,
+        -- Settings to use to start LSP instances
+        lsp = {};
+    }
+    require('distant').setup {
+        -- Applies Chip's personal settings to every machine you connect to
+        --
+        -- 1. Ensures that distant servers terminate with no connections
+        -- 2. Provides navigation bindings for remote directories
+        -- 3. Provides keybinding to jump into a remote file's parent directory
+        ['*'] = settings
+    }
 end
 return M

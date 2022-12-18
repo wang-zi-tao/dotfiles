@@ -1,4 +1,4 @@
-{ pkgs, config, ... }:
+{ pkgs, config, lib, ... }:
 let
   rust-env = pkgs.fenix.combine (with pkgs.fenix.complete; [
     cargo
@@ -40,10 +40,6 @@ in
     goBin = ".go/bin";
     goPath = ".go/path";
   };
-  home.file.".pip/pip.conf".text = ''
-    [global]
-    index-url = https://pypi.mirrors.ustc.edu.cn/simple
-  '';
   home.sessionVariables = with pkgs; {
     RUSTUP_DIST_SERVER = "http://mirrors.ustc.edu.cn/rust-static";
     RUSTUP_UPDATE_ROOT = "http://mirrors.ustc.edu.cn/rust-static/rustup";
@@ -91,7 +87,7 @@ in
     gradle
 
     ctop
-    # distant
+    distant
     iperf2
     tokei
     nix-prefetch
@@ -110,12 +106,18 @@ in
     google-java-format
     stylua
     shfmt
+    nodePackages.prettier
     shellcheck
     deno
     nodePackages.live-server
     nodePackages.yaml-language-server
 
   ];
+  /* home.file.".pip/pip.conf".text = '' */
+  /*   [global] */
+  /*   index-url = https://pypi.mirrors.ustc.edu.cn/simple */
+  /* ''; */
+  home.file = builtins.listToAttrs (lib.attrsets.mapAttrsToList (name: value: lib.nameValuePair ".config/nvim/parser/${lib.strings.removePrefix "tree-sitter-" name }.so" { source = "${value}/parser"; }) pkgs.tree-sitter.builtGrammars);
   programs.zsh.shellAliases = {
     mvn = "unset JAVA_TOOL_OPTIONS && mvn";
     dc = "docker-compose";

@@ -23,6 +23,14 @@
           '';
           };
       };
+      programs.sway.enable = true;
+      programs.sway.wrapperFeatures.gtk = true;
+      programs.sway.wrapperFeatures.base = true;
+      programs.sway.extraOptions = [
+        "--verbose"
+        "--debug"
+        "--unsupported-gpu"
+      ];
     })
     (lib.mkIf (config.cluster.nodeConfig.guiServer.enable && ! config.cluster.nodeConfig.guiClient.enable) {
       networking.firewall.allowedTCPPorts = [ 10000 ];

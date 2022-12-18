@@ -105,6 +105,7 @@
       tsh = "tmux split -h";
       tsv = "tmux split -v";
 
+      nlocate = "nix-locate --top-level";
 
       ".." = "cd ..";
 

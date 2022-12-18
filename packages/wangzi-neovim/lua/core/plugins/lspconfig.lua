@@ -38,7 +38,28 @@ end
 
 require("core.plugins.lsp_handlers")
 
-local function on_attach(_, bufnr)
+local lsp_formatting = function(bufnr)
+    vim.lsp.buf.format({
+        filter = function(client)
+            -- apply whatever logic you want (in this example, we'll only use null-ls)
+            return client.name == "null-ls"
+        end,
+        bufnr = bufnr,
+    })
+end
+local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+
+local function on_attach(client, bufnr)
+    if client.supports_method("textDocument/formatting") then
+        vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+        vim.api.nvim_create_autocmd("BufWritePre", {
+            group = augroup,
+            buffer = bufnr,
+            callback = function()
+                lsp_formatting(bufnr)
+            end,
+        })
+    end
 
     local function map(mod, key, exec, opt)
         opt = opt or { noremap = true, silent = false }

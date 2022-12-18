@@ -8,8 +8,8 @@ stdenv.mkDerivation rec {
   version = "15.5.2";
 
   src = fetchurl {
-    url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Iosevka.zip";
-    sha256 = "sha256-a9Ke+Ia4CNHXbdhfgriCNFImX9pYKAFzSqtvlGAnDeM=";
+    url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v2.3.0-RC/Iosevka.zip";
+    sha256 = "sha256-PW76QaizFHzZ592uiYoozODHcdFKEDMB6yrQ+UTEcr0=";
   };
 
   nativeBuildInputs = [ unzip ];

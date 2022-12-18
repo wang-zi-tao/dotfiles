@@ -20,6 +20,7 @@
     (wangzi-neovim.override { enable-all = config.neovim.full; })
     gcc-unwrapped.lib
     neovim-remote
+    bear
     # shfmt
     # shellcheck
 
@@ -36,4 +37,5 @@
     })
   ];
   programs.nix-index.enable = true;
+  home.file.".config/nvim/parser/cpp.so".source="${pkgs.tree-sitter.builtGrammars.tree-sitter-cpp}/parser";
 }

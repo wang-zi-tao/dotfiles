@@ -29,6 +29,6 @@ let nodeConfig = config.cluster.nodeConfig; in
     };
     # hardware.nvidia.modesetting.enable = true;
     services.xserver.displayManager.sddm.enable = false;
-    services.touchegg.enable = true;
+    # services.touchegg.enable = true;
   };
 }

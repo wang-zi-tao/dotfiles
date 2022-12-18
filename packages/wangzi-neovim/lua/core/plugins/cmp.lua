@@ -22,7 +22,6 @@ cmp.setup({
         format = function(entry, vim_item)
             local icons = require("core.plugins.lspkind_icons")
             vim_item.kind = string.format("%s %s", icons[vim_item.kind], vim_item.kind)
-
             vim_item.menu = ({
                 buffer = "",
                 nvim_lsp = "",
@@ -75,6 +74,7 @@ cmp.setup({
         { name = "buffer" },
     }),
 })
+
 -- Set configuration for specific filetype.
 cmp.setup.filetype("gitcommit", {
     sources = cmp.config.sources({

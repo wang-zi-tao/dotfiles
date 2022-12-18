@@ -17,6 +17,8 @@
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
     ];
+    daemonIOSchedClass = "idle";
+    daemonCPUSchedPolicy="batch";
     extraOptions = "experimental-features = nix-command flakes";
     gc.automatic = true;
     gc.dates = "weekly";
@@ -39,10 +41,7 @@
     randomizedDelaySec = "30min";
     dates = "12:00";
   };
-  environment.etc.nixos = {
-    source = ../.;
-  };
-  system.stateVersion = "22.05";
+  system.stateVersion = "22.11";
   programs.nix-ld.enable = true;
 }
 

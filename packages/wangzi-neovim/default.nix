@@ -55,7 +55,9 @@ stdenvNoCC.mkDerivation {
       bufferline_nvim = "${bufferline-nvim}",
       indent_blankline_nvim = "${indent-blankline-nvim}",
       nvim_colorizer_lua = "${nvim-colorizer-lua}",
-      nvim_treesitter = "${nvim-treesitter}",
+      nvim_treesitter = "${if enable-all then nvim-treesitter.withAllGrammars else nvim-treesitter.withPlugins ( p: with p; [
+        nix
+      ])}",
       gitsigns_nvim = "${gitsigns-nvim}",
       vgit_nvim = "${pkgs.fetchgit {
         url = "https://github.com/tanvirtin/vgit.nvim";
@@ -187,6 +189,11 @@ stdenvNoCC.mkDerivation {
       }}",
       hop_nvim = "${hop-nvim}",
       compile_path = "$out/plugins.lua",
+      distant = "${pkgs.fetchgit {
+        url = "https://github.com/chipsenkbeil/distant.nvim";
+        rev = "887fc16bdae59bd1865e0776b427ca521987f7fe";
+        sha256 = "sha256-hHRHH4ycQkI1FQ6GhkbnXIxXnNAer4WxU5y1D7qZP0g=";
+      }}",
     }
     return setmetatable({},{
     __index = function(o,field)
@@ -207,6 +214,7 @@ stdenvNoCC.mkDerivation {
     makeWrapper ${neovim-unwrapped}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
         --set LUA_PATH "$out/lua/?.lua;${pkgs.vimPlugins.packer-nvim}/lua/?.lua;;" \
         --run  'export LD_LIBRARY_PATH="${pkgs.gcc-unwrapped.lib}/lib${"\$"+"{LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"}"'
+    ln -s ${pkgs.tree-sitter}/bin/tree-sitter $out/bin/tree-sitter
     cp $out/bin/wnvim $out/bin/nvim
     cp $out/bin/wnvim $out/bin/vim
     cp $out/bin/wnvim $out/bin/vi

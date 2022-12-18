@@ -36,9 +36,9 @@ tag.connect_signal("request::default_layouts", function()
     -- centered,
     -- deck,
     -- horizontal,
-    machi.layout.create({ name_func = function(t) return t.name .. "_default" end, default_cmd = "w11", new_placement_cb = machi.layout.placement.empty }),
     equal,
-    mstab,
+    machi.layout.create({ name_func = function(t) return t.name .. "_default" end, default_cmd = "w11", new_placement_cb = machi.layout.placement.empty }),
+    -- mstab,
     l.max.fullscreen,
   })
 end)

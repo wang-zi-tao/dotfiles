@@ -11,7 +11,7 @@ local sources = {
     -- mark
     b.formatting.prettier.with({ filetypes = { "html", "markdown", "css" } }),
     -- js/ts
-    -- b.formatting.deno_fmt,
+    b.formatting.deno_fmt,
     -- Lua
     -- b.formatting.stylua.with({ extra_args = { "--indent-type", "Spaces", "--indent-width", "2" } }),
     -- b.diagnostics.luacheck.with({ extra_args = { "--global vim" } }),

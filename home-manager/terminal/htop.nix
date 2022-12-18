@@ -51,9 +51,13 @@ let formatMeters = side: meters: {
         STATE
         M_SIZE
         M_RESIDENT
-        40
+        M_SHARE
+        M_PSSWP
+        M_SWAP
         UTIME
         STIME
+        CUTIME
+        NLWP
         PERCENT_CPU
         PERCENT_MEM
         IO_READ_RATE
@@ -68,14 +72,14 @@ let formatMeters = side: meters: {
       formatMeters "1" [
         (bar "CPU")
         (bar "MemorySwap")
+        (bar "Zram")
         (text "Systemd")
-        (text "Tasks")
       ]) // (with config.lib.htop;
       formatMeters "2" [
         (text "DiskIO")
         (text "NetworkIO")
-        (text "PressureStallCPUSome")
         (text "LoadAverage")
+        (text "Tasks")
       ]);
   };
 }

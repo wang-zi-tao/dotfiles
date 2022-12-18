@@ -8,7 +8,7 @@
     };
     timeout = 1;
   };
-  boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_15;
+  boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod_stable;
   boot.initrd.availableKernelModules =
     [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" ];
   boot.initrd.kernelModules = [ ];
@@ -36,6 +36,7 @@
     opengl.setLdLibraryPath = true;
     opengl.driSupport = true;
     nvidia.open = true;
+    nvidia.modesetting.enable = true;
     nvidia.prime = {
       sync.enable = true;
       sync.allowExternalGpu = true;

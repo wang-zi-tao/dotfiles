@@ -4,13 +4,9 @@ typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
     # export TERM="tmux-256color"
 # fi
 function sudo() {
-  if [ $1 = "su" ];
-  then
-    command sudo zsh
-  else
-    args="$@"
-    command sudo -E zsh -c $args
-  fi
+  arg1 = $1
+  shift
+  command sudo $(alias $arg1) "$@"
 }
 function wo() {
   # cd `autojump $1`
