@@ -3,10 +3,21 @@ typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 # if [[ $TMUX != "" ]] then
     # export TERM="tmux-256color"
 # fi
+function tmux() {
+    if [[ -n "$NVIM" || -n "$SSH_CONNECTION" ]];then
+        if (( "$#" == 0 )); then
+            command tmux new-session \; set-option prefix2 C-a
+        else
+            command tmux "$@" \; set-option prefix2 C-a
+        fi
+    else
+        command tmux "$@"
+    fi
+}
 function sudo() {
-  arg1 = $1
+  a=$(alias $1)
   shift
-  command sudo $(alias $arg1) "$@"
+  command sudo ${a##*=} "$@"
 }
 function wo() {
   # cd `autojump $1`
@@ -184,3 +195,6 @@ function nrun() {
 function nshell() {
   command nix shell "nixpkgs#$1"
 }
+if [[ -n "$TMUX" && ( -n "$SSH_CONNECTION" ) ]]; then
+  command tmux set-option prefix2 C-a
+fi

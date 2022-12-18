@@ -37,89 +37,95 @@ opt.title = true
 opt.undofile = true
 opt.updatetime = 250
 opt.whichwrap:append("<>[]hl")
-if (vim.env.BOMB or 1== vim.fn.has("win32")) then
-  o.bomb = true
-  vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
-    pattern = { "*.cpp", "*.h", "*.hpp", "*.pch", "*.def" },
-    callback = function()
-      vim.cmd [[set bomb]]
-    end,
-  })
+if (vim.env.BOMB or 1 == vim.fn.has("win32")) then
+    o.bomb = true
+    vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+        pattern = { "*.cpp", "*.h", "*.hpp", "*.pch", "*.def" },
+        callback = function()
+            vim.cmd [[set bomb]]
+        end,
+    })
 end
-if(0 == vim.fn.has("win32"))then
-  if (vim.env.WSL_DISTRO_NAME) then
-    g.clipboard = {
-      name = "wsl",
-      copy = {
-        ["+"] = "win32yank.exe -i",
-        ["*"] = "win32yank.exe -i",
-      },
-      paste = {
-        ["+"] = "win32yank.exe -o",
-        ["*"] = "win32yank.exe -o",
-      },
-      cache_enabled = 1,
-    }
-  else
-    g.clipboard = {
-      name = "xclip",
-      copy = {
-        ["+"] = "xclip -selection clipboard",
-        ["*"] = "xclip -selection clipboard",
-      },
-      paste = {
-        ["+"] = "xclip -selection clipboard -o",
-        ["*"] = "xclip -selection clipboard -o",
-      },
-      cache_enabled = 1,
-    }
-  end
+if (0 == vim.fn.has("win32")) then
+    if (vim.env.WSL_DISTRO_NAME) then
+        g.clipboard = {
+            name = "wsl",
+            copy = {
+                ["+"] = "win32yank.exe -i",
+                ["*"] = "win32yank.exe -i",
+            },
+            paste = {
+                ["+"] = "win32yank.exe -o",
+                ["*"] = "win32yank.exe -o",
+            },
+            cache_enabled = 1,
+        }
+    else
+        g.clipboard = {
+            name = "xclip",
+            copy = {
+                ["+"] = "xclip -selection clipboard",
+                ["*"] = "xclip -selection clipboard",
+            },
+            paste = {
+                ["+"] = "xclip -selection clipboard -o",
+                ["*"] = "xclip -selection clipboard -o",
+            },
+            cache_enabled = 1,
+        }
+    end
 else
-  g.clipboard = {
-    name = "wsl",
-    copy = {
-      ["+"] = "win32yank.exe -i",
-      ["*"] = "win32yank.exe -i",
-    },
-    paste = {
-      ["+"] = "win32yank.exe -o",
-      ["*"] = "win32yank.exe -o",
-    },
-    cache_enabled = 1,
-  }
+    g.clipboard = {
+        name = "wsl",
+        copy = {
+            ["+"] = "win32yank.exe -i",
+            ["*"] = "win32yank.exe -i",
+        },
+        paste = {
+            ["+"] = "win32yank.exe -o",
+            ["*"] = "win32yank.exe -o",
+        },
+        cache_enabled = 1,
+    }
 end
 local disabled_built_ins = {
-  "2html_plugin",
-  "filetype",
-  "getscript",
-  "getscriptPlugin",
-  "gzip",
-  "logipat",
-  "netrw",
-  "netrwPlugin",
-  "netrwSettings",
-  "netrwFileHandlers",
-  "matchit",
-  "tar",
-  "tarPlugin",
-  "rrhelper",
-  "spellfile_plugin",
-  "vimball",
-  "vimballPlugin",
-  "zip",
-  "zipPlugin",
+    -- "2html_plugin",
+    "filetype",
+    "getscript",
+    "getscriptPlugin",
+    "gzip",
+    "logipat",
+    "netrw",
+    "netrwPlugin",
+    "netrwSettings",
+    "netrwFileHandlers",
+    "matchit",
+    "tar",
+    "tarPlugin",
+    "rrhelper",
+    "spellfile_plugin",
+    "vimball",
+    "vimballPlugin",
+    "zip",
+    "zipPlugin",
 }
 for _, plugin in pairs(disabled_built_ins) do
-  vim.g["loaded_" .. plugin] = 1
+    vim.g["loaded_" .. plugin] = 1
 end
 --Defer loading shada until after startup_
 vim.opt.shadafile = "NONE"
-vim.schedule(function()
-  vim.cmd([[ silent! rsh ]])
-end)
-vim.cmd([[ au TermOpen term://* setlocal nonumber norelativenumber | setfiletype terminal ]])
+-- vim.cmd([[ au TermOpen term://* setlocal nonumber norelativenumber | setfiletype terminal ]])
+vim.api.nvim_create_autocmd("TermOpen", {
+    pattern = "term://*",
+    command = "setlocal nonumber norelativenumber | setfiletype terminal",
+})
+vim.api.nvim_create_autocmd({ "BufWinEnter", "WinEnter" }, {
+    pattern = "term://*",
+    command = "startinsert",
+})
+-- vim.cm([[ autocmd BufWinEnter,WinEnter term://* startinsert ]])
 -- vim.cmd([[ autocmd BufEnter,BufRead,BufWinEnter,FileType,WinEnter * lua require("core.utils").hide_statusline() ]])
-vim.cmd([[let mapleader = "\<space>"]])
+-- vim.cmd([[let mapleader = "\<space>"]])
 
 vim.cmd [[
 function! SynStack()
