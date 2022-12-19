@@ -40,6 +40,7 @@
       NIX_AUTO_RUN = "1";
       NIXPKGS_ALLOW_UNFREE = "1";
       LIBVIRT_DEFAULT_URI = "qemu:///system";
+      VIRSH_DEFAULT_CONNECT_URI = "qemu:///system";
     };
     home.activation.neovim = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if [[ -e /run/secrets/shell/${config.home.username} ]];then

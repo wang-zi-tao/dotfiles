@@ -97,8 +97,15 @@ in
 
     neovim-remote
 
-    python3
-    python39Packages.pip
+    (python3.withPackages (ps:
+      with ps; [
+        debugpy
+        # numpy
+        # pandas
+        # matplotlib
+        # pip
+        # setuptools
+      ]))
 
     luajitPackages.luacheck
     luajitPackages.luarocks

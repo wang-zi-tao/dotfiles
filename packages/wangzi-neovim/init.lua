@@ -9,4 +9,5 @@ end
 require("core.pack")
 if packer_bootstrap then
   require('packer').sync()
+  vim.cmd [[TSUpdate]]
 end

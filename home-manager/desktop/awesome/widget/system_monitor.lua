@@ -41,8 +41,8 @@ local cpu_usage_on_panel = process("cpu_usage", [[<svg xmlns="http://www.w3.org/
     beautiful.blue,
     beautiful.yellow,
     beautiful.background3,
-    beautiful.purple,
     beautiful.orange,
+    beautiful.yellow,
     beautiful.red,
     beautiful.red,
 })
@@ -99,9 +99,9 @@ function M.panel(screen)
         )
         ram_usage_on_panel.max_value = total
         ram_usage_on_panel.values = {
-            total - free - shared - buff_cache,
+            used,
             shared,
-            buff_cache,
+            total - free - used - shared,
         }
         collectgarbage("collect")
     end)

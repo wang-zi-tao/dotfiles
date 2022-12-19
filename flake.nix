@@ -57,8 +57,13 @@
           })
         (builtins.readDir dir))
       );
-      overlays = with builtins; map (name: import (./overlays + "/${name}"))
-        (attrNames (readDir ./overlays));
+      overlays = with builtins; map (name: import (./overlays + "/${name}")) (attrNames (readDir ./overlays));
+      packages = final: prev: with builtins;listToAttrs (map (name: { inherit name; value = final.callPackage (./packages + "/${name}") { }; }) (attrNames (readDir ./packages)));
+      pkgs-config = system: {
+        inherit system;
+        config = { allowUnfree = true; };
+        overlays = overlays ++ [ packages ];
+      };
       pkgs-template = system: import nixpkgs {
         inherit system;
         config = { allowUnfree = true; };
@@ -67,6 +72,7 @@
           nur.overlay
           fenix.overlays.default
           nixpkgs-wayland.overlay
+          packages
           (final: prev: {
             unstable = import inputs.nixpkgs-unstable { inherit system overlays; config = { allowUnfree = true; }; };
             nixpkgs-22-05 = import inputs.nixpkgs-22-05 { inherit system overlays; config = { allowUnfree = true; }; };

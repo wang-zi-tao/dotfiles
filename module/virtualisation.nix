@@ -13,14 +13,16 @@
       libvirtd = {
         enable = true;
         qemu.ovmf.enable = true;
-        qemu.ovmf.packages = [
-          pkgs.OVMF
-        ];
-        qemu.package = pkgs.qemu_full;
+        qemu.ovmf.packages = [ pkgs.OVMFFull ];
         qemu.swtpm.enable = true;
       };
       kvmgt.enable = true;
-      # waydroid.enable = true;
+      waydroid.enable = false;
+      podman = {
+        enable = true;
+        dockerCompat = true;
+        defaultNetwork.dnsname.enable = true;
+      };
     };
     systemd.services.balloond = {
       enable = true;
