@@ -14,11 +14,6 @@ function tmux() {
         command tmux "$@"
     fi
 }
-function sudo() {
-  a=$(alias $1)
-  shift
-  command sudo ${a##*=} "$@"
-}
 function wo() {
   # cd `autojump $1`
   z $1

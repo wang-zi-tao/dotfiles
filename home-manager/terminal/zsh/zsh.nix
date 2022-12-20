@@ -1,5 +1,5 @@
-{ pkgs, config,lib, ... }: {
-  imports=[];
+{ pkgs, config, lib, ... }: {
+  imports = [ ];
   programs.zsh = {
     enable = true;
     autocd = true;
@@ -26,7 +26,7 @@
       enable = true;
       python.virtualenvAutoSwitch = true;
       screen.autoStartLocal = true;
-      syntaxHighlighting.highlighters = ["main" "brackets" "line"];
+      syntaxHighlighting.highlighters = [ "main" "brackets" "line" ];
       pmodules = [
         "autosuggestions"
         "environment"
@@ -67,8 +67,13 @@
         src = pkgs.zsh-history-substring-search;
       }
     ];
-    shellAliases = (builtins.listToAttrs (builtins.map(name: {name=name;value="nix-shell -p ${name} --run ${name}";}) [
-    "gimp" "kdenlive" "inkscape" "krita" "blender"]))//{
+    shellAliases = (builtins.listToAttrs (builtins.map (name: { name = name; value = "nix-shell -p ${name} --run ${name}"; }) [
+      "gimp"
+      "kdenlive"
+      "inkscape"
+      "krita"
+      "blender"
+    ])) // {
       grep = "rg --color=auto";
       xclip = "xclip -selection c";
       s = "sudo su";
@@ -106,11 +111,12 @@
       tsv = "tmux split -v";
 
       nlocate = "nix-locate --top-level";
+      sudo = "nocorrect sudo ";
 
       ".." = "cd ..";
 
     };
-    sessionVariables = config.home.sessionVariables//{
+    sessionVariables = config.home.sessionVariables // {
       _ZO_EXCLUDE_DIRS = "/nix";
     };
     initExtraFirst = ''
@@ -119,7 +125,7 @@
       fi
       source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
     '';
-    initExtra = builtins.readFile ./p10k.zsh +  builtins.readFile ./zshrc.zsh + ''
+    initExtra = builtins.readFile ./p10k.zsh + builtins.readFile ./zshrc.zsh + ''
       # source ${pkgs.tmuxinator}/share/zsh/site-functions/_tmuxinator
       if [[ -e /run/secrets/shell/${config.home.username} ]];then
         source /run/secrets/shell/${config.home.username}
@@ -128,7 +134,7 @@
   };
   programs.command-not-found.enable = !config.programs.nix-index.enable;
   programs.nix-index = {
-    enableZshIntegration=true;
+    enableZshIntegration = true;
   };
   home.activation.nix-index = lib.mkIf config.programs.nix-index.enable (lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [[ ! -e $HOME/.cache/nix-index/files ]]; then

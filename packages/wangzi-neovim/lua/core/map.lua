@@ -458,7 +458,7 @@ map("i", "<C-k>", "<Up>")
 map("i", "<C-j>", "<Down>")
 map("i", "<C-a>", "<ESC>^i")
 
-map("t", "<leader><ESC>", "<C-\\><C-n>")
+map("t", "\\<ESC>", "<C-\\><C-n>")
 map({ "n", "t" }, "<C-\\>", function() require("FTerm").toggle() end)
 map("n", "Q", "<Nop>")
 
