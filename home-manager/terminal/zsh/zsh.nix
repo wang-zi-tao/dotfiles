@@ -110,6 +110,9 @@
       tsh = "tmux split -h";
       tsv = "tmux split -v";
 
+      sudo="sudo ";
+      watch="watch ";
+
       nlocate = "nix-locate --top-level";
       sudo = "nocorrect sudo ";
 

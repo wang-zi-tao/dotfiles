@@ -134,11 +134,20 @@ nixpkgs.lib.nixosSystem
           };
         };
       };
-      services.mysql = {
-        enable = true;
-        package = pkgs.mysql80;
-      };
-      environment.systemPackages = with pkgs; [ ];
+      /* services.mongodb.enable = true; */
+      /* services.mongodb.package = pkgs.mongodb-5_0; */
+      /* services.mongodb.dbpath = "/mnt/build/mongodb"; */
+      services.mysql.enable = true;
+      services.mysql.package = pkgs.mysql80;
+      # services.mysql.dataDir = "/mnt/build/mysqld";
+      services.mysql.ensureUsers = [{
+        name = "wangzi";
+        ensurePermissions = {
+          "mydb.*" = "ALL PRIVILEGES";
+        };
+      }];
+      services.mysql.ensureDatabases = [ "mydb" ];
+      environment.systemPackages = with pkgs; [ mysql ];
       users.users.root.hashedPassword = "$6$EleVrSVkk8j6lvlN$5EPVW5nhguBtB7WFaLBWrJHCCT.7xj7.NNgMR9OVdf3ngH80miDyox3JXcuHEu65NTnbGtlCX14bzxg0F1po8.";
       users.users.wangzi.hashedPassword = "$6$zBepEnWeXpVqW3Di$neIo/RZP.X7WS/VjECbcsLgKvXw4Ax1tgkoKBQikhoy7qlAdYSE/V5QQkwbl/dwSAx3daPVW1f.V93H.7.EZb1";
       /* hardware.ksm.enable = true; */
