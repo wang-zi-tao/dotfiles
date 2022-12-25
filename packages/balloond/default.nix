@@ -1,35 +1,37 @@
 { lib
+, rustPlatform
 , fetchFromGitHub
-, buildGoModule
-, seaweedfs
+, pkg-config
+, libvirt
+, libvirt-glib
 }:
-buildGoModule rec {
+
+rustPlatform.buildRustPackage
+rec {
   pname = "balloond";
-  version = "48d742";
+  version = "0.1.0";
 
   src = fetchFromGitHub {
-    owner = "SapphicCode";
-    repo = "balloond";
-    rev = "48d74209758f92bd7fcc4ecf3ce2cc5ad311ac01";
-    sha256 = "sha256-n+v2KGzo7zHv19Qh1E4RaEjeVQ41MHWkVC396dxp50c=";
+    owner = "wang-zi-tao";
+    repo = pname;
+    rev = version;
+    sha256 = "sha256-7OVlvVQnhUeUvKm2z0ZFb4KKmD/Hxy3MK8j2bxG72Z8=";
   };
 
-  vendorSha256 = "sha256-Md/S6yBQ56rB0XWG3S2vlPhFcqP4Q7DM6uuW3dwOCb0=";
+  cargoSha256 = "sha256-OXyW63nQMrXJseV4wi5d9bD/C5S+tdIo+QUzn24O2LM=";
 
-  subPackages = [ "cmd/balloond" ];
+  nativeBuildInputs = [
+    pkg-config
+    libvirt-glib.dev
+  ];
 
-  buildPhase = ''
-    go build github.com/Pandentia/balloond/cmd/balloond
-  '';
+  buildInputs = [
+    libvirt
+  ];
 
-  installPhase = ''
-    mkdir -p $out/bin
-    cp balloond $out/bin
-  '';
   meta = with lib; {
-    description = "An automatic libvirt memory balloon daemon";
-    homepage = "https://github.com/SapphicCode/balloond";
-    license = licenses.bsd3;
+    description = "auto balloon service for libvirt";
+    homepage = "https://github.com/wang-zi-tao/balloond";
+    license = licenses.mit;
   };
 }
-

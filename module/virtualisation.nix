@@ -22,11 +22,12 @@
     systemd.services.balloond = {
       enable = true;
       wantedBy = [ "libvirtd.service" ];
+      environment = { RUST_LOG = "info"; };
       serviceConfig = {
         Type = "simple";
         Restart = "always";
         RestartSec = "5s";
-        ExecStart = "${pkgs.balloond}/bin/balloond -unix /run/libvirt/libvirt-sock -freeAllowance=600000 -interval=5s -verbose";
+        ExecStart = "${pkgs.balloond}/bin/balloond -r 500 -d 0.25 -h 16";
       };
     };
     environment.etc."qemu/vhost-user".source = "${pkgs.qemu_full}/share/qemu/vhost-user";

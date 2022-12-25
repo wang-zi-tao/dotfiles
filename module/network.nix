@@ -20,6 +20,7 @@ in
     };
   };
   config = {
+    networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
     cluster.network = networkGraph.function config.cluster.network;
     networking = {
       firewall = {

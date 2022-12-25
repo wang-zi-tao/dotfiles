@@ -88,6 +88,7 @@
             nixfmt
             nix-du
             sumneko-lua-language-server
+            statix
             nixos-generators
             (wangzi-neovim.override { enable-all = false; })
             pkgs.home-manager

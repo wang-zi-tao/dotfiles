@@ -17,8 +17,6 @@ let
     with ps; [
       pynvim
       numpy
-      # pytorchWithCuda
-      # tensorflowWithCuda
       pandas
       matplotlib
       django
@@ -91,6 +89,7 @@ in
     iperf2
     tokei
     nix-prefetch
+    statix
     docker-compose
     k9s
     kubectl
