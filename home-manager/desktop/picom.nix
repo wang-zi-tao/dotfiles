@@ -1,8 +1,4 @@
-# This file is generated from "README.org"
-{ pkgs, ... }:
-let
-in
-{
+{ pkgs, ... }: {
   home.packages = [
     pkgs.picom
   ];
@@ -77,4 +73,3 @@ in
     fade-delta = 4;
   '';
 }
-

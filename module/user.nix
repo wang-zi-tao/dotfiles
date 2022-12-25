@@ -1,7 +1,7 @@
 { config, pkgs, ... }@inputs:
 let
-  lib = pkgs.lib;
-  nodeConfig = config.cluster.nodeConfig;
+  inherit (pkgs) lib;
+  inherit (config.cluster) nodeConfig;
   sops-enable = config.sops.defaultSopsFile != "/";
 in
 {

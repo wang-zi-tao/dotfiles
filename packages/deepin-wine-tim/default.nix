@@ -1,7 +1,6 @@
 { pkgs, lib, stdenv, fetchurl, p7zip, dpkg, xwininfo, wqy_microhei, alsa-lib
 , alsa-plugins, libpulseaudio, openal, mpg123, gnutls }:
-let
-in stdenv.mkDerivation rec {
+stdenv.mkDerivation rec {
   pname = "deepin-wine-tim";
   version = "3.3.8.22043";
 

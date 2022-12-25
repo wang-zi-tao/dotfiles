@@ -49,7 +49,7 @@ in
 {
   options = {
     cluster.seaweedfs = mkOption {
-      type = seaweedfsGraph.type;
+      inherit (seaweedfsGraph) type;
       default = { };
     };
   };

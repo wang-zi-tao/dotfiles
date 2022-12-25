@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 let
-  theme = config.theme;
+  inherit (config) theme;
   eww = "${pkgs.eww}/bin/eww";
 in
 {

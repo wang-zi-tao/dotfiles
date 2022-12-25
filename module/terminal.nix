@@ -25,7 +25,7 @@
       terminal = "tmux-256color";
       historyLimit = 16384;
       baseIndex = 1;
-      plugins = (with pkgs.tmuxPlugins; [
+      plugins = with pkgs.tmuxPlugins; [
         resurrect
         vim-tmux-navigator
         tmux-fzf
@@ -35,8 +35,7 @@
         better-mouse-mode
         # sidebar
         cpu
-      ]
-      );
+      ];
       extraConfig = with pkgs.tmuxPlugins; ''
         # mouse support
         set -g mouse on

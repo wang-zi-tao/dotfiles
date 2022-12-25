@@ -26,6 +26,10 @@
     fenix = { url = "github:nix-community/fenix"; };
     sops-nix.url = "github:Mic92/sops-nix";
     flake-utils.url = "github:numtide/flake-utils";
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
   outputs =
     inputs@{ self
@@ -44,7 +48,7 @@
       import-dir = dir: file: builtins.listToAttrs (builtins.attrValues (builtins.mapAttrs
         (name: value:
           if value == "directory" then {
-            name = name;
+            inherit name;
             value = import (dir + "/${name}/${file}");
           } else {
             name = builtins.substring 0 (builtins.stringLength name - 4) name;
@@ -65,9 +69,9 @@
           (final: prev: {
             unstable = import inputs.nixpkgs-unstable { inherit system overlays; config = { allowUnfree = true; }; };
             nixpkgs-22-05 = import inputs.nixpkgs-22-05 { inherit system overlays; config = { allowUnfree = true; }; };
-            scripts = (map
+            scripts = map
               (f: prev.writeScriptBin f (readFile (./scripts + "/${f}")))
-              (attrNames (readDir ./scripts)));
+              (attrNames (readDir ./scripts));
           } // (listToAttrs (map (name: { inherit name; value = final.callPackage (./packages + "/${name}") { }; }) (attrNames (readDir ./packages)))))
         ] ++ overlays);
       };
@@ -102,23 +106,21 @@
         };
         apps.deploy-rs = deploy-rs.defaultApp.${system};
         vars = {
-          pkgs = pkgs;
-          lib = pkgs.lib;
-          unstable = pkgs.unstable;
-          nur = pkgs.nur;
+          inherit pkgs;
+          inherit (pkgs) lib unstable nur;
         };
         homeConfigurations = builtins.mapAttrs
           (name: value: home-manager.lib.homeManagerConfiguration {
             modules = [ value ];
-            pkgs = pkgs;
+            inherit pkgs;
             extraSpecialArgs = inputs;
           })
           (import-dir ./home-manager/profiles "home.nix");
         all = pkgs.stdenv.mkDerivation rec{
           name = "all";
           src = ./.;
-          nixos = builtins.map (profile: profile.config.system.build.toplevel) (builtins.attrValues (self.nixos));
-          home = builtins.map (profile: profile.activationPackage) (builtins.attrValues (self.homeConfigurations.${system}));
+          nixos = builtins.map (profile: profile.config.system.build.toplevel) (builtins.attrValues self.nixos);
+          home = builtins.map (profile: profile.activationPackage) (builtins.attrValues self.homeConfigurations.${system});
           installPhase = ''
             mkdir $out
             echo $nixos >> $out/nixos
@@ -133,7 +135,7 @@
       nixOnDroidConfigurations = builtins.mapAttrs
         (name: value: (value (inputs // { inherit pkgs-template; })))
         (import-dir ./nix-on-droid/profiles "profile.nix");
-      nixosModules = (import-dir ./module "module.nix");
+      nixosModules = import-dir ./module "module.nix";
       deploy.nodes = builtins.listToAttrs (builtins.map
         (host: {
           name = host;

@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 
-let theme = config.theme;
+let inherit (config) theme;
 in
 {
   services.dunst = {
@@ -27,19 +27,19 @@ in
         horizontal_padding = 16;
         corner_radius = 12;
         foreground = theme.foreground1;
-        background = theme.background;
+        inherit (theme) background;
         frame_color = theme.sky;
       };
       experimental = { per_monitor_dpi = true; };
       urgency_low = {
-        foreground = theme.foreground;
-        background = theme.background;
+        inherit (theme) foreground;
+        inherit (theme) background;
         frame_color = theme.sky;
         timeout = 10;
       };
       urgency_normal = {
         foreground = theme.foreground1;
-        background = theme.background;
+        inherit (theme) background;
         frame_color = theme.blue;
         timeout = 20;
       };

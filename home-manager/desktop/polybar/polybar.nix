@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 
 let
-  theme = config.theme;
+  inherit (config) theme;
   colors = builtins.readFile ./polybar-colors + ''
     BACKGROUND = ${theme.background}
     FOREGROUND = ${theme.foreground}

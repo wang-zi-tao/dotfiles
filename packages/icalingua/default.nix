@@ -46,4 +46,4 @@ rec {
     license = licenses.mit;
     platforms = [ "x86_64-linux" ];
   };
-} https://github.com/MayuriNFC/icalingua
+} "https://github.com/MayuriNFC/icalingua"

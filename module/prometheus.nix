@@ -2,8 +2,8 @@
 with builtins;
 with lib;
 let
-  nodeConfig = config.cluster.nodeConfig;
-  nodeList = (attrValues config.cluster.nodes);
+  inherit (config.cluster) nodeConfig;
+  nodeList = attrValues config.cluster.nodes;
   networkConfig = config.cluster.network.edges.${config.cluster.nodeName}.config;
   wireguardConfig = config.cluster.wireguard.edges.${config.cluster.nodeName}.config;
 in

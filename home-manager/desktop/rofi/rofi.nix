@@ -2,7 +2,7 @@
 let
   theme-cfg = config.theme;
   inherit (config.lib.formats.rasi) mkLiteral;
-  theme = config.theme;
+  inherit (config) theme;
   rofi-theme = {
     "*" = {
       active-foreground = mkLiteral "@foreground";

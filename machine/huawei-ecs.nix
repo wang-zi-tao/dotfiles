@@ -44,7 +44,7 @@ nixpkgs.lib.nixosSystem {
       };
       swapDevices = [{
         device = "/swapfile";
-        size = (1024 * 2);
+        size = 1024 * 2;
       }];
       systemd.services = {
         create-swapfile = {

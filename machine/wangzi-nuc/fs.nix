@@ -16,7 +16,7 @@
   };
   swapDevices = [{
     device = "/swapfile";
-    size = (1024 * 16);
+    size = 1024 * 16;
   }];
   systemd.services = {
     create-swapfile = {

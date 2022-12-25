@@ -1,5 +1,5 @@
 { config, pkgs, lib, ... }:
-let nodeConfig = config.cluster.nodeConfig; in
+let inherit (config.cluster) nodeConfig; in
 {
   config = lib.mkIf nodeConfig.guiClient.enable {
     services.xserver.displayManager.lightdm = {

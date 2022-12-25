@@ -15,7 +15,7 @@ in
 {
   options = {
     cluster.network = mkOption {
-      type = networkGraph.type;
+      inherit (networkGraph) type;
       default = { };
     };
   };
@@ -31,10 +31,10 @@ in
           (mapAttrsToList
             (nodeName: node:
               let
-                publicIp = networkCluster.${nodeName}.config.publicIp;
-                localIp = networkCluster.${nodeName}.config.localIp;
+                inherit (networkCluster.${nodeName}.config) publicIp;
+                inherit (networkCluster.${nodeName}.config) localIp;
               in
-              (if (publicIp != null) then
+              if (publicIp != null) then
                 [{
                   name = publicIp;
                   value = [ nodeName ];
@@ -42,7 +42,7 @@ in
                 [{
                   name = localIp;
                   value = [ nodeName ];
-                }] else [ ]))
+                }] else [ ])
             network.peers)
         );
     };

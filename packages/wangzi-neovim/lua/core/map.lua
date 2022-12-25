@@ -173,6 +173,12 @@ wk.register({
             end,
             "PreviewDefinition",
         },
+        f = {
+            function()
+                vim.lsp.buf.formatting()
+            end,
+            "Format",
+        },
     },
     p = { name = "perf",
         l = {

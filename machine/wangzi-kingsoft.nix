@@ -58,7 +58,7 @@ nixpkgs.lib.nixosSystem
       };
       swapDevices = [{
         device = "/swapfile";
-        size = (1024 * 16);
+        size = 1024 * 16;
       }];
       fileSystems."/boot/efi" = {
         device = "/dev/disk/by-uuid/CA47-8911";

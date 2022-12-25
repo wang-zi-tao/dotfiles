@@ -11,7 +11,7 @@
     terminal = "tmux-256color";
     historyLimit = 16384;
     baseIndex = 1;
-    plugins = (with pkgs.tmuxPlugins;
+    plugins = with pkgs.tmuxPlugins;
       with pkgs.tmuxPlugins; [
         {
           plugin = resurrect;
@@ -41,7 +41,7 @@
         better-mouse-mode
         # sidebar
         cpu
-      ]);
+      ];
     tmuxinator.enable = true;
   };
   home.packages = with pkgs; [ xclip xsel ];

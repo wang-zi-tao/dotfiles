@@ -37,7 +37,7 @@ in
 {
   options = {
     cluster.nfs = mkOption {
-      type = nfsGraph.type;
+      inherit (nfsGraph) type;
       default = { };
     };
   };
@@ -46,8 +46,8 @@ in
   ];
   config = {
     services.nfs.server = mkIfEnabled {
-      enable = nfsConfig.server.enable;
-      exports = nfsConfig.server.exports;
+      inherit (nfsConfig.server) enable;
+      inherit (nfsConfig.server) exports;
     };
   };
 }

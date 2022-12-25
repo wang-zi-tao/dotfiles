@@ -1,8 +1,6 @@
 pkgs: prev:
-with builtins; with pkgs.lib;with pkgs.lib.types; with pkgs.lib.attrsets; let
-in
-{
-  graphType = { nodeOption ? { ... }: { }, edgeOption ? { ... }: { }, defaultEdgeConfig ? { }, directed ? false, }:
+with builtins; with pkgs.lib;with pkgs.lib.types; with pkgs.lib.attrsets; {
+  graphType = { nodeOption ? _: { }, edgeOption ? _: { }, defaultEdgeConfig ? { }, directed ? false, }:
     let
       type = submodule {
         options = {
@@ -18,7 +16,7 @@ in
                   type = attrsOf (submodule
                     ({ name, config, ... }: {
                       options = edgeOption
-                        ({ inherit name config; nodeName = nodeArgs.name; nodeConfig = nodeArgs.config; });
+                        { inherit name config; nodeName = nodeArgs.name; nodeConfig = nodeArgs.config; };
                     }));
                   default = defaultEdgeConfig;
                 };
@@ -49,7 +47,7 @@ in
                   type = attrsOf (submodule
                     ({ name, config, ... }: {
                       options = edgeOption
-                        ({ inherit name config; nodeName = nodeArgs.name; nodeConfig = nodeArgs.config; });
+                        { inherit name config; nodeName = nodeArgs.name; nodeConfig = nodeArgs.config; };
                     }));
                   default = defaultEdgeConfig;
                 };
@@ -136,11 +134,11 @@ in
                 );
               in
               {
-                config = node.config;
+                inherit (node) config;
                 from = optionalAttrs directed
                   (listToAttrs (map
                     (other_node: {
-                      name = other_node.name;
+                      inherit (other_node) name;
                       value = inut.defaultEdgeConfig;
                     })
                     from_nodes))
@@ -153,7 +151,7 @@ in
                 to = optionalAttrs directed
                   (listToAttrs (map
                     (other_node: {
-                      name = other_node.name;
+                      inherit (other_node) name;
                       value = input.defaultEdge;
                     })
                     to_nodes))
@@ -166,7 +164,7 @@ in
                 peers = optionalAttrs (!directed)
                   ((listToAttrs (map
                     (name: {
-                      name = name;
+                      inherit name;
                       value = input.defaultEdge;
                     })
                     peer_node))
