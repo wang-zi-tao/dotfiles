@@ -11,7 +11,7 @@ nixpkgs.lib.nixosSystem
   modules = [
     sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
-    ({ pkgs, ... }: {
+    ({ pkgs, lib, config, ... }: {
       imports = [
         ../module/cluster.nix
       ];
@@ -33,62 +33,72 @@ nixpkgs.lib.nixosSystem
       };
       sops.defaultSopsFile = "/";
       boot.loader.systemd-boot.enable = true;
+      boot.supportedFilesystems = [ "ext4" "fat32" "ntfs" "f2fs" ];
       boot.loader.efi.canTouchEfiVariables = true;
       boot.loader.efi.efiSysMountPoint = "/boot/efi";
-      boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
-      boot.initrd.kernelModules = [ ];
-      boot.kernelModules = [ "kvm-intel" ];
+      boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usbhid" "nvme" "usb_storage" "sd_mod" ];
+      boot.initrd.kernelModules = [ "amdgpu" ];
+      boot.kernelModules = [ "kvm-amd" ];
       boot.extraModulePackages = [ ];
       boot.kernelPackages = pkgs.linuxPackages_6_0;
       boot.kernelParams = [
-        "i915.enable_gvt=1"
-        "intel_iommu=on"
+        /* "i915.enable_gvt=1" */
+        /* "intel_iommu=on" */
         /* "i915.enable_guc=1" */
         /* "i915.enable_fbc=1" */
       ];
+      hardware.cpu.amd.updateMicrocode = pkgs.lib.mkDefault config.hardware.enableRedistributableFirmware;
+      hardware.firmware = [ pkgs.firmwareLinuxNonfree ];
+      hardware.enableAllFirmware = true;
       networking = {
         #useDHCP = true;
         hostName = hostname;
         networkmanager = { enable = true; };
       };
 
+      /* fileSystems."/" = { */
+      /*   device = "/dev/disk/by-uuid/ecb782a6-db6a-40c8-a620-26f442945cdc"; */
+      /*   fsType = "ext4"; */
+      /* }; */
+
       fileSystems."/" = {
-        device = "/dev/disk/by-uuid/ecb782a6-db6a-40c8-a620-26f442945cdc";
-        fsType = "ext4";
+        device = "/dev/disk/by-uuid/d8a33441-258d-4698-a388-dc82bfaefda1";
+        fsType = "f2fs";
       };
       swapDevices = [{
         device = "/swapfile";
         size = 1024 * 16;
       }];
       fileSystems."/boot/efi" = {
-        device = "/dev/disk/by-uuid/CA47-8911";
+        device = "/dev/disk/by-uuid/C76C-43E9";
         fsType = "vfat";
       };
-      fileSystems."/mnt/vm" = {
-        device = "/dev/disk/by-uuid/42a82751-3f31-4ef7-abe5-5a610df9f146";
-        fsType = "ext4";
-      };
+      # fileSystems."/mnt/vm" = {
+      #   device = "/dev/disk/by-uuid/42a82751-3f31-4ef7-abe5-5a610df9f146";
+      #   fsType = "ext4";
+      # };
       fileSystems."/mnt/build" = {
         device = "/dev/disk/by-uuid/3c0e89be-1fe4-46cd-840b-42c0bb21c33e";
         fsType = "ext4";
       };
-      fileSystems."/mnt/data" = {
-        device = "/dev/disk/by-uuid/201a5f10-3a83-4d9a-85dc-f85a87abacb6";
-        fsType = "btrfs";
-      };
-      fileSystems."/mnt/weed/server" = {
-        device = "/dev/disk/by-uuid/201a5f10-3a83-4d9a-85dc-f85a87abacb6";
-        fsType = "btrfs";
-      };
-      virtualisation.kvmgt.vgpus = {
-        i915-GVTg_V5_8.uuid = [ ];
-        i915-GVTg_V5_4.uuid = [ "7ae0918a-834e-4942-ad9a-b399979595e3" ];
-      };
+      # fileSystems."/mnt/data" = {
+      #   device = "/dev/disk/by-uuid/201a5f10-3a83-4d9a-85dc-f85a87abacb6";
+      #   fsType = "btrfs";
+      # };
+      # fileSystems."/mnt/weed/server" = {
+      #   device = "/dev/disk/by-uuid/201a5f10-3a83-4d9a-85dc-f85a87abacb6";
+      #   fsType = "btrfs";
+      # };
+      # virtualisation.kvmgt.vgpus = {
+      #   i915-GVTg_V5_8.uuid = [ ];
+      #   i915-GVTg_V5_4.uuid = [ "7ae0918a-834e-4942-ad9a-b399979595e3" ];
+      # };
       hardware = {
         opengl.driSupport32Bit = true;
         opengl.enable = true;
-        opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
+        opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva pkgs.driversi686Linux.mesa ];
         opengl.extraPackages = with pkgs; [
+          amdvlk
           vaapiIntel
           libvdpau-va-gl
           vaapiVdpau
@@ -99,8 +109,8 @@ nixpkgs.lib.nixosSystem
         pulseaudio = { enable = true; };
       };
       services.xserver = {
-        modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput xf86videovesa ];
-        videoDrivers = [ "modesetting" ];
+        modules = with pkgs.xorg; [ xf86videoamdgpu xf86inputlibinput xf86videodummy xf86videovesa ];
+        videoDrivers = [ "amdgpu" ];
       };
       services.samba = {
         enable = true;

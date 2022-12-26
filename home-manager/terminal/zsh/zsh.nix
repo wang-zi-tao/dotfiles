@@ -114,7 +114,6 @@
       watch="watch ";
 
       nlocate = "nix-locate --top-level";
-      sudo = "nocorrect sudo ";
 
       ".." = "cd ..";
 
