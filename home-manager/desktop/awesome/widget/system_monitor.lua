@@ -79,15 +79,14 @@ function M.panel(screen)
             data.guest_nice = stdout:match(
             "(%d+)%s(%d+)%s(%d+)%s(%d+)%s(%d+)%s(%d+)%s(%d+)%s(%d+)%s(%d+)%s(%d+)%s"
         )
-        data.total = data.user + data.nice + data.system + data.idle + data.iowait + data.irq + data.softirq + data.steal
-            + data.guest + data.guest_nice
+        data.total = data.user + data.nice + data.system + data.idle + data.iowait + data.irq + data.softirq 
         cpu_usage_on_panel.max_value = diff("total")
         cpu_usage_on_panel.values = {
-            diff("user"),
+            diff("user") - diff("guest"),
             diff("nice"),
             diff("system"),
             diff("iowait"),
-            diff("steal"),
+            diff("guest"),
             diff("irq"),
             diff("softirq"),
         }
