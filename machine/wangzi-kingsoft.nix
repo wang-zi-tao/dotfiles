@@ -42,10 +42,7 @@ nixpkgs.lib.nixosSystem
       boot.extraModulePackages = [ ];
       boot.kernelPackages = pkgs.linuxPackages_6_0;
       boot.kernelParams = [
-        /* "i915.enable_gvt=1" */
-        /* "intel_iommu=on" */
-        /* "i915.enable_guc=1" */
-        /* "i915.enable_fbc=1" */
+        "elevator=noop"
       ];
       hardware.cpu.amd.updateMicrocode = pkgs.lib.mkDefault config.hardware.enableRedistributableFirmware;
       hardware.firmware = [ pkgs.firmwareLinuxNonfree ];
@@ -55,11 +52,6 @@ nixpkgs.lib.nixosSystem
         hostName = hostname;
         networkmanager = { enable = true; };
       };
-
-      /* fileSystems."/" = { */
-      /*   device = "/dev/disk/by-uuid/ecb782a6-db6a-40c8-a620-26f442945cdc"; */
-      /*   fsType = "ext4"; */
-      /* }; */
 
       fileSystems."/" = {
         device = "/dev/disk/by-uuid/d8a33441-258d-4698-a388-dc82bfaefda1";
@@ -144,12 +136,8 @@ nixpkgs.lib.nixosSystem
           };
         };
       };
-      /* services.mongodb.enable = true; */
-      /* services.mongodb.package = pkgs.mongodb-5_0; */
-      /* services.mongodb.dbpath = "/mnt/build/mongodb"; */
       services.mysql.enable = true;
       services.mysql.package = pkgs.mysql80;
-      # services.mysql.dataDir = "/mnt/build/mysqld";
       services.mysql.ensureUsers = [{
         name = "wangzi";
         ensurePermissions = {
@@ -158,10 +146,13 @@ nixpkgs.lib.nixosSystem
       }];
       services.mysql.ensureDatabases = [ "mydb" ];
       environment.systemPackages = with pkgs; [ mysql ];
+      services.nfs.server.enable = true;
+      services.nfs.server.exports = ''
+        /home/wangzi 192.168.122.117(rw,fsid=0,no_subtree_check)
+      '';
       users.users.root.hashedPassword = "$6$EleVrSVkk8j6lvlN$5EPVW5nhguBtB7WFaLBWrJHCCT.7xj7.NNgMR9OVdf3ngH80miDyox3JXcuHEu65NTnbGtlCX14bzxg0F1po8.";
       users.users.wangzi.hashedPassword = "$6$zBepEnWeXpVqW3Di$neIo/RZP.X7WS/VjECbcsLgKvXw4Ax1tgkoKBQikhoy7qlAdYSE/V5QQkwbl/dwSAx3daPVW1f.V93H.7.EZb1";
-      /* hardware.ksm.enable = true; */
-
+      hardware.ksm.enable = true;
     })
   ];
 }

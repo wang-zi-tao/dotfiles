@@ -140,6 +140,7 @@ with lib;{
       sarasa-gothic
 
       rustdesk
+      wmctrl
     ];
   };
 }
