@@ -37,8 +37,6 @@ awful.screen.connect_for_each_screen(function(s)
     local tray = require("widget.tray")()
     local system_monitor = require("widget.system_monitor").panel(s)
     local volume_widget = require("widget.volume").panel(s)
-    local mytasklist = require("widget.tasklist")(s)
-    local mytasklist1 = require("widget.tasklist")(s)
     s.mywibar:setup({
         {
             util.block({

@@ -141,7 +141,7 @@
         (host: {
           name = host;
           value = {
-            hostname = "${host}";
+            hostname = "${host}.wg";
             profiles.system = {
               sshUser = "root";
               path = deploy-rs.lib.${self.nixos.${host}.pkgs.system}.activate.nixos self.nixos.${host};

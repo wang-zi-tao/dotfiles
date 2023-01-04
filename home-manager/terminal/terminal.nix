@@ -36,6 +36,7 @@
       VISUAL = "nvim";
       NIX_AUTO_RUN = "1";
       NIXPKGS_ALLOW_UNFREE = "1";
+      LIBVIRT_DEFAULT_URI = "qemu:///system";
     };
     home.activation.neovim = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if [[ -e /run/secrets/shell/${config.home.username} ]];then
@@ -93,7 +94,7 @@
         gzip
         openssh
       ];
-    home.file.".config/nvim/parser/nix.so".source="${pkgs.tree-sitter.builtGrammars.tree-sitter-nix}/parser";
+    home.file.".config/nvim/parser/nix.so".source = "${pkgs.tree-sitter.builtGrammars.tree-sitter-nix}/parser";
     home.file.".code-server/bin/node" = { source = "${pkgs.nodejs-16_x}/bin/node"; executable = true; };
     home.file.".config/direnv/direnvrc".text = ''
       use_flake() {

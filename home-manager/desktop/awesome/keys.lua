@@ -131,6 +131,12 @@ awful.keyboard.append_global_keybindings({
             c.floating = not c.floating
         end
     end, { description = "float window", group = "client" }),
+    awful.key({ mod,shift }, "f", function()
+        local c = client.focus
+        if c then
+            c.fullscreen = not c.fullscreen
+        end
+    end, { description = "fullscreen", group = "client" }),
     awful.key({ mod, ctrl }, "j", function()
         awful.screen.focus_relative(1)
     end, { description = "focus the next screen", group = "screen" }),

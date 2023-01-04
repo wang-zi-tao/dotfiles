@@ -1,5 +1,8 @@
 { config, pkgs, lib, ... }: {
   config = lib.mkIf config.cluster.nodeConfig.virtualisation.enable {
+    boot.kernelParams = [
+      "elevator=deadline"
+    ];
     virtualisation = {
       lxd = {
         enable = false;
