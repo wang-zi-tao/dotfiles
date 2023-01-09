@@ -16,6 +16,10 @@ awful.rules.rules = {
         },
     },
     {
+        rule = { class = { "rustdesk", "RustDesk" }, name = "RustDesk" },
+        properties = { tag = "7" },
+    },
+    {
         rule = { class = "xiezuo" },
         properties = { tag = "6" },
     },

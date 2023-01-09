@@ -1,4 +1,15 @@
-{ pkgs, lib, config, ... }: {
+{ pkgs, lib, config, ... }:
+let
+  makeService = service: {
+    Unit = {
+      After = [ "graphical-session-pre.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Install = { WantedBy = [ "graphical-session.target" ]; };
+    Service = service;
+  };
+in
+{
   services = {
     blueman-applet.enable = false;
     network-manager-applet.enable = true;
@@ -35,10 +46,10 @@
   };
   home.file.".config/awesome/module/battery_widget" = {
     source = "${pkgs.fetchgit {
-url = "https://github.com/Aire-One/awesome-battery_widget";
-rev = "48b83f444d175496104f3b9ff36f1dff0473e01e";
-sha256 = "sha256-ELNWKnwHDOxgC30xP3gTT1pYLZgGvGd9eVJKd5Ok98A=";
-}}";
+        url = "https://github.com/Aire-One/awesome-battery_widget";
+        rev = "48b83f444d175496104f3b9ff36f1dff0473e01e";
+        sha256 = "sha256-ELNWKnwHDOxgC30xP3gTT1pYLZgGvGd9eVJKd5Ok98A=";
+    }}";
     recursive = true;
   };
   home.file.".config/awesome/module/rubato" = {
@@ -68,23 +79,71 @@ sha256 = "sha256-ELNWKnwHDOxgC30xP3gTT1pYLZgGvGd9eVJKd5Ok98A=";
     source = "${pkgs.lua-pam}";
     recursive = true;
   };
-  systemd.user.services.lock = {
-    Unit = {
-      Description = "xautolock, session locker service";
-      After = [ "graphical-session-pre.target" ];
-      PartOf = [ "graphical-session.target" ];
-    };
-    Install = { WantedBy = [ "graphical-session.target" ]; };
-    Service = {
-      ExecStart =
-        let
-          lock_script = pkgs.writeShellScriptBin "lock" ''
-            #!${pkgs.busybox}/bin/sh
-            awesome-client " awesome.emit_signal ([[signal::lock]]) "
-          ''; in
-        ''
-          ${pkgs.xautolock}/bin/xautolock -time 10 -locker ${lock_script}/bin/lock
-        '';
-    };
+  systemd.user.services.gpaste = makeService {
+    Type = "simple";
+    ExecStart = "${pkgs.gnome.gpaste}/bin/gpaste-client start";
+    Restart = "always";
+  };
+  systemd.user.services.ibus-daemin = makeService {
+    Type = "simple";
+    ExecStart = "/run/current-system/sw/bin/ibus-daemon -x -r -R";
+    Restart = "always";
+  };
+  systemd.user.services.rustdesk = makeService {
+    Type = "simple";
+    ExecStart = "${pkgs.rustdesk}/bin/rustdesk";
+    Restart = "always";
+  };
+  systemd.user.services.xiezuo = makeService {
+    Type = "simple";
+    ExecStart = "${pkgs.xiezuo}/bin/xiezuo --no-sandbox --no-zygote --package-format=deb";
+  };
+  systemd.user.services.xhost = makeService {
+    Type = "oneshot";
+    ExecStart = "xhost +";
+  };
+  systemd.user.services.firefox = makeService {
+    ExecStart = "${config.programs.firefox.package}/bin/firefox";
+  };
+  systemd.user.services.xpra-shadow = makeService {
+    ExecStart =
+      let
+        script = pkgs.writeShellScriptBin "xpra-shadow" ''
+          #!${pkgs.busybox}/bin/sh
+          if command -v nvidia-smi; then
+            xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+6000)) --video-encoders=nvenc
+          else
+            xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+6000))
+          fi
+        ''; in
+      ''
+        ${script}/bin/xpra-shadow
+      '';
+  };
+  systemd.user.services.xpra-server = makeService {
+    ExecStart =
+      let
+        script = pkgs.writeShellScriptBin "xpra-server" ''
+          #!${pkgs.busybox}/bin/sh
+          if command -v nvidia-smi ; then 
+            xpra-html5-start :$((${"\$"+"{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+7000)) --video-encoders=nvenc
+          else 
+            xpra-html5-start :$((${"\$"+"{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+7000))
+          fi
+        ''; in
+      ''
+        ${script}/bin/xpra-server
+      '';
+  };
+  systemd.user.services.lock = makeService {
+    ExecStart =
+      let
+        lock_script = pkgs.writeShellScriptBin "lock" ''
+          #!${pkgs.busybox}/bin/sh
+          awesome-client " awesome.emit_signal ([[signal::lock]]) "
+        ''; in
+      ''
+        ${pkgs.xautolock}/bin/xautolock -time 10 -locker ${lock_script}/bin/lock
+      '';
   };
 }

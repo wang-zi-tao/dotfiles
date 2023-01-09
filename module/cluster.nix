@@ -32,6 +32,7 @@ with lib; with builtins;{
                   MySQL.enable = mkOption { type = bool; default = false; };
                   redis.enable = mkOption { type = bool; default = false; };
                   OnedevServer.enable = mkOption { type = bool; default = false; };
+                  RustDeskServer.enable = mkOption { type = bool; default = false; };
                   CodeServer.enable = mkOption { type = bool; default = false; };
                   webssh.enable = mkOption { type = bool; default = false; };
                   binary-cache.enable = mkOption { type = bool; default = false; };
@@ -73,6 +74,7 @@ with lib; with builtins;{
     ./weed.nix
     ./nfs.nix
     ./prometheus.nix
+    ./rustdesk.nix
   ];
   config = {
     boot.isContainer = nodeConfig.inContainer;
@@ -204,6 +206,7 @@ with lib; with builtins;{
           NextCloudServer.enable = true;
           webssh.enable = true;
           OnedevServer.enable = true;
+          RustDeskServer.enable = true;
           binary-cache.enable = true;
           redis.enable = true;
           inVM = true;

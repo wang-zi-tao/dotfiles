@@ -42,6 +42,7 @@
     , nix-on-droid
     , sops-nix
     , deploy-rs
+    , disko
     , ...
     }:
     let

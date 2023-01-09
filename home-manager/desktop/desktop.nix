@@ -138,6 +138,8 @@ with lib;{
       arphic-uming
       source-han-mono
       sarasa-gothic
+
+      rustdesk
     ];
   };
 }

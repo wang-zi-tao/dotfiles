@@ -1,4 +1,90 @@
-{ config, lib, pkgs, modulesPath, ... }: {
+{ config, lib, pkgs, modulesPath, ... }:
+let
+  disko-config = {
+    disk.nvme0n1 = {
+      device = "/dev/nvme0n1";
+      type = "disk";
+      content = {
+        type = "table";
+        format = "gpt";
+        partitions = [
+          {
+            type = "partition";
+            name = "ESP";
+            start = "1MiB";
+            end = "128MiB";
+            bootable = true;
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/nvmeroot1-boot-efi";
+            };
+          }
+          {
+            name = "lvm";
+            type = "partition";
+            start = "128GiB";
+            end = "100%";
+            part-type = "primary";
+            bootable = true;
+            content = {
+              type = "lvm_pv";
+              vg = "pool";
+            };
+          }
+        ];
+      };
+    };
+    lvm_vg = {
+      pool = {
+        type = "lvm_vg";
+        lvs = {
+          root = {
+            type = "lvm_lv";
+            size = "100GiB";
+            content = {
+              type = "filesystem";
+              format = "f2fs";
+              mountpoint = "/mnt/nvmeroot-pool-root";
+              mountOptions = [ ];
+            };
+          };
+          home = {
+            type = "lvm_lv";
+            size = "100GiB";
+            content = {
+              type = "filesystem";
+              format = "f2fs";
+              extraArgs = "-f";
+              mountpoint = "/mnt/nvmeroot-pool-home";
+            };
+          };
+          server = {
+            type = "lvm_lv";
+            size = "100GiB";
+            content = {
+              type = "filesystem";
+              format = "xfs";
+              mountpoint = "/mnt/nvmeroot-pool-server";
+            };
+          };
+          ntfs = {
+            type = "lvm_lv";
+            size = "64GiB";
+            content = {
+              type = "filesystem";
+              format = "ntfs";
+              mountpoint = "/mnt/nvmeroot-pool-ntfs";
+            };
+          };
+        };
+      };
+    };
+  };
+in
+{
+  disko.devices = disko-config;
+  disko.enableConfig = false;
 
   fileSystems."/boot/efi" = {
     device = "/dev/disk/by-uuid/4697-4985";

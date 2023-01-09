@@ -9,6 +9,10 @@
       };
       extraModulePackages = with config.boot.kernelPackages; (lib.optional config.virtualisation.virtualbox.host.enable virtualbox);
       kernelParams = [ "quite" ];
+      plymouth = {
+        enable = true;
+        /* theme = "breeze"; */
+      };
     };
     console.earlySetup = true;
     zramSwap.enable = true;

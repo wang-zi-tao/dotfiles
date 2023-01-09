@@ -131,10 +131,18 @@ awful.keyboard.append_global_keybindings({
             c.floating = not c.floating
         end
     end, { description = "float window", group = "client" }),
-    awful.key({ mod,shift }, "f", function()
+    awful.key({ mod, shift }, "f", function()
         local c = client.focus
         if c then
-            c.fullscreen = not c.fullscreen
+            if c.fullscreen then
+                c.fullscreen = false
+                c.maximized = c.maximized_backup or false
+                c.maximized_backup = nil
+            else
+                c.fullscreen = true
+                c.maximized_backup = c.maximized
+                c.maximized = true
+            end
         end
     end, { description = "fullscreen", group = "client" }),
     awful.key({ mod, ctrl }, "j", function()

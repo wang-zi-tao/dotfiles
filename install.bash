@@ -54,6 +54,12 @@ nixos)
 	sudo nix-env -p /nix/var/nix/profiles/system --set "$(readlink ./result)"
 	sudo ./result/bin/switch-to-configuration switch
 	;;
+disk)
+	profile=$1
+	shift
+	nix build ".#nixos.$profile.config.system.build.disko" "$@"
+	sudo ./result
+	;;
 compile-all)
 	nix build ".#all.x86_64-linux" --option binary-caches "" "$@"
 	nix run .\#deploy-rs -- -d --fast-connection true -c
