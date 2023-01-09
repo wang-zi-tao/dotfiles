@@ -90,6 +90,10 @@ alias -s c=nvim
 alias -s h=nvim
 alias -s cpp=nvim
 alias -s hpp=nvim
+
+alias -s xlsx=et
+alias -s doc=wps
+alias -s docx=wps
 upfind() {
   folder="$(pwd)"
   while [ "$folder" != "/" ]; do
@@ -113,8 +117,8 @@ make(){
 }
 retry() {
   local n=0
-  local trys=${TRYS:-100000}
-  local sleep_time=${SLEEP:-1}
+  local trys=${TRYS:32}
+  local sleep_time=${SLEEP:10}
   until ($1 "${@:2}") ; do
       n=$(( n + 1 ))
       [ $n -gt $trys ] && return 1

@@ -5,21 +5,6 @@ windows:
 - nixos:
     layout: c163,211x55,0,0,6
     root: /home/wangzi/workspace/nixos
-- vm:
-    layout: c15e,211x55,0,0,1
-    root: /home/wangzi/workspace/VM
-    panes:
-    - vim
-    # - zsh
-- mesh:
-    layout: c15f,211x55,0,0,2
-    root: /home/wangzi/workspace/NixCluster/mesh-proxy
-    panes:
-    - vim
-- zsh:
-    layout: c160,211x55,0,0,3
-- zsh:
-    layout: c165,211x55,0,0,8
 - monitor:
     layout: c165,211x55,0,0,8
     panes:
