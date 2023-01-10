@@ -2,35 +2,36 @@
   config = lib.mkMerge [
     (lib.mkIf config.cluster.nodeConfig.guiClient.enable {
       services = {
-        xserver =
-          {
-            enable = true;
-            exportConfiguration = true;
-            displayManager.startx.enable = true;
-            # windowManager.xmonad.enable = true;
-            windowManager.awesome.enable = true;
-            windowManager.awesome.package = pkgs.nixpkgs-22-05.awesome;
-            desktopManager.gnome.enable = true;
-            displayManager.defaultSession = "none+awesome";
-            displayManager.xpra = {
-              enable = false;
-              bindTcp = "0.0.0.0:10000";
-              pulseaudio = true;
-            };
-            xkbOptions = "ctrl:nocaps";
-            modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
-            extraConfig = ''
-          '';
+        xserver = {
+          enable = true;
+          exportConfiguration = true;
+          displayManager.startx.enable = true;
+          # windowManager.xmonad.enable = true;
+          windowManager.awesome.enable = true;
+          windowManager.awesome.package = pkgs.awesome;
+          desktopManager.gnome.enable = true;
+          displayManager.defaultSession = "none+awesome";
+          displayManager.xpra = {
+            enable = false;
+            bindTcp = "0.0.0.0:10000";
+            pulseaudio = true;
           };
+          xkbOptions = "ctrl:nocaps";
+          modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
+          extraConfig = ''
+          '';
+        };
       };
-      programs.sway.enable = true;
-      programs.sway.wrapperFeatures.gtk = true;
-      programs.sway.wrapperFeatures.base = true;
-      programs.sway.extraOptions = [
-        "--verbose"
-        "--debug"
-        "--unsupported-gpu"
-      ];
+      programs.sway = {
+        enable = true;
+        wrapperFeatures.gtk = true;
+        wrapperFeatures.base = true;
+        extraOptions = [
+          "--verbose"
+          "--debug"
+          "--unsupported-gpu"
+        ];
+      };
     })
     (lib.mkIf (config.cluster.nodeConfig.guiServer.enable && ! config.cluster.nodeConfig.guiClient.enable) {
       networking.firewall.allowedTCPPorts = [ 10000 ];

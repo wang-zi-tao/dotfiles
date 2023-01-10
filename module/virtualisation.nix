@@ -20,7 +20,6 @@
       waydroid.enable = false;
       podman = {
         enable = true;
-        dockerCompat = true;
         defaultNetwork.dnsname.enable = true;
       };
     };

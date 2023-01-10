@@ -10,12 +10,14 @@ in
       cmd = [ "hbbs" "-r" "${networkConfig.publicIp}:21117" ];
       volumes = [ "rustdesk:/root" ];
       ports = [ "21115:21115" "21116:21116" "21116:21116/udp" "21118:21118" ];
+      extraOptions = [ "--network=host" ];
     };
     virtualisation.oci-containers.containers.rustdesk-hbbr = {
       image = "rustdesk/rustdesk-server";
       cmd = [ "hbbr" ];
       volumes = [ "rustdesk:/root" ];
       ports = [ "1117:21117" "21119:21119" ];
+      extraOptions = [ "--network=host" ];
     };
     virtualisation.docker = {
       enable = true;
