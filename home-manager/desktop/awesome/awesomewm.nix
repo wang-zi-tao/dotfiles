@@ -143,7 +143,7 @@ in
           awesome-client " awesome.emit_signal ([[signal::lock]]) "
         ''; in
       ''
-        ${pkgs.xautolock}/bin/xautolock -time 1 -locker ${lock_script}/bin/lock
+        ${pkgs.xautolock}/bin/xautolock -time 5 -locker ${lock_script}/bin/lock
       '';
   };
 }

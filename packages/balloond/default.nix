@@ -9,16 +9,16 @@
 rustPlatform.buildRustPackage
 rec {
   pname = "balloond";
-  version = "0.1.1";
+  version = "0.1.2";
 
   src = fetchFromGitHub {
     owner = "wang-zi-tao";
     repo = pname;
     rev = version;
-    sha256 = "sha256-QflkclTFRk7ZioBTwYL+HMiaNHcsjBx+BsFhVUZkV0Q=";
+    sha256 = "sha256-quqgq+DU9zRSjw0JNL/rCS7WkPmKyes/CbE52NawWeo=";
   };
 
-  cargoSha256 = "sha256-+vyU8yCM5VyPLLNzFOSnSsdSN2yV/jTZRsGW1+2y5Ng=";
+  cargoSha256 = "sha256-gnl9PQF6GTxWMauLg6Wopeaek9iAeTIqkZ9gCfrKo1g=";
 
   nativeBuildInputs = [
     pkg-config

@@ -56,7 +56,7 @@ function M.panel(screen)
   })
   awesome.connect_signal("signal::volume", function(vol, muted)
     volume = vol
-    volume_progressbar.value = vol / 100
+    volume_progressbar.value = ol / 100
     if muted then
       volume_icon.text = ""
     else
