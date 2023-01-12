@@ -31,7 +31,7 @@
         Type = "simple";
         Restart = "always";
         RestartSec = "5s";
-        ExecStart = "${pkgs.balloond}/bin/balloond -r 500 -p 0.5 -d 0.25 -h 16";
+        ExecStart = "${pkgs.balloond}/bin/balloond -r 500 -p 0.5 -d 2 -h 16";
       };
     };
     environment.etc."qemu/vhost-user".source = "${pkgs.qemu_full}/share/qemu/vhost-user";
