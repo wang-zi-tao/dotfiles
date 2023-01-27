@@ -9,7 +9,7 @@
         package = pkgs.lxd;
         recommendedSysctlSettings = true;
       };
-      lxc.lxcfs.enable = true;
+      lxc.lxcfs.enable = false;
       libvirtd = {
         enable = true;
         qemu.ovmf.enable = true;

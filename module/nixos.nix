@@ -8,8 +8,11 @@
       "https://nix-community.cachix.org"
       "https://nixpkgs-wayland.cachix.org"
       "https://mirrors.ustc.edu.cn/nix-channels/store"
-    ] ++ lib.optionals (config.cluster.network.edges.${config.networking.hostName}.config.publicIp != "47.243.22.114") [
-      # "http://47.243.22.114:5000"
+    ] ++ lib.optionals (config.cluster.network.edges.${config.networking.hostName}.config.publicIp != config.cluster.network.edges.aliyun-hk.config.publicIp) [
+      # "ssh://nix-ssh@${config.cluster.network.edges.aliyun-hk.config.publicIp}"
+    ];
+    settings.trusted-substituters = [
+      "https://hydra.nixos.org/"
     ];
     settings.trusted-public-keys = [
       # "47.243.22.114:5000:wfL5ei3BfHGUVpiOihncv1LmbBzjqDm6uTFtJ95wueI="
@@ -17,8 +20,9 @@
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
     ];
+    settings.auto-optimise-store = true;
     daemonIOSchedClass = "idle";
-    daemonCPUSchedPolicy="batch";
+    daemonCPUSchedPolicy = "batch";
     extraOptions = "experimental-features = nix-command flakes";
     gc.automatic = true;
     gc.dates = "weekly";
@@ -26,6 +30,7 @@
     optimise.automatic = true;
   };
   networking.proxy.noProxy = "mirrors.tuna.tsinghua.edu.cn,mirrors.ustc.edu.cn,127.0.0.1,localhost";
+  
   # environment.memoryAllocator.provider = "jemalloc";
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "Asia/Shanghai";

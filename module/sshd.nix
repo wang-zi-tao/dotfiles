@@ -10,6 +10,8 @@ in
       sopsFile = config.cluster.ssh.publicKeySops;
     };
     nix.sshServe.enable = true;
+    nix.settings.trusted-users = [ "nix-ssh" ];
+    nix.sshServe.write = true;
     services.openssh = {
       enable = true;
       forwardX11 = true;

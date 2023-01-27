@@ -3,7 +3,7 @@ inputs@{ pkgs, lib, config, nixpkgs, nur, nixpkgs-unstable, ... }: {
     gnugrep
     gnused
   ];
-  home-manager.config = import ../home-manager/profiles/wangzi-mini.nix;
+  home-manager.config = import ../home-manager/profiles/wangzi-mobile.nix;
   home-manager.useGlobalPkgs = true;
   user.shell = "${pkgs.zsh}/bin/zsh";
   system.stateVersion = "22.05";

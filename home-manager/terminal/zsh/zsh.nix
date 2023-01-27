@@ -73,6 +73,7 @@
       "inkscape"
       "krita"
       "blender"
+      "obs"
     ])) // {
       grep = "rg --color=auto";
       xclip = "xclip -selection c";
@@ -110,8 +111,8 @@
       tsh = "tmux split -h";
       tsv = "tmux split -v";
 
-      sudo="sudo ";
-      watch="watch ";
+      sudo = "sudo ";
+      watch = "watch ";
 
       nlocate = "nix-locate --top-level";
 

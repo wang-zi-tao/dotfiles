@@ -185,7 +185,6 @@ with lib; with builtins;{
           develop.enable = true;
           container.enable = true;
           virtualisation.enable = true;
-          CodeServer.enable = true;
         };
         wangzi-nuc = {
           users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
@@ -196,12 +195,10 @@ with lib; with builtins;{
           develop.enable = true;
           container.enable = true;
           virtualisation.enable = true;
-          CodeServer.enable = true;
         };
         huawei-ecs = {
           container.enable = true;
           MySQL.enable = true;
-          CodeServer.enable = true;
           webssh.enable = true;
           redis.enable = true;
           prometheus.server = true;
@@ -218,7 +215,6 @@ with lib; with builtins;{
           inVM = true;
         };
         aliyun-ecs = {
-          CodeServer.enable = true;
           webssh.enable = true;
           # redis.enable = true;
           inVM = true;

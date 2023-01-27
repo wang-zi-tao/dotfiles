@@ -12,7 +12,13 @@ nix() {
 	if ! command -v nix &>/dev/null; then
 		command sh <(curl -L https://nixos.org/nix/install) --daemon
 	fi
-	command nix --experimental-features "nix-command flakes" "$@"
+	nixversion=$(command nix --version)
+	nixversion="${nixversion:12:2}"
+	if [[ $nixversion -lt 4 ]]; then
+		command nix-shell -p nixFlakes --command "nix --experimental-features 'nix-command flakes' $*"
+	else
+		command nix --experimental-features "nix-command flakes" "$@"
+	fi
 }
 shift
 system=$(nix-instantiate --eval -E '(import <nixpkgs> {}).stdenv.hostPlatform.system')
@@ -59,17 +65,20 @@ disk)
 	shift
 	nix build ".#nixos.$profile.config.system.build.disko" "$@"
 	sudo ./result
-    ;;
+	;;
 system)
 	profile=$1
 	shift
-    nix build ".#nixos.$profile.config.system.build.toplevel" "$@"
-    sudo nix-env -p /nix/var/nix/profiles/system --set "$(readlink ./result)"
-    sudo ./result/bin/switch-to-configuration switch
+	nix build ".#nixos.$profile.config.system.build.toplevel" "$@"
+	sudo nix-env -p /nix/var/nix/profiles/system --set "$(readlink ./result)"
+	sudo ./result/bin/switch-to-configuration switch
 	;;
 compile-all)
 	nix build ".#all.x86_64-linux" --option binary-caches "" "$@"
 	nix run .\#deploy-rs -- -d --fast-connection true -c
+	;;
+update)
+	nix flake update
 	;;
 *)
 	echo "unknown subcommand $command"

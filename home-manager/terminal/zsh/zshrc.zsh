@@ -180,9 +180,10 @@ new-nix-shell-flake() {
 EOF
     ${EDITOR:-vim} flake.nix
   fi
-  if [ -e ./.git ]; then 
-    git add flake.nix
+  if [ ! -e ./.git ]; then 
+    git init .
   fi
+  git add flake.nix
   if [ ! -e ./.envrc ]; then
     echo "use flake" > .envrc
     direnv allow
