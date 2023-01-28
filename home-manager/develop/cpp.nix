@@ -37,5 +37,5 @@
     })
   ];
   programs.nix-index.enable = true;
-  home.file.".config/nvim/parser/cpp.so".source="${pkgs.tree-sitter.builtGrammars.tree-sitter-cpp}/parser";
+  home.file.".config/nvim/parser/cpp.so".source="${pkgs.unstable.tree-sitter.builtGrammars.tree-sitter-cpp}/parser";
 }

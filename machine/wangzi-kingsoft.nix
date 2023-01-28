@@ -136,16 +136,6 @@ nixpkgs.lib.nixosSystem
           };
         };
       };
-      services.mysql.enable = true;
-      services.mysql.package = pkgs.mysql80;
-      services.mysql.ensureUsers = [{
-        name = "wangzi";
-        ensurePermissions = {
-          "mydb.*" = "ALL PRIVILEGES";
-        };
-      }];
-      services.mysql.ensureDatabases = [ "mydb" ];
-      environment.systemPackages = with pkgs; [ mysql ];
       services.nfs.server.enable = true;
       services.nfs.server.exports = ''
         /home/wangzi 192.168.122.117(rw,fsid=0,no_subtree_check)

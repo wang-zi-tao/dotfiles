@@ -148,6 +148,10 @@ wk.register({
             end,
             "Git Log",
         },
+        f = {
+            ":DiffviewFileHistory %<CR>",
+            "File History",
+        },
         a = { ":!git add .<CR>", "git add ." },
         c = { ":terminal git commit<CR>", "git commit" },
         p = { ":!git push<CR>", "git push" },
