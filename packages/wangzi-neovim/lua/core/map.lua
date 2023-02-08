@@ -316,6 +316,10 @@ wk.register({
             "<cmd>bd<CR>",
             "Delete Buffer",
         },
+        o = {
+            [[let mycurf=expand("<cfile>")<cr><c-w> w :execute("e ".mycurf)]],
+            "open path",
+        },
     },
     j = { function()
         require 'hop'.hint_char1()

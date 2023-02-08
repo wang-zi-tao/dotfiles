@@ -37,7 +37,14 @@ nixpkgs.lib.nixosSystem
       boot.loader.efi.canTouchEfiVariables = true;
       boot.loader.efi.efiSysMountPoint = "/boot/efi";
       boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usbhid" "nvme" "usb_storage" "sd_mod" ];
-      boot.initrd.kernelModules = [ "amdgpu" ];
+      boot.initrd.kernelModules = [
+        "amdgpu"
+        "dm-snapshot"
+        "dm-raid"
+        "dm-cache-default"
+        "dm-thin-pool"
+        "dm-mirror"
+      ];
       boot.kernelModules = [ "kvm-amd" ];
       boot.extraModulePackages = [ ];
       boot.kernelPackages = pkgs.linuxPackages_6_0;
@@ -54,25 +61,29 @@ nixpkgs.lib.nixosSystem
       };
 
       fileSystems."/" = {
-        device = "/dev/disk/by-uuid/d8a33441-258d-4698-a388-dc82bfaefda1";
-        fsType = "f2fs";
+        device = "/dev/pool/NixOS";
+        fsType = "ext4";
       };
+      /* fileSystems."/" = { */
+      /*   device = "/dev/disk/by-uuid/d8a33441-258d-4698-a388-dc82bfaefda1"; */
+      /*   fsType = "f2fs"; */
+      /* }; */
       swapDevices = [{
         device = "/swapfile";
         size = 1024 * 16;
       }];
       fileSystems."/boot/efi" = {
-        device = "/dev/disk/by-uuid/C76C-43E9";
+        device = "/dev/disk/by-uuid/8EC5-6DAA";
         fsType = "vfat";
       };
       # fileSystems."/mnt/vm" = {
       #   device = "/dev/disk/by-uuid/42a82751-3f31-4ef7-abe5-5a610df9f146";
       #   fsType = "ext4";
       # };
-      fileSystems."/mnt/build" = {
-        device = "/dev/disk/by-uuid/3c0e89be-1fe4-46cd-840b-42c0bb21c33e";
-        fsType = "ext4";
-      };
+      /* fileSystems."/mnt/build" = { */
+      /*   device = "/dev/disk/by-uuid/3c0e89be-1fe4-46cd-840b-42c0bb21c33e"; */
+      /*   fsType = "ext4"; */
+      /* }; */
       # fileSystems."/mnt/data" = {
       #   device = "/dev/disk/by-uuid/201a5f10-3a83-4d9a-85dc-f85a87abacb6";
       #   fsType = "btrfs";
@@ -121,6 +132,7 @@ nixpkgs.lib.nixosSystem
           follow symlinks = yes
           wide links = yes
           allow insecure wide links = yes
+
         '';
         shares = {
           wangzi-home = {
@@ -143,6 +155,9 @@ nixpkgs.lib.nixosSystem
       users.users.root.hashedPassword = "$6$EleVrSVkk8j6lvlN$5EPVW5nhguBtB7WFaLBWrJHCCT.7xj7.NNgMR9OVdf3ngH80miDyox3JXcuHEu65NTnbGtlCX14bzxg0F1po8.";
       users.users.wangzi.hashedPassword = "$6$zBepEnWeXpVqW3Di$neIo/RZP.X7WS/VjECbcsLgKvXw4Ax1tgkoKBQikhoy7qlAdYSE/V5QQkwbl/dwSAx3daPVW1f.V93H.7.EZb1";
       hardware.ksm.enable = true;
+      networking.firewall.rejectPackets = lib.mkForce true;
+      services.openssh.permitRootLogin = lib.mkForce "no";
+      services.openssh.passwordAuthentication = lib.mkForce false;
     })
   ];
 }

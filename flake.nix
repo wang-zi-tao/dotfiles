@@ -140,6 +140,9 @@
       nixos = builtins.mapAttrs
         (name: value: value ({ inherit pkgs-template; } // inputs))
         (import-dir ./machine "machine.nix");
+      nixosConfigurations = builtins.mapAttrs
+        (name: value: value ({ inherit pkgs-template; } // inputs))
+        (import-dir ./machine "machine.nix");
       nixOnDroidConfigurations = builtins.mapAttrs
         (name: value: (value (inputs // { inherit pkgs-template; })))
         (import-dir ./nix-on-droid/profiles "profile.nix");
