@@ -47,7 +47,7 @@ nixpkgs.lib.nixosSystem
       ];
       boot.kernelModules = [ "kvm-amd" ];
       boot.extraModulePackages = [ ];
-      boot.kernelPackages = pkgs.linuxPackages_6_0;
+      boot.kernelPackages = pkgs.linuxKernel.packages.linux_6_1;
       boot.kernelParams = [
         "elevator=noop"
       ];

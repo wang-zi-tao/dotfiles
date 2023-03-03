@@ -27,3 +27,11 @@ awesome.connect_signal("tag::next::nonempty", function()
         tag:view_only()
     end
 end)
+
+awesome.connect_signal("signal::lock", function()
+    for _, c in ipairs(client.get()) do
+        if c.class == "Virt-manager" then
+            c:kill()
+        end
+    end
+end)

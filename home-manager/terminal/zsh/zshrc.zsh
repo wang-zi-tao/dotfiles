@@ -117,8 +117,8 @@ make(){
 }
 retry() {
   local n=0
-  local trys=${TRYS:32}
-  local sleep_time=${SLEEP:10}
+  local trys=${TRYS:-256}
+  local sleep_time=${SLEEP:-10}
   until ($1 "${@:2}") ; do
       n=$(( n + 1 ))
       [ $n -gt $trys ] && return 1

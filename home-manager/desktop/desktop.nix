@@ -141,6 +141,7 @@ with lib;{
 
       rustdesk
       wmctrl
+      drawio
     ];
   };
 }

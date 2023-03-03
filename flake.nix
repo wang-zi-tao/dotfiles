@@ -71,7 +71,7 @@
           deploy-rs.overlay
           nur.overlay
           fenix.overlays.default
-          nixpkgs-wayland.overlay
+          # nixpkgs-wayland.overlay
           packages
           (final: prev: {
             unstable = import inputs.nixpkgs-unstable { inherit system overlays; config = { allowUnfree = true; }; };
