@@ -6,13 +6,6 @@ let
 in
 with lib; with builtins; {
   config = lib.mkIf nodeConfig.webssh.enable {
-    services.code-server = {
-      enable = true;
-      user = "root";
-      host = "0.0.0.0";
-      extraPackages = with pkgs;[ zsh tmux ];
-      hashedPassword = "$argon2i$v=19$m=4096,t=3,p=1$tEUHulsHyVpSaxUJjUYoUw$LyAUrnqK5nx6F36mn3LWzrTP7xp4Ny5icZw1DiL1fs8";
-    };
     systemd.services = {
       webssh = {
         wantedBy = [ "multi-user.target" ];
@@ -23,7 +16,7 @@ with lib; with builtins; {
     };
     networking.firewall.allowedUDPPorts = [ 64536 ];
     networking.firewall.allowedTCPPorts = [ 64536 ];
-    services.caddy = lib.optionalAttrs nodeConfig.CodeServer.enable {
+    services.caddy = {
       enable = true;
       virtualHosts = {
         "https://${builtins.toString networkConfig.publicIp}:64536" = {

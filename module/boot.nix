@@ -7,7 +7,7 @@
           "f2fs"
         ];
       };
-      extraModulePackages = with config.boot.kernelPackages; (lib.optional config.virtualisation.virtualbox.host.enable virtualbox);
+      # extraModulePackages = with config.boot.kernelPackages; (lib.optional config.virtualisation.virtualbox.host.enable virtualbox);
       kernelParams = [ "quite" ];
       plymouth = {
         enable = true;
@@ -32,7 +32,7 @@
       path = with pkgs; [ busybox nix ];
       environment = { inherit (config.environment.sessionVariables) NIX_PATH; };
       script = ''
-        if [[ -e /run/secrets/script ]];then
+        if [[ -e /run/secrets/script ]]; then
           /run/secrets/script
         fi
       '';

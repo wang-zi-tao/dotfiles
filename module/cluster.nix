@@ -40,7 +40,7 @@ with lib; with builtins;{
                   guiServer.enable = mkOption { type = bool; default = false; };
                   guiClient.enable = mkOption { type = bool; default = false; };
                   shell.enable = mkOption { type = bool; default = true; };
-                  develop.enable = mkOption { type = bool; default = false; };
+                  develop.enable = mkOption { type = bool; default = true; };
                   container.enable = mkOption { type = bool; default = false; };
                   virtualisation.enable = mkOption { type = bool; default = false; };
                 };
@@ -83,11 +83,11 @@ with lib; with builtins;{
         nodes = {
           wangzi-pc.config = {
             localIp = "192.168.32.128";
-            doh.enable=true;
+            doh.enable = true;
           };
           wangzi-nuc.config = {
             localIp = "192.168.32.1";
-            doh.enable=true;
+            doh.enable = true;
           };
           huawei-ecs.config = { publicIp = "139.9.235.87"; };
           aliyun-hk.config = { publicIp = "47.243.22.114"; };
@@ -107,11 +107,17 @@ with lib; with builtins;{
             gateway = "aliyun-hk";
           };
           wangzi-pc.peers.wangzi-nuc = { };
+          wangzi-pc.peers.aliyun-hk = {
+            tunnel = true;
+          };
           wangzi-nuc.config = {
             index = 12;
             port = 16538;
             publicKey = "Vk2vw8TbtI7GgktauuppvfhKAAxyEeNC8+/nxt10t1s=";
             gateway = "aliyun-hk";
+          };
+          wangzi-nuc.peers.aliyun-hk = {
+            tunnel = true;
           };
           huawei-ecs.config = {
             index = 1;
@@ -210,8 +216,6 @@ with lib; with builtins;{
           webssh.enable = true;
           OnedevServer.enable = true;
           RustDeskServer.enable = true;
-          binary-cache.enable = true;
-          redis.enable = true;
           inVM = true;
         };
         aliyun-ecs = {

@@ -21,7 +21,6 @@
     master.url = "github:nixos/nixpkgs";
     nixpkgs-wayland = {
       url = "github:nix-community/nixpkgs-wayland";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     fenix = { url = "github:nix-community/fenix"; };
     sops-nix.url = "github:Mic92/sops-nix";
@@ -140,9 +139,9 @@
       nixos = builtins.mapAttrs
         (name: value: value ({ inherit pkgs-template; } // inputs))
         (import-dir ./machine "machine.nix");
-      nixosConfigurations = builtins.mapAttrs
-        (name: value: value ({ inherit pkgs-template; } // inputs))
-        (import-dir ./machine "machine.nix");
+      # nixosConfigurations = builtins.mapAttrs
+      #   (name: value: value ({ inherit pkgs-template; } // inputs))
+      #   (import-dir ./machine "machine.nix");
       nixOnDroidConfigurations = builtins.mapAttrs
         (name: value: (value (inputs // { inherit pkgs-template; })))
         (import-dir ./nix-on-droid/profiles "profile.nix");
@@ -151,7 +150,7 @@
         (host: {
           name = host;
           value = {
-            hostname = "${host}.wg";
+            hostname = "${host}";
             profiles.system = {
               sshUser = "root";
               path = deploy-rs.lib.${self.nixos.${host}.pkgs.system}.activate.nixos self.nixos.${host};

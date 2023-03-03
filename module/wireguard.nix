@@ -86,6 +86,7 @@ in
           ips = [ wireguard.config.clusterIp ];
           listenPort = wireguard.config.port;
           privateKeyFile = config.sops.secrets."wireguard/private-key".path;
+          mtu = 1200;
           peers = mapAttrsToList
             (otherNodeName: edge:
               let
@@ -149,7 +150,7 @@ in
     };
     networking.firewall.allowedTCPPorts = mkIfWireguard ([ 52343 ] ++ concatLists (mapAttrsToList (otherNodeName: edge: (optional edge.tunnel (wireguardCluster.${otherNodeName}.config.index + 40000))) wireguard.peers));
     systemd.services = listToAttrs (
-      optionals enabled [
+      (optionals enabled [
         (nameValuePair "wg-netmanager" {
           enable = true;
           description = "Wireguard network manager wg1";
@@ -171,7 +172,37 @@ in
           };
           restartTriggers = [ "/etc/wg_netmanager/network.yaml" "/etc/wg_netmanager/peer.yaml" ];
         })
-      ]
+      ])
+      ++ (concatLists (mapAttrsToList
+        (otherNodeName: value: optional (value.tunnel && networkCluster.${otherNodeName}.config.publicIp != null)
+          (nameValuePair "wireguard-tunnel-client-${otherNodeName}" {
+            enable = true;
+            wantedBy = [ "multi-user.target" ];
+            before = [ "multi-user.target" ];
+            path = with pkgs; [ busybox openssh ];
+            serviceConfig = {
+              Type = "simple";
+              Restart = "always";
+              RestartSec = "5s";
+              ExecStart = "${pkgs.udp2raw}/bin/udp2raw --fix-gro -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -c -l127.0.0.1:${toString (wireguardCluster.${otherNodeName}.config.index + 40000)} -r ${networkCluster.${otherNodeName}.config.publicIp}:${toString (wireguard.config.index + 40000)}";
+            };
+          }))
+        wireguard.peers))
+      ++ (concatLists (mapAttrsToList
+        (otherNodeName: value: optional (value.tunnel && network.config.publicIp != null)
+          (nameValuePair "wireguard-tunnel-server-${otherNodeName}" {
+            enable = true;
+            wantedBy = [ "multi-user.target" ];
+            before = [ "multi-user.target" ];
+            path = with pkgs; [ busybox openssh ];
+            serviceConfig = {
+              Type = "simple";
+              Restart = "always";
+              RestartSec = "5s";
+              ExecStart = "${pkgs.udp2raw}/bin/udp2raw --fix-gro -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -s -l0.0.0.0:${toString (wireguardCluster.${otherNodeName}.config.index + 40000)} -r 127.0.0.1:${builtins.toString (wireguard.config.port)}";
+            };
+          }))
+        wireguard.peers))
     );
   };
 }

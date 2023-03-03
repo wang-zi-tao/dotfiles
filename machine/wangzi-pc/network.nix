@@ -5,6 +5,10 @@
     networkmanager = {
       enable = true;
     };
+    nat.forwardPorts."qemu-rdp" = {
+      sourcePort = 3399;
+      loopbackIPs = "192.168.122.238:3389";
+    };
   };
   services.samba-wsdd.enable = true;
   systemd.services.NetworkManager-wait-online.enable = false;

@@ -9,11 +9,12 @@
     timeout = 1;
   };
   boot.kernelParams = [
-    "amdgpu.virtual_display=0000:04:00.0,1"
+    /* "amdgpu.virtual_display=0000:04:00.0,1" */
   ];
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
   boot.initrd.kernelModules = [ "amdgpu" ];
   boot.kernelModules = [ "kvm-amd" "mt7921e" ];
+  boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod_stable;
   boot.extraModulePackages = with config.boot.kernelPackages; [ ];
   boot.cleanTmpDir = false;
   boot.tmpOnTmpfs = false;
@@ -55,12 +56,15 @@
 
   hardware = {
     opengl.enable = true;
-    opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva pkgs.driversi686Linux.mesa ];
+    opengl.extraPackages32 = with pkgs.pkgsi686Linux; [
+      amdvlk
+      libva
+      mesa
+    ];
     opengl.extraPackages = with pkgs; [
       amdvlk
-      vaapiIntel
-      libvdpau-va-gl
-      vaapiVdpau
+      libva
+      mesa
     ];
     opengl.setLdLibraryPath = true;
     opengl.driSupport = true;
@@ -73,11 +77,13 @@
     modules = with pkgs.xorg; [ xf86videoamdgpu xf86inputlibinput xf86videodummy xf86videovesa ];
     videoDrivers = [ "amdgpu" ];
   };
-  services.xserver.monitorSection = ''Modeline "1920x1080" 23.53 1920 1952 2040 2072 1080 1106 1108 1135'';
-  services.xserver.resolutions = [{ x = "1920"; y = "1080"; }];
-  services.xserver.displayManager.autoLogin = {
-    enable = true;
-    user = "wangzi";
-  };
-  services.xserver.displayManager.defaultSession = lib.mkForce "none+awesome";
+
+
+  /* services.xserver.monitorSection = ''Modeline "1920x1080" 23.53 1920 1952 2040 2072 1080 1106 1108 1135''; */
+  /* services.xserver.resolutions = [{ x = "1920"; y = "1080"; }]; */
+  /* services.xserver.displayManager.autoLogin = { */
+  /*   enable = true; */
+  /*   user = "wangzi"; */
+  /* }; */
+  /* services.xserver.displayManager.defaultSession = lib.mkForce "none+awesome"; */
 }

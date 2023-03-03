@@ -43,7 +43,7 @@
       VIRSH_DEFAULT_CONNECT_URI = "qemu:///system";
     };
     home.activation.neovim = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      if [[ -e /run/secrets/shell/${config.home.username} ]];then
+      if [[ -e /run/secrets/shell/${config.home.username} ]]; then
         source /run/secrets/shell/${config.home.username}
       fi
       [[ -f $HOME/.cache/nvim/luacache ]] && rm $HOME/.cache/nvim/luacache || true
@@ -75,7 +75,7 @@
         (nix-direnv.override { enableFlakes = true; })
         duf
         exa
-        pkgs.nixpkgs-22-05.fd
+        fd
         jq
         tldr
         just

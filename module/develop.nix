@@ -5,6 +5,7 @@
       environment.systemPackages = with pkgs; [
         config.boot.kernelPackages.perf
         perf-tools
+        gperftools
         criu
       ];
       programs.criu.enable = true;

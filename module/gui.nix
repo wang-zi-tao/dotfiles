@@ -1,6 +1,7 @@
 { config, pkgs, lib, ... }: {
   config = lib.mkMerge [
     (lib.mkIf config.cluster.nodeConfig.guiClient.enable {
+      programs.ssh.askPassword = "${pkgs.gnome.seahorse}/libexec/seahorse/ssh-askpass";
       services = {
         xserver = {
           enable = true;
@@ -10,6 +11,7 @@
           windowManager.awesome.enable = true;
           windowManager.awesome.package = pkgs.awesome;
           desktopManager.gnome.enable = true;
+          desktopManager.plasma5.enable = true;
           displayManager.defaultSession = "none+awesome";
           displayManager.xpra = {
             enable = false;
