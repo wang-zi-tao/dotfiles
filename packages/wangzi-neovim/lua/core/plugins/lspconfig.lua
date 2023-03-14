@@ -90,8 +90,8 @@ local function on_attach(client, bufnr)
         set_loclist = "<leader>lq",
         formatting = "<leader>lf",
     }
-    map("n", m.declaration, "<cmd>lua vim.lsp.buf.declaration()<CR>")
-    map("n", m.definition, "<cmd>lua vim.lsp.buf.definition()<CR>")
+    -- map("n", m.declaration, "<cmd>lua vim.lsp.buf.declaration()<CR>")
+    -- map("n", m.definition, "<cmd>lua vim.lsp.buf.definition()<CR>")
     map("n", m.hover, "<cmd>lua vim.lsp.buf.hover()<CR>")
     map("n", m.implementation, "<cmd>lua vim.lsp.buf.implementation()<CR>")
     map("n", m.signature_help, "<cmd>lua vim.lsp.buf.signature_help()<CR>")
@@ -107,6 +107,15 @@ local function on_attach(client, bufnr)
     map("n", m.goto_next, "<cmd>lua vim.diagnostic.goto_next()<CR>")
     map("n", m.set_loclist, "<cmd>lua vim.diagnostic.setloclist()<CR>")
     map("n", m.formatting, "<cmd>lua vim.lsp.buf.format { async = true }<CR>", { silent = true })
+
+
+    local keymap = vim.keymap.set
+    keymap("n", "gd", "<cmd>Lspsaga peek_definition<CR>")
+    keymap("n", "gD", "<cmd>Lspsaga goto_definition<CR>")
+    keymap("n", "gr", "<cmd>Lspsaga rename<CR>")
+    keymap("n", "gt", "<cmd>Lspsaga peek_type_definition<CR>")
+    keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
+    keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 end
 
 local capabilities = require('cmp_nvim_lsp').default_capabilities()

@@ -199,6 +199,10 @@ wk.register({
         t = {
             "<cmd>Lspsaga term_toggle<CR>",
             "Terminal"
+        },
+        h = {
+            "<cmd>Lspsaga lsp_finder<CR>",
+            "finder",
         }
     },
     p = { name = "perf",
@@ -521,5 +525,6 @@ keymap("n", "gD", "<cmd>Lspsaga goto_definition<CR>")
 keymap("n", "gr", "<cmd>Lspsaga rename<CR>")
 keymap("n", "gt", "<cmd>Lspsaga peek_type_definition<CR>")
 keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
+keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 -- keymap("n", "K", "<cmd>Lspsaga hover_doc<CR>")
 keymap({ "n", "t" }, "<A-d>", "<cmd>Lspsaga term_toggle<CR>")
