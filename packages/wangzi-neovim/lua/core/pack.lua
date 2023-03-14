@@ -106,6 +106,23 @@ packer.startup(function(use)
     })
 
     use({
+        n.baleia_nvim or "m00qek/baleia.nvim",
+        tag = "v1.2.0",
+        as = "baleia_nvim",
+        event = "BufRead",
+        cmd = "BaleiaColorize",
+        module = "baleia",
+        config = function()
+            vim.cmd[[
+                command! BaleiaColorize call luaeval("require('baleia').setup { }").once(bufnr('%'))
+
+                autocmd BufWinEnter my-buffer call luaeval("require('baleia').setup { }").automatically(bufnr('%'))
+                autocmd BufWinEnter *.log call luaeval("require('baleia').setup { }").automatically(bufnr('%'))
+            ]]
+        end,
+    })
+
+    use({
         n.nvim_treesitter or "nvim-treesitter/nvim-treesitter",
         as = "nvim_treesitter",
         event = "BufRead",

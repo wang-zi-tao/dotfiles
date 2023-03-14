@@ -56,6 +56,11 @@ stdenvNoCC.mkDerivation {
       bufferline_nvim = "${bufferline-nvim}",
       indent_blankline_nvim = "${indent-blankline-nvim}",
       nvim_colorizer_lua = "${nvim-colorizer-lua}",
+      baleia_nvim = "${pkgs.fetchgit {
+        url = "https://github.com/m00qek/baleia.nvim";
+        rev = "v1.2.0";
+        sha256 = "sha256-LULcXLoGBUirOwgt5CobR5lrblb4kQUsvWtxEPhUIas=";
+      }}",
       nvim_treesitter = "${if enable-all then nvim-treesitter.withAllGrammars else nvim-treesitter.withPlugins ( p: with p; [
         nix
       ])}",

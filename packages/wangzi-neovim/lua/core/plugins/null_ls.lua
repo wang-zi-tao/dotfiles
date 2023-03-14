@@ -1,11 +1,12 @@
 local null_ls = require("null-ls")
 local b = null_ls.builtins
 local sources = {
-    b.code_actions.gitsigns,
     -- Rust
     b.formatting.rustfmt,
     -- C++
     -- b.formatting.clang_format,
+    -- Python
+    b.formatting.autopep8,
     -- java
     b.formatting.google_java_format,
     -- mark

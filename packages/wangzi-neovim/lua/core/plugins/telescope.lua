@@ -20,14 +20,14 @@ telescope.setup({
         layout_config = {
             horizontal = {
                 prompt_position = "top",
-                preview_width = 0.55,
+                preview_width = 0.35,
                 results_width = 0.8,
             },
             vertical = {
                 mirror = true,
             },
-            width = 0.87,
-            height = 0.80,
+            width = 0.95,
+            height = 0.90,
             preview_cutoff = 120,
         },
         file_sorter = require("telescope.sorters").get_fuzzy_file,

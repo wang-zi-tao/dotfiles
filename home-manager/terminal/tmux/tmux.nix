@@ -9,7 +9,7 @@
     shell = "${pkgs.zsh}/bin/zsh";
     escapeTime = 10;
     terminal = "tmux-256color";
-    historyLimit = 16384;
+    historyLimit = 65536;
     baseIndex = 1;
     plugins = with pkgs.tmuxPlugins;
       with pkgs.tmuxPlugins; [
