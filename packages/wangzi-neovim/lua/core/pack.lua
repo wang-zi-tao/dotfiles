@@ -252,10 +252,10 @@ packer.startup(function(use)
     })
     if n.cmp_tabnine ~= false then
         local run
-        if (0== vim.fn.has("win32")) then
-            run='./install.sh'
+        if (0 == vim.fn.has("win32")) then
+            run = './install.sh'
         else
-            run='powershell ./install.ps1'
+            run = 'powershell ./install.ps1'
         end
         use({
             n.cmp_tabnine or "tzachar/cmp-tabnine",
@@ -276,6 +276,24 @@ packer.startup(function(use)
         requires = "nvim_cmp",
         config = function()
             require("cmp").register_source("spell", require("cmp-spell").new())
+        end,
+    })
+    use({
+        n.cmp_cmdline or "hrsh7th/cmp-cmdline",
+        as = "cmp_cmdline",
+        after = "nvim_cmp",
+        requires = "nvim_cmp",
+        config = function()
+            require('cmp').register_source('cmdline', require('cmp_cmdline').new())
+        end,
+    })
+    use({
+        n.cmp_cmdline_history or "dmitmel/cmp-cmdline-history",
+        as = "cmp_cmdline_history",
+        after = "nvim_cmp",
+        requires = "nvim_cmp",
+        config = function()
+            require("cmp").register_source("cmdline_history", require("cmp_cmdline_history").new())
         end,
     })
     use({
@@ -474,6 +492,14 @@ packer.startup(function(use)
         end,
         ft = { "rs", "rust", "toml" },
     })
+    use({
+        n.clangd_extensions_nvim or "p00f/clangd_extensions.nvim",
+        as = "clangd_extensions_nvim",
+        ft = { "h", "cpp", "cc", "c" },
+        config = function()
+            require("core.plugins.others").clangd_extensions()
+        end,
+    })
     if n.markdown_preview then
         use({
             n.markdown_preview or "davidgranstrom/nvim-markdown-preview",
@@ -489,6 +515,11 @@ packer.startup(function(use)
         config = function()
             require("core.plugins.others").marks()
         end,
+    })
+    use({
+        n.notify_nvim or "rcarriga/nvim-notify",
+        as = "notify_nvim",
+        module = "notify",
     })
     use({
         n.auto_save or "Pocco81/AutoSave.nvim",

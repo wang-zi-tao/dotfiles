@@ -117,6 +117,7 @@ local extensions = {
     "frecency",
     "project",
     "live_grep_args",
+    "notify",
 }
 extensions = {
     "frecency",

@@ -33,16 +33,15 @@ end
 
 M.colorizer = function()
     require("colorizer").setup({
-        "*",
     }, {
         RGB = true, -- #RGB hex codes
         RRGGBB = true, -- #RRGGBB hex codes
-        names = false, -- "Name" codes like Blue
-        RRGGBBAA = false, -- #RRGGBBAA hex codes
-        rgb_fn = false, -- CSS rgb() and rgba() functions
-        hsl_fn = false, -- CSS hsl() and hsla() functions
+        names = true, -- "Name" codes like Blue
+        RRGGBBAA = true, -- #RRGGBBAA hex codes
+        rgb_fn = true, -- CSS rgb() and rgba() functions
+        hsl_fn = true, -- CSS hsl() and hsla() functions
         css = true, -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
-        css_fn = false, -- Enable all CSS *functions*: rgb_fn, hsl_fn
+        css_fn = true, -- Enable all CSS *functions*: rgb_fn, hsl_fn
 
         -- Available modes: foreground, background
         mode = "background", -- Set the display mode.
@@ -215,8 +214,7 @@ M.scrollbar = function()
 end
 M.ts_autotag = function() end
 M.lspsaga = function()
-    local saga = require("lspsaga")
-    saga.init_lsp_saga({})
+    require("lspsaga").setup({})
 end
 M.rust_tools = function()
     local adapter
@@ -236,6 +234,79 @@ M.rust_tools = function()
             adapter = adapter
         },
     })
+end
+M.clangd_extensions = function()
+    require("clangd_extensions").setup {
+        server = {
+            -- options to pass to nvim-lspconfig
+            -- i.e. the arguments to require("lspconfig").clangd.setup({})
+        },
+        extensions = {
+            -- defaults:
+            -- Automatically set inlay hints (type hints)
+            autoSetHints = true,
+            -- These apply to the default ClangdSetInlayHints command
+            inlay_hints = {
+                -- Only show inlay hints for the current line
+                only_current_line = false,
+                -- Event which triggers a refersh of the inlay hints.
+                -- You can make this "CursorMoved" or "CursorMoved,CursorMovedI" but
+                -- not that this may cause  higher CPU usage.
+                -- This option is only respected when only_current_line and
+                -- autoSetHints both are true.
+                only_current_line_autocmd = "CursorHold",
+                -- whether to show parameter hints with the inlay hints or not
+                show_parameter_hints = true,
+                -- prefix for parameter hints
+                parameter_hints_prefix = "<- ",
+                -- prefix for all the other hints (type, chaining)
+                other_hints_prefix = "=> ",
+                -- whether to align to the length of the longest line in the file
+                max_len_align = false,
+                -- padding from the left if max_len_align is true
+                max_len_align_padding = 1,
+                -- whether to align to the extreme right or not
+                right_align = false,
+                -- padding from the right if right_align is true
+                right_align_padding = 7,
+                -- The color of the hints
+                highlight = "Comment",
+                -- The highlight group priority for extmark
+                priority = 100,
+            },
+            ast = {
+
+                role_icons = {
+                    type = "",
+                    declaration = "",
+                    expression = "",
+                    specifier = "",
+                    statement = "",
+                    ["template argument"] = "",
+                },
+
+                kind_icons = {
+                    Compound = "",
+                    Recovery = "",
+                    TranslationUnit = "",
+                    PackExpansion = "",
+                    TemplateTypeParm = "",
+                    TemplateTemplateParm = "",
+                    TemplateParamObject = "",
+                },
+
+                highlights = {
+                    detail = "Comment",
+                },
+            },
+            memory_usage = {
+                border = "none",
+            },
+            symbol_info = {
+                border = "none",
+            },
+        },
+    }
 end
 M.dap_ui = function()
     require("dapui").setup({

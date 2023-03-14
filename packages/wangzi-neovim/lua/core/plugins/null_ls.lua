@@ -3,7 +3,7 @@ local b = null_ls.builtins
 local sources = {
     b.code_actions.gitsigns,
     -- Rust
-    -- b.formatting.rustfmt,
+    b.formatting.rustfmt,
     -- C++
     -- b.formatting.clang_format,
     -- java
@@ -14,7 +14,7 @@ local sources = {
     b.formatting.deno_fmt,
     -- Lua
     -- b.formatting.stylua.with({ extra_args = { "--indent-type", "Spaces", "--indent-width", "2" } }),
-    -- b.diagnostics.luacheck.with({ extra_args = { "--global vim" } }),
+    b.diagnostics.luacheck.with({ extra_args = { "--global vim" } }),
     -- Shell
     b.formatting.shfmt,
     b.diagnostics.shellcheck.with({ diagnostics_format = "#{m} [#{c}]" }),
@@ -25,7 +25,7 @@ null_ls.setup({
     sources = sources,
     on_attach = function(client)
         if client.server_capabilities.document_formatting then
-            vim.cmd("autocmd BufWritePre <buffer> lua vim.lsp.buf.formatting_sync()")
+            vim.cmd("autocmd BufWritePre <buffer> silent! lua vim.lsp.buf.format()")
         end
     end,
 })

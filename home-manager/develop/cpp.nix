@@ -27,8 +27,8 @@
     (pkgs.buildEnv {
       name = "cpp_compiler";
       paths = with pkgs;[
-        clang_12
-        lldb_12
+        clang
+        lldb
         gcc
         # gdb
         bintools-unwrapped

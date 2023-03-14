@@ -4,7 +4,11 @@ local wo = vim.wo
 local o = vim.o
 
 g.mapleader = " "
-opt.swapfile = false
+opt.swapfile = true
+opt.backup = true
+opt.writebackup = true
+opt.backupcopy = "yes"
+opt.backupdir = vim.fn.stdpath("state") .. "/backup//"
 opt.autowrite = true
 opt.autoread = true
 opt.clipboard = "unnamedplus"

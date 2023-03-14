@@ -1,3 +1,4 @@
+local keymap = vim.keymap.set
 local function map(mod, key, exec)
     vim.keymap.set(mod, key, exec)
 end
@@ -160,9 +161,7 @@ wk.register({
     l = {
         name = "LSP",
         a = {
-            function()
-                require("lspsaga.codeaction").code_actions()
-            end,
+            "<cmd>Lspsaga code_action<CR>",
             "CodeActions",
         },
         r = {
@@ -172,17 +171,35 @@ wk.register({
             "Rename",
         },
         d = {
-            function()
-                require("lspsaga.provider").preview_definition()
-            end,
+            "<cmd>Lspsaga peek_definition<CR>",
+            "PreviewDefinition",
+        },
+        D = {
+            "<cmd>Lspsaga peek_type_definition<CR>",
             "PreviewDefinition",
         },
         f = {
             function()
-                vim.lsp.buf.formatting()
+                vim.lsp.buf.format()
             end,
             "Format",
         },
+        o = {
+            "<cmd>Lspsaga outline<CR>",
+            "Outline",
+        },
+        c = {
+            "<cmd>Lspsaga incoming_calls<CR>",
+            "Incoming call"
+        },
+        C = {
+            "<cmd>Lspsaga outgoing_calls<CR>",
+            "Outgoing call"
+        },
+        t = {
+            "<cmd>Lspsaga term_toggle<CR>",
+            "Terminal"
+        }
     },
     p = { name = "perf",
         l = {
@@ -490,3 +507,19 @@ map({ "n", "t" }, "<C-k>", function() require('Navigator').up() end)
 map({ "n", "t" }, "<C-l>", function() require('Navigator').right() end)
 map({ "n", "t" }, "<C-j>", function() require('Navigator').down() end)
 map("n", "<A-p>", function() require('Navigator').previous() end)
+
+keymap("n", "[d", "<cmd>Lspsaga diagnostic_jump_prev<CR>")
+keymap("n", "]d", "<cmd>Lspsaga diagnostic_jump_next<CR>")
+keymap("n", "[e", function()
+    require("lspsaga.diagnostic"):goto_prev({ severity = vim.diagnostic.severity.ERROR })
+end)
+keymap("n", "]e", function()
+    require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
+end)
+keymap("n", "gd", "<cmd>Lspsaga peek_definition<CR>")
+keymap("n", "gD", "<cmd>Lspsaga goto_definition<CR>")
+keymap("n", "gr", "<cmd>Lspsaga rename<CR>")
+keymap("n", "gt", "<cmd>Lspsaga peek_type_definition<CR>")
+keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
+-- keymap("n", "K", "<cmd>Lspsaga hover_doc<CR>")
+keymap({ "n", "t" }, "<A-d>", "<cmd>Lspsaga term_toggle<CR>")

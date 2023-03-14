@@ -126,7 +126,7 @@ with lib; with builtins;{
           };
           aliyun-hk.config = {
             index = 2;
-            port = 49638;
+            port = 21176;
             publicKey = "kY4n/K6zHjRNq/5f1yId2156zyfO/cVAwQddasPqjE8=";
             iptables.enable = true;
             gatewayServer = true;

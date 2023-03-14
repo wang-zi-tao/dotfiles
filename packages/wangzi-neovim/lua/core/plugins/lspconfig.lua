@@ -4,7 +4,7 @@ local function setup_lsp(attach, capabilities)
     -- lspservers with default config
     local servers = {
         "clangd",
-        "sumneko_lua",
+        "lua_ls",
         "vimls",
         "pyright",
         "rust_analyzer",
@@ -56,7 +56,10 @@ local function on_attach(client, bufnr)
             group = augroup,
             buffer = bufnr,
             callback = function()
+                local old_print = vim.notify
+                vim.notify = function(...) end
                 lsp_formatting(bufnr)
+                vim.notify = old_print
             end,
         })
     end
@@ -103,7 +106,7 @@ local function on_attach(client, bufnr)
     map("n", m.goto_prev, "<cmd>lua vim.diagnostic.goto_prev()<CR>")
     map("n", m.goto_next, "<cmd>lua vim.diagnostic.goto_next()<CR>")
     map("n", m.set_loclist, "<cmd>lua vim.diagnostic.setloclist()<CR>")
-    map("n", m.formatting, "<cmd>lua vim.lsp.buf.formatting()<CR>")
+    map("n", m.formatting, "<cmd>lua vim.lsp.buf.format { async = true }<CR>", { silent = true })
 end
 
 local capabilities = require('cmp_nvim_lsp').default_capabilities()

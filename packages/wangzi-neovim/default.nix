@@ -49,6 +49,7 @@ stdenvNoCC.mkDerivation {
       }}",
       plenary_nvim = "${plenary-nvim}",
       impatient_nvim = "${impatient-nvim}",
+      notify_nvim = "${nvim-notify}",
       nvim_base16 = "${nvim-base16}",
       nvim_web_devicons = "${nvim-web-devicons}",
       feline_nvim = "${feline-nvim}",
@@ -80,6 +81,8 @@ stdenvNoCC.mkDerivation {
       cmp_path = "${cmp-path}",
       cmp_tabnine = ${if enable-tabnine then ''"${cmp-tabnine}"'' else "false" },
       cmp_spell = "${cmp-spell}",
+      cmp_cmdline = "${cmp-cmdline}",
+      cmp_cmdline_history = "${cmp-cmdline-history}",
       cmp_zsh = "${pkgs.fetchgit {
         url = "https://github.com/tamago324/cmp-zsh";
         rev = "1d8133e5637c73b3eb392682ae9661d521738268";
@@ -116,6 +119,7 @@ stdenvNoCC.mkDerivation {
       null_ls = "${null-ls-nvim}",
       symbols_outline = "${symbols-outline-nvim}",
       rust_tools = "${rust-tools-nvim}",
+      clangd_extensions_nvim = "${clangd_extensions-nvim}",
       markdown_preview = ${if enable-markdown-preview then ''"${markdown-preview-nvim}"'' else "false" },
       marks = "${marks-nvim}",
       auto_save = "${pkgs.fetchgit {
@@ -150,7 +154,7 @@ stdenvNoCC.mkDerivation {
         sha256 = "sha256-Zqos5LwjDzVQDpxKpWJVeZjmQ2+tKtub0f4wm6LFPOs=";
       }}",
       ts_autotag = "${nvim-ts-autotag}",
-      lspsaga = "${lspsaga-nvim}",
+      lspsaga = "${lspsaga-nvim-original}",
 
       dap = "${nvim-dap}",
       dap_ui = "${nvim-dap-ui}",
