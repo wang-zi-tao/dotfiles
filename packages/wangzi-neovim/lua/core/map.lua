@@ -223,8 +223,12 @@ wk.register({
         C = { ":PerfHottestCallersSelection<CR>", "perf hottest callers selection" },
     },
     c = {
-        name = "CMake",
-        m = { ":CMake<CR>", "CMake" },
+        name = "CMake / Cargo",
+        m = {
+            function()
+                vim.cmd ":CMake<CR>"
+            end, "CMake"
+        },
         c = { ":CMake configure<CR>", "CMake configure" },
         C = { ":CMake clean<CR>", "CMake clean" },
         r = { ":CMake build_and_run<CR>", "CMake run" },
@@ -233,6 +237,42 @@ wk.register({
         s = { ":CMake select_target<CR>", "CMake select target" },
         B = { ":CMake build_all<CR>", "CMake build all" },
         b = { ":CMake build<CR>", "CMake build" },
+        u = {
+            function()
+                require('crates').upgrade_crate(nil)
+            end,
+            "Cargo Upgrade "
+        },
+        U = {
+            function()
+                require('crates').upgrade_crates(nil)
+            end,
+            "Cargo Upgrade Crates"
+        },
+        h = {
+            function()
+                require('crates').open_homepage()
+            end,
+            "Crate Homepage"
+        },
+        r = {
+            function()
+                require('crates').open_repository()
+            end,
+            "Crate Repository"
+        },
+        D = {
+            function()
+                require('crates').open_documentation()
+            end,
+            "Crate Documentation"
+        },
+        i = {
+            function()
+                require('crates').open_crates_io()
+            end,
+            "crate.io"
+        }
     },
     d = {
         name = "debug",
@@ -368,7 +408,25 @@ wk.register({
         b = { function()
             require 'hop'.hint_char1({ direction = require 'hop.hint'.HintDirection.BEFORE_CURSOR })
         end, "forward" },
-    }
+    },
+    o = {
+        function()
+            require("symbols-outline").toggle_outline()
+        end,
+        "Outline"
+    },
+    e = {
+        function()
+            require("nvim-tree").toggle()
+        end,
+        "File Tree"
+    },
+    r = {
+        function()
+            require("trouble").toggle()
+        end,
+        "Error/Warning"
+    },
 }, { prefix = "<leader>" })
 wk.register({
     g = {
@@ -442,17 +500,8 @@ map("n", "<leader>wgd", "<cmd>Gitsigns toggle_deleted<CR>")
 map("o", "ih", "<cmd><C-U>Gitsigns select_hunk<CR>")
 map("x", "ih", "<cmd><C-U>Gitsigns select_hunk<CR>")
 
-map("n", "<leader>e", function()
-    require("nvim-tree").toggle()
-end)
 map("n", "<leader>we", function()
     require("nvim-tree").focus()
-end)
-map("n", "<leader>o", function()
-    require("symbols-outline").toggle_outline()
-end)
-map("n", "<leader>r", function()
-    require("trouble").toggle()
 end)
 map("n", "<leader>u", "<cmd>UndotreeToggle<CR>")
 map("n", "<leader><Tab>", "<cmd>b#<CR>")
@@ -460,14 +509,12 @@ map("n", "<leader><Tab>", "<cmd>b#<CR>")
 map("n", "<leader>ws", "<cmd>sp<CR>")
 map("n", "<leader>wv", "<cmd>vs<CR>")
 
-map("n", "[d", function()
-    vim.diagnostic.goto_prev()
-end)
-map("n", "]d", function()
-    vim.diagnostic.goto_next()
-end)
 map("n", "K", function()
-    vim.lsp.buf.hover()
+    if vim.fn.expand('%:t') == "Cargo.toml" then
+        require('crates').show_popup()
+    else
+        vim.lsp.buf.hover()
+    end
 end)
 map("n", "ge", function()
     vim.diagnostic.open_float()

@@ -701,8 +701,8 @@ packer.startup(function(use)
         n.crates_nvim or "saecki/crates.nvim",
         as = "crates_nvim",
         requires = { 'plenary_nvim' },
-        ft = { "Cargo.toml" },
-        module = "cmp_crates",
+        ft = { "toml" },
+        module = "crates",
         config = function()
             require("core.plugins.crates")
         end,

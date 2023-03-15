@@ -49,7 +49,6 @@ cmp.setup({
                 fallback()
             end
         end, { "i", "s" }),
-
         ["<S-Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
                 cmp.select_prev_item()
@@ -70,21 +69,21 @@ cmp.setup({
         { name = "zsh" },
         { name = "git" },
         { name = "crates" },
-        { name = "buffer" },
-    }),
+    },{
+		{ name = "buffer", keyword_length = 3 },
+	}),
 })
 
 -- Set configuration for specific filetype.
 cmp.setup.filetype("gitcommit", {
     sources = cmp.config.sources({
         { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
-    }, {
         { name = "buffer" },
     }),
 })
 
 -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
-cmp.setup.cmdline("/", {
+cmp.setup.cmdline({ '/', '?' }, {
     mapping = cmp.mapping.preset.cmdline(),
     sources = {
         { name = "buffer" },
