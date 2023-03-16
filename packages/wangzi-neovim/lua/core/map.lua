@@ -557,6 +557,8 @@ map({ "n", "t" }, "<C-l>", function() require('Navigator').right() end)
 map({ "n", "t" }, "<C-j>", function() require('Navigator').down() end)
 map("n", "<A-p>", function() require('Navigator').previous() end)
 
+keymap("n", "[h", "<cmd>Gitsigns preview_hunk<CR>")
+keymap("n", "]h", "<cmd>Gitsigns next_hunk<CR>")
 keymap("n", "[d", "<cmd>Lspsaga diagnostic_jump_prev<CR>")
 keymap("n", "]d", "<cmd>Lspsaga diagnostic_jump_next<CR>")
 keymap("n", "[e", function()
