@@ -113,7 +113,7 @@ packer.startup(function(use)
         cmd = "BaleiaColorize",
         module = "baleia",
         config = function()
-            vim.cmd[[
+            vim.cmd [[
                 command! BaleiaColorize call luaeval("require('baleia').setup { }").once(bufnr('%'))
 
                 autocmd BufWinEnter my-buffer call luaeval("require('baleia').setup { }").automatically(bufnr('%'))
@@ -537,6 +537,9 @@ packer.startup(function(use)
         n.notify_nvim or "rcarriga/nvim-notify",
         as = "notify_nvim",
         module = "notify",
+        config = function()
+
+        end,
     })
     use({
         n.auto_save or "Pocco81/AutoSave.nvim",

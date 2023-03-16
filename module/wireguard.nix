@@ -149,7 +149,7 @@ in
       };
     };
     networking.firewall.allowedTCPPorts = mkIfWireguard ([ 52343 ] ++ concatLists (mapAttrsToList (otherNodeName: edge: (optional edge.tunnel (wireguardCluster.${otherNodeName}.config.index + 40000))) wireguard.peers));
-    systemd.services = listToAttrs (
+    systemd.services = mkIfWireguard (listToAttrs (
       (optionals enabled [
         (nameValuePair "wg-netmanager" {
           enable = true;
@@ -203,7 +203,7 @@ in
             };
           }))
         wireguard.peers))
-    );
+    ));
   };
 }
 

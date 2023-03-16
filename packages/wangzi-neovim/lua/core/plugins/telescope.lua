@@ -119,9 +119,6 @@ local extensions = {
     "live_grep_args",
     "notify",
 }
-extensions = {
-    "frecency",
-}
 for _, ext in ipairs(extensions) do
     pcall(telescope.load_extension, telescope, ext)
 end

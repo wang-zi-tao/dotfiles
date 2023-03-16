@@ -165,9 +165,7 @@ wk.register({
             "CodeActions",
         },
         r = {
-            function()
-                require("lspsaga.rename").rename()
-            end,
+            "<cmd>Lspsaga rename<CR>",
             "Rename",
         },
         d = {
