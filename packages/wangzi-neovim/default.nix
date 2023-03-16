@@ -161,6 +161,7 @@ stdenvNoCC.mkDerivation {
       ts_autotag = "${nvim-ts-autotag}",
       lspsaga = "${lspsaga-nvim-original}",
 
+      mason_nvim = "${mason-nvim}",
       dap = "${nvim-dap}",
       dap_ui = "${nvim-dap-ui}",
       dap_virtual_text = "${nvim-dap-virtual-text}",

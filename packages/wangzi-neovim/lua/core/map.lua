@@ -350,13 +350,13 @@ wk.register({
             },
             o = {
                 function()
-                    require("dapui").open()
+                    require("dapui").toggle()
                 end,
                 "Open",
             },
             c = {
                 function()
-                    require("dapui").close()
+                    require("dapui").toggle()
                 end,
                 "Close",
             },

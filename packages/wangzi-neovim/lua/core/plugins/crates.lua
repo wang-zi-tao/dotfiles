@@ -32,7 +32,7 @@ require('crates').setup {
         autofocus = false,
         copy_register = '"',
         style = "minimal",
-        border = "none",
+        border = "rounded",
         show_version_date = false,
         show_dependency_version = true,
         max_height = 30,

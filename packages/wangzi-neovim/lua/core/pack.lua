@@ -4,9 +4,9 @@ packer.init({
     package_root = n.core and n.core .. "/site/pack",
     display = {
         open_fn = function()
-            return require("packer.util").float({ border = "single" })
+            return require("packer.util").float({ border = "rounded" })
         end,
-        prompt_border = "single",
+        prompt_border = "rounded",
     },
     git = {
         clone_timeout = 6000, -- seconds
@@ -642,6 +642,15 @@ packer.startup(function(use)
         end,
         cmd = "Lspsaga",
         module = "lspsaga",
+    })
+    use({
+        n.mason_nvim or "williamboman/mason.nvim",
+        as = "mason_nvim",
+        module = "dap",
+        cmd = { "Mason", "MasonUpdate", "MasonInstall", "MasonUninstall", "MasonUninstallAll", "MasonLog" },
+        config = function()
+            require("core.plugins.others").mason()
+        end,
     })
     use({
         n.dap or "mfussenegger/nvim-dap",
