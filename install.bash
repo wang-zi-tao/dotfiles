@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
 command=$1
+script_dir=$(realpath "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)")
 sudo() {
 	if command -v sudo &>/dev/null; then
 		command sudo "$@"
@@ -17,6 +18,7 @@ nix() {
 	if [[ $nixversion -lt 4 ]]; then
 		command nix-shell -p nixFlakes --command "nix --experimental-features 'nix-command flakes' $*"
 	else
+		echo nix --experimental-features "nix-command flakes" "$@"
 		command nix --experimental-features "nix-command flakes" "$@"
 	fi
 }
@@ -25,7 +27,7 @@ system=$(nix-instantiate --eval -E '(import <nixpkgs> {}).stdenv.hostPlatform.sy
 system="${system%\"}"
 system="${system#\"}"
 case $command in
-deploy) nix run .\#deploy-rs -- -d --fast-connection true -c "$@" ;;
+deploy) nix run "$script_dir#deploy-rs" -- -d --fast-connection true -c "$@" ;;
 nix-lang-check) nix run 'nixpkgs#statix' check . ;;
 nix-lang-fix) nix run 'nixpkgs#statix' fix . ;;
 nix-boost) sh <(curl -L https://nixos.org/nix/install) --daemon ;;
@@ -38,7 +40,12 @@ shell)
 pkgs)
 	package=$1
 	shift
-	nix build ".#vars.$system.pkgs.$package" "$@"
+	nix build "$script_dir#vars.$system.pkgs.$package" "$@"
+	;;
+pkgs-shell)
+	package=$1
+	shift
+	nix shell "$script_dir#vars.$system.pkgs.$package" "$@"
 	;;
 home-manager)
 	profile=$1
@@ -46,36 +53,36 @@ home-manager)
 	if ! command -v nix &>/dev/null; then
 		sh <(curl -L https://nixos.org/nix/install) --daemon
 	fi
-	nix build ".#homeConfigurations.$system.$profile.activationPackage" "$@"
+	nix build "$script_dir#homeConfigurations.$system.$profile.activationPackage" "$@"
 	bash ./result/activate
 	;;
 nix-on-droid)
 	profile=$1
 	shift
-	nix build ".#nixOnDroidConfigurations.$profile.activationPackage" --impure "$@"
+	nix build "$script_dir#nixOnDroidConfigurations.$profile.activationPackage" --impure "$@"
 	bash ./result/activate
 	;;
 nixos)
-	nix build ".#nixos.$(hostname).config.system.build.toplevel" "$@"
+	nix build "$script_dir#nixos.$(hostname).config.system.build.toplevel" "$@"
 	sudo nix-env -p /nix/var/nix/profiles/system --set "$(readlink ./result)"
 	sudo ./result/bin/switch-to-configuration switch
 	;;
 disk)
 	profile=$1
 	shift
-	nix build ".#nixos.$profile.config.system.build.disko" "$@"
+	nix build "$script_dir#nixos.$profile.config.system.build.disko" "$@"
 	sudo ./result
 	;;
 system)
 	profile=$1
 	shift
-	nix build ".#nixos.$profile.config.system.build.toplevel" "$@"
+	nix build "$script_dir#nixos.$profile.config.system.build.toplevel" "$@"
 	sudo nix-env -p /nix/var/nix/profiles/system --set "$(readlink ./result)"
 	sudo ./result/bin/switch-to-configuration switch
 	;;
 compile-all)
-	nix build ".#all.x86_64-linux" --option binary-caches "" "$@"
-	nix run .\#deploy-rs -- -d --fast-connection true -c
+	nix build "$script_dir#all.x86_64-linux" --option binary-caches "" "$@"
+	nix run "$script_dir#deploy-rs" -- -d --fast-connection true -c
 	;;
 update)
 	nix flake update

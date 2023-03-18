@@ -62,6 +62,8 @@ onedark.setup({
         NotifyINFOTitle            = { fg = "$green" },
         NotifyDEBUGTitle           = { fg = "$grey" },
         NotifyTRACETitle           = { fg = "$purple" },
+
+        WhichKey = { fg = "$cyan" },
     }, -- Override highlight groups
 
     -- Plugins Config --

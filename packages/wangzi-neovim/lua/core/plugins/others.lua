@@ -1,54 +1,5 @@
 local n = require("core.gen")
 local M = {}
-M.autopairs = function()
-    local autopairs = require("nvim-autopairs")
-    autopairs.setup({ fast_wrap = {} })
-end
-
-M.better_escape = function()
-    require("better_escape").setup({})
-end
-
-M.blankline = function()
-    require("indent_blankline").setup({
-        indentLine_enabled = 1,
-        char = "▏",
-        filetype_exclude = {
-            "help",
-            "terminal",
-            "alpha",
-            "packer",
-            "lspinfo",
-            "TelescopePrompt",
-            "TelescopeResults",
-            "nvchad_cheatsheet",
-            "lsp-installer",
-            "",
-        },
-        buftype_exclude = { "terminal" },
-        show_trailing_blankline_indent = false,
-        show_first_indent_level = false,
-    })
-end
-
-M.colorizer = function()
-    require("colorizer").setup({
-    }, {
-        RGB = true, -- #RGB hex codes
-        RRGGBB = true, -- #RRGGBB hex codes
-        names = true, -- "Name" codes like Blue
-        RRGGBBAA = true, -- #RRGGBBAA hex codes
-        rgb_fn = true, -- CSS rgb() and rgba() functions
-        hsl_fn = true, -- CSS hsl() and hsla() functions
-        css = true, -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
-        css_fn = true, -- Enable all CSS *functions*: rgb_fn, hsl_fn
-
-        -- Available modes: foreground, background
-        mode = "background", -- Set the display mode.
-    })
-    -- vim.cmd("ColorizerReloadAllBuffers")
-end
-
 M.comment = function()
     require("nvim_comment").setup({
         -- Linters prefer comment and line to have a space in between markers
@@ -70,89 +21,6 @@ M.comment = function()
     })
     vim.cmd([[autocmd BufEnter *.cpp,*.h :lua vim.api.nvim_buf_set_option(0, "commentstring", "// %s")]])
     vim.cmd([[autocmd BufEnter *.nix :lua vim.api.nvim_buf_set_option(0, "commentstring", "# %s")]])
-end
-
-M.luasnip = function()
-    require("luasnip").config.set_config({
-        history = true,
-        updateevents = "TextChanged,TextChangedI",
-    })
-    require("luasnip/loaders/from_vscode").load({ paths = {
-        "./rust.json",
-        "./c++.json",
-    } })
-    require("luasnip/loaders/from_vscode").load()
-end
-
-M.signature = function()
-    require("lsp_signature").setup({
-        bind = true,
-        doc_lines = 0,
-        floating_window = true,
-        fix_pos = true,
-        hint_enable = true,
-        hint_prefix = " ",
-        hint_scheme = "String",
-        hi_parameter = "Search",
-        max_height = 22,
-        max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width
-        handler_opts = {
-            border = "rounded", -- double, single, shadow, none
-        },
-        zindex = 200, -- by default it will be on top of all floating windows, set to 50 send it to bottom
-        padding = "", -- character to pad on left and right of signature can be ' ', or '|'  etc
-    })
-end
-
-M.which_key = function()
-    require("which-key").setup({})
-end
-M.cmp_tabnine = function()
-    require("cmp_tabnine").setup()
-    require("cmp_tabnine.config"):setup({
-        max_lines = 1000,
-        max_num_results = 20,
-        sort = true,
-        run_on_every_keystroke = true,
-        snippet_placeholder = "..",
-        ignored_file_types = { -- default is not to ignore
-            -- uncomment to ignore in lua:
-            -- lua = true
-        },
-    })
-    local cmp_tabnine = require("cmp_tabnine")
-    local prefetch = vim.api.nvim_create_augroup("prefetch", { clear = true })
-    vim.api.nvim_create_autocmd('BufRead', {
-        group = prefetch,
-        pattern = '*.h',
-        callback = function()
-            cmp_tabnine:prefetch(vim.fn.expand('%:p'))
-        end
-    })
-    vim.api.nvim_create_autocmd('BufRead', {
-        group = prefetch,
-        pattern = '*.cpp',
-        callback = function()
-            cmp_tabnine:prefetch(vim.fn.expand('%:p'))
-        end
-    })
-    local compare = require('cmp.config.compare')
-    require("cmp").setup({
-        sorting = {
-            priority_weight = 2,
-            comparators = {
-                require('cmp_tabnine.compare'),
-                compare.offset,
-                compare.exact,
-                compare.score,
-                compare.recently_used,
-                compare.kind,
-                compare.sort_text,
-                compare.length,
-                compare.order,
-            },
-        },
-    })
 end
 M.marks = function()
     require("marks").setup({
@@ -202,300 +70,9 @@ M.auto_save = function()
         }
     })
 end
-M.diffview = function()
-    require("diffview").setup({})
-end
-M.navigator = function()
-    require("Navigator").setup({ autosave = "all" })
-end
 M.scrollbar = function()
     require("scrollbar").setup()
     require("scrollbar.handlers.search").setup()
-end
-M.ts_autotag = function() end
-M.lspsaga = function()
-    require("lspsaga").setup({})
-end
-M.rust_tools = function()
-    local adapter
-    if n.vscode_lldb then
-        adapter = require("rust-tools.dap").get_codelldb_adapter(
-            n.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/adapter/codelldb",
-            n.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/lldb/lib/liblldb.so"
-        )
-    end
-    require("rust-tools").setup({
-        tools = {
-            inlay_hints = {
-                show_variable_name = true,
-            },
-        },
-        dap = {
-            adapter = adapter
-        },
-    })
-end
-M.clangd_extensions = function()
-    require("clangd_extensions").setup {
-        server = {
-            -- options to pass to nvim-lspconfig
-            -- i.e. the arguments to require("lspconfig").clangd.setup({})
-        },
-        extensions = {
-            -- defaults:
-            -- Automatically set inlay hints (type hints)
-            autoSetHints = true,
-            -- These apply to the default ClangdSetInlayHints command
-            inlay_hints = {
-                -- Only show inlay hints for the current line
-                only_current_line = false,
-                -- Event which triggers a refersh of the inlay hints.
-                -- You can make this "CursorMoved" or "CursorMoved,CursorMovedI" but
-                -- not that this may cause  higher CPU usage.
-                -- This option is only respected when only_current_line and
-                -- autoSetHints both are true.
-                only_current_line_autocmd = "CursorHold",
-                -- whether to show parameter hints with the inlay hints or not
-                show_parameter_hints = true,
-                -- prefix for parameter hints
-                parameter_hints_prefix = "<- ",
-                -- prefix for all the other hints (type, chaining)
-                other_hints_prefix = "=> ",
-                -- whether to align to the length of the longest line in the file
-                max_len_align = false,
-                -- padding from the left if max_len_align is true
-                max_len_align_padding = 1,
-                -- whether to align to the extreme right or not
-                right_align = false,
-                -- padding from the right if right_align is true
-                right_align_padding = 7,
-                -- The color of the hints
-                highlight = "Comment",
-                -- The highlight group priority for extmark
-                priority = 100,
-            },
-            ast = {
-
-                role_icons = {
-                    type = "",
-                    declaration = "",
-                    expression = "",
-                    specifier = "",
-                    statement = "",
-                    ["template argument"] = "",
-                },
-
-                kind_icons = {
-                    Compound = "",
-                    Recovery = "",
-                    TranslationUnit = "",
-                    PackExpansion = "",
-                    TemplateTypeParm = "",
-                    TemplateTemplateParm = "",
-                    TemplateParamObject = "",
-                },
-
-                highlights = {
-                    detail = "Comment",
-                },
-            },
-            memory_usage = {
-                border = "rounded",
-            },
-            symbol_info = {
-                border = "rounded",
-            },
-        },
-    }
-end
-M.mason = function()
-    require("mason").setup({
-        -- The directory in which to install packages.
-        install_root_dir = vim.fn.stdpath("data") .. "/mason",
-
-        -- Where Mason should put its bin location in your PATH. Can be one of:
-        -- - "prepend" (default, Mason's bin location is put first in PATH)
-        -- - "append" (Mason's bin location is put at the end of PATH)
-        -- - "skip" (doesn't modify PATH)
-        ---@type '"prepend"' | '"append"' | '"skip"'
-        PATH = "prepend",
-
-        -- Controls to which degree logs are written to the log file. It's useful to set this to vim.log.levels.DEBUG when
-        -- debugging issues with package installations.
-        log_level = vim.log.levels.INFO,
-
-        -- Limit for the maximum amount of packages to be installed at the same time. Once this limit is reached, any further
-        -- packages that are requested to be installed will be put in a queue.
-        max_concurrent_installers = 4,
-
-        -- [Advanced setting]
-        -- The registries to source packages from. Accepts multiple entries. Should a package with the same name exist in
-        -- multiple registries, the registry listed first will be used.
-        registries = {
-            "lua:mason-registry.index",
-        },
-
-        -- The provider implementations to use for resolving supplementary package metadata (e.g., all available versions).
-        -- Accepts multiple entries, where later entries will be used as fallback should prior providers fail.
-        -- Builtin providers are:
-        --   - mason.providers.registry-api  - uses the https://api.mason-registry.dev API
-        --   - mason.providers.client        - uses only client-side tooling to resolve metadata
-        providers = {
-            "mason.providers.registry-api",
-            "mason.providers.client",
-        },
-
-        github = {
-            -- The template URL to use when downloading assets from GitHub.
-            -- The placeholders are the following (in order):
-            -- 1. The repository (e.g. "rust-lang/rust-analyzer")
-            -- 2. The release version (e.g. "v0.3.0")
-            -- 3. The asset name (e.g. "rust-analyzer-v0.3.0-x86_64-unknown-linux-gnu.tar.gz")
-            download_url_template = "https://github.com/%s/releases/download/%s/%s",
-        },
-
-        pip = {
-            -- Whether to upgrade pip to the latest version in the virtual environment before installing packages.
-            upgrade_pip = false,
-
-            -- These args will be added to `pip install` calls. Note that setting extra args might impact intended behavior
-            -- and is not recommended.
-            --
-            -- Example: { "--proxy", "https://proxyserver" }
-            install_args = {},
-        },
-
-        ui = {
-            -- Whether to automatically check for new versions when opening the :Mason window.
-            check_outdated_packages_on_open = true,
-
-            -- The border to use for the UI window. Accepts same border values as |nvim_open_win()|.
-            border = "rounded",
-
-            -- Width of the window. Accepts:
-            -- - Integer greater than 1 for fixed width.
-            -- - Float in the range of 0-1 for a percentage of screen width.
-            width = 0.8,
-
-            -- Height of the window. Accepts:
-            -- - Integer greater than 1 for fixed height.
-            -- - Float in the range of 0-1 for a percentage of screen height.
-            height = 0.9,
-
-            icons = {
-                -- The list icon to use for installed packages.
-                package_installed = "◍",
-                -- The list icon to use for packages that are installing, or queued for installation.
-                package_pending = "◍",
-                -- The list icon to use for packages that are not installed.
-                package_uninstalled = "◍",
-            },
-
-            keymaps = {
-                -- Keymap to expand a package
-                toggle_package_expand = "<CR>",
-                -- Keymap to install the package under the current cursor position
-                install_package = "i",
-                -- Keymap to reinstall/update the package under the current cursor position
-                update_package = "u",
-                -- Keymap to check for new version for the package under the current cursor position
-                check_package_version = "c",
-                -- Keymap to update all installed packages
-                update_all_packages = "U",
-                -- Keymap to check which installed packages are outdated
-                check_outdated_packages = "C",
-                -- Keymap to uninstall a package
-                uninstall_package = "X",
-                -- Keymap to cancel a package installation
-                cancel_installation = "<C-c>",
-                -- Keymap to apply language filter
-                apply_language_filter = "<C-f>",
-            },
-        },
-    })
-end
-M.dap_ui = function()
-    require("dapui").setup({
-        icons = { expanded = "▾", collapsed = "▸" },
-        mappings = {
-            -- Use a table to apply multiple mappings
-            expand = { "<CR>", "<2-LeftMouse>" },
-            open = "o",
-            remove = "d",
-            edit = "e",
-            repl = "r",
-            toggle = "t",
-        },
-        -- Expand lines larger than the window
-        -- Requires >= 0.7
-        expand_lines = vim.fn.has("nvim-0.7"),
-        -- Layouts define sections of the screen to place windows.
-        -- The position can be "left", "right", "top" or "bottom".
-        -- The size specifies the height/width depending on position. It can be an Int
-        -- or a Float. Integer specifies height/width directly (i.e. 20 lines/columns) while
-        -- Float value specifies percentage (i.e. 0.3 - 30% of available lines/columns)
-        -- Elements are the elements shown in the layout (in order).
-        -- Layouts are opened in order so that earlier layouts take priority in window sizing.
-        layouts = {
-            {
-                elements = {
-                    -- Elements can be strings or table with id and size keys.
-                    { id = "scopes", size = 0.25 },
-                    { id = "watches", size = 0.16 },
-                    "stacks",
-                    { id = "breakpoints", size = 0.1 },
-                },
-                size = 40, -- 40 columns
-                position = "left",
-            },
-            {
-                elements = {
-                    "repl",
-                    "console",
-                },
-                size = 0.25, -- 25% of total lines
-                position = "bottom",
-            },
-        },
-        floating = {
-            max_height = nil, -- These can be integers or a float between 0 and 1.
-            max_width = nil, -- Floats will be treated as percentage of your screen.
-            border = "rounded", -- Border style. Can be "single", "double" or "rounded"
-            mappings = {
-                close = { "q", "<Esc>" },
-            },
-        },
-        windows = { indent = 1 },
-        render = {
-            max_type_length = nil, -- Can be integer or nil.
-        }
-    })
-end
-M.dap_virtual_text = function()
-    require("nvim-dap-virtual-text").setup {
-        enabled = true, -- enable this plugin (the default)
-        enabled_commands = true, -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
-        highlight_changed_variables = true, -- highlight changed values with NvimDapVirtualTextChanged, else always NvimDapVirtualText
-        highlight_new_as_changed = true, -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
-        show_stop_reason = true, -- show stop reason when stopped for exceptions
-        commented = true, -- prefix virtual text with comment string
-        only_first_definition = true, -- only show virtual text at first definition (if there are multiple)
-        all_references = false, -- show virtual text on all all references of the variable (not only definitions)
-        filter_references_pattern = '<module', -- filter references (not definitions) pattern when all_references is activated (Lua gmatch pattern, default filters out Python modules)
-        -- experimental features:
-        virt_text_pos = 'eol', -- position of virtual text, see `:h nvim_buf_set_extmark()`
-        all_frames = true, -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
-        virt_lines = false, -- show virtual lines instead of virtual text (will flicker!)
-        virt_text_win_col = nil -- position the virtual text at a fixed window column (starting from the first text column) ,
-        -- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
-    }
-end
-M.persistent_breakpoints_nvim = function()
-    require('persistent-breakpoints').setup {
-        save_dir = vim.fn.stdpath('data') .. '/nvim_checkpoints',
-        -- record the performance of different function. run :lua require('persistent-breakpoints.api').print_perf_data() to see the result.
-        perf_record = false,
-    }
 end
 M.dap_install = function()
     local dap_install = require("dap-install")
@@ -503,16 +80,8 @@ M.dap_install = function()
         installation_path = vim.fn.stdpath("data") .. "/dapinstall/",
     })
 end
-M.fterm = function()
-    require("FTerm").setup({
-        border = "rounded",
-        dimensions = {
-            height = 0.9,
-            width = 0.9,
-        },
-    })
-end
 M.mini = function()
+    -- require('mini.animate').setup()
     require("mini.surround").setup({
         n_lines = 65536,
         highlight_duration = 500,
@@ -526,6 +95,32 @@ M.mini = function()
             update_n_lines = "sn", -- Update `n_lines`
         },
     })
+    -- require('mini.bracketed').setup({
+    --     -- First-level elements are tables describing behavior of a target:
+    --     --
+    --     -- - <suffix> - single character suffix. Used after `[` / `]` in mappings.
+    --     --   For example, with `b` creates `[B`, `[b`, `]b`, `]B` mappings.
+    --     --   Supply empty string `''` to not create mappings.
+    --     --
+    --     -- - <options> - table overriding target options.
+    --     --
+    --     -- See `:h MiniBracketed.config` for more info.
+    --
+    --     buffer     = { suffix = 'b', options = {} },
+    --     comment    = { suffix = 'c', options = {} },
+    --     conflict   = { suffix = 'x', options = {} },
+    --     diagnostic = { suffix = 'D', options = {} },
+    --     file       = { suffix = 'f', options = {} },
+    --     indent     = { suffix = 'i', options = {} },
+    --     jump       = { suffix = 'j', options = {} },
+    --     location   = { suffix = 'l', options = {} },
+    --     oldfile    = { suffix = 'o', options = {} },
+    --     quickfix   = { suffix = 'q', options = {} },
+    --     treesitter = { suffix = 't', options = {} },
+    --     undo       = { suffix = 'u', options = {} },
+    --     window     = { suffix = 'w', options = {} },
+    --     yank       = { suffix = 'y', options = {} },
+    -- })
 end
 M.session_manager = function()
     local Path = require("plenary.path")
@@ -543,19 +138,6 @@ M.session_manager = function()
         },
         autosave_only_in_session = false, -- Always autosaves session. If true, only autosaves after a session is active.
     })
-end
-M.hop = function()
-    require 'hop'.setup({
-
-    })
-end
-M.pretty_fold_preview = function()
-    require('fold-preview').setup { border = "rounded" }
-end
-M.sqlite = function()
-    if n.libsqlite then
-        vim.g.sqlite_clib_path = n.libsqlite
-    end
 end
 M.distant = function()
     local actions = require('distant.nav.actions')

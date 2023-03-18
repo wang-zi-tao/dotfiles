@@ -15,6 +15,11 @@
 
 let
   #  neovim-unwrapped = pkgs.unstable.neovim-unwrapped;
+  lazy-nvim = pkgs.fetchgit {
+    url = "https://github.com/folke/lazy.nvim";
+    rev = "b3eca0c3fb4ef5e547f70c571b8cd27688db83bb";
+    sha256 = "sha256-ggaW3pIWvsUGuwuZRIVdRyQqlO7OMme1OIkBt6ycM70=";
+  };
 in
 stdenvNoCC.mkDerivation {
   pname = "wangzi-neovim";
@@ -30,13 +35,11 @@ stdenvNoCC.mkDerivation {
   ];
 
   installPhase = with pkgs.unstable; with pkgs.unstable.vimPlugins; ''
-    set -x
     rm default.nix
     mkdir -p $out/
     cp * -r $out/
     mkdir -p $out/bin
     rm $out/lua/core/gen.lua
-    rm $out/init.lua
     cat << EOF >> $out/lua/core/gen.lua
     local M = {
       core = "$out",
@@ -64,6 +67,7 @@ stdenvNoCC.mkDerivation {
       nvim_treesitter = "${if enable-all then nvim-treesitter.withAllGrammars else nvim-treesitter.withPlugins ( p: with p; [
         nix
       ])}",
+      nvim_treesitter_textobjects = "${nvim-treesitter-textobjects}",
       gitsigns_nvim = "${gitsigns-nvim}",
       vgit_nvim = "${pkgs.fetchgit {
         url = "https://github.com/tanvirtin/vgit.nvim";
@@ -160,6 +164,7 @@ stdenvNoCC.mkDerivation {
       }}",
       ts_autotag = "${nvim-ts-autotag}",
       lspsaga = "${lspsaga-nvim-original}",
+      virtual_types_nvim = "${virtual-types-nvim}",
 
       mason_nvim = "${mason-nvim}",
       dap = "${nvim-dap}",
@@ -193,17 +198,16 @@ stdenvNoCC.mkDerivation {
       }}",
      crates_nvim = "${crates-nvim}",
      perfanno_nvim = "${pkgs.fetchgit {
-        url = "https://github.com/t-troebst/perfanno.nvim";
-        rev = "3c7ee6e97f4995c064ebd3f26f08300898941904";
-        sha256 = "sha256-wcjrRGc/wVs8qCto7plx/GRQIdVXK6QQDFz74xV8KFk=";
-      }}",
-      hop_nvim = "${hop-nvim}",
-      compile_path = "$out/plugins.lua",
-      distant = "${pkgs.fetchgit {
-        url = "https://github.com/chipsenkbeil/distant.nvim";
-        rev = "887fc16bdae59bd1865e0776b427ca521987f7fe";
-        sha256 = "sha256-hHRHH4ycQkI1FQ6GhkbnXIxXnNAer4WxU5y1D7qZP0g=";
-      }}",
+       url = "https://github.com/t-troebst/perfanno.nvim";
+       rev = "3c7ee6e97f4995c064ebd3f26f08300898941904";
+       sha256 = "sha256-wcjrRGc/wVs8qCto7plx/GRQIdVXK6QQDFz74xV8KFk=";
+     }}",
+     hop_nvim = "${hop-nvim}",
+     distant = "${pkgs.fetchgit {
+       url = "https://github.com/chipsenkbeil/distant.nvim";
+       rev = "887fc16bdae59bd1865e0776b427ca521987f7fe";
+       sha256 = "sha256-hHRHH4ycQkI1FQ6GhkbnXIxXnNAer4WxU5y1D7qZP0g=";
+     }}",
     }
     return setmetatable({},{
     __index = function(o,field)
@@ -213,17 +217,10 @@ stdenvNoCC.mkDerivation {
     end
     })
     EOF
-    export LUA_PATH="$out/lua/?.lua;${pkgs.vimPlugins.packer-nvim}/lua/?.lua;;"
-    HOME=. ${neovim-unwrapped}/bin/nvim -u $out/lua/core/pack.lua --headless +qa
-    cat << EOF > $out/init.lua
-    vim.opt.packpath = "$out/site"
-    -- require("impatient")
-    EOF
-    cat $out/plugins.lua >> $out/init.lua
-    rm $out/plugins.lua
-    makeWrapper ${neovim-unwrapped}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
-        --set LUA_PATH "$out/lua/?.lua;${pkgs.vimPlugins.packer-nvim}/lua/?.lua;;" \
-        --run  'export LD_LIBRARY_PATH="${pkgs.gcc-unwrapped.lib}/lib${"\$"+"{LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"}"'
+    export LUA_PATH="$out/lua/?.lua;$out/lua/?/init.lua;${lazy-nvim}/lua/?.lua;${lazy-nvim}/lua/?/init.lua;;"
+    HOME=. ${pkgs.unstable.neovim-unwrapped}/bin/nvim -u $out/init.lua "+Lazy! install" --headless +qa
+    makeWrapper ${pkgs.unstable.neovim-unwrapped}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
+        --set LUA_PATH "$LUA_PATH"
     ln -s ${pkgs.tree-sitter}/bin/tree-sitter $out/bin/tree-sitter
     cp $out/bin/wnvim $out/bin/nvim
     cp $out/bin/wnvim $out/bin/vim

@@ -3,7 +3,6 @@ local g = vim.g
 local wo = vim.wo
 local o = vim.o
 
-g.mapleader = " "
 opt.swapfile = true
 opt.backup = true
 opt.writebackup = true

@@ -1,3 +1,4 @@
+local function config()
 require("vgit").setup({
   keymaps = {
     ["n <C-k>"] = "hunk_up",
@@ -205,3 +206,13 @@ require("vgit").setup({
     },
   },
 })
+end
+return {
+        "tanvirtin/vgit.nvim",
+        dir = gen.vgit_nvim,
+        name = "vgit_nvim",
+        dependencies = "plenary_nvim",
+        cmd = "VGit",
+        lazy = true,
+        config = config,
+}
