@@ -22,6 +22,8 @@ local function config()
         --     "llvm",
         --     "regex",
         --     "vue",
+        --     "markdown",
+        --     "markdown_inline",
         -- },
 
         -- Install parsers synchronously (only applied to `ensure_installed`)
@@ -164,10 +166,10 @@ return {
                         swap = {
                             enable = true,
                             swap_next = {
-                                ["<leader>a"] = "@parameter.inner",
+                                ["<leader>sa"] = "@parameter.inner",
                             },
                             swap_previous = {
-                                ["<leader>A"] = "@parameter.inner",
+                                ["<leader>sA"] = "@parameter.inner",
                             },
                         },
                         move = {
@@ -176,13 +178,7 @@ return {
                             goto_next_start = {
                                 ["]m"] = "@function.outer",
                                 ["]]"] = { query = "@class.outer", desc = "Next class start" },
-                                --
-                                -- You can use regex matching and/or pass a list in a "query" key to group multiple queires.
                                 ["]o"] = "@loop.*",
-                                -- ["]o"] = { query = { "@loop.inner", "@loop.outer" } }
-                                --
-                                -- You can pass a query group to use query from `queries/<lang>/<query_group>.scm file in your runtime path.
-                                -- Below example nvim-treesitter's `locals.scm` and `folds.scm`. They also provide highlights.scm and indent.scm.
                                 ["]s"] = { query = "@scope", query_group = "locals", desc = "Next scope" },
                                 ["]z"] = { query = "@fold", query_group = "folds", desc = "Next fold" },
                             },
@@ -202,10 +198,10 @@ return {
                             -- Use if you want more granular movements
                             -- Make it even more gradual by adding multiple queries and regex.
                             goto_next = {
-                                ["]d"] = "@conditional.outer",
+                                ["]i"] = "@conditional.outer",
                             },
                             goto_previous = {
-                                ["[d"] = "@conditional.outer",
+                                ["[i"] = "@conditional.outer",
                             }
                         },
                         lsp_interop = {

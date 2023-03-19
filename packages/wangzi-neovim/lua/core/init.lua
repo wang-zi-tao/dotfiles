@@ -15,7 +15,6 @@ if n.core ~= null then
 end
 
 vim.notify = require("notify")
-
 local notify = vim.notify
 vim.notify = function(msg, ...)
     if msg:match("warning: multiple different client offset_encodings") then

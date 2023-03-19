@@ -25,11 +25,10 @@ local sources = {
     -- other
     null_ls.builtins.code_actions.cspell,
     null_ls.builtins.code_actions.gitrebase,
-    null_ls.builtins.code_actions.gitsigns,
-    null_ls.builtins.code_actions.refactoring,
+    -- null_ls.builtins.code_actions.gitsigns,
+    -- null_ls.builtins.code_actions.refactoring,
     null_ls.builtins.code_actions.statix,
     null_ls.builtins.diagnostics.checkmake,
-    null_ls.builtins.diagnostics.clazy,
     null_ls.builtins.diagnostics.cmake_lint,
     null_ls.builtins.diagnostics.cpplint,
     null_ls.builtins.formatting.json_tool,

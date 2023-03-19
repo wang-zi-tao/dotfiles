@@ -21,6 +21,7 @@
     gcc-unwrapped.lib
     neovim-remote
     bear
+    cpplint
     # shfmt
     # shellcheck
 

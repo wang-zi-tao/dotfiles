@@ -112,7 +112,7 @@ require("lazy").setup({
         keys = { "m" },
     },
     {
-        "Pocco81/AutoSave.nvim",
+        "pocco81/auto-save.nvim",
         dir = gen.auto_save,
         name = "auto_save",
         dependencies = "core",

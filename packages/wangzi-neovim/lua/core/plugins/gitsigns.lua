@@ -53,7 +53,7 @@ return {
         require("which-key").register({
             h = { name = "Hunk" },
             b = { name = "Buffer" },
-            s = { name = "Select" },
+            s = { name = "Select / Swap" },
             g = { name = "Git" },
         },
             { prefix = "<leader>" })

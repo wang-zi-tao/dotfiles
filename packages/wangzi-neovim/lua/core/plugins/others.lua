@@ -43,7 +43,7 @@ M.auto_save = function()
         enabled = true,
         execution_message = {
             message = function() -- message to print on save
-                return ("AutoSave: saved at " .. vim.fn.strftime("%H:%M:%S"))
+                return ""
             end,
             dim = 0.18, -- dim the color of `message`
             cleaning_interval = 1250, -- (milliseconds) automatically clean MsgArea after displaying `message`. See :h MsgArea
@@ -66,7 +66,9 @@ M.auto_save = function()
             end, -- ran before checking `condition`
             before_saving = function()
             end, -- ran before doing the actual save
-            after_saving = nil -- ran after doing the actual save
+            after_saving = function()
+                vim.notify("AutoSave: saved at " .. vim.fn.strftime("%H:%M:%S"))
+            end -- ran after doing the actual save
         }
     })
 end

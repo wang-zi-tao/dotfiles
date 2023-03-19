@@ -56,6 +56,7 @@ stdenvNoCC.mkDerivation {
       nvim_base16 = "${nvim-base16}",
       nvim_web_devicons = "${nvim-web-devicons}",
       feline_nvim = "${feline-nvim}",
+      lualine_nvim = "${lualine-nvim}",
       bufferline_nvim = "${bufferline-nvim}",
       indent_blankline_nvim = "${indent-blankline-nvim}",
       nvim_colorizer_lua = "${nvim-colorizer-lua}",
@@ -125,6 +126,8 @@ stdenvNoCC.mkDerivation {
       }}",
 
       which_key = "${which-key-nvim}",
+      noice_nvim = "${noice-nvim}",
+      nui_nvim = "${nui-nvim}",
       null_ls = "${null-ls-nvim}",
       symbols_outline = "${symbols-outline-nvim}",
       rust_tools = "${rust-tools-nvim}",

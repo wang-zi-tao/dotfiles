@@ -119,6 +119,7 @@ local function config()
         "project",
         "live_grep_args",
         "notify",
+        "noice",
     }
     for _, ext in ipairs(extensions) do
         pcall(telescope.load_extension, telescope, ext)
@@ -176,6 +177,7 @@ return {
         },
         dependencies = {
             "nvim_web_devicons",
+            "noice",
             {
                 "nvim-telescope/telescope-project.nvim",
                 dir = gen.telescope_project_nvim,

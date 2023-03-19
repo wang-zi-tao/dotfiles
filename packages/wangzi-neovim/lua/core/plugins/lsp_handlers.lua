@@ -25,11 +25,11 @@ vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.s
 })
 
 -- suppress error messages from lang servers
-local notify = vim.notify
-vim.notify = function(msg, ...)
-    if msg:match("exit code") then
-        return
-    end
-
-    notify(msg, ...)
-end
+-- local notify = vim.notify
+-- vim.notify = function(msg, ...)
+--     -- if msg:match("exit code") then
+--     --     return
+--     -- end
+--
+--     notify(msg, ...)
+-- end
