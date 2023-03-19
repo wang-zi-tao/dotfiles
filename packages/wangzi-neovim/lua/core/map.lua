@@ -57,6 +57,9 @@ wk.register({
         p = { '"+p', "Paste+" },
         P = { '"+P', "Prev Paste+" },
     },
+    ["<leader>"] = {
+        p = { "<cmd>diffput<CR>" },
+    }
 }, { mode = "v" })
 
 map("n", "<C-up>", "<cmd>res +1<CR>")
