@@ -210,7 +210,11 @@ return {
         module = "notify",
         event = "VeryLazy",
         config = function()
-
+            require("notify").setup({
+                timeout = 2500,
+                max_width = 64,
+                max_height = 16,
+            })
         end,
     },
     {

@@ -16,10 +16,20 @@ end
 
 vim.notify = require("notify")
 local notify = vim.notify
-vim.notify = function(msg, ...)
-    if msg:match("warning: multiple different client offset_encodings") then
+vim.notify = function(msg, level, opt, ...)
+    if msg:find("warning: multiple different client offset_encodings") then
         return
     end
+    if msg:find("query: invalid node type at position ") then
+        return
+    end
+    if msg:find("matchup#delim#get_matching[") then
+        return
+    end
+    if level == "error" then
+        opt = opt or {}
+        opt.timeout = 1000
+    end
 
-    notify(msg, ...)
+    notify(msg, level, opt, ...)
 end

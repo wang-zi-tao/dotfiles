@@ -24,6 +24,7 @@ application/wps-office.xlsx=wps-office-et.desktop
 application/wps-office.xls=wps-office-et.desktop
 application/wps-office.xlt=wps-office-et.desktop
 application/wps-office.xltx=wps-office-et.desktop
+text/csv=wps-office-et.desktop
 application/wps-office.et=wps-office-et.desktop
 application/wps-office.ett=wps-office-et.desktop
 application/wps-office.ets=wps-office-et.desktop

@@ -91,7 +91,7 @@ require("lazy").setup({
         end,
     },
     require("core.plugins.trouble"),
-    {
+    gen.markdown_preview and {
         "davidgranstrom/nvim-markdown-preview",
         dir = gen.markdown_preview,
         name = "markdown_preview",
@@ -99,7 +99,7 @@ require("lazy").setup({
         cmd = "MarkdownPreview",
         lazy = true,
         disable = not gen.markdown_preview,
-    },
+    }or {},
     {
         "chentoast/marks.nvim",
         dir = gen.marks,

@@ -68,6 +68,7 @@
     gnome.sushi
     gnome.nautilus
     gnome.seahorse
+    
 
     adwaita-qt
     gnome.adwaita-icon-theme

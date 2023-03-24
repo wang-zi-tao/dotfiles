@@ -253,7 +253,7 @@ return {
                 require("core.plugins.cmp_git")
             end,
         },
-        {
+        gen.cmp_tabnine and {
             "tzachar/cmp-tabnine",
             dir = gen.cmp_tabnine,
             name = "cmp_tabnine",
@@ -308,6 +308,6 @@ return {
                     },
                 })
             end,
-        },
+        }or {},
     },
 }
