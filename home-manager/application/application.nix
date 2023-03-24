@@ -25,7 +25,6 @@
     # shotcut
     # drawio
     # lens
-    feh
 
     # winePackages.stable
 

@@ -220,6 +220,7 @@ with lib; with builtins;{
         };
         aliyun-ecs = {
           webssh.enable = true;
+          prometheus.server = true;
           # redis.enable = true;
           inVM = true;
         };

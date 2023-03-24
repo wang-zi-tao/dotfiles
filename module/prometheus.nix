@@ -13,12 +13,17 @@ in
     sops.secrets = optionalAttrs nodeConfig.prometheus.server {
       "prometheus/admin_password" = { };
     };
-    services.grafana.settings = mkIf nodeConfig.prometheus.server {
+    services.grafana = mkIf nodeConfig.prometheus.server {
       enable = true;
-      port = 9002;
-      addr = "0.0.0.0";
-      domain = "grafana.wangzicloud.cn";
-      #security.adminPasswordFile = config.sops.secrets."prometheus/admin_password".path;
+      settings = {
+        server = {
+          root_url = "%(protocol)s://%(domain)s:%(http_port)s/";
+          http_addr = "0.0.0.0";
+          http_port = 9002;
+          domain = "grafana.wangzicloud.cn";
+        };
+        #security.adminPasswordFile = config.sops.secrets."prometheus/admin_password".path;
+      };
     };
     services.caddy = lib.optionalAttrs nodeConfig.prometheus.server {
       enable = true;

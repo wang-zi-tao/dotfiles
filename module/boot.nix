@@ -13,6 +13,9 @@
         enable = true;
         /* theme = "breeze"; */
       };
+      kernel.sysctl = {
+        "vm.swappiness" = 100;
+      };
     };
     console.earlySetup = true;
     zramSwap.enable = true;
