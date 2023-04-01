@@ -17,6 +17,7 @@
         "vm.swappiness" = 100;
       };
     };
+    documentation.nixos.enable = lib.mkDefault false;
     console.earlySetup = true;
     zramSwap.enable = true;
     services.irqbalance.enable = true;

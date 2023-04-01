@@ -14,6 +14,7 @@
         qemu.ovmf.enable = true;
         qemu.ovmf.packages = [ pkgs.OVMFFull ];
         qemu.swtpm.enable = true;
+        onShutdown = "shutdown";
       };
       kvmgt.enable = true;
       waydroid.enable = false;

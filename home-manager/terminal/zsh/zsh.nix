@@ -90,7 +90,7 @@
       htop = "htop";
       ps = "procs";
 
-      rm = "rmtrash -Iv";
+      rm = "rmtrash -I";
       # mv = "rsync -avP --delete-delay";
       # mv-origin = "mv";
       bat = "bat --theme=Coldark-Dark";

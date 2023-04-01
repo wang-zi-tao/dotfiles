@@ -91,7 +91,7 @@ in
   };
   systemd.user.services.rustdesk = makeService {
     Type = "simple";
-    ExecStart = "${pkgs.rustdesk}/bin/rustdesk";
+    ExecStart = "${pkgs.unstable.rustdesk}/bin/rustdesk";
     Restart = "always";
   };
   systemd.user.services.xiezuo = makeService {

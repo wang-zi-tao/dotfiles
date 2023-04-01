@@ -87,6 +87,17 @@ compile-all)
 update)
 	nix flake update
 	;;
+vm)
+	profile=$1
+	shift
+	nix build "$script_dir#nixos.$profile.config.system.build.vm" "$@"
+	;;
+run-vm)
+	profile=$1
+	shift
+	nix build "$script_dir#nixos.$profile.config.system.build.vm" "$@"
+	NIX_DISK_IMAGE=$(readlink -f "${NIX_DISK_IMAGE:-${HOME}/Temp/$profile.qcow2}") "./result/bin/run-$profile-vm"
+	;;
 *)
 	echo "unknown subcommand $command"
 	false

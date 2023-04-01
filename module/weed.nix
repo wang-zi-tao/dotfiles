@@ -59,7 +59,7 @@ in
   ];
   config = {
     environment.systemPackages = with pkgs; mkIfEnbled [
-      seaweedfs
+      unstable.seaweedfs
     ];
     system.activationScripts.weed-self = mkIfEnbled ''
       ln -sfn /mnt/weed/mount/${hostname} /mnt/weed/mount/self
@@ -87,7 +87,7 @@ in
               LimitNPROC = 500000;
               ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.server.path}/weed ${weed.server.path}/master ${weed.server.path}/volume";
               ExecStart =
-                ''${pkgs.seaweedfs}/bin/weed server \
+                ''${pkgs.unstable.seaweedfs}/bin/weed server \
             -ip=${wireguardConfig.clusterIp} \
             -ip.bind=0.0.0.0 \
             -dir=${weed.server.path}/weed \
@@ -126,7 +126,7 @@ in
               builtins.toString (pkgs.writeScript "weed-mount" ''
                 #!${pkgs.busybox}/bin/sh
                 ${pkgs.util-linux}/bin/umount ${weed.client.mount}/${hostname} -l || true
-                ${pkgs.seaweedfs}/bin/weed mount \
+                ${pkgs.unstable.seaweedfs}/bin/weed mount \
                   -filer=${hostname}:302 \
                   -dir=${weed.client.mount}/${hostname} \
                   -dirAutoCreate \
@@ -156,7 +156,7 @@ in
                     builtins.toString (pkgs.writeScript "weed-mount" ''
                       #!${pkgs.busybox}/bin/sh
                       ${pkgs.util-linux}/bin/umount ${weed.client.mount}/${remoteHostname} -l || true
-                      ${pkgs.seaweedfs}/bin/weed mount \
+                      ${pkgs.unstable.seaweedfs}/bin/weed mount \
                         -filer=${mountConfig.ip}:302 \
                         -dir=${weed.client.mount}/${remoteHostname} \
                         -dirAutoCreate \
@@ -182,7 +182,7 @@ in
                   Restart = "always";
                   RestartSec = "2s";
                   LimitNOFILE = 500000;
-                  ExecStart = ''${pkgs.seaweedfs}/bin/weed filer.sync \
+                  ExecStart = ''${pkgs.unstable.seaweedfs}/bin/weed filer.sync \
                   -a ${syncConfig.ipA}:302 \
                   -a.path=/${dir}/ \
                   -b ${syncConfig.ipB}:302 \
