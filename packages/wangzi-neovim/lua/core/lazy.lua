@@ -99,7 +99,7 @@ require("lazy").setup({
         cmd = "MarkdownPreview",
         lazy = true,
         disable = not gen.markdown_preview,
-    }or {},
+    } or {},
     {
         "chentoast/marks.nvim",
         dir = gen.marks,
@@ -146,6 +146,7 @@ require("lazy").setup({
             "DiffviewClose",
             "DiffviewFocusFiles",
             "DiffviewRefresh",
+            "DiffviewFileHistory",
         },
         config = function()
             require("diffview").setup({})
@@ -154,6 +155,7 @@ require("lazy").setup({
             { "<leader>gd", function() require("diffview").open() end, desc = "Open Diff", },
             { "<leader>gD", function() require("diffview").close() end, desc = "Close Diff", },
             { "<leader>gh", function() require("diffview").file_history() end, desc = "Git Log", },
+            { "<leader>gH", function() require("diffview").file_history("%") end, desc = "Git Log This File", },
             { "<leader>gf", ":DiffviewFileHistory %<CR>", desc = "File History", },
         }
     },
@@ -330,6 +332,18 @@ require("lazy").setup({
         files = { "README.md", "lua/**/README.md" },
         -- only generate markdown helptags for plugins that dont have docs
         skip_if_doc_exists = true,
+    },
+    concurrency = 16,
+    git = {
+        -- defaults for the `Lazy log` command
+        -- log = { "-10" }, -- show the last 10 commits
+        log = { "--since=3 days ago" }, -- show commits from the last 3 days
+        timeout = 120, -- kill processes that take more than 2 minutes
+        url_format = "https://gitclone.com/github.com/%s.git",
+        -- lazy.nvim requires git >=2.19.0. If you really want to use lazy with an older version,
+        -- then set the below to false. This should work, but is NOT supported and will
+        -- increase downloads a lot.
+        filter = true,
     },
     performance = {
         cache = {

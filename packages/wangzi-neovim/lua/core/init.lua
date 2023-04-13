@@ -1,6 +1,7 @@
 require("core.opt")
 require("core.map")
 require("core.env")
+require("core.auto")
 
 local n = require("core.gen")
 if n.core ~= null then

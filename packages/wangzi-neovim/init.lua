@@ -4,7 +4,8 @@ if gen.core then
     vim.opt.packpath = gen.core .. "/init.lua"
 else
     local lazypath = (gen.core or vim.fn.stdpath("data")) .. "/lazy/lazy.nvim"
-    if not vim.loop.fs_stat(lazypath) then
+    while not vim.loop.fs_stat(lazypath) do
+        print("downloading lazy.nvim")
         packer_bootstrap = vim.fn.system({
             "git",
             "clone",
@@ -19,6 +20,6 @@ end
 require("core.lazy")
 require("lazy.help").update = function() end
 if packer_bootstrap then
-    require("lazy").sync()
+    require("lazy").install()
     vim.cmd [[TSUpdate]]
 end
