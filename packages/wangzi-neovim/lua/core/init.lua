@@ -24,7 +24,7 @@ vim.notify = function(msg, level, opt, ...)
     if msg:find("query: invalid node type at position ") then
         return
     end
-    if msg:find("matchup#delim#get_matching[") then
+    if msg:find("matchup#delim#get_matching") then
         return
     end
     if level == "error" then

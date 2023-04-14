@@ -9,7 +9,6 @@ local function config()
     local feedkey = function(key, mode)
         vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(key, true, true, true), mode, true)
     end
-    local compare = require('cmp.config.compare')
     cmp.setup({
         snippet = {
             expand = function(args)
@@ -61,21 +60,6 @@ local function config()
                 end
             end, { "i", "s" }),
         }),
-        sorting = {
-            priority_weight = 2,
-            comparators = {
-                require("clangd_extensions.cmp_scores"),
-                require('cmp_tabnine.compare'),
-                compare.offset,
-                compare.exact,
-                compare.score,
-                compare.recently_used,
-                compare.kind,
-                compare.sort_text,
-                compare.length,
-                compare.order,
-            },
-        },
         sources = cmp.config.sources({
             { name = "nvim_lsp" },
             { name = "luasnip" }, -- For luasnip users.
@@ -306,7 +290,24 @@ return {
                         cmp_tabnine:prefetch(vim.fn.expand('%:p'))
                     end
                 })
+                local compare = require('cmp.config.compare')
+                require("cmp").setup({
+                    sorting = {
+                        priority_weight = 2,
+                        comparators = {
+                            require('cmp_tabnine.compare'),
+                            compare.offset,
+                            compare.exact,
+                            compare.score,
+                            compare.recently_used,
+                            compare.kind,
+                            compare.sort_text,
+                            compare.length,
+                            compare.order,
+                        },
+                    },
+                })
             end,
-        } or {},
+        }or {},
     },
 }
