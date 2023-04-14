@@ -156,6 +156,6 @@
               path = deploy-rs.lib.${self.nixos.${host}.pkgs.system}.activate.nixos self.nixos.${host};
             };
           };
-        }) [ "wangzi-pc" "wangzi-nuc" "aliyun-hk" "aliyun-ecs" "huawei-ecs" ]);
+        }) [ "wangzi-pc" "wangzi-nuc" "aliyun-hk" "aliyun-ecs" /*"huawei-ecs"*/ ]);
     };
 }

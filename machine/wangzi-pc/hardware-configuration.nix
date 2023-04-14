@@ -8,7 +8,7 @@
     };
     timeout = 1;
   };
-  boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod_stable;
+  # boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod_stable;
   boot.initrd.availableKernelModules =
     [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" ];
   boot.initrd.kernelModules = [ ];
@@ -65,4 +65,5 @@
     user = "wangzi";
   };
   services.xserver.displayManager.defaultSession = lib.mkForce "gnome";
+  services.xserver.desktopManager.gnome.enable = true;
 }

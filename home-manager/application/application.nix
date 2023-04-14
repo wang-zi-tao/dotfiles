@@ -60,7 +60,7 @@
 
     gnome.gnome-nettool
     gnome.gnome-todo
-    google-chrome-dev
+    # google-chrome
     dconf
     gnome.dconf-editor
     gnome.gnome-tweaks
