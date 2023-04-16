@@ -26,7 +26,8 @@
     # drawio
     # lens
 
-    wineWowPackages.stable
+    wine
+    winetricks
 
     # wewechat
     # deepin-wine-tim
@@ -68,7 +69,7 @@
     gnome.sushi
     gnome.nautilus
     gnome.seahorse
-    
+
 
     adwaita-qt
     gnome.adwaita-icon-theme
