@@ -9,9 +9,11 @@ in
     sops.secrets."ssh-public-keys" = lib.mkIf sops-enable {
       sopsFile = config.cluster.ssh.publicKeySops;
     };
-    nix.sshServe.enable = true;
-    nix.settings.trusted-users = [ "nix-ssh" ];
-    nix.sshServe.write = true;
+    nix.sshServe = {
+      enable = true;
+      write = true;
+    };
+    # nix.settings.trusted-users = [ "nix-ssh" ];
     services.openssh = {
       enable = true;
       forwardX11 = true;
@@ -23,6 +25,9 @@ in
         TCPKeepAlive yes
         ClientAliveCountMax 360
         ClientAliveInterval 360
+        Match User nix-ssh
+            AuthorizedKeysFile %h/.ssh/authorized_keys %h/.ssh/authorized_keys2 /etc/ssh/authorized_keys.d/% ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
+        Match All
       '';
       ports = [ 22 64022 ];
       openFirewall = true;

@@ -9,7 +9,7 @@
       "https://nixpkgs-wayland.cachix.org"
       "https://mirrors.ustc.edu.cn/nix-channels/store"
     ] ++ lib.optionals (config.cluster.network.edges.${config.networking.hostName}.config.publicIp != config.cluster.network.edges.aliyun-hk.config.publicIp) [
-      # "ssh://nix-ssh@${config.cluster.network.edges.aliyun-hk.config.publicIp}"
+      "ssh://nix-ssh@aliyun-hk"
     ];
     settings.trusted-substituters = [
       "https://hydra.nixos.org/"

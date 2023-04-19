@@ -14,7 +14,7 @@
       0.028
       0.03
     ];
-    shadow = true;
+    shadow = false;
     shadowExclude=[
       "class_g  = 'awesome'"
       "class_g  = 'firefox'"

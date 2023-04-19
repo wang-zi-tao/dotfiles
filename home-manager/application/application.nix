@@ -26,8 +26,8 @@
     # drawio
     # lens
 
-    wine
-    winetricks
+    unstable.wine
+    unstable.winetricks
 
     # wewechat
     # deepin-wine-tim
@@ -61,7 +61,7 @@
 
     gnome.gnome-nettool
     gnome.gnome-todo
-    # google-chrome
+    google-chrome
     dconf
     gnome.dconf-editor
     gnome.gnome-tweaks

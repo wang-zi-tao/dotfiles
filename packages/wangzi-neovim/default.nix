@@ -107,7 +107,7 @@ stdenvNoCC.mkDerivation {
       nvim_autopairs = "${nvim-autopairs}",
       dashboard_nvim = "${dashboard-nvim}",
       nvim_comment = "${nvim-comment}",
-      nvim_tree_lua = "${nvim-tree-lua}",
+      nvim_tree_lua = "${pkgs.vimPlugins.nvim-tree-lua}",
 
       telescope_nvim = "${telescope-nvim}",
       telescope_ui_select = "${telescope-ui-select-nvim}",
