@@ -27,6 +27,9 @@ vim.notify = function(msg, level, opt, ...)
     if msg:find("matchup#delim#get_matching") then
         return
     end
+    if msg:find("处理 CursorMoved 自动命令") then
+        return
+    end
     if level == "error" then
         opt = opt or {}
         opt.timeout = 1000

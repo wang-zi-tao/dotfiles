@@ -60,4 +60,8 @@
   systemd.network.networks.main.routes.wg.routeConfig = {
     Gateway = "192.168.16.2";
   };
+  nix.settings.substituters = [
+    "ssh://root@aliyun-hk.wg"
+    "ssh://root@aliyun-ecs.wg"
+  ];
 }

@@ -9,7 +9,6 @@ let
         format = "gpt";
         partitions = [
           {
-            type = "partition";
             name = "ESP";
             start = "1MiB";
             end = "128MiB";
@@ -22,7 +21,6 @@ let
           }
           {
             name = "lvm";
-            type = "partition";
             start = "128GiB";
             end = "100%";
             part-type = "primary";
@@ -40,7 +38,6 @@ let
         type = "lvm_vg";
         lvs = {
           root = {
-            type = "lvm_lv";
             size = "100GiB";
             content = {
               type = "filesystem";
@@ -50,7 +47,6 @@ let
             };
           };
           home = {
-            type = "lvm_lv";
             size = "100GiB";
             content = {
               type = "filesystem";
@@ -60,7 +56,6 @@ let
             };
           };
           server = {
-            type = "lvm_lv";
             size = "100GiB";
             content = {
               type = "filesystem";
@@ -69,7 +64,6 @@ let
             };
           };
           ntfs = {
-            type = "lvm_lv";
             size = "64GiB";
             content = {
               type = "filesystem";

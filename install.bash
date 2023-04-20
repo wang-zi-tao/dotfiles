@@ -77,8 +77,8 @@ system)
 	profile=$1
 	shift
 	nix build "$script_dir#nixos.$profile.config.system.build.toplevel" "$@"
-	sudo nix-env -p /nix/var/nix/profiles/system --set "$(readlink ./result)"
-	sudo ./result/bin/switch-to-configuration switch
+	# sudo nix-env -p /nix/var/nix/profiles/system --set "$(readlink ./result)"
+	# sudo ./result/bin/switch-to-configuration switch
 	;;
 compile-all)
 	nix build "$script_dir#all.x86_64-linux" --option binary-caches "" "$@"

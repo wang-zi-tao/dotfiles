@@ -33,7 +33,7 @@
     systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {
       wantedBy = [ "multi-user.target" ];
       before = [ "multi-user.target" ];
-      path = with pkgs; [ busybox nix ];
+      path = with pkgs; [ busybox nix openssh ];
       environment = { inherit (config.environment.sessionVariables) NIX_PATH; };
       script = ''
         if [[ -e /run/secrets/script ]]; then

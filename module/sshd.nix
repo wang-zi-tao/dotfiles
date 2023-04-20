@@ -9,10 +9,13 @@ in
     sops.secrets."ssh-public-keys" = lib.mkIf sops-enable {
       sopsFile = config.cluster.ssh.publicKeySops;
     };
-    nix.sshServe = {
-      enable = true;
-      write = true;
+    users.users.nix-ssh = {
+      description = "Nix SSH store user";
+      isSystemUser = true;
+      group = "nix-ssh";
+      useDefaultShell = true;
     };
+    users.groups.nix-ssh = { };
     # nix.settings.trusted-users = [ "nix-ssh" ];
     services.openssh = {
       enable = true;
@@ -26,7 +29,13 @@ in
         ClientAliveCountMax 360
         ClientAliveInterval 360
         Match User nix-ssh
-            AuthorizedKeysFile %h/.ssh/authorized_keys %h/.ssh/authorized_keys2 /etc/ssh/authorized_keys.d/% ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
+          AllowAgentForwarding no
+          AllowTcpForwarding no
+          PermitTTY no
+          PermitTunnel no
+          X11Forwarding no
+          # ForceCommand nix-store --serve --write
+          AuthorizedKeysFile %h/.ssh/authorized_keys %h/.ssh/authorized_keys2 /etc/ssh/authorized_keys.d/% ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
         Match All
       '';
       ports = [ 22 64022 ];
