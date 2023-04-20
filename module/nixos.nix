@@ -2,16 +2,20 @@
 let hostName = config.networking.hostName; in
 {
   nix = {
-    # settings.trusted-substituters = [ "http://${config.cluster.nodes.aliyun-hk.publicIp}" ];
     settings.substituters = [
       "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
       "https://cache.nixos.org/"
       "https://nix-community.cachix.org"
       "https://nixpkgs-wayland.cachix.org"
       "https://mirrors.ustc.edu.cn/nix-channels/store"
+      "root@aliyun-hk:64022"
     ];
     settings.trusted-substituters = [
       "https://hydra.nixos.org/"
+      "root@aliyun-hk.wg:64022"
+      "root@aliyun-ecs.wg:64022"
+      "root@aliyun-hk:64022"
+      "root@aliyun-ecs:64022"
     ];
     settings.trusted-public-keys = [
       # "47.243.22.114:5000:wfL5ei3BfHGUVpiOihncv1LmbBzjqDm6uTFtJ95wueI="
