@@ -71,6 +71,7 @@ return {
         { "<leader>hD", "<cmd>Gitsigns toggle_deleted<CR>", mode = "n", desc = "Delete" },
         { "<leader>sh", "<cmd><C-U>Gitsigns select_hunk<CR>", mode = "o", desc = "Select Hunk" },
         { "<leader>sh", "<cmd><C-U>Gitsigns select_hunk<CR>", mode = "x", desc = "Select Hunk" },
+        { "<leader>gb", "<cmd>Gitsigns blame_line<CR>", mode = "n", desc = "Blame line" },
         { "[h", "<cmd>Gitsigns prev_hunk<CR>", mode = "n", desc = "Prev Hunk" },
         { "]h", "<cmd>Gitsigns next_hunk<CR>", mode = "n", desc = "Next Hunk" },
     },

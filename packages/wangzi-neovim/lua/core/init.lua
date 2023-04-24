@@ -24,7 +24,7 @@ vim.notify = function(msg, level, opt, ...)
     if msg:find("query: invalid node type at position ") then
         return
     end
-    if msg:find("matchup#delim#get_matching") then
+    if msg:find("69_get_delim_multi") then
         return
     end
     if msg:find("处理 CursorMoved 自动命令") then

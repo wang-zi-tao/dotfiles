@@ -230,6 +230,9 @@ require("lazy").setup({
         dir = gen.session_manager,
         name = "session_manager",
         lazy = true,
+        cmd = { "SessionManager" },
+        module = "session_manager",
+        event = "VeryLazy",
         config = function()
             require("core.plugins.others").session_manager()
         end,

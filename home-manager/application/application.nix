@@ -79,9 +79,7 @@
     waypipe
     x11docker
     inotify-tools
-    timewarrior
-    taskwarrior
-    taskwarrior-tui
     beekeeper-studio
+    kazam
   ];
 }
