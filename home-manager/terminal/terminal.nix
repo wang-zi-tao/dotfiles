@@ -77,6 +77,7 @@
         exa
         fd
         jq
+        xq
         tldr
         just
         lsof

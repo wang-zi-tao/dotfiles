@@ -47,6 +47,12 @@ awful.rules.rules = {
             tag = "8",
         },
     },
+    {
+        rule = { class = "Gpaste-ui" },
+        properties = {
+            placement = awful.placement.centered
+        }
+    },
     -- Floating clients.
     {
         rule_any = {

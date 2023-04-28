@@ -146,7 +146,6 @@ return {
                 { prefix = "<leader>" })
         end,
         keys = {
-            { "<leader>ff", desc = "Telescope" },
             { "<leader>fk", function() telescope().keymaps() end, desc = "Keymaps" },
             { "<leader>fw", function() telescope().live_grep() end, desc = "Grep", },
             { "<leader>ff", function() telescope().find_files() end, desc = "Files", },
