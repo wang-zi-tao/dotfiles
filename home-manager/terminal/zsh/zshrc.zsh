@@ -37,7 +37,7 @@ cdParentKey() {
   echo
 }
 
-r() {
+ra() {
     if [ -z "$RANGER_LEVEL" ]
     then
         ranger
@@ -67,7 +67,6 @@ bindkey '^[0d'      cdUndoKey
 bindkey '^[\' tmux split -h
 bindkey '^[-' tmux split -v
 
-export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 export SHELL="zsh"
 
 if [[ -e $SSH_CONNECTION && -n $TMUX ]];then

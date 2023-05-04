@@ -12,10 +12,10 @@ let hostName = config.networking.hostName; in
     ];
     settings.trusted-substituters = [
       "https://hydra.nixos.org/"
-      "root@aliyun-hk.wg:64022"
-      "root@aliyun-ecs.wg:64022"
-      "root@aliyun-hk:64022"
-      "root@aliyun-ecs:64022"
+      "ssh://root@aliyun-hk.wg:64022"
+      "ssh://root@aliyun-ecs.wg:64022"
+      "ssh://root@aliyun-hk:64022"
+      "ssh://root@aliyun-ecs:64022"
     ];
     settings.trusted-public-keys = [
       # "47.243.22.114:5000:wfL5ei3BfHGUVpiOihncv1LmbBzjqDm6uTFtJ95wueI="

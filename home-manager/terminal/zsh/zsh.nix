@@ -100,8 +100,12 @@
         MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';
 
       ls = "exa --icons";
-      l = "exa -la --icons";
-      ll = "exa --git -la --icons";
+      ll = "exa -la --icons";
+      l = "exa --git -la --icons";
+
+      rcpp = "rg -C=8 -g='*.{c,cpp,h,hpp,mm,inl,INL}'";
+      rts = "rg -C=8 -g='*.{ts}'";
+      rkuip = "rg -C=8 -g='*.{kuip,ku}'";
 
       du = "dust";
       df = "duf";

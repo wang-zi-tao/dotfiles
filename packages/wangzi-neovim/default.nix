@@ -134,6 +134,11 @@ stdenvNoCC.mkDerivation {
       clangd_extensions_nvim = "${clangd_extensions-nvim}",
       markdown_preview = ${if enable-markdown-preview then ''"${markdown-preview-nvim}"'' else "false" },
       marks = "${marks-nvim}",
+      trailblazer = "${pkgs.fetchgit {
+        url = "https://github.com/LeonHeidelbach/trailblazer.nvim";
+        rev = "674bb6254a376a234d0d243366224122fc064eab";
+        sha256 = "sha256-DWlacXJUzuHbyLLbO13zGV2dFPZrt+oZvFyg5gGlFGM=";
+      }}",
       auto_save = "${pkgs.fetchgit {
         url = "https://github.com/Pocco81/auto-save.nvim";
         rev = "2c7a2943340ee2a36c6a61db812418fca1f57866";

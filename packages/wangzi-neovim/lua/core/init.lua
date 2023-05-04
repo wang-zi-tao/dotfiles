@@ -18,16 +18,16 @@ end
 vim.notify = require("notify")
 local notify = vim.notify
 vim.notify = function(msg, level, opt, ...)
-    if msg:find("warning: multiple different client offset_encodings") then
+    if msg:find("warning: multiple different client offset_encodings", 1, true) then
         return
     end
-    if msg:find("query: invalid node type at position ") then
+    if msg:find("query: invalid node type at position ", 1, true) then
         return
     end
-    if msg:find("69_get_delim_multi") then
+    if msg:find("69_get_delim_multi", 1, true) then
         return
     end
-    if msg:find("处理 CursorMoved 自动命令") then
+    if msg:find("处理 CursorMoved 自动命令", 1, true) then
         return
     end
     if level == "error" then

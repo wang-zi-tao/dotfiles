@@ -122,17 +122,18 @@ in
     cpulimit
 
   ];
-  /* home.file.".pip/pip.conf".text = '' */
-  /*   [global] */
-  /*   index-url = https://pypi.mirrors.ustc.edu.cn/simple */
-  /* ''; */
   home.file = {
     ".cargo/config.toml".text = ''
       [target.x86_64-unknown-linux-gnu]
       linker = "${pkgs.clang_14}/bin/clang"
       rustflags = ["-C", "link-arg=--ld-path=${pkgs.mold}/bin/mold", "-L", "${pkgs.glibc}/lib/Scrt1.o"]
     '';
-  };
+  } // builtins.listToAttrs (
+    lib.attrsets.mapAttrsToList
+      (name: value: lib.nameValuePair
+        ".config/nvim/parser/${lib.strings.removePrefix "tree-sitter-" name }.so"
+        { source = "${value}/parser"; })
+      pkgs.tree-sitter.builtGrammars);
   programs.zsh.shellAliases = {
     mvn = "unset JAVA_TOOL_OPTIONS && mvn";
     dc = "docker-compose";

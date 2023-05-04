@@ -205,6 +205,81 @@ local function config()
     setup_lsp(on_attach, capabilities)
 end
 
+local function setup_lspsaga()
+    require("lspsaga").setup({
+        outline = {
+            win_position = "right",
+            win_with = "",
+            win_width = 30,
+            show_detail = true,
+            auto_preview = true,
+            auto_refresh = true,
+            auto_close = true,
+            custom_sort = nil,
+            keys = {
+                jump = "<CR>",
+                expand_collapse = "u",
+                quit = "q",
+            },
+        },
+        finder = {
+            --percentage
+            max_height = 1.0,
+            force_max_height = false,
+            keys = {
+                jump_to = 'l',
+                edit = { 'o', '<CR>' },
+                vsplit = 's',
+                split = 'i',
+                tabe = 't',
+                tabnew = 'r',
+                quit = { 'q', '<ESC>' },
+                close_in_preview = '<ESC>'
+            },
+        },
+        ui = {
+            -- This option only works in Neovim 0.9
+            title = true,
+            -- Border type can be single, double, rounded, solid, shadow.
+            border = "single",
+            winblend = 0,
+            expand = "",
+            collapse = "",
+            code_action = "",
+            incoming = " ",
+            outgoing = " ",
+            hover = ' ',
+            kind = {},
+        },
+    })
+    vim.api.nvim_create_autocmd({ "VimResized" }, {
+        pattern = "lspsagaoutline",
+        callback = function(args)
+            vim.notify("resize")
+            local alltabpages = vim.api.nvim_list_tabpages();
+            local window = nil
+            for _, tabpage in ipairs(alltabpages) do
+                local winlist = vim.api.nvim_tabpage_list_wins(tabpage)
+                for _, win in ipairs(winlist) do
+                    local buf = vim.api.nvim_win_get_buf(win)
+                    if (buf == args.buf) then
+                        window = win
+                        vim.api.nvim_set_current_win(win)
+                        break
+                    end
+                end
+                if window then
+                    break
+                end
+            end
+            local width = vim.api.nvim_win_get_width(window)
+            if width > 32 then
+                vim.api.nvim_win_set_width(32)
+            end
+        end,
+    })
+end
+
 return {
     {
         "neovim/nvim-lspconfig",
@@ -269,7 +344,7 @@ return {
                 "jubnzv/virtual-types.nvim",
                 dir = gen.virtual_types_nvim,
                 name = "virtual_types_nvim",
-                lazy = true,
+                event = "LspAttach",
                 module = "virtualtypes",
                 config = function()
                     require("core.plugins.null_ls")
@@ -279,56 +354,9 @@ return {
                 "glepnir/lspsaga.nvim",
                 dir = gen.lspsaga,
                 name = "lspsaga",
-                lazy = true,
+                event = "LspAttach",
                 dependencies = { "nvim_web_devicons" },
-                config = function()
-                    require("lspsaga").setup({
-                        outline = {
-                            win_position = "right",
-                            win_with = "",
-                            win_width = 30,
-                            show_detail = true,
-                            auto_preview = true,
-                            auto_refresh = true,
-                            auto_close = false,
-                            custom_sort = nil,
-                            keys = {
-                                jump = "<CR>",
-                                expand_collapse = "u",
-                                quit = "q",
-                            },
-                        },
-                        finder = {
-                            --percentage
-                            max_height = 0.75,
-                            force_max_height = false,
-                            keys = {
-                                jump_to = 'l',
-                                edit = { 'o', '<CR>' },
-                                vsplit = 's',
-                                split = 'i',
-                                tabe = 't',
-                                tabnew = 'r',
-                                quit = { 'q', '<ESC>' },
-                                close_in_preview = '<ESC>'
-                            },
-                        },
-                        ui = {
-                            -- This option only works in Neovim 0.9
-                            title = true,
-                            -- Border type can be single, double, rounded, solid, shadow.
-                            border = "single",
-                            winblend = 0,
-                            expand = "",
-                            collapse = "",
-                            code_action = "",
-                            incoming = " ",
-                            outgoing = " ",
-                            hover = ' ',
-                            kind = {},
-                        },
-                    })
-                end,
+                config = setup_lspsaga,
                 cmd = "Lspsaga",
                 module = "lspsaga",
                 keys = {
@@ -344,11 +372,17 @@ return {
                         require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
                     end, mode = "n", desc = "Diagnostic" },
                     { "gd", "<cmd>Lspsaga peek_definition<CR>", mode = "n", desc = "Peek Definition" },
-                    { "gD", "<cmd>Lspsaga goto_definition<CR>", mode = "n", desc = "Goto Definition" },
+                    { "gD", function()
+                        require("trailblazer").new_trail_mark()
+                        vim.cmd [[Lspsaga goto_definition]]
+                    end, mode = "n", desc = "Goto Definition" },
                     { "gr", "<cmd>Lspsaga rename<CR>", mode = "n", desc = "Rename" },
                     { "gt", "<cmd>Lspsaga peek_type_definition<CR>", mode = "n", desc = "Peek Type Definition" },
                     { "gT", "<cmd>Lspsaga goto_type_definition<CR>", mode = "n", desc = "Goto Type Definition" },
-                    { "gh", "<cmd>Lspsaga lsp_finder<CR>", mode = "n", desc = "LSP Finder" },
+                    { "gh", function ()
+                        require("trailblazer").new_trail_mark()
+                        vim.cmd[[Lspsaga lsp_finder]]
+                    end, mode = "n", desc = "LSP Finder" },
                     -- { "K", "<cmd>Lspsaga hover_doc<CR>", mode = "n", desc = "Hover" },
                     { "<A-d>", "<cmd>Lspsaga term_toggle<CR>", mode = { "n", "t" }, desc = "Lspsaga Terminal" },
 

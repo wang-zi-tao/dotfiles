@@ -14,7 +14,7 @@
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
   boot.initrd.kernelModules = [ "amdgpu" ];
   boot.kernelModules = [ "kvm-amd" "mt7921e" ];
-  boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod_stable;
+  # boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod_stable;
   boot.extraModulePackages = with config.boot.kernelPackages; [ ];
   boot.cleanTmpDir = false;
   boot.tmpOnTmpfs = false;

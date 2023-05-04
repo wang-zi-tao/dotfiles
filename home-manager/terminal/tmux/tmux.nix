@@ -22,7 +22,6 @@
         fzf-tmux-url
         logging
         sysstat
-        yank
         {
           plugin = yank;
           extraConfig = ''
@@ -37,9 +36,33 @@
             set -g @tmux_power_theme 'sky'
           '';
         }
+        sensible
+        {
+          plugin = jump;
+          extraConfig = ''
+            set -g @jump-key 'd'
+          '';
+        }
+        {
+          plugin = extrakto;
+          extraConfig = ''
+            set -g @extrakto_key 'f'
+            set -g @extrakto_copy_key 'y'
+            set -g @extrakto_open_key 'o'
+            set -g @extrakto_edit_key 'e'
+            set -g @extrakto_open_tool 'xdg-open'
+          '';
+        }
+        {
+          plugin = continuum;
+          extraConfig = ''
+            set -g @continuum-save-interval '1'
+            set -g @continuum-boot 'on'
+            set -g @continuum-restore 'on'
+          '';
+        }
         net-speed
         better-mouse-mode
-        # sidebar
         cpu
       ];
     tmuxinator.enable = true;

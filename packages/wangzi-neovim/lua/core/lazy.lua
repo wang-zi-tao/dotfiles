@@ -91,6 +91,7 @@ require("lazy").setup({
         end,
     },
     require("core.plugins.trouble"),
+    require("core.plugins.trailblazer"),
     gen.markdown_preview and {
         "davidgranstrom/nvim-markdown-preview",
         dir = gen.markdown_preview,
@@ -291,21 +292,21 @@ require("lazy").setup({
         end,
         init = function()
             require("which-key").register({
-                t = { name = "Hop" },
+                T = { name = "Hop" },
             }, { prefix = "<leader>" })
         end,
         keys = {
             { "<leader>j", function() require 'hop'.hint_char1() end, desc = "hop char1" },
             { "<leader>k", function() require 'hop'.hint_char2() end, desc = "hop char1" },
 
-            { "<leader>ta", function() require 'hop'.hint_anywhere() end, desc = "any" },
-            { "<leader>tw", function() require 'hop'.hint_words() end, desc = "words" },
-            { "<leader>tc", function() require 'hop'.hint_char1() end, desc = "char1" },
-            { "<leader>th", function() require 'hop'.hint_char1() end, desc = "char1" },
-            { "<leader>te",
+            { "<leader>Ta", function() require 'hop'.hint_anywhere() end, desc = "any" },
+            { "<leader>Tw", function() require 'hop'.hint_words() end, desc = "words" },
+            { "<leader>Tc", function() require 'hop'.hint_char1() end, desc = "char1" },
+            { "<leader>Th", function() require 'hop'.hint_char1() end, desc = "char1" },
+            { "<leader>Te",
                 function() require 'hop'.hint_char1({ direction = require 'hop.hint'.HintDirection.AFTER_CURSOR }) end,
                 desc = "back" },
-            { "<leader>tb",
+            { "<leader>Tb",
                 function() require 'hop'.hint_char1({ direction = require 'hop.hint'.HintDirection.BEFORE_CURSOR }) end,
                 desc = "forward" },
         }

@@ -67,6 +67,7 @@
         "class_g = 'Dunst'"
         "class_g = 'awesome'"
         "class_g = 'xz_helper'"
+        "class_g = 'wps'"
       ];
       corner-radius = 12;
       rounded-corners-exclude = [

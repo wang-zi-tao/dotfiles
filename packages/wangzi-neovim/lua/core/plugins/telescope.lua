@@ -147,12 +147,18 @@ return {
         end,
         keys = {
             { "<leader>fk", function() telescope().keymaps() end, desc = "Keymaps" },
-            { "<leader>fw", function() telescope().live_grep() end, desc = "Grep", },
+            { "<leader>fw", function()
+                require("trailblazer").new_trail_mark()
+                telescope().live_grep()
+            end, desc = "Grep", },
             { "<leader>ff", function() telescope().find_files() end, desc = "Files", },
             { "<leader>fr", function() telescope().registers() end, desc = "Registers", },
             { "<leader>fo", function() telescope().lsp_workspace_symbols() end, desc = "WorkspaceSymbols", },
             { "<leader>fa", function() vim.lsp.buf.code_action() end, desc = "Actions", },
-            { "<leader>fi", function() telescope().lsp_references() end, desc = "LSP Reference", },
+            { "<leader>fi", function()
+                require("trailblazer").new_trail_mark()
+                telescope().lsp_references()
+            end, desc = "LSP Reference", },
             { "<leader>fb", function() telescope().buffers() end, desc = "Buffers", },
             { "<leader>fs", function() telescope().git_status() end, desc = "GitStatus", },
             { "<leader>ft", function() telescope().tags() end, desc = "Tags", },
@@ -167,7 +173,10 @@ return {
             { "<leader>fF", function() telescope().extensions.file_browser.file_browser() end,
                 desc = "File Tree", },
             { "<leader>fr", function() telescope().lsp_references() end, desc = "LspReferences", },
-            { "<leader>fI", function() require("telescope.builtin").lsp_implementations() end,
+            { "<leader>fI", function()
+                require("trailblazer").new_trail_mark()
+                require("telescope.builtin").lsp_implementations()
+            end,
                 desc = "LSP Implementation", },
             { "<leader>ft", function() require("telescope.builtin").lsp_definitions() end, desc = "LSP Define", },
             { "<leader>fT", function() require("telescope.builtin").lsp_type_definitions() end,
