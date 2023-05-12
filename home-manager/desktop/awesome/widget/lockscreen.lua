@@ -175,6 +175,7 @@ local function grab_password()
         -- YAY
         reset()
         set_visibility(false)
+        awesome.emit_signal("signal::unlock")
       else
         -- NAY
         fail()

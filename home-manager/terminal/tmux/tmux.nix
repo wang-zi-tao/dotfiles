@@ -36,7 +36,7 @@
             set -g @tmux_power_theme 'sky'
           '';
         }
-        sensible
+        # sensible
         {
           plugin = jump;
           extraConfig = ''

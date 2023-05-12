@@ -35,3 +35,8 @@ awesome.connect_signal("signal::lock", function()
         end
     end
 end)
+
+awesome.connect_signal("signal::unlock", function()
+    awful.screen.focused().tags[8]:view_only()
+    awful.spawn([[virt-manager --connect qemu:///system --show-domain-console win10]])
+end)

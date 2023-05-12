@@ -33,18 +33,17 @@ awful.rules.rules = {
         },
     },
     {
-        rule = { class = "virt-manager" },
-        properties = { tag = "8" },
-    },
-    {
-        rule = { class = "virt-manager" },
+        rule = {
+            class = { "Virt-manager", "virt-manager" },
+            name = "win10 - QEMU/KVM"
+        },
         properties = { tag = "8" },
     },
     {
         rule = { class = "rdesktop" },
         properties = {
             maximized = true,
-            tag = "8",
+            tag = "7",
         },
     },
     {

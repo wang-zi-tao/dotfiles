@@ -33,7 +33,17 @@ local function config()
             lspconfig[lsp].setup(option)
         end
         require("clangd_extensions").setup {
-            server = option,
+            server = {
+                on_attach = function(client)
+                    attach(client)
+                    -- illuminate.on_attach(client)
+                end,
+                capabilities = capabilities,
+                flags = {
+                    debounce_text_changes = 150,
+                },
+                cmd = {'clangd','--malloc-trim','--background-index',}
+            },
             extensions = {
                 -- defaults:
                 -- Automatically set inlay hints (type hints)
@@ -379,9 +389,9 @@ return {
                     { "gr", "<cmd>Lspsaga rename<CR>", mode = "n", desc = "Rename" },
                     { "gt", "<cmd>Lspsaga peek_type_definition<CR>", mode = "n", desc = "Peek Type Definition" },
                     { "gT", "<cmd>Lspsaga goto_type_definition<CR>", mode = "n", desc = "Goto Type Definition" },
-                    { "gh", function ()
+                    { "gh", function()
                         require("trailblazer").new_trail_mark()
-                        vim.cmd[[Lspsaga lsp_finder]]
+                        vim.cmd [[Lspsaga lsp_finder]]
                     end, mode = "n", desc = "LSP Finder" },
                     -- { "K", "<cmd>Lspsaga hover_doc<CR>", mode = "n", desc = "Hover" },
                     { "<A-d>", "<cmd>Lspsaga term_toggle<CR>", mode = { "n", "t" }, desc = "Lspsaga Terminal" },

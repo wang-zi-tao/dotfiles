@@ -12,15 +12,6 @@
 , enable-markdown-preview ? enable-all
 , enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux" || pkgs.system == "x86_64-darwin")
 }:
-
-let
-  #  neovim-unwrapped = pkgs.unstable.neovim-unwrapped;
-  lazy-nvim = pkgs.fetchgit {
-    url = "https://github.com/folke/lazy.nvim";
-    rev = "b3eca0c3fb4ef5e547f70c571b8cd27688db83bb";
-    sha256 = "sha256-ggaW3pIWvsUGuwuZRIVdRyQqlO7OMme1OIkBt6ycM70=";
-  };
-in
 stdenvNoCC.mkDerivation {
   pname = "wangzi-neovim";
   version = "1.0.0";
