@@ -98,6 +98,25 @@ in
     Type = "simple";
     ExecStart = "${pkgs.xiezuo}/bin/xiezuo --no-sandbox --no-zygote --package-format=deb";
   };
+  systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {
+    Unit = {
+      After = [ "graphical-session-pre.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Install = { WantedBy = [ "graphical-session.target" ]; };
+    path = with pkgs; [ busybox nix openssh ];
+    environment = { inherit (config.environment.sessionVariables) NIX_PATH; };
+    script = ''
+      if [[ -e /run/secrets/${config.home.user}/script ]]; then
+        /run/secrets/${config.home.user}/script
+      fi
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      # Restart = "always";
+      # RestartSec = "5s";
+    };
+  };
   systemd.user.services.xhost = makeService {
     Type = "oneshot";
     ExecStart = "xhost +";

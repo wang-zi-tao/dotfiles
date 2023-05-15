@@ -101,7 +101,7 @@
 
       ls = "exa --icons";
       ll = "exa -la --icons";
-      l = "exa --git -la --icons";
+      l = "exa -la --icons";
 
       rcpp = "rg -C=8 -g='*.{c,cpp,h,hpp,mm,inl,INL}'";
       rts = "rg -C=8 -g='*.{ts}'";
