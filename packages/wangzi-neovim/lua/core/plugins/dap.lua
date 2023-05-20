@@ -8,6 +8,17 @@ local function config()
     local path_cache = vim.fn.getcwd() .. "/"
     dap.configurations.cpp = {
         {
+            name = "cargo run",
+            type = "lldb",
+            request = "launch",
+            program = function()
+                path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
+                return path_cache
+            end,
+            cwd = "${workspaceFolder}",
+            -- stopOnEntry = true,
+        },
+        {
             name = "Launch",
             type = "lldb",
             request = "launch",

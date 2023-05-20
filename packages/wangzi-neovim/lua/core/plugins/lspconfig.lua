@@ -453,6 +453,11 @@ return {
                 },
             })
         end,
+        keys = {
+            { "<leader>ca",function ()
+                require("rust-tools").hover_actions.hover_actions()
+            end, mode = "n", desc = "Cargo actio" },
+        },
         ft = { "rs", "rust", "toml" },
     },
     {
