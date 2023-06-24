@@ -9,7 +9,10 @@ in
     userName = "wang-zi-tao";
     aliases = { diff = "diff --word-diff"; };
     extraConfig = {
-      core = { editor = "vim"; };
+      core = {
+        editor = "vim";
+        fsmonitor = "rs-git-fsmonitor";
+      };
       diff = { tool = "nvr"; };
       difftool = {
         promt = true;
@@ -35,5 +38,9 @@ in
     };
     ignores = [ "build" "target" "node_module" ];
   };
-  home.packages = with pkgs; [ delta ];
+  home.packages = with pkgs; [
+    delta
+    gitfs
+    rs-git-fsmonitor
+  ];
 }

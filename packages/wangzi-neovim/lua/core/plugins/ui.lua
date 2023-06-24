@@ -32,13 +32,14 @@ return {
         },
         event = "VeryLazy",
         config = function()
+            require("nvim-tree")
             vim.opt.lazyredraw = false
             require("noice").setup({
                 background_colour = "#000000",
                 cmdline = {
-                    enabled = true, -- enables the Noice cmdline UI
+                    enabled = true,         -- enables the Noice cmdline UI
                     view = "cmdline_popup", -- view for rendering the cmdline. Change to `cmdline` to get a classic cmdline at the bottom
-                    opts = {}, -- global options for the cmdline. See section on views
+                    opts = {},              -- global options for the cmdline. See section on views
                     ---@type table<string, CmdlineFormat>
                     format = {
                         -- conceal: (default=true) This will hide the text in the cmdline that matches the pattern.
@@ -95,24 +96,24 @@ return {
                     },
                 },
                 presets = {
-                    bottom_search = false, -- use a classic bottom cmdline for search
-                    command_palette = false, -- position the cmdline and popupmenu together
+                    bottom_search = false,         -- use a classic bottom cmdline for search
+                    command_palette = false,       -- position the cmdline and popupmenu together
                     long_message_to_split = false, -- long messages will be sent to a split
-                    inc_rename = false, -- enables an input dialog for inc-rename.nvim
-                    lsp_doc_border = false, -- add a border to hover docs and signature help
+                    inc_rename = false,            -- enables an input dialog for inc-rename.nvim
+                    lsp_doc_border = false,        -- add a border to hover docs and signature help
                 },
                 messages = {
                     -- NOTE: If you enable messages, then the cmdline is enabled automatically.
                     -- This is a current Neovim limitation.
-                    enabled = true, -- enables the Noice messages UI
-                    view = "notify", -- default view for messages
-                    view_error = "notify", -- view for errors
-                    view_warn = "notify", -- view for warnings
-                    view_history = "messages", -- view for :messages
+                    enabled = true,              -- enables the Noice messages UI
+                    view = "notify",             -- default view for messages
+                    view_error = "notify",       -- view for errors
+                    view_warn = "notify",        -- view for warnings
+                    view_history = "messages",   -- view for :messages
                     view_search = "virtualtext", -- view for search count messages. Set to `false` to disable
                 },
                 popupmenu = {
-                    enabled = true, -- enables the Noice popupmenu UI
+                    enabled = true,  -- enables the Noice popupmenu UI
                     ---@type 'nui'|'cmp'
                     backend = "nui", -- backend to use to show regular cmdline completions
                     ---@type NoicePopupmenuItemKind|false
@@ -139,7 +140,7 @@ return {
                                 { error = true },
                                 { warning = true },
                                 { event = "msg_show", kind = { "" } },
-                                { event = "lsp", kind = "message" },
+                                { event = "lsp",      kind = "message" },
                             },
                         },
                     },
@@ -153,7 +154,7 @@ return {
                                 { error = true },
                                 { warning = true },
                                 { event = "msg_show", kind = { "" } },
-                                { event = "lsp", kind = "message" },
+                                { event = "lsp",      kind = "message" },
                             },
                         },
                         filter_opts = { count = 1 },
@@ -201,6 +202,28 @@ return {
                 format = {}, --- @see section on formatting
             })
             vim.opt.lazyredraw = true
+
+            local notify = vim.notify
+            vim.notify = function(msg, level, opt, ...)
+                if msg:find("warning: multiple different client offset_encodings", 1, true) then
+                    return
+                end
+                if msg:find("query: invalid node type at position ", 1, true) then
+                    return
+                end
+                if msg:find("69_get_delim_multi", 1, true) then
+                    return
+                end
+                if msg:find("处理 CursorMoved 自动命令", 1, true) then
+                    return
+                end
+                if level == "error" then
+                    opt = opt or {}
+                    opt.timeout = 1000
+                end
+
+                notify(msg, level, opt, ...)
+            end
         end
     },
     {
@@ -266,7 +289,7 @@ return {
             require("core.plugins.bufferline")
         end,
         keys = {
-            { "<Tab>", function() require("bufferline").cycle(1) end, mode = "n", desc = "next tab" },
+            { "<Tab>",   function() require("bufferline").cycle(1) end,  mode = "n", desc = "next tab" },
             { "<S-Tab>", function() require("bufferline").cycle(-1) end, mode = "n", desc = "prev tab" },
         }
     },
@@ -307,14 +330,14 @@ return {
         config = function()
             require("colorizer").setup({
             }, {
-                RGB = true, -- #RGB hex codes
-                RRGGBB = true, -- #RRGGBB hex codes
-                names = true, -- "Name" codes like Blue
+                RGB = true,      -- #RGB hex codes
+                RRGGBB = true,   -- #RRGGBB hex codes
+                names = true,    -- "Name" codes like Blue
                 RRGGBBAA = true, -- #RRGGBBAA hex codes
-                rgb_fn = true, -- CSS rgb() and rgba() functions
-                hsl_fn = true, -- CSS hsl() and hsla() functions
-                css = true, -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
-                css_fn = true, -- Enable all CSS *functions*: rgb_fn, hsl_fn
+                rgb_fn = true,   -- CSS rgb() and rgba() functions
+                hsl_fn = true,   -- CSS hsl() and hsla() functions
+                css = true,      -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
+                css_fn = true,   -- Enable all CSS *functions*: rgb_fn, hsl_fn
 
                 -- Available modes: foreground, background
                 mode = "background", -- Set the display mode.

@@ -39,7 +39,7 @@
     nvidia.modesetting.enable = true;
     nvidia.prime = {
       sync.enable = true;
-      sync.allowExternalGpu = true;
+      allowExternalGpu = true;
       # offload.enable = true;
       nvidiaBusId = "PCI:1:0:0";
       intelBusId = "PCI:0:2:0";

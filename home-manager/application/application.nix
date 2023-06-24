@@ -13,8 +13,8 @@
     inotify-tools
     upower
 
-    xiezuo
-    wpsoffice
+    # xiezuo
+    # wpsoffice
 
     # libreoffice
     libsForQt5.kdeconnect-kde
@@ -61,7 +61,7 @@
 
     gnome.gnome-nettool
     gnome.gnome-todo
-    google-chrome
+    # google-chrome
     dconf
     gnome.dconf-editor
     gnome.gnome-tweaks

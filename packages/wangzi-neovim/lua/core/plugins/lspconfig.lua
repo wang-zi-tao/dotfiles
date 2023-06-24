@@ -620,7 +620,6 @@ return {
             require("core.plugins.crates")
         end,
         keys = {
-
             { "<leader>cu", function() require('crates').upgrade_crate(nil) end, desc = "Cargo Upgrade " },
             { "<leader>cU", function() require('crates').upgrade_crates(nil) end, desc = "Cargo Upgrade Crates" },
             { "<leader>ch", function() require('crates').open_homepage() end, desc = "Crate Homepage" },

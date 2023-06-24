@@ -102,8 +102,8 @@ in
     fsType = "f2fs";
     options = [ "rw" "noatime" ];
   };
-  boot.cleanTmpDir = false;
-  boot.tmpOnTmpfs = false;
+  boot.tmp.cleanOnBoot = false;
+  boot.tmp.useTmpfs = false;
   services.fstrim.interval = "daily";
   programs.fuse = { userAllowOther = true; };
   environment.systemPackages = with pkgs; [ duperemove btrfs-progs ];

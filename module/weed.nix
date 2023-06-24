@@ -85,6 +85,11 @@ in
               RestartSec = "5s";
               LimitNOFILE = 500000;
               LimitNPROC = 500000;
+              Nice = -10;
+              CPUSchedulingPolicy = "rr";
+              CPUSchedulingPriority = "75";
+              IOSchedulingClass = "realtime";
+              IOSchedulingPriority = 0;
               ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.server.path}/weed ${weed.server.path}/master ${weed.server.path}/volume";
               ExecStart =
                 ''${pkgs.unstable.seaweedfs}/bin/weed server \
@@ -121,6 +126,11 @@ in
             Restart = "always";
             RestartSec = "2s";
             LimitNOFILE = 500000;
+            Nice = -10;
+            CPUSchedulingPolicy = "rr";
+            CPUSchedulingPriority = "75";
+            IOSchedulingClass = "realtime";
+            IOSchedulingPriority = 0;
             ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.client.mount}/${hostname} ${weed.client.path}/${hostname}";
             ExecStart =
               builtins.toString (pkgs.writeScript "weed-mount" ''

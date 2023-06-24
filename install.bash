@@ -27,7 +27,10 @@ system=$(nix-instantiate --eval -E '(import <nixpkgs> {}).stdenv.hostPlatform.sy
 system="${system%\"}"
 system="${system#\"}"
 case $command in
-deploy) nix run "$script_dir#deploy-rs" -- -d --fast-connection true -c "$@" ;;
+deploy)
+	nix build "$script_dir#all.$system" --option binary-caches "" "$@"
+	nix run "$script_dir#deploy-rs" -- -d --fast-connection true -c "$@"
+	;;
 nix-lang-check) nix run 'nixpkgs#statix' check . ;;
 nix-lang-fix) nix run 'nixpkgs#statix' fix . ;;
 nix-boost) sh <(curl -L https://nixos.org/nix/install) --daemon ;;

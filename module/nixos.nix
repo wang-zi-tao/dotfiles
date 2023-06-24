@@ -8,14 +8,14 @@ let hostName = config.networking.hostName; in
       "https://nix-community.cachix.org"
       "https://nixpkgs-wayland.cachix.org"
       "https://mirrors.ustc.edu.cn/nix-channels/store"
-      "root@aliyun-hk:64022"
+      # "root@aliyun-hk:64022"
     ];
     settings.trusted-substituters = [
       "https://hydra.nixos.org/"
-      "ssh://root@aliyun-hk.wg:64022"
-      "ssh://root@aliyun-ecs.wg:64022"
-      "ssh://root@aliyun-hk:64022"
-      "ssh://root@aliyun-ecs:64022"
+      # "ssh://root@aliyun-hk.wg:64022"
+      # "ssh://root@aliyun-ecs.wg:64022"
+      # "ssh://root@aliyun-hk:64022"
+      # "ssh://root@aliyun-ecs:64022"
     ];
     settings.trusted-public-keys = [
       # "47.243.22.114:5000:wfL5ei3BfHGUVpiOihncv1LmbBzjqDm6uTFtJ95wueI="
@@ -24,6 +24,8 @@ let hostName = config.networking.hostName; in
       "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
     ];
     settings.auto-optimise-store = true;
+    settings.max-jobs = "auto";
+    settings.stalled-download-timeout = 60;
     daemonIOSchedClass = "idle";
     daemonCPUSchedPolicy = "batch";
     extraOptions = "experimental-features = nix-command flakes";

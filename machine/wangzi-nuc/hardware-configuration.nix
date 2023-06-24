@@ -16,8 +16,8 @@
   boot.kernelModules = [ "kvm-amd" "mt7921e" ];
   # boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod_stable;
   boot.extraModulePackages = with config.boot.kernelPackages; [ ];
-  boot.cleanTmpDir = false;
-  boot.tmpOnTmpfs = false;
+  boot.tmp.cleanOnBoot = false;
+  boot.tmp.useTmpfs = false;
   services.udev.extraRules = ''
     SUBSYSTEM=="drivers", DEVPATH=="/bus/pci/drivers/mt7921e", ATTR{new_id}="14c3 0608"
   '';

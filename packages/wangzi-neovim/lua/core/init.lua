@@ -2,6 +2,7 @@ require("core.opt")
 require("core.map")
 require("core.env")
 require("core.auto")
+require("core.cmd")
 
 local n = require("core.gen")
 if n.core ~= null then
@@ -15,25 +16,3 @@ if n.core ~= null then
     end
 end
 
-vim.notify = require("notify")
-local notify = vim.notify
-vim.notify = function(msg, level, opt, ...)
-    if msg:find("warning: multiple different client offset_encodings", 1, true) then
-        return
-    end
-    if msg:find("query: invalid node type at position ", 1, true) then
-        return
-    end
-    if msg:find("69_get_delim_multi", 1, true) then
-        return
-    end
-    if msg:find("处理 CursorMoved 自动命令", 1, true) then
-        return
-    end
-    if level == "error" then
-        opt = opt or {}
-        opt.timeout = 1000
-    end
-
-    notify(msg, level, opt, ...)
-end

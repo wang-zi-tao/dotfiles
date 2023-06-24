@@ -86,7 +86,7 @@ in
     gradle
 
     ctop
-    distant
+    # distant
     iperf2
     tokei
     nix-prefetch

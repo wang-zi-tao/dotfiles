@@ -1,6 +1,10 @@
 {
   inputs = {
-    home-manager.url = "github:nix-community/home-manager/release-22.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.05";
+    nixpkgs-22-11.url = "github:nixos/nixpkgs/release-22.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    master.url = "github:nixos/nixpkgs";
+    home-manager.url = "github:nix-community/home-manager/release-23.05";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -15,10 +19,6 @@
       inputs.home-manager.follows = "home-manager";
     };
     nur.url = "github:nix-community/NUR";
-    nixpkgs.url = "github:nixos/nixpkgs/release-22.11";
-    nixpkgs-22-05.url = "github:nixos/nixpkgs/release-22.05";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    master.url = "github:nixos/nixpkgs";
     nixpkgs-wayland = {
       url = "github:nix-community/nixpkgs-wayland";
     };
@@ -65,7 +65,12 @@
       };
       pkgs-template = system: import nixpkgs {
         inherit system;
-        config = { allowUnfree = true; };
+        config = {
+          allowUnfree = true;
+          permittedInsecurePackages = [
+            "nodejs-16.20.0"
+          ];
+        };
         overlays = with builtins; ([
           deploy-rs.overlay
           nur.overlay
@@ -74,7 +79,7 @@
           packages
           (final: prev: {
             unstable = import inputs.nixpkgs-unstable { inherit system overlays; config = { allowUnfree = true; }; };
-            nixpkgs-22-05 = import inputs.nixpkgs-22-05 { inherit system overlays; config = { allowUnfree = true; }; };
+            nixpkgs-22-11 = import inputs.nixpkgs-22-11 { inherit system overlays; config = { allowUnfree = true; }; };
             scripts = map
               (f: prev.writeScriptBin f (readFile (./scripts + "/${f}")))
               (attrNames (readDir ./scripts));

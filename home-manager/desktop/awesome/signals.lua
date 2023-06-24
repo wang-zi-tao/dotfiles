@@ -31,7 +31,7 @@ end)
 awesome.connect_signal("signal::lock", function()
     for _, c in ipairs(client.get()) do
         if c.class == "Virt-manager" then
-            c:kill()
+            c.hidden = true
         end
     end
 end)

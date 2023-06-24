@@ -10,7 +10,7 @@ with lib; with builtins; {
       webssh = {
         wantedBy = [ "multi-user.target" ];
         script = ''
-          ${pkgs.nixpkgs-22-05.webssh}/bin/wssh --port=64535 --log-to-stderr
+          ${pkgs.webssh}/bin/wssh --port=64535 --log-to-stderr
         '';
       };
     };

@@ -61,7 +61,7 @@
     Gateway = "192.168.16.2";
   };
   nix.settings.substituters = [
-    "ssh://root@aliyun-hk.wg"
-    "ssh://root@aliyun-ecs.wg"
+    # "ssh://root@aliyun-hk.wg"
+    # "ssh://root@aliyun-ecs.wg"
   ];
 }

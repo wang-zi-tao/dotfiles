@@ -85,7 +85,6 @@
         ps
         ripgrep
         silver-searcher
-        choose
         sd
         trash-cli
         wget
@@ -98,6 +97,8 @@
         neofetch
         gzip
         openssh
+        perl
+        bison
       ];
     home.file.".config/nvim/parser/nix.so".source = lib.mkDefault "${pkgs.unstable.tree-sitter.builtGrammars.tree-sitter-nix}/parser";
     home.file.".code-server/bin/node" = { source = "${pkgs.nodejs-16_x}/bin/node"; executable = true; };

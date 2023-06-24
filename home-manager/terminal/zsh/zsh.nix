@@ -78,7 +78,7 @@
       grep = "rg --color=auto";
       xclip = "xclip -selection c";
       s = "sudo su";
-      j = "z";
+      j = "joshuto";
 
       gclone = "git clone";
 
@@ -139,6 +139,67 @@
       fi
     '';
   };
+  programs.nushell = {
+    enable = true;
+    configFile.text = ''
+    '';
+  };
+  programs.atuin = {
+    enable = true;
+    enableZshIntegration = true;
+    enableBashIntegration = true;
+    enableNushellIntegration = true;
+  };
+  programs.starship = {
+    enable = true;
+    enableNushellIntegration = true;
+    settings = {
+      add_newline = true;
+      scan_timeout = 10;
+      format = ''
+        [](254)[$os](bg:254 blue)[  $directory](254 bg:blue)[](bg:11 fg:blue)[  $git_branch$git_commit$git_state$git_metrics$git_status](bg:11 black)[](fg:11) $all [$character](blue)
+      '';
+      directory = {
+        style = "bg:blue 254";
+      };
+      git_state = {
+        format = "[ $state ($progress_current of $progress_total) ] ($style) ";
+        style = "black bg:11";
+        cherry_pick = "[🍒 PICKING](bold red)";
+      };
+      git_branch = {
+        format = "[$symbol$branch(:$remote_branch)]($style) ";
+        style = "bg:11 black";
+      };
+      git_status = {
+        format = "([\\[$all_status$ahead_behind\\]]($style) )";
+        style = "bg:11 black";
+        ahead = "⇡\${count} ";
+        diverged = "⇕⇡\${ahead_count}⇣\${behind_count} ";
+        behind = "⇣\${count} ";
+        modified = "!\${count} ";
+        stashed = "s\${count} ";
+        staged = "+\${count} ";
+        untracked = "?\${count} ";
+        conflicted = "=\${count} ";
+      };
+      git_metrics = {
+        added_style = "bg:11 black";
+        deleted_style = "bg:11 black";
+        format = ''[+$added]($added_style)/[-$deleted]($deleted_style) '';
+        disabled = false;
+      };
+      nix_shell = { };
+      os = {
+        style = "bg:254 fg:blue";
+        disabled = false;
+      };
+    };
+  };
+  programs.zoxide.enableNushellIntegration = true;
+  programs.direnv.enableNushellIntegration = true;
+  programs.direnv.enableZshIntegration = true;
+  programs.keychain.enableNushellIntegration = true;
   programs.command-not-found.enable = !config.programs.nix-index.enable;
   programs.nix-index = {
     enableZshIntegration = true;
@@ -153,5 +214,5 @@
     enable = true;
     enableZshIntegration = true;
   };
-  home.packages = with pkgs;[ ripgrep xclip powertop iotop iftop htop procs rmtrash bat exa du-dust duf tmuxinator tmux ];
+  home.packages = with pkgs;[ ripgrep xclip powertop iotop iftop htop procs rmtrash bat exa du-dust duf tmuxinator tmux joshuto ];
 }

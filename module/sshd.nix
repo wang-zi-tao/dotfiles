@@ -19,10 +19,12 @@ in
     # nix.settings.trusted-users = [ "nix-ssh" ];
     services.openssh = {
       enable = true;
-      forwardX11 = true;
-      gatewayPorts = "yes";
-      permitRootLogin = "yes";
-      passwordAuthentication = true;
+      settings = {
+        X11Forwarding = true;
+        GatewayPorts = "yes";
+        PermitRootLogin = "yes";
+        PasswordAuthentication = true;
+      };
       authorizedKeysFiles = lib.optional sops-enable config.sops.secrets.ssh-public-keys.path;
       extraConfig = ''
         TCPKeepAlive yes
