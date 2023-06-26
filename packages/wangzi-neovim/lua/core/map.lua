@@ -33,7 +33,7 @@ wk.register({
             "<cmd>b#<CR>", "Switch Tab"
         },
         w = {
-            name = "Window",
+            name = "Window / Workspace",
             s = { "<cmd>sp<CR>", "Split" },
             v = { "<cmd>vs<CR>", "Split Vertical" },
         },

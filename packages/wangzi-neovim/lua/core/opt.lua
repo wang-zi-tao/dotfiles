@@ -33,6 +33,9 @@ opt.smartindent = true
 opt.splitbelow = true
 opt.splitright = true
 opt.tabstop = 4
+opt.noexpandtab = true
+opt.tabstop = 4
+opt.shiftwidth = 4
 opt.shiftwidth = 4
 opt.termguicolors = true
 opt.timeoutlen = 400
@@ -78,6 +81,7 @@ if (0 == vim.fn.has("win32")) then
         }
     end
 else
+    g.terminal_emulator = 'powershell'
     g.clipboard = {
         name = "wsl",
         copy = {

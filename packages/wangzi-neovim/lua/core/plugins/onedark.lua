@@ -6,7 +6,7 @@ onedark.setup({
     term_colors = false, -- Change terminal color as per the selected theme style
     ending_tildes = false, -- Show the end-of-buffer tildes. By default they are hidden
     -- toggle theme style ---
-    toggle_style_key = "<leader>wt", -- Default keybinding to toggle
+    toggle_style_key = "<leader>wT", -- Default keybinding to toggle
     toggle_style_list = { "dark", "light", "darker", "cool", "deep", "warm", "warmer" }, -- List of styles to toggle between
 
     -- Change code style ---

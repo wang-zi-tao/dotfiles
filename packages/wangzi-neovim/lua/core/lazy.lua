@@ -213,7 +213,7 @@ require("lazy").setup({
             { "\\'", function() require("FTerm").toggle() end, mode = "n", desc = "Float Terminal" },
             { "<C-\\>", function()
                 if (1 == vim.fn.has("win32")) then
-                    vim.cmd[[Lspsaga term_toggle]]
+                    vim.cmd [[Lspsaga term_toggle]]
                 else
                     require("FTerm").toggle()
                 end
@@ -231,6 +231,31 @@ require("lazy").setup({
             require("core.plugins.others").mini()
         end,
         event = "VeryLazy",
+    },
+    {
+        "beauwilliams/focus.nvim",
+        dir = gen.focus,
+        name = "focus_nvim",
+        dependencies = "core",
+        lazy = true,
+        cmd = { "focus" },
+        config = function()
+            require("focus").setup({
+                excluded_filetypes = { "toggleterm", "notify" },
+                hybridnumber = true,
+                treewidth = 30,
+                width = 60,
+                height = 30,
+            })
+        end,
+        event = "VeryLazy",
+        keys = {
+            { "<leader>wh", ':FocusSplitLeft<CR>', silent = true, desc = "Split left" },
+            { "<leader>wk", ':FocusSplitUp<CR>', silent = true, desc = "Split up" },
+            { "<leader>wl", ':FocusSplitRight<CR>', silent = true, desc = "Split right" },
+            { "<leader>wj", ':FocusSplitDown<CR>', silent = true, desc = "Split down" },
+            { "<leader>wt", ':FocusSplitDown cmd term<CR>', silent = true, desc = "Terminal" },
+        }
     },
     {
         "Shatur/neovim-session-manager",

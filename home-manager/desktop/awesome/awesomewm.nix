@@ -107,6 +107,27 @@ in
     ''; in ''
         ${script}/bin/run_secret_script
       '';
+    };
+  };
+  systemd.user.services.run-secrets-scripts = {
+    Unit = {
+      After = [ "graphical-session-pre.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Install = { WantedBy = [ "graphical-session.target" ]; };
+    Service = {
+      Type = "simple";
+      ExecStart =
+        let
+          script = pkgs.writeShellScriptBin "run-user-script" ''
+            if [[ -e /run/secrets/${config.home.username}/script ]]; then
+              /run/secrets/${config.home.username}/script
+            fi
+          ''; in
+        ''
+          ${script}/bin/run-user-script
+        '';
+    };
   };
   systemd.user.services.xhost = makeService {
     Type = "oneshot";

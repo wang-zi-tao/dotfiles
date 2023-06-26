@@ -31,7 +31,11 @@ nixpkgs.lib.nixosSystem
         prometheus.nodeExporter = false;
         virtualisation.enable = true;
       };
-      sops.defaultSopsFile = "/";
+      sops.defaultSopsFile = ../secrets/wangzi-kingsoft.yaml;
+      sops.secrets."script" = {
+        mode = "0500";
+        restartUnits = [ "run-secrets-scripts" ];
+      };
       boot.loader.systemd-boot.enable = true;
       boot.supportedFilesystems = [ "ext4" "fat32" "ntfs" "f2fs" ];
       boot.loader.efi.canTouchEfiVariables = true;

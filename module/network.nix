@@ -49,6 +49,10 @@ in
         firewall = {
           enable = true;
           rejectPackets = true;
+          allowedTCPPortRanges = [{
+            from = 8880;
+            to = 8890;
+          }];
         };
         hosts = listToAttrs
           (concatLists
@@ -68,7 +72,9 @@ in
                     value = [ nodeName ];
                   }] else [ ])
               network.peers)
-          );
+          ) // {
+          "192.30.255.113" = [ "github.com" ];
+        };
       };
       boot.kernel.sysctl = {
         "net.ipv4.ip_forward" = 1;

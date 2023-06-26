@@ -1,4 +1,17 @@
 local function config()
+    local num_of_processers = 16
+    if vim.fn.has("win32") > 0 then
+        num_of_processers = tonumber(vim.env.NUMBER_OF_PROCESSORS)
+    elseif vim.fn.has("unix") > 0 then
+        local handle = io.popen("nproc")
+        local result = handle:read("*a")
+        handle:close()
+        num_of_processers = tonumber(result)
+    end
+    local num_of_job = num_of_processers
+    if num_of_processers > 4 then
+        num_of_job = num_of_processers - 4
+    end
     local lspconfig = require("lspconfig")
     -- local illuminate = require("illuminate")
     local function setup_lsp(attach, capabilities)
@@ -13,7 +26,7 @@ local function config()
             "tsserver",
             -- 'jsonls',
             "volar",
-            "tailwindcss",
+            -- "tailwindcss",
             "texlab",
             "yamlls",
             "cmake",
@@ -42,7 +55,8 @@ local function config()
                 flags = {
                     debounce_text_changes = 150,
                 },
-                cmd = {'clangd','--malloc-trim','--background-index',}
+                -- cmd = { "clangd", "--background-index", "--pch-storage=disk", "-j=" .. tostring(num_of_job) }
+                cmd = { "clangd", "--background-index", "--pch-storage=disk", "-j=" .. tostring(num_of_job), "--log=error" }
             },
             extensions = {
                 -- defaults:
@@ -156,9 +170,9 @@ local function config()
             hover = "K",
             implementation = "",
             signature_help = "gk",
-            add_workspace_folder = "<leader>wa",
-            remove_workspace_folder = "<leader>wr",
-            list_workspace_folders = "<leader>wl",
+            add_workspace_folder = "<leader>Wa",
+            remove_workspace_folder = "<leader>Wr",
+            list_workspace_folders = "<leader>Wl",
             type_definition = "",
             rename = "<leader>ra",
             references = "",
@@ -476,7 +490,7 @@ return {
         dir = gen.mason_nvim,
         name = "mason_nvim",
         cmd = { "Mason", "MasonUpdate", "MasonInstall", "MasonUninstall", "MasonUninstallAll", "MasonLog" },
-        lazy = true,
+        lazy = 0 == vim.fn.has("win32"),
         dependencies = "nvim_lspconfig",
         config = function()
             require("mason").setup({

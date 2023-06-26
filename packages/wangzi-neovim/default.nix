@@ -144,6 +144,11 @@ stdenvNoCC.mkDerivation {
         sha256 = "sha256-B+VvgQj8akiKe+MX/dV2/mdaaqF8s2INW3phdPJ5TFA=";
       }}",
       navigator = "${Navigator-nvim}",
+      focus = "${pkgs.fetchgit {
+        url = "https://github.com/nvim-focus/focus.nvim";
+        rev = "3d9df42aa4f9b572348418207b752f81adea09a5";
+        sha256 = "sha256-MpGDxBJ0IMMAIxuzFkxIgKtAn56NvpjfTNMVhnBhhsE=";
+      }}",
       illuminate = "${vim-illuminate}",
       hlslens = "${nvim-hlslens}",
       pretty_fold = "${pkgs.fetchgit {

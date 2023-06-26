@@ -123,7 +123,7 @@ return {
     dependencies = { "nvim_web_devicons", "onedark_nvim" },
     module = "nvim-tree",
     cmd = { "NvimTreeToggle", "NvimTreeFocus" },
-    lazy = true,
+    lazy = (0 == vim.fn.has("win32")),
     config = config,
     keys = {
         { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "File Tree" },
