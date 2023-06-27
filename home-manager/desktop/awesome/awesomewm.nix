@@ -104,10 +104,10 @@ in
       if [[ -e /run/secrets/${config.home.username}/script ]]; then
         /run/secrets/${config.home.username}/script
       fi
-    ''; in ''
+    ''; in
+      ''
         ${script}/bin/run_secret_script
       '';
-    };
   };
   systemd.user.services.run-secrets-scripts = {
     Unit = {

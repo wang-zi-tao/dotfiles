@@ -6,7 +6,7 @@ local xresources = require("beautiful.xresources")
 local dpi = xresources.apply_dpi
 local util = require("widget.util")
 local bling = require("module.bling")
-local icon_black_list = { rdesktop = 1, xz_helper = 1 }
+local icon_black_list = { rdesktop = 1, xz_helper = 1, qq = 1 }
 local window_class_black_list = { xz_helper = 1 }
 local workspace_names = { " ", " ", "", " ", "", "", " ", " ", "" }
 bling.widget.tag_preview.enable({
