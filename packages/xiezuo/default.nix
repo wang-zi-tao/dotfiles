@@ -37,7 +37,7 @@ stdenv.mkDerivation rec {
   };
   dontPatchELF = true;
   noAuditTmpdir = true;
-  autoPatchelfIgnoreMissingDeps = [ ];
+  autoPatchelfIgnoreMissingDeps = [ "libFcitxQt5DBusAddons.so.1" ];
   buildInputs = with xorg; [
     alsa-lib
     libXdamage
@@ -45,7 +45,7 @@ stdenv.mkDerivation rec {
     cups.lib
     libcxx
     libxshmfence
-    libsForQt5.fcitx-qt5
+    # libsForQt5.fcitx-qt5
     mesa
   ];
   # libPath = with xorg;

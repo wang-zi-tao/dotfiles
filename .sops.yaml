@@ -6,6 +6,7 @@ keys:
   - &server-aliyun-hk age1qrhrpw9ecyhvxhlnegeg0y8ngp0qnkw3htj7htcqvlp8pnfkyumqtrhrm4 
   - &server-wangzi-nuc age1cluv8spezap9kw7rs7wl59l4drcad6tqqtq3lm04q7meewcqc5cqgtywzq
   - &server-wangzi-kingsoft age1492kqnmrl7m4fcg79gylrfh50tjy885wa0xpcd6ad7nh9vuza50ql5x9ts
+  - &server-wangzi-asus age1ddh950yq9gqvwzwsn2vnlwc5uk96cn4fz2a6cr94j8nr0y4uhfjskg9vth
 creation_rules:
   - path_regex: secrets/public-key.yaml$
     key_groups:
@@ -17,6 +18,7 @@ creation_rules:
       - *server-aliyun-hk
       - *server-aliyun-ecs
       - *server-wangzi-kingsoft
+      - *server-wangzi-asus
   - path_regex: secrets/wangzi-pc.yaml$
     key_groups:
     - age:
@@ -47,6 +49,11 @@ creation_rules:
     - age:
       - *admin_wangzi
       - *server-wangzi-kingsoft
+  - path_regex: secrets/wangzi-asus.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi
+      - *server-wangzi-asus
   - path_regex: secrets/[^/]+\.yaml$
     key_groups:
     - age:

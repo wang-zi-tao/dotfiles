@@ -10,7 +10,7 @@
           # windowManager.xmonad.enable = true;
           windowManager.awesome.enable = true;
           windowManager.awesome.package = pkgs.awesome;
-          # desktopManager.gnome.enable = true;
+          desktopManager.gnome.enable = true;
           # desktopManager.plasma5.enable = true;
           displayManager.defaultSession = "none+awesome";
           displayManager.xpra = {

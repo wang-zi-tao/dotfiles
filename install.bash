@@ -28,7 +28,6 @@ system="${system%\"}"
 system="${system#\"}"
 case $command in
 deploy)
-	nix build "$script_dir#all.$system" --option binary-caches "" "$@"
 	nix run "$script_dir#deploy-rs" -- -d --fast-connection true -c "$@"
 	;;
 nix-lang-check) nix run 'nixpkgs#statix' check . ;;
@@ -65,10 +64,34 @@ nix-on-droid)
 	nix build "$script_dir#nixOnDroidConfigurations.$profile.activationPackage" --impure "$@"
 	bash ./result/activate
 	;;
+iso)
+	profile=$1
+	shift
+	nix build "$script_dir#nixos.$profile.config.system.build.isoImage" "$@"
+	;;
 nixos)
 	nix build "$script_dir#nixos.$(hostname).config.system.build.toplevel" "$@"
 	sudo nix-env -p /nix/var/nix/profiles/system --set "$(readlink ./result)"
 	sudo ./result/bin/switch-to-configuration switch
+	;;
+nixos-remote)
+	profile=$1
+	shift
+	host=$1
+	shift
+	nix build "$script_dir#nixos.$profile.config.system.build.toplevel" "$@"
+	result=$(realpath ./result)
+	nix copy --to "ssh://root@$host" "$result"
+	ssh "root@$host" "nix-env -p /nix/var/nix/profiles/system --set $result"
+	ssh "root@$host" "$result/bin/switch-to-configuration switch"
+	;;
+nixos-install)
+	mount /dev/nvme0n1p7 /mnt
+	mkdir /mnt/boot/efi
+	mount /dev/nvme0n1p1 /mnt/boot/efi
+	profile=$1
+	shift
+	nix build "$script_dir#nixos.$profile.config.system.build.toplevel" "$@"
 	;;
 disk)
 	profile=$1

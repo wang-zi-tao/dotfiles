@@ -37,7 +37,7 @@
       };
     };
     environment.etc."qemu/vhost-user".source = "${pkgs.qemu_full}/share/qemu/vhost-user";
-    environment.systemPackages = with pkgs; [ podman-compose qemu virt-manager virt-viewer rdesktop ];
+    environment.systemPackages = with pkgs; [ virtiofsd podman-compose qemu virt-manager virt-viewer rdesktop ];
     systemd.services.libvirtd = with pkgs; {
       path = [ virtiofsd swtpm-tpm2 virglrenderer ];
       environment.LD_LIBRARY_PATH = "${virglrenderer}/lib";

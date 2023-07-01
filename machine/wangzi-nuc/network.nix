@@ -37,7 +37,7 @@
       #option subnet-mask         255.255.255.0;
       one-lease-per-client true;
       subnet 192.168.32.0 netmask 255.255.255.0 {
-        range 192.168.32.128 192.168.32.254;
+        range 192.168.32.192 192.168.32.254;
         authoritative;
         # Allows clients to request up to a week (although they won't)
         # max-lease-time              "604800";
@@ -45,10 +45,14 @@
         # default-lease-time          "86400";
         option subnet-mask          255.255.255.0;
         option broadcast-address    192.168.32.255;
-        option routers              192.168.32.1;
       }
     '';
     machines = [
+      {
+        ipAddress = "192.168.32.129";
+        hostName = "wangzi-asus";
+        ethernetAddress = "08:bf:b8:c1:6e:ee";
+      }
       {
         ipAddress = "192.168.32.128";
         hostName = "wangzi-pc";

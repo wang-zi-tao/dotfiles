@@ -25,17 +25,15 @@
     alias pci:v000014C3d00000608sv*sd*bc*sc*i* mt7921e
   '';
 
-  fileSystems."/" =
-    {
-      device = "/dev/disk/by-uuid/b0e6efba-4627-4326-96db-e649592ce2c9";
-      fsType = "ext4";
-    };
+  fileSystems."/" = {
+    device = "/dev/disk/by-uuid/b0e6efba-4627-4326-96db-e649592ce2c9";
+    fsType = "ext4";
+  };
 
-  fileSystems."/boot" =
-    {
-      device = "/dev/disk/by-uuid/21E6-1EB0";
-      fsType = "vfat";
-    };
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/21E6-1EB0";
+    fsType = "vfat";
+  };
   fileSystems."/mnt/weed/server" = {
     device = "/dev/disk/by-uuid/ff337eaf-f0e7-468c-b23f-68a2ee2c0c73";
     fsType = "btrfs";

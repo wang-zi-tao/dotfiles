@@ -8,7 +8,7 @@
     };
     timeout = 1;
   };
-  # boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod_stable;
+  boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_10;
   boot.initrd.availableKernelModules =
     [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" ];
   boot.initrd.kernelModules = [ ];
@@ -50,8 +50,8 @@
   services.xserver = {
     modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput xf86videovesa ];
     videoDrivers = [
-      "nvidia"
-      /* "modesetting" */
+      # "nvidia"
+      "modesetting"
     ];
   };
   virtualisation.kvmgt.vgpus = {

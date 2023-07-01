@@ -13,7 +13,9 @@
 , cups
 , dbus
 , expat
-, ffmpeg
+, ffmpeg_4
+, rigsofrods-bin
+, mesa
 , fontconfig
 , freetype
 , gdk-pixbuf
@@ -117,7 +119,9 @@ stdenv.mkDerivation rec {
     cairo
     dbus.lib
     expat
-    ffmpeg
+    ffmpeg_4
+    "${rigsofrods-bin}/share/rigsofrods/"
+    mesa
     fontconfig
     freetype
     gdk-pixbuf

@@ -13,8 +13,9 @@
     inotify-tools
     upower
 
-    # xiezuo
-    # wpsoffice
+    xiezuo
+    wpsoffice
+    qq
 
     # libreoffice
     libsForQt5.kdeconnect-kde

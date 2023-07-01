@@ -43,6 +43,7 @@ with lib; with builtins;{
                   develop.enable = mkOption { type = bool; default = true; };
                   container.enable = mkOption { type = bool; default = false; };
                   virtualisation.enable = mkOption { type = bool; default = false; };
+                  atuin.enable = mkOption { type = bool; default = false; };
                 };
               }));
         };
@@ -63,6 +64,7 @@ with lib; with builtins;{
     ./container.nix
     ./virtualisation.nix
     ./develop.nix
+    ./atuin.nix
 
     ./binary-cache.nix
     ./mySQL.nix
@@ -87,6 +89,10 @@ with lib; with builtins;{
           };
           wangzi-nuc.config = {
             localIp = "192.168.32.1";
+            doh.enable = true;
+          };
+          wangzi-asus.config = {
+            localIp = "192.168.32.129";
             doh.enable = true;
           };
           huawei-ecs.config = { publicIp = "139.9.235.87"; };
@@ -115,6 +121,15 @@ with lib; with builtins;{
             port = 16538;
             publicKey = "Vk2vw8TbtI7GgktauuppvfhKAAxyEeNC8+/nxt10t1s=";
             gateway = "aliyun-hk";
+          };
+          wangzi-asus.config = {
+            index = 13;
+            port = 16538;
+            publicKey = "1O+by7g8ZKgNEy+SmWHRcX6QsIQvq4bjxBY9rm4v6CA=";
+            gateway = "aliyun-hk";
+          };
+          wangzi-asus.peers.aliyun-hk = {
+            tunnel = true;
           };
           wangzi-nuc.peers.aliyun-hk = {
             tunnel = true;
@@ -170,11 +185,30 @@ with lib; with builtins;{
               };
             };
           };
+          wangzi-asus.to.wangzi-nuc = {
+            mountDirs = {
+              "wangzi-nuc" = {
+                ip = "192.168.32.1";
+                cacheSize = 4096;
+              };
+            };
+            syncDirs = {
+              "wangzi" = {
+                ipA = "192.168.32.129";
+                ipB = "192.168.32.1";
+              };
+            };
+          };
           wangzi-nuc.config = {
             server.path = "/srv/weed-server";
             client.size = 8 * 1024;
           };
           wangzi-nuc.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
+          wangzi-asus.config = {
+            server.path = "/srv/weed-server";
+            client.size = 8 * 1024;
+          };
+          wangzi-asus.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
           huawei-ecs.config = { client.size = 1 * 1024; };
           huawei-ecs.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
           aliyun-hk.config = { client.size = 1 * 1024; };
@@ -202,6 +236,15 @@ with lib; with builtins;{
           container.enable = true;
           virtualisation.enable = true;
         };
+        wangzi-asus = {
+          users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
+          wayland.enable = true;
+          guiServer.enable = true;
+          guiClient.enable = true;
+          develop.enable = true;
+          container.enable = true;
+          virtualisation.enable = true;
+        };
         huawei-ecs = {
           container.enable = true;
           MySQL.enable = true;
@@ -216,6 +259,7 @@ with lib; with builtins;{
           webssh.enable = true;
           OnedevServer.enable = true;
           RustDeskServer.enable = true;
+          atuin.enable = true;
           inVM = true;
         };
         aliyun-ecs = {

@@ -128,6 +128,9 @@ in
       linker = "${pkgs.clang_14}/bin/clang"
       rustflags = ["-C", "link-arg=--ld-path=${pkgs.mold}/bin/mold", "-L", "${pkgs.glibc}/lib/Scrt1.o"]
     '';
+    ".gdbinit".text = ''
+      set debuginfod enabled on
+    '';
   };
   programs.zsh.shellAliases = {
     mvn = "unset JAVA_TOOL_OPTIONS && mvn";

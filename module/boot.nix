@@ -5,6 +5,7 @@
         /* network.enable = true; */
         supportedFilesystems = [
           "f2fs"
+          "ext4"
         ];
       };
       # extraModulePackages = with config.boot.kernelPackages; (lib.optional config.virtualisation.virtualbox.host.enable virtualbox);

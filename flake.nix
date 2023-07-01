@@ -29,6 +29,7 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixseparatedebuginfod.url = "github:symphorien/nixseparatedebuginfod";
   };
   outputs =
     inputs@{ self
@@ -42,6 +43,7 @@
     , sops-nix
     , deploy-rs
     , disko
+    , nixseparatedebuginfod
     , ...
     }:
     let
@@ -72,11 +74,12 @@
           ];
         };
         overlays = with builtins; ([
+          packages
           deploy-rs.overlay
           nur.overlay
           fenix.overlays.default
           # nixpkgs-wayland.overlay
-          packages
+          nixseparatedebuginfod.overlays.default
           (final: prev: {
             unstable = import inputs.nixpkgs-unstable { inherit system overlays; config = { allowUnfree = true; }; };
             nixpkgs-22-11 = import inputs.nixpkgs-22-11 { inherit system overlays; config = { allowUnfree = true; }; };
@@ -144,9 +147,9 @@
       nixos = builtins.mapAttrs
         (name: value: value ({ inherit pkgs-template; } // inputs))
         (import-dir ./machine "machine.nix");
-      # nixosConfigurations = builtins.mapAttrs
-      #   (name: value: value ({ inherit pkgs-template; } // inputs))
-      #   (import-dir ./machine "machine.nix");
+      nixosConfigurations = builtins.mapAttrs
+        (name: value: value ({ inherit pkgs-template; } // inputs))
+        (import-dir ./machine "machine.nix");
       nixOnDroidConfigurations = builtins.mapAttrs
         (name: value: (value (inputs // { inherit pkgs-template; })))
         (import-dir ./nix-on-droid/profiles "profile.nix");
@@ -155,7 +158,7 @@
         (host: {
           name = host;
           value = {
-            hostname = "${host}.wg";
+            hostname = "${host}";
             profiles.system = {
               sshUser = "root";
               path = deploy-rs.lib.${self.nixos.${host}.pkgs.system}.activate.nixos self.nixos.${host};
