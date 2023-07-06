@@ -1,6 +1,6 @@
 local keymap = vim.keymap.set
-local function map(mod, key, exec)
-    vim.keymap.set(mod, key, exec)
+local function map(mod, key, exec, opt)
+    vim.keymap.set(mod, key, exec, opt)
 end
 
 local wk = require("which-key")
@@ -62,6 +62,10 @@ wk.register({
     }
 }, { mode = "v" })
 
+map("n", "\\q", "<cmd>close<CR>", {desc="Close"})
+map("n", "<leader>ws", "<cmd>sp<CR>", {desc="Split"})
+map("n", "<leader>wv", "<cmd>vs<CR>", {desc="Vertical Split"})
+map("n", "<leader>q", "<cmd>close<CR>", {desc="Close"})
 map("n", "<C-up>", "<cmd>res +1<CR>")
 map("n", "<C-down>", "<cmd>res -1<CR>")
 map("n", "<C-left>", "<cmd>vertical resize-1<CR>")

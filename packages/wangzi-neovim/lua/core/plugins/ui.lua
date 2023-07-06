@@ -214,10 +214,13 @@ return {
                 if msg:find("69_get_delim_multi", 1, true) then
                     return
                 end
-                if msg:find("处理 CursorMoved 自动命令", 1, true) then
-                    return
-                end
                 if level == "error" then
+                    if msg:find("处理 CursorMoved 自动命令", 1, true) then
+                        return
+                    end
+                    if msg:find("自动命令", 1, true) then
+                        return
+                    end
                     opt = opt or {}
                     opt.timeout = 1000
                 end

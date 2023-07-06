@@ -3,6 +3,12 @@ local g = vim.g
 local wo = vim.wo
 local o = vim.o
 
+opt.listchars.tag="> "
+opt.listchars.trail="-"
+opt.listchars.eol="$"
+opt.listchars.space="."
+opt.listchars.multispace="---."
+
 opt.swapfile = true
 opt.backup = true
 opt.writebackup = true
@@ -33,9 +39,6 @@ opt.smartindent = true
 opt.splitbelow = true
 opt.splitright = true
 opt.tabstop = 4
-opt.noexpandtab = true
-opt.tabstop = 4
-opt.shiftwidth = 4
 opt.shiftwidth = 4
 opt.termguicolors = true
 opt.timeoutlen = 400

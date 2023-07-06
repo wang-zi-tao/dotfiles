@@ -9,7 +9,12 @@ ctrl = "Control"
 shift = "Shift"
 
 awful.keyboard.append_global_keybindings({
-    awful.key({ mod }, "r", awesome.restart, { description = "reload awesome", group = "WM" }),
+    awful.key({ mod }, "r", function()
+        -- lock_screen = require("widget.lockscreen")
+        -- if lock_screen.visible then
+        --     awesome.restart()
+        -- end
+    end, { description = "reload awesome", group = "WM" }),
 
     awful.key({ mod }, " ", function()
         awful.layout.inc(1)

@@ -153,11 +153,14 @@ require("lazy").setup({
             require("diffview").setup({})
         end,
         keys = {
-            { "<leader>gd", function() require("diffview").open() end, desc = "Open Diff", },
-            { "<leader>gD", function() require("diffview").close() end, desc = "Close Diff", },
-            { "<leader>gh", function() require("diffview").file_history() end, desc = "Git Log", },
+            { "<leader>gd", function()
+                vim.cmd[[NvimTreeClose]]
+                require("diffview").open()
+            end,            desc = "Open Diff", },
+            { "<leader>gD", function() require("diffview").close() end,           desc = "Close Diff", },
+            { "<leader>gh", function() require("diffview").file_history() end,    desc = "Git Log", },
             { "<leader>gH", function() require("diffview").file_history("%") end, desc = "Git Log This File", },
-            { "<leader>gf", ":DiffviewFileHistory %<CR>", desc = "File History", },
+            { "<leader>gf", ":DiffviewFileHistory %<CR>",                         desc = "File History", },
         }
     },
     {
@@ -171,11 +174,11 @@ require("lazy").setup({
             require("Navigator").setup({ autosave = "all" })
         end,
         keys = {
-            { "<C-h>", function() require('Navigator').left() end, mode = { "n", "t" }, desc = "Navigator left" },
-            { "<C-k>", function() require('Navigator').up() end, mode = { "n", "t" }, desc = "Navigator up" },
-            { "<C-l>", function() require('Navigator').right() end, mode = { "n", "t" }, desc = "Navigator right" },
-            { "<C-j>", function() require('Navigator').down() end, mode = { "n", "t" }, desc = "Navigator down" },
-            { "<A-p>", function() require('Navigator').previous() end, mode = "n", desc = "Navigator previous" },
+            { "<C-h>", function() require('Navigator').left() end,     mode = { "n", "t" }, desc = "Navigator left" },
+            { "<C-k>", function() require('Navigator').up() end,       mode = { "n", "t" }, desc = "Navigator up" },
+            { "<C-l>", function() require('Navigator').right() end,    mode = { "n", "t" }, desc = "Navigator right" },
+            { "<C-j>", function() require('Navigator').down() end,     mode = { "n", "t" }, desc = "Navigator down" },
+            { "<A-p>", function() require('Navigator').previous() end, mode = "n",          desc = "Navigator previous" },
         }
     },
     {
@@ -211,14 +214,19 @@ require("lazy").setup({
         end,
         keys = {
             { "\\'", function() require("FTerm").toggle() end, mode = "n", desc = "Float Terminal" },
-            { "<C-\\>", function()
-                if (1 == vim.fn.has("win32")) then
-                    vim.cmd [[Lspsaga term_toggle]]
-                else
-                    require("FTerm").toggle()
-                end
-            end, mode = { "n", "t" }, { "n", "t" },
-                desc = "Float Terminal" }
+            {
+                "<C-\\>",
+                function()
+                    if (1 == vim.fn.has("win32")) then
+                        vim.cmd [[Lspsaga term_toggle]]
+                    else
+                        require("FTerm").toggle()
+                    end
+                end,
+                mode = { "n", "t" },
+                { "n", "t" },
+                desc = "Float Terminal"
+            }
         }
     },
     {
@@ -238,7 +246,9 @@ require("lazy").setup({
         name = "focus_nvim",
         dependencies = "core",
         lazy = true,
-        cmd = { "focus" },
+        cmd = { "FocusDisable", "FocusEnable", "FocusToggle", "FocusSplitNicely", "FocusSplitCycle",
+            "FocusDisableWindow", "FocusEnableWindow", "FocusToggleWindow", "FocusGetDisabledWindows", "FocusSplitLeft",
+            "FocusSplitDown", "FocusSplitUp", "FocusSplitRight", "FocusEqualise", "FocusMaximise", "FocusMaxOrEqual" },
         config = function()
             require("focus").setup({
                 excluded_filetypes = { "toggleterm", "notify" },
@@ -250,10 +260,10 @@ require("lazy").setup({
         end,
         event = "VeryLazy",
         keys = {
-            { "<leader>wh", ':FocusSplitLeft<CR>', silent = true, desc = "Split left" },
-            { "<leader>wk", ':FocusSplitUp<CR>', silent = true, desc = "Split up" },
-            { "<leader>wl", ':FocusSplitRight<CR>', silent = true, desc = "Split right" },
-            { "<leader>wj", ':FocusSplitDown<CR>', silent = true, desc = "Split down" },
+            { "<leader>wh", ':FocusSplitLeft<CR>',          silent = true, desc = "Split left" },
+            { "<leader>wk", ':FocusSplitUp<CR>',            silent = true, desc = "Split up" },
+            { "<leader>wl", ':FocusSplitRight<CR>',         silent = true, desc = "Split right" },
+            { "<leader>wj", ':FocusSplitDown<CR>',          silent = true, desc = "Split down" },
             { "<leader>wt", ':FocusSplitDown cmd term<CR>', silent = true, desc = "Terminal" },
         }
     },
@@ -295,19 +305,18 @@ require("lazy").setup({
             require("which-key").register({ p = { name = "Perf", l = { name = "Load" } }, }, { prefix = "<leader>" })
         end,
         keys = {
-            { "<leader>plf", ":PerfLoadFlat<CR>", desc = "load flat" },
-            { "<leader>plg", ":PerfLoadCallGraph<CR>", desc = "load call graph" },
-            { "<leader>plo", ":PerfLoadFlameGraph<CR>", desc = "load flame graph" },
-
-            { "<leader>pe", ":PerfPickEvent<CR>", desc = "pick event" },
-            { "<leader>pa", ":PerfAnnotate<CR>", desc = "annotate" },
-            { "<leader>pf", ":PerfAnnotateFunction<CR>", desc = "annotate function" },
-            { "<leader>pA", ":PerfAnnotateSelection<CR>", desc = "annotate selection" },
-            { "<leader>pn", ":PerfToggleAnnotations<CR>", desc = "toggle annotate" },
-            { "<leader>ph", ":PerfHottestLines<CR>", desc = "hottest lines" },
-            { "<leader>ps", ":PerfHottestSymbols<CR>", desc = "hottest symbols" },
-            { "<leader>pc", ":PerfHottestCallersFunction<CR>", desc = "hottest callers function" },
-            { "<leader>pC", ":PerfHottestCallersSelection<CR>", desc = "hottest callers selection" },
+            { "<leader>plf", ":PerfLoadFlat<CR>",                desc = "load flat" },
+            { "<leader>plg", ":PerfLoadCallGraph<CR>",           desc = "load call graph" },
+            { "<leader>plo", ":PerfLoadFlameGraph<CR>",          desc = "load flame graph" },
+            { "<leader>pe",  ":PerfPickEvent<CR>",               desc = "pick event" },
+            { "<leader>pa",  ":PerfAnnotate<CR>",                desc = "annotate" },
+            { "<leader>pf",  ":PerfAnnotateFunction<CR>",        desc = "annotate function" },
+            { "<leader>pA",  ":PerfAnnotateSelection<CR>",       desc = "annotate selection" },
+            { "<leader>pn",  ":PerfToggleAnnotations<CR>",       desc = "toggle annotate" },
+            { "<leader>ph",  ":PerfHottestLines<CR>",            desc = "hottest lines" },
+            { "<leader>ps",  ":PerfHottestSymbols<CR>",          desc = "hottest symbols" },
+            { "<leader>pc",  ":PerfHottestCallersFunction<CR>",  desc = "hottest callers function" },
+            { "<leader>pC",  ":PerfHottestCallersSelection<CR>", desc = "hottest callers selection" },
         }
     },
     {
@@ -327,19 +336,22 @@ require("lazy").setup({
             }, { prefix = "<leader>" })
         end,
         keys = {
-            { "<leader>j", function() require 'hop'.hint_char1() end, desc = "hop char1" },
-            { "<leader>k", function() require 'hop'.hint_char2() end, desc = "hop char1" },
-
+            { "<leader>j",  function() require 'hop'.hint_char1() end,    desc = "hop char1" },
+            { "<leader>k",  function() require 'hop'.hint_char2() end,    desc = "hop char1" },
             { "<leader>Ta", function() require 'hop'.hint_anywhere() end, desc = "any" },
-            { "<leader>Tw", function() require 'hop'.hint_words() end, desc = "words" },
-            { "<leader>Tc", function() require 'hop'.hint_char1() end, desc = "char1" },
-            { "<leader>Th", function() require 'hop'.hint_char1() end, desc = "char1" },
-            { "<leader>Te",
+            { "<leader>Tw", function() require 'hop'.hint_words() end,    desc = "words" },
+            { "<leader>Tc", function() require 'hop'.hint_char1() end,    desc = "char1" },
+            { "<leader>Th", function() require 'hop'.hint_char1() end,    desc = "char1" },
+            {
+                "<leader>Te",
                 function() require 'hop'.hint_char1({ direction = require 'hop.hint'.HintDirection.AFTER_CURSOR }) end,
-                desc = "back" },
-            { "<leader>Tb",
+                desc = "back"
+            },
+            {
+                "<leader>Tb",
                 function() require 'hop'.hint_char1({ direction = require 'hop.hint'.HintDirection.BEFORE_CURSOR }) end,
-                desc = "forward" },
+                desc = "forward"
+            },
         }
     },
     {
@@ -373,7 +385,7 @@ require("lazy").setup({
         -- defaults for the `Lazy log` command
         -- log = { "-10" }, -- show the last 10 commits
         log = { "--since=3 days ago" }, -- show commits from the last 3 days
-        timeout = 120, -- kill processes that take more than 2 minutes
+        timeout = 120,                  -- kill processes that take more than 2 minutes
         -- lazy.nvim requires git >=2.19.0. If you really want to use lazy with an older version,
         -- then set the below to false. This should work, but is NOT supported and will
         -- increase downloads a lot.
@@ -385,9 +397,9 @@ require("lazy").setup({
         },
         reset_packpath = true, -- reset the package path to improve startup time
         rtp = {
-            reset = true, -- reset the runtime path to $VIMRUNTIME and your config directory
+            reset = true,      -- reset the runtime path to $VIMRUNTIME and your config directory
             ---@type string[]
-            paths = {}, -- add any custom paths here that you want to includes in the rtp
+            paths = {},        -- add any custom paths here that you want to includes in the rtp
             ---@type string[] list any plugins you want to disable here
             disabled_plugins = {
                 -- "gzip",

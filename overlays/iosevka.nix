@@ -1,5 +1,5 @@
 final: prev: rec {
-  iosevka = prev.iosevka.override {
+  iosevka-custom = prev.iosevka.override {
     privateBuildPlan = ''
       [buildPlans.iosevka-custom]
       family = "Iosevka Custom"

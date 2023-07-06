@@ -139,6 +139,7 @@ with lib;{
       source-han-mono
       sarasa-gothic
 
+      remmina
       rustdesk
       wmctrl
       drawio

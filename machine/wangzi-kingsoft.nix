@@ -30,6 +30,7 @@ nixpkgs.lib.nixosSystem
         develop.enable = true;
         prometheus.nodeExporter = false;
         virtualisation.enable = true;
+        sshd.enable = true;
       };
       sops.defaultSopsFile = ../secrets/wangzi-kingsoft.yaml;
       sops.secrets."script" = {
