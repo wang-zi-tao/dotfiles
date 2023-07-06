@@ -5,5 +5,4 @@
       enable = true;
     };
   };
-  networking.defaultGateway.interface = "wlo1";
 }

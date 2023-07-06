@@ -87,6 +87,12 @@ nixpkgs.lib.nixosSystem {
       };
       services.touchegg.enable = true;
       boot.plymouth.enable = lib.mkForce false;
+
+      environment.systemPackages = with pkgs;[
+        cudatoolkit
+      ];
+      virtualisation.podman.enableNvidia = true;
+      virtualisation.docker.enableNvidia = true;
     })
   ];
 }
