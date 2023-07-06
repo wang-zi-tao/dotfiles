@@ -161,9 +161,9 @@ nixpkgs.lib.nixosSystem
       users.users.root.hashedPassword = "$6$EleVrSVkk8j6lvlN$5EPVW5nhguBtB7WFaLBWrJHCCT.7xj7.NNgMR9OVdf3ngH80miDyox3JXcuHEu65NTnbGtlCX14bzxg0F1po8.";
       users.users.wangzi.hashedPassword = "$6$zBepEnWeXpVqW3Di$neIo/RZP.X7WS/VjECbcsLgKvXw4Ax1tgkoKBQikhoy7qlAdYSE/V5QQkwbl/dwSAx3daPVW1f.V93H.7.EZb1";
       hardware.ksm.enable = true;
-      networking.firewall.rejectPackets = lib.mkForce true;
+      networking.firewall.rejectPackets = lib.mkForce false;
       services.openssh.permitRootLogin = lib.mkForce "no";
-      services.openssh.passwordAuthentication = lib.mkForce false;
+      # services.openssh.passwordAuthentication = lib.mkForce false;
     })
   ];
 }
