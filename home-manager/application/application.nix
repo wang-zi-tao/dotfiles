@@ -39,6 +39,7 @@
     meld
     nextcloud-client
 
+    gnome.file-roller
     gnome.baobab
     gnome.cheese
     gnome.gedit
