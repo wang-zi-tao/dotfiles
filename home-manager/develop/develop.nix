@@ -72,6 +72,7 @@ in
     gh
 
     yasm
+    cargo-watch
 
     sumneko-lua-language-server
     nodePackages.typescript-language-server

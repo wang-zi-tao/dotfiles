@@ -70,7 +70,7 @@
         config = {
           allowUnfree = true;
           permittedInsecurePackages = [
-            "nodejs-16.20.0"
+            "nodejs-16.20.1"
           ];
         };
         overlays = with builtins; ([
@@ -164,6 +164,6 @@
               path = deploy-rs.lib.${self.nixos.${host}.pkgs.system}.activate.nixos self.nixos.${host};
             };
           };
-        }) [ "wangzi-pc" "wangzi-nuc" "aliyun-hk" "aliyun-ecs" /*"huawei-ecs"*/ ]);
+        }) [ "wangzi-nuc" "aliyun-hk" "aliyun-ecs" /*"huawei-ecs"*/ ]);
     };
 }

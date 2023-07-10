@@ -89,15 +89,11 @@ in
     ExecStart = "/run/current-system/sw/bin/ibus-daemon -x -r -R";
     Restart = "always";
   };
-  systemd.user.services.rustdesk = makeService {
+  systemd.user.services.xiezuo = makeService {
+    enable = false;
     Type = "simple";
-    ExecStart = "${pkgs.rustdesk}/bin/rustdesk";
-    Restart = "always";
+    ExecStart = "${pkgs.xiezuo}/bin/xiezuo --no-sandbox --no-zygote --package-format=deb";
   };
-  # systemd.user.services.xiezuo = makeService {
-  #   Type = "simple";
-  #   ExecStart = "${pkgs.xiezuo}/bin/xiezuo --no-sandbox --no-zygote --package-format=deb";
-  # };
   systemd.user.services.run_secret_script = makeService {
     Type = "simple";
     ExecStart = let script = pkgs.writeShellScriptBin "run_secret_script" ''
