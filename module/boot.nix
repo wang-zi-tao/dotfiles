@@ -7,6 +7,9 @@
           "f2fs"
           "ext4"
         ];
+        availableKernelModules =
+          [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" "nvme" ];
+        kernelModules = [ ];
       };
       # extraModulePackages = with config.boot.kernelPackages; (lib.optional config.virtualisation.virtualbox.host.enable virtualbox);
       kernelParams = [ "quite" ];
@@ -16,13 +19,15 @@
       };
       kernel.sysctl = {
         "vm.swappiness" = 100;
+        "fs.file-max" = 65535;
       };
     };
+
+    services.fstrim.interval = "daily";
     documentation.nixos.enable = lib.mkDefault false;
     console.earlySetup = true;
     zramSwap.enable = true;
     services.irqbalance.enable = true;
-    boot.kernel.sysctl = { "fs.file-max" = 65535; };
     environment.etc."security/limits.conf".text = ''
       * soft nofile 65535   
       * hard nofile 65535

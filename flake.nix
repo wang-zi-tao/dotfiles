@@ -44,6 +44,7 @@
     , deploy-rs
     , disko
     , nixseparatedebuginfod
+    , master
     , ...
     }:
     let
@@ -82,7 +83,9 @@
           nixseparatedebuginfod.overlays.default
           (final: prev: {
             unstable = import inputs.nixpkgs-unstable { inherit system overlays; config = { allowUnfree = true; }; };
+            master = import inputs.master { inherit system overlays; config = { allowUnfree = true; }; };
             nixpkgs-22-11 = import inputs.nixpkgs-22-11 { inherit system overlays; config = { allowUnfree = true; }; };
+            flake-inputs = inputs; 
             scripts = map
               (f: prev.writeScriptBin f (readFile (./scripts + "/${f}")))
               (attrNames (readDir ./scripts));

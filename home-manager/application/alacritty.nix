@@ -60,7 +60,9 @@ let
   '';
 in
 {
-  programs.alacritty = { enable = true; };
+  programs.alacritty = {
+    enable = true;
+  };
   home.file.".config/alacritty/alacritty.yml".text = setting + ''
     window:
       opacity: 0.16

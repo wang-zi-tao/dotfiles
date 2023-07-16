@@ -72,7 +72,7 @@
     gnome.nautilus
     gnome.seahorse
 
-
+    tilix
     adwaita-qt
     gnome.adwaita-icon-theme
     libadwaita

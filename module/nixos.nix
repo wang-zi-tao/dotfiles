@@ -40,11 +40,17 @@ let hostName = config.networking.hostName; in
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "Asia/Shanghai";
   nix.nixPath = [ "nixpkgs=${nixpkgs}" ];
-  nix.registry.n.flake = nixpkgs;
-  nix.registry.nixpkgs.flake = nixpkgs;
-  nix.registry.u.flake = nixpkgs-unstable;
-  nix.registry.unstable.flake = nixpkgs-unstable;
-  nix.registry.nur.flake = nur;
+  nix.registry = (builtins.mapAttrs
+    (name: value: {
+      flake = nixpkgs;
+    })
+    pkgs.flake-inputs) // {
+    n.flake = nixpkgs;
+    nixpkgs.flake = nixpkgs;
+    u.flake = nixpkgs-unstable;
+    unstable.flake = nixpkgs-unstable;
+    nur.flake = nur;
+  };
   system.autoUpgrade = {
     enable = false;
     flake = "github:wang-zi-tao/dotfiles";

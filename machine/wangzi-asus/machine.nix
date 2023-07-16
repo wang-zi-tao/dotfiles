@@ -37,6 +37,7 @@ nixpkgs.lib.nixosSystem {
         };
         timeout = 1;
       };
+      boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod;
       boot.initrd.availableKernelModules =
         [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" "nvme" ];
       boot.initrd.kernelModules = [ ];
@@ -79,11 +80,14 @@ nixpkgs.lib.nixosSystem {
       services.xserver = {
         verbose = 7;
         dpi = 144;
-        modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput xf86videovesa ];
+        modules = with pkgs.xorg; [ xf86videonv xf86videointel xf86inputlibinput xf86videovesa ];
         videoDrivers = [
           # "modesetting"
           "nvidia"
         ];
+        screenSection = ''
+          Option "metamodes" "nvidia-auto-select +0+0 { ForceCompositionPipeline = On }"
+        '';
       };
       services.touchegg.enable = true;
       boot.plymouth.enable = lib.mkForce false;
@@ -93,6 +97,11 @@ nixpkgs.lib.nixosSystem {
       ];
       virtualisation.podman.enableNvidia = true;
       virtualisation.docker.enableNvidia = true;
+
+      virtualisation.kvmgt.vgpus = {
+        i915-GVTg_V5_8.uuid = [ ];
+        i915-GVTg_V5_4.uuid = [ "104319bc-2adb-11ed-ae66-73f45bf4765e" ];
+      };
     })
   ];
 }

@@ -10,7 +10,6 @@ nixpkgs.lib.nixosSystem {
   modules = [
     sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
-    nixseparatedebuginfod.nixosModules.default
     ({ pkgs, ... }: {
       imports = [
         ../../module/cluster.nix
@@ -18,7 +17,6 @@ nixpkgs.lib.nixosSystem {
         ./network.nix
         ./hardware-configuration.nix
       ];
-      services.nixseparatedebuginfod.enable = true;
       sops.defaultSopsFile = ../../secrets/wangzi-nuc.yaml;
       sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
       sops.age.keyFile = "/var/lib/sops-nix/key.txt";
