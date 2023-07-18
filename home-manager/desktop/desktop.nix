@@ -64,7 +64,6 @@ with lib;{
           gtk-enable-animations = true;
           gtk-enable-event-sounds = 0;
           gtk-enable-input-feedback-sounds = 0;
-          # gtk-font-name=Noto Sans,  10;
           gtk-menu-images = true;
           gtk-modules = "gail:atk-bridge:colorreload-gtk-module";
           gtk-primary-button-warps-slider = false;

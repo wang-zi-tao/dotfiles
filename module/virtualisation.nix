@@ -14,8 +14,10 @@
         qemu.ovmf.enable = true;
         qemu.ovmf.packages = [ pkgs.OVMFFull ];
         qemu.swtpm.enable = true;
+        onBoot = "ignore";
         onShutdown = "shutdown";
       };
+      # spiceUSBRedirection.enable = true;
       kvmgt.enable = true;
       waydroid.enable = false;
       podman = {
@@ -42,6 +44,12 @@
       path = [ virtiofsd swtpm-tpm2 virglrenderer ];
       environment.LD_LIBRARY_PATH = "${virglrenderer}/lib";
     };
+    boot.initrd.kernelModules = [
+      "vfio_pci"
+      "vfio"
+      "vfio_iommu_type1"
+      "vfio_virqfd"
+    ];
     networking.firewall.trustedInterfaces = [ "virbr0" ];
   };
 }

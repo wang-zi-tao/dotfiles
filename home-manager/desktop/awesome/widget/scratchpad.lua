@@ -36,6 +36,13 @@ awesome.connect_signal("scratch::chat", function()
 end)
 awful.keyboard.append_global_keybindings({
     awful.key({ mod }, "x", function()
+        local screen = awful.screen.focused({})
+        terminal_scratch.geometry = {
+            x = screen.geometry.x + math.floor(screen.geometry.width * 0.05),
+            y = screen.geometry.y + math.floor(screen.geometry.height * 0.05),
+            height = math.floor(screen.geometry.height * 0.9),
+            width = math.floor(screen.geometry.width * 0.9),
+        }
         terminal_scratch:toggle()
     end, { description = "open drop terminal", group = "bling" }),
 })

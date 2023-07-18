@@ -40,7 +40,12 @@ nixpkgs.lib.nixosSystem {
       boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod;
       boot.initrd.availableKernelModules =
         [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" "nvme" ];
-      boot.initrd.kernelModules = [ ];
+      boot.initrd.kernelModules = [
+        "nvidia"
+        "nvidia_modeset"
+        "nvidia_uvm"
+        "nvidia_drm"
+      ];
       boot.blacklistedKernelModules = [ "uvcvideo" ];
       boot.kernelModules = [ "kvm-intel" "nvidia" ];
       boot.kernelParams = [
@@ -69,8 +74,10 @@ nixpkgs.lib.nixosSystem {
         nvidia.nvidiaSettings = true;
         nvidia.prime = {
           # sync.enable = true;
+          # reverseSync.enable = true;
+          offload.enable = true;
           allowExternalGpu = true;
-          # offload.enable = true;
+          offload.enableOffloadCmd = true;
           nvidiaBusId = "PCI:1:0:0";
           intelBusId = "PCI:0:2:0";
         };
@@ -82,7 +89,6 @@ nixpkgs.lib.nixosSystem {
         dpi = 144;
         modules = with pkgs.xorg; [ xf86videonv xf86videointel xf86inputlibinput xf86videovesa ];
         videoDrivers = [
-          # "modesetting"
           "nvidia"
         ];
         screenSection = ''
@@ -93,15 +99,11 @@ nixpkgs.lib.nixosSystem {
       boot.plymouth.enable = lib.mkForce false;
 
       environment.systemPackages = with pkgs;[
-        cudatoolkit
+        # cudatoolkit
       ];
       virtualisation.podman.enableNvidia = true;
       virtualisation.docker.enableNvidia = true;
 
-      virtualisation.kvmgt.vgpus = {
-        i915-GVTg_V5_8.uuid = [ ];
-        i915-GVTg_V5_4.uuid = [ "104319bc-2adb-11ed-ae66-73f45bf4765e" ];
-      };
     })
   ];
 }
