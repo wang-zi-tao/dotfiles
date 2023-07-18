@@ -46,16 +46,16 @@ let
       size: 11
       # use_thin_strokes: true
       normal:
-        family: Iosevka Custom
+        family: Iosevka Term
         style: Medium
       bold:
-        family: Iosevka Custom
+        family: Iosevka Term
         style: Bold
       italic:
-        family: Iosevka Custom
+        family: Iosevka Term
         style: Italic
       bold_italic:
-        family: Iosevka Custom
+        family: Iosevka Term
         style: Bold Italic
   '';
 in

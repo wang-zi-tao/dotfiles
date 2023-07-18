@@ -94,7 +94,7 @@
         fonts = {
           fontconfig = {
             enable = true;
-            defaultFonts.monospace = [ "Iosevka Custom Medium" ];
+            defaultFonts.monospace = [ "Iosevka Term Medium" ];
           };
           fonts = with pkgs; [
             noto-fonts
