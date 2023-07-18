@@ -24,6 +24,7 @@
     cpplint
     # shfmt
     # shellcheck
+    gef
 
     (pkgs.buildEnv {
       name = "cpp_compiler";
@@ -31,7 +32,7 @@
         clang
         lldb
         gcc
-        # gdb
+        gdb
         bintools-unwrapped
       ];
       ignoreCollisions = true;

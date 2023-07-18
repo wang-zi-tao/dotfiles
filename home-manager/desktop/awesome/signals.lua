@@ -27,16 +27,3 @@ awesome.connect_signal("tag::next::nonempty", function()
         tag:view_only()
     end
 end)
-
-awesome.connect_signal("signal::lock", function()
-    for _, c in ipairs(client.get()) do
-        if c.class == "Virt-manager" then
-            c.hidden = true
-        end
-    end
-end)
-
-awesome.connect_signal("signal::unlock", function()
-    awful.screen.focused().tags[8]:view_only()
-    awful.spawn([[virt-manager --connect qemu:///system --show-domain-console win10-2]])
-end)
