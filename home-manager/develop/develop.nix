@@ -117,7 +117,6 @@ in
     nodePackages.prettier
     shellcheck
     deno
-    nodePackages.live-server
     nodePackages.yaml-language-server
 
     cpulimit

@@ -138,8 +138,9 @@ with lib;{
       source-han-mono
       sarasa-gothic
 
+      tilix
       remmina
-      rustdesk
+      # rustdesk
       wmctrl
     ];
   };

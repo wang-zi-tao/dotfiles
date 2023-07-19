@@ -151,6 +151,8 @@ return {
                 require("trailblazer").new_trail_mark()
                 telescope().live_grep()
             end, desc = "Grep", },
+            { "<leader>fW", function() require('telescope.builtin').live_grep({grep_open_files=true}) end,
+                desc = "Grep Buffers", },
             { "<leader>ff", function() telescope().find_files() end, desc = "Files", },
             { "<leader>fr", function() telescope().registers() end, desc = "Registers", },
             { "<leader>fo", function() telescope().lsp_workspace_symbols() end, desc = "WorkspaceSymbols", },
@@ -167,8 +169,6 @@ return {
             { "<leader>fm", function() telescope().marks() end, desc = "Marks",
             },
             { "<leader>fd", function() telescope().lsp_document_symbols() end, desc = "Lsp_document_symbols", },
-            { "<leader>fW", function() telescope().extensions.live_grep_args.live_grep_args() end,
-                desc = "Grep Args", },
             { "<leader>fp", function() telescope().extensions.project.project {} end, desc = "Projects", },
             { "<leader>fF", function() telescope().extensions.file_browser.file_browser() end,
                 desc = "File Tree", },

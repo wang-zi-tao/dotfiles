@@ -28,8 +28,8 @@ in
       authorizedKeysFiles = lib.optional sops-enable config.sops.secrets.ssh-public-keys.path;
       extraConfig = ''
         TCPKeepAlive yes
-        ClientAliveCountMax 360
-        ClientAliveInterval 360
+        ClientAliveCountMax 60
+        ClientAliveInterval 60
         Match User nix-ssh
           AllowAgentForwarding no
           AllowTcpForwarding no
