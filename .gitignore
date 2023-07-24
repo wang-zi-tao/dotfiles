@@ -3,3 +3,4 @@ result*
 virtualmachines
 *.orig
 *.qcow2
+.*

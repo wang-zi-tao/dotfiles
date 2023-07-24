@@ -141,7 +141,6 @@ with lib;{
       remmina
       rustdesk
       wmctrl
-      drawio
     ];
   };
 }

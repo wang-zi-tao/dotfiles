@@ -153,10 +153,14 @@ require("lazy").setup({
             require("diffview").setup({})
         end,
         keys = {
-            { "<leader>gd", function()
-                vim.cmd[[NvimTreeClose]]
-                require("diffview").open()
-            end,            desc = "Open Diff", },
+            {
+                "<leader>gd",
+                function()
+                    vim.cmd [[NvimTreeClose]]
+                    require("diffview").open()
+                end,
+                desc = "Open Diff",
+            },
             { "<leader>gD", function() require("diffview").close() end,           desc = "Close Diff", },
             { "<leader>gh", function() require("diffview").file_history() end,    desc = "Git Log", },
             { "<leader>gH", function() require("diffview").file_history("%") end, desc = "Git Log This File", },
@@ -251,10 +255,10 @@ require("lazy").setup({
             "FocusSplitDown", "FocusSplitUp", "FocusSplitRight", "FocusEqualise", "FocusMaximise", "FocusMaxOrEqual" },
         config = function()
             require("focus").setup({
-                excluded_filetypes = { "toggleterm", "notify" },
-                hybridnumber = true,
+                excluded_filetypes = { "toggleterm", "notify", "markdown" },
+                -- hybridnumber = true,
                 treewidth = 30,
-                width = 60,
+                width = 96,
                 height = 30,
             })
         end,

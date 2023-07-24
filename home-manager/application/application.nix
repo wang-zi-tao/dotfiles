@@ -1,6 +1,17 @@
 { config, pkgs, lib, ... }:
 {
   imports = [ ./firefox.nix ./alacritty.nix ./dconf.nix ];
+  lazyPackage = with pkgs;[
+    blender
+    gimp
+    inkscape
+    krita
+    drawio
+    figma-linux
+    vlc
+    obs-studio
+    kdenlive
+  ];
   home.packages = with pkgs; [
     mpdris2
     libmpc
@@ -83,5 +94,7 @@
     inotify-tools
     beekeeper-studio
     kazam
+    flameshot
+    peek
   ];
 }

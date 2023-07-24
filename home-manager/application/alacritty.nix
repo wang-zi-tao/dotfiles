@@ -43,7 +43,7 @@ let
       offset:
         x: 0
         y: 0
-      size: 11
+      size: 10.5
       # use_thin_strokes: true
       normal:
         family: Iosevka Term

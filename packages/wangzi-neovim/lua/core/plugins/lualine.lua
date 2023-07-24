@@ -17,9 +17,10 @@ local colors = {
     violet = '#a9a1e1',
     magenta = '#c678dd',
     blue = '#51afef',
-    red = '#ec5f67', white = "#abb2bf",
+    red = '#ec5f67',
+    white = "#abb2bf",
     darker_black = "#1b1f27",
-    black = "#1e222a", --  nvim bg
+    black = "#1e222a",  --  nvim bg
     black2 = "#252931",
     one_bg = "#282c34", -- real bg of onedark
     one_bg2 = "#353b45",
@@ -104,8 +105,8 @@ local filesize = {
 }
 local filetype = {
     'filetype',
-    colored = true, -- Displays filetype icon in color if set to true
-    icon_only = true, -- Display only an icon for filetype
+    colored = true,             -- Displays filetype icon in color if set to true
+    icon_only = true,           -- Display only an icon for filetype
     icon = { align = 'right' }, -- Display filetype icon on the right hand side
     align = 'right',
     -- icon =    {'X', align='right'}
@@ -115,10 +116,10 @@ local filetype = {
 local filename = {
     'filename',
     symbols = {
-        modified = '', -- Text to show when the file is modified.
-        readonly = '[-]', -- Text to show when the file is non-modifiable or readonly.
+        modified = '',      -- Text to show when the file is modified.
+        readonly = '[-]',      -- Text to show when the file is non-modifiable or readonly.
         unnamed = '[No Name]', -- Text to show for unnamed buffers.
-        newfile = ' ', -- Text to show for newly created file before first write
+        newfile = ' ',      -- Text to show for newly created file before first write
     },
     path = 0,
     padding = { left = 0, right = 1 },
@@ -192,7 +193,8 @@ local midle = {
 local lsp_indexing = {
     color = {
         separator = { left = '', right = '' },
-        fg = colors.blue, gui = 'bold'
+        fg = colors.blue,
+        gui = 'bold'
     },
     function()
         local Lsp = vim.lsp.util.get_progress_messages()[1]
@@ -275,7 +277,7 @@ local lsp = {
 
 -- Add components to right sections
 local encoding = {
-    'o:encoding', -- option component same as &encoding in viml
+    'o:encoding',       -- option component same as &encoding in viml
     fmt = string.upper, -- I'm not sure why it's upper case either ;)
     cond = conditions.hide_in_width,
     color = { fg = colors.blue, gui = 'bold' },
@@ -302,7 +304,7 @@ local location = {
 local progress = {
     'progress',
     icon = ' ',
-    padding =0,
+    padding = 0,
     color = {
         fg = "#ffffff",
         gui = 'bold',
@@ -351,7 +353,7 @@ lualine.setup({
         lualine_a = { mode },
         lualine_b = { filetype, filename },
         lualine_c = { branch, diff, midle, lsp_indexing },
-        lualine_x = { diagnostics, lsp },
+        lualine_x = { diagnostics, lsp, 'tabnine' },
         lualine_y = { encoding, file_format, },
         lualine_z = { location, progress, filesize },
     },

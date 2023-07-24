@@ -28,7 +28,19 @@ local function config()
                     nvim_lsp = "",
                     nvim_lua = "",
                     path = "",
+                    cmp_tabnine = "AI",
                 })[entry.source.name]
+                if entry.source.name == "cmp_tabnine" then
+                    local detail = (entry.completion_item.labelDetails or {}).detail
+                    vim_item.kind = ""
+                    if detail and detail:find('.*%%.*') then
+                        vim_item.kind = vim_item.kind .. ' ' .. detail
+                    end
+
+                    if (entry.completion_item.data or {}).multiline then
+                        vim_item.kind = vim_item.kind .. ' ' .. '[ML]'
+                    end
+                end
 
                 return vim_item
             end,
@@ -141,10 +153,12 @@ return {
                     history = true,
                     updateevents = "TextChanged,TextChangedI",
                 })
-                require("luasnip/loaders/from_vscode").load({ paths = {
-                    "./rust.json",
-                    "./c++.json",
-                } })
+                require("luasnip/loaders/from_vscode").load({
+                    paths = {
+                        "./rust.json",
+                        "./c++.json",
+                    }
+                })
                 require("luasnip/loaders/from_vscode").load()
             end,
         },
@@ -238,7 +252,7 @@ return {
             config = function()
                 require("cmp").register_source("zsh", require("cmp_zsh").new())
                 require("cmp_zsh").setup({
-                    zshrc = true, -- Source the zshrc (adding all custom completions). default: false
+                    zshrc = true,                      -- Source the zshrc (adding all custom completions). default: false
                     filetypes = { "deoledit", "zsh" }, -- Filetypes to enable cmp_zsh source. default: {"*"}
                 })
             end,
@@ -267,7 +281,7 @@ return {
                     max_lines = 1000,
                     max_num_results = 20,
                     sort = true,
-                    run_on_every_keystroke = true,
+                    run_on_every_keystroke = false,
                     snippet_placeholder = "..",
                     ignored_file_types = { -- default is not to ignore
                         -- uncomment to ignore in lua:
@@ -308,6 +322,6 @@ return {
                     },
                 })
             end,
-        }or {},
+        } or {},
     },
 }

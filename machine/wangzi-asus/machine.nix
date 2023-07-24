@@ -47,7 +47,7 @@ nixpkgs.lib.nixosSystem {
         "nvidia_drm"
       ];
       boot.blacklistedKernelModules = [ "uvcvideo" ];
-      boot.kernelModules = [ "kvm-intel" "nvidia" ];
+      boot.kernelModules = [ "kvm-intel" "nvidia" "acpi_call" ];
       boot.kernelParams = [
         "i915.enable_gvt=1"
         "intel_iommu=on"
@@ -103,6 +103,18 @@ nixpkgs.lib.nixosSystem {
       ];
       virtualisation.podman.enableNvidia = true;
       virtualisation.docker.enableNvidia = true;
+      services = {
+        power-profiles-daemon.enable = false;
+        tlp = {
+          enable = true;
+          settings = {
+            PLATFORM_PROFILE_ON_BAT = "low-power";
+            CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+            CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+            PCIE_ASPM_ON_BAT = "powersupersave";
+          };
+        };
+      };
 
     })
   ];

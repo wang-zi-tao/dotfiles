@@ -56,7 +56,7 @@
     '';
     lazyPackage = with pkgs;[ nmap ];
     home.packages = with pkgs;
-      scripts ++ (builtins.map (pkg: let name = pkg.pname; in pkgs.writeShellScriptBin name "nix-shell -p ${name} --run ${name} $@") config.lazyPackage) ++ [
+      scripts ++ (builtins.map (pkg: let name = pkg.pname; in pkgs.writeShellScriptBin name ''nix run nixpkgs#"${name}" $@'') config.lazyPackage) ++ [
         rnix-lsp
         nixfmt
         neovim-remote
