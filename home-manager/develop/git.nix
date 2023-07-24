@@ -7,7 +7,10 @@ in
     lfs.enable = true;
     userEmail = "2451355023@qq.com";
     userName = "wang-zi-tao";
-    aliases = { diff = "diff --word-diff"; };
+    aliases = {
+        diff = "diff --word-diff"; 
+        lg = "log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)' --all";
+        };
     extraConfig = {
       core = {
         editor = "vim";

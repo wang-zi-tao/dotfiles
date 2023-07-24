@@ -1,12 +1,12 @@
 local function config()
     local num_of_processers = 16
     if vim.fn.has("win32") > 0 then
-        num_of_processers = tonumber(vim.env.NUMBER_OF_PROCESSORS)
+        num_of_processers = tonumber(vim.env.NUMBER_OF_PROCESSORS or 0)
     elseif vim.fn.has("unix") > 0 then
         local handle = io.popen("nproc")
         local result = handle:read("*a")
         handle:close()
-        num_of_processers = tonumber(result)
+        num_of_processers = tonumber(result or 0)
     end
     local num_of_job = num_of_processers
     if num_of_processers > 4 then
@@ -56,7 +56,8 @@ local function config()
                     debounce_text_changes = 150,
                 },
                 -- cmd = { "clangd", "--background-index", "--pch-storage=disk", "-j=" .. tostring(num_of_job) }
-                cmd = { "clangd", "--background-index", "--pch-storage=disk", "-j=" .. tostring(num_of_job), "--log=error" }
+                cmd = { "clangd", "--background-index", "--pch-storage=disk","--malloc-trim","--all-scopes-completion", "--log=error",
+                    num_of_job ~= 0 and "-j=" .. tostring(num_of_job) or nil }
             },
             extensions = {
                 -- defaults:
@@ -145,7 +146,8 @@ local function config()
                 buffer = bufnr,
                 callback = function()
                     local old_print = vim.notify
-                    vim.notify = function(...) end
+                    vim.notify = function(...)
+                    end
                     lsp_formatting(bufnr)
                     vim.notify = old_print
                 end,
@@ -321,13 +323,18 @@ return {
         end,
         keys = {
             { "<leader>lf", function() vim.lsp.buf.format() end, desc = "Format", },
-            { "K", function()
-                if vim.fn.expand('%:t') == "Cargo.toml" then
-                    require('crates').show_popup()
-                else
-                    vim.lsp.buf.hover()
-                end
-            end, mode = "n", desc = "Hover" },
+            {
+                "K",
+                function()
+                    if vim.fn.expand('%:t') == "Cargo.toml" then
+                        require('crates').show_popup()
+                    else
+                        vim.lsp.buf.hover()
+                    end
+                end,
+                mode = "n",
+                desc = "Hover"
+            },
         },
         dependencies = {
             {
@@ -346,12 +353,12 @@ return {
                         hint_scheme = "String",
                         hi_parameter = "Search",
                         max_height = 22,
-                        max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width
+                        max_width = 120,        -- max_width of signature floating_window, line will be wrapped if exceed max_width
                         handler_opts = {
                             border = "rounded", -- double, single, shadow, none
                         },
-                        zindex = 200, -- by default it will be on top of all floating windows, set to 50 send it to bottom
-                        padding = "", -- character to pad on left and right of signature can be ' ', or '|'  etc
+                        zindex = 200,           -- by default it will be on top of all floating windows, set to 50 send it to bottom
+                        padding = "",           -- character to pad on left and right of signature can be ' ', or '|'  etc
                     })
                 end,
             },
@@ -386,39 +393,70 @@ return {
                 keys = {
                     { "[d", "<cmd>Lspsaga diagnostic_jump_prev<CR>", mode = "n", desc = "Previous Diagnostic" },
                     { "]d", "<cmd>Lspsaga diagnostic_jump_next<CR>", mode = "n", desc = "Next Diagnostic" },
-                    { "[e", function()
-                        require("lspsaga.diagnostic"):goto_prev({ severity = vim.diagnostic.severity.ERROR })
-                    end, mode = "n", desc = "Previous Error" },
-                    { "]e", function()
-                        require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
-                    end, mode = "n", desc = "Next Error" },
-                    { "ge", function()
-                        require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
-                    end, mode = "n", desc = "Diagnostic" },
-                    { "gd", "<cmd>Lspsaga peek_definition<CR>", mode = "n", desc = "Peek Definition" },
-                    { "gD", function()
-                        require("trailblazer").new_trail_mark()
-                        vim.cmd [[Lspsaga goto_definition]]
-                    end, mode = "n", desc = "Goto Definition" },
-                    { "gr", "<cmd>Lspsaga rename<CR>", mode = "n", desc = "Rename" },
+                    {
+                        "[e",
+                        function()
+                            require("lspsaga.diagnostic"):goto_prev({ severity = vim.diagnostic.severity.ERROR })
+                        end,
+                        mode = "n",
+                        desc = "Previous Error"
+                    },
+                    {
+                        "]e",
+                        function()
+                            require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
+                        end,
+                        mode = "n",
+                        desc = "Next Error"
+                    },
+                    {
+                        "ge",
+                        function()
+                            require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
+                        end,
+                        mode = "n",
+                        desc = "Diagnostic"
+                    },
+                    { "gd", "<cmd>Lspsaga peek_definition<CR>",      mode = "n", desc = "Peek Definition" },
+                    {
+                        "gD",
+                        function()
+                            require("trailblazer").new_trail_mark()
+                            vim.cmd [[Lspsaga goto_definition]]
+                        end,
+                        mode = "n",
+                        desc = "Goto Definition"
+                    },
+                    { "gr", "<cmd>Lspsaga rename<CR>",               mode = "n", desc = "Rename" },
                     { "gt", "<cmd>Lspsaga peek_type_definition<CR>", mode = "n", desc = "Peek Type Definition" },
                     { "gT", "<cmd>Lspsaga goto_type_definition<CR>", mode = "n", desc = "Goto Type Definition" },
-                    { "gh", function()
-                        require("trailblazer").new_trail_mark()
-                        vim.cmd [[Lspsaga lsp_finder]]
-                    end, mode = "n", desc = "LSP Finder" },
+                    {
+                        "gh",
+                        function()
+                            require("trailblazer").new_trail_mark()
+                            vim.cmd [[Lspsaga lsp_finder]]
+                        end,
+                        mode = "n",
+                        desc = "LSP Finder"
+                    },
                     -- { "K", "<cmd>Lspsaga hover_doc<CR>", mode = "n", desc = "Hover" },
-                    { "<A-d>", "<cmd>Lspsaga term_toggle<CR>", mode = { "n", "t" }, desc = "Lspsaga Terminal" },
+                    {
+                        "<A-d>",
+                        "<cmd>Lspsaga term_toggle<CR>",
+                        mode = { "n", "t" },
+                        desc =
+                        "Lspsaga Terminal"
+                    },
 
-                    { "<leader>la", "<cmd>Lspsaga code_action<CR>", desc = "CodeActions", },
-                    { "<leader>lr", "<cmd>Lspsaga rename<CR>", desc = "Rename", },
-                    { "<leader>ld", "<cmd>Lspsaga peek_definition<CR>", desc = "PreviewDefinition", },
+                    { "<leader>la", "<cmd>Lspsaga code_action<CR>",          desc = "CodeActions", },
+                    { "<leader>lr", "<cmd>Lspsaga rename<CR>",               desc = "Rename", },
+                    { "<leader>ld", "<cmd>Lspsaga peek_definition<CR>",      desc = "PreviewDefinition", },
                     { "<leader>lD", "<cmd>Lspsaga peek_type_definition<CR>", desc = "PreviewDefinition", },
-                    { "<leader>lo", "<cmd>Lspsaga outline<CR>", desc = "Outline", },
-                    { "<leader>lc", "<cmd>Lspsaga incoming_calls<CR>", desc = "Incoming call" },
-                    { "<leader>lC", "<cmd>Lspsaga outgoing_calls<CR>", desc = "Outgoing call" },
-                    { "<leader>lt", "<cmd>Lspsaga term_toggle<CR>", desc = "Terminal" },
-                    { "<leader>lh", "<cmd>Lspsaga lsp_finder<CR>", desc = "finder", }
+                    { "<leader>lo", "<cmd>Lspsaga outline<CR>",              desc = "Outline", },
+                    { "<leader>lc", "<cmd>Lspsaga incoming_calls<CR>",       desc = "Incoming call" },
+                    { "<leader>lC", "<cmd>Lspsaga outgoing_calls<CR>",       desc = "Outgoing call" },
+                    { "<leader>lt", "<cmd>Lspsaga term_toggle<CR>",          desc = "Terminal" },
+                    { "<leader>lh", "<cmd>Lspsaga lsp_finder<CR>",           desc = "finder", }
                 }
             },
         },
@@ -468,9 +506,14 @@ return {
             })
         end,
         keys = {
-            { "<leader>ca",function ()
-                require("rust-tools").hover_actions.hover_actions()
-            end, mode = "n", desc = "Cargo actio" },
+            {
+                "<leader>ca",
+                function()
+                    require("rust-tools").hover_actions.hover_actions()
+                end,
+                mode = "n",
+                desc = "Cargo actio"
+            },
         },
         ft = { "rs", "rust", "toml" },
     },
@@ -612,14 +655,14 @@ return {
         end,
         keys = {
             { "<leader>cm", function() vim.cmd ":CMake<CR>" end, desc = "CMake" },
-            { "<leader>cc", ":CMake configure<CR>", desc = "CMake configure" },
-            { "<leader>cC", ":CMake clean<CR>", desc = "CMake clean" },
-            { "<leader>cr", ":CMake build_and_run<CR>", desc = "CMake run" },
-            { "<leader>cd", ":CMake build_and_debug<CR>", desc = "CMake debug" },
-            { "<leader>ct", ":CMake select_build_type<CR>", desc = "CMake build type" },
-            { "<leader>cs", ":CMake select_target<CR>", desc = "CMake select target" },
-            { "<leader>cB", ":CMake build_all<CR>", desc = "CMake build all" },
-            { "<leader>cb", ":CMake build<CR>", desc = "CMake build" },
+            { "<leader>cc", ":CMake configure<CR>",              desc = "CMake configure" },
+            { "<leader>cC", ":CMake clean<CR>",                  desc = "CMake clean" },
+            { "<leader>cr", ":CMake build_and_run<CR>",          desc = "CMake run" },
+            { "<leader>cd", ":CMake build_and_debug<CR>",        desc = "CMake debug" },
+            { "<leader>ct", ":CMake select_build_type<CR>",      desc = "CMake build type" },
+            { "<leader>cs", ":CMake select_target<CR>",          desc = "CMake select target" },
+            { "<leader>cB", ":CMake build_all<CR>",              desc = "CMake build all" },
+            { "<leader>cb", ":CMake build<CR>",                  desc = "CMake build" },
         }
     },
     {
@@ -634,12 +677,12 @@ return {
             require("core.plugins.crates")
         end,
         keys = {
-            { "<leader>cu", function() require('crates').upgrade_crate(nil) end, desc = "Cargo Upgrade " },
-            { "<leader>cU", function() require('crates').upgrade_crates(nil) end, desc = "Cargo Upgrade Crates" },
-            { "<leader>ch", function() require('crates').open_homepage() end, desc = "Crate Homepage" },
-            { "<leader>cR", function() require('crates').open_repository() end, desc = "Crate Repository" },
+            { "<leader>cu", function() require('crates').upgrade_crate(nil) end,   desc = "Cargo Upgrade " },
+            { "<leader>cU", function() require('crates').upgrade_crates(nil) end,  desc = "Cargo Upgrade Crates" },
+            { "<leader>ch", function() require('crates').open_homepage() end,      desc = "Crate Homepage" },
+            { "<leader>cR", function() require('crates').open_repository() end,    desc = "Crate Repository" },
             { "<leader>cD", function() require('crates').open_documentation() end, desc = "Crate Documentation" },
-            { "<leader>ci", function() require('crates').open_crates_io() end, desc = "crate.io" }
+            { "<leader>ci", function() require('crates').open_crates_io() end,     desc = "crate.io" }
         }
     },
 }
