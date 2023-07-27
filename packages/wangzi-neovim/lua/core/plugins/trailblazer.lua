@@ -272,10 +272,5 @@ return {
             require("trailblazer").switch_to_next_trail_mark_stack(stack_name)
         end, desc = "Switch Stack" },
     },
-    init = function()
-        require("which-key").register({
-            t = { name = "TrailBlazer" },
-        }, { prefix = "<leader>" })
-    end,
     config = config,
 }

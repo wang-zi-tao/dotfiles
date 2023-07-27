@@ -39,7 +39,7 @@ let hostName = config.networking.hostName; in
   # environment.memoryAllocator.provider = "jemalloc";
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "Asia/Shanghai";
-  nix.nixPath = [ "nixpkgs=${nixpkgs}" ];
+  nix.nixPath = (lib.mapAttrsToList (name: value: "${name}=${value}") pkgs.flake-inputs) ++ [ "nixpkgs=${nixpkgs}" ];
   nix.registry = (builtins.mapAttrs
     (name: value: {
       flake = nixpkgs;

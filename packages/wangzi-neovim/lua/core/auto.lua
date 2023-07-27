@@ -5,3 +5,9 @@ autocmd({'BufNewFile','BufRead'},{
         vim.cmd[[setfiletype xml]]
     end
 })
+autocmd('FileType',{
+    pattern={ "*.cpp","*.h","*.txt" },
+    callback=function ()
+        vim.opt.noexpandtab = true
+    end
+})

@@ -17,6 +17,7 @@ vim.api.nvim_create_user_command(
     ClearTerm,
     { nargs = 0 }
 )
+vim.api.nvim_create_user_command("CopyFilePath", [[ let @+ = expand('%:p')  ]], {})
 return {
     ClearTerm = ClearTerm,
 }

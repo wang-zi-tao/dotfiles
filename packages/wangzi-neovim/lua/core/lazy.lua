@@ -1,4 +1,5 @@
 local gen = gen
+local state = {}
 
 vim.g.mapleader = " "
 require("lazy").setup({
@@ -207,6 +208,7 @@ require("lazy").setup({
         name = "fterm",
         module = "FTerm",
         lazy = true,
+        disable = true,
         config = function()
             require("FTerm").setup({
                 border = "rounded",
@@ -216,21 +218,109 @@ require("lazy").setup({
                 },
             })
         end,
+        -- keys = {
+        --     { "\\'", function() require("FTerm").toggle() end, mode = "n", desc = "Float Terminal" },
+        --     {
+        --         "<C-\\>",
+        --         function()
+        --             if (1 == vim.fn.has("win32")) then
+        --                 vim.cmd [[Lspsaga term_toggle]]
+        --             else
+        --                 require("FTerm").toggle()
+        --             end
+        --         end,
+        --         mode = { "n", "t" },
+        --         { "n", "t" },
+        --         desc = "Float Terminal"
+        --     }
+        -- }
+    },
+    {
+        "akinsho/toggleterm.nvim",
+        dir = gen.toggleterm_nvim,
+        config = function()
+            local shell = vim.o.shell
+            if 1 == vim.fn.has("win32") and vim.fn.executable('nu') == 1 then
+                shell = "nu"
+            end
+            require("toggleterm").setup({
+                direction = 'float',
+                shell = shell,
+                float_opts = {
+                    -- The border key is *almost* the same as 'nvim_open_win'
+                    -- see :h nvim_open_win for details on borders however
+                    -- the 'curved' border is a custom border type
+                    -- not natively supported but implemented in this plugin.
+                    border = 'rounded',
+                },
+                highlights = {
+                    -- highlights which map to a highlight group name and a table of it's values
+                    -- NOTE: this is only a subset of values, any group placed here will be set for the terminal window split
+                    NormalFloat = {
+                        link = 'Normal'
+                    },
+                    FloatBorder = {
+                        link = 'TerminalBorder',
+                    },
+                },
+            })
+            local Terminal        = require('toggleterm.terminal').Terminal
+            state.toggleterm_nvim = {
+                gitui = Terminal:new({ cmd = "gitui", hidden = true })
+            }
+        end,
+        cmd = { "ToggleTerm" },
+        init = function()
+            require("which-key").register({
+                t = { name = "TrailBlazer / Terminal" },
+            }, { prefix = "<leader>" })
+        end,
         keys = {
-            { "\\'", function() require("FTerm").toggle() end, mode = "n", desc = "Float Terminal" },
+            {
+                "\\'",
+                function()
+                    vim.cmd [[ToggleTerm]]
+                end,
+                mode = { "n", "i", "v", "t" },
+                desc = "Float Terminal"
+            },
             {
                 "<C-\\>",
                 function()
-                    if (1 == vim.fn.has("win32")) then
-                        vim.cmd [[Lspsaga term_toggle]]
-                    else
-                        require("FTerm").toggle()
-                    end
+                    vim.cmd [[ToggleTerm]]
                 end,
-                mode = { "n", "t" },
-                { "n", "t" },
+                mode = { "n", "i", "v", "t" },
                 desc = "Float Terminal"
-            }
+            },
+            { "<leader>tg", function() state.toggleterm_nvim.gitui:toggle() end, desc = "GitUI" },
+            {
+                "<leader>tf",
+                function()
+                    vim.cmd [[ToggleTerm direction=float]]
+                end,
+                desc = "Terminal float"
+            },
+            {
+                "<leader>tb",
+                function()
+                    vim.cmd [[ToggleTerm direction=tab]]
+                end,
+                desc = "Terminal tab"
+            },
+            {
+                "<leader>th",
+                function()
+                    vim.cmd [[ToggleTerm direction=horizontal]]
+                end,
+                desc = "Terminal horizontal"
+            },
+            {
+                "<leader>tv",
+                function()
+                    vim.cmd [[ToggleTerm direction=vertical]]
+                end,
+                desc = "Terminal vertical"
+            },
         }
     },
     {

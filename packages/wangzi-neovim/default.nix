@@ -182,6 +182,7 @@ stdenvNoCC.mkDerivation {
       vscode_lldb = ${if enable-debuger then ''"${pkgs.unstable.vscode-extensions.vadimcn.vscode-lldb}"'' else "false" },
 
       fterm = "${FTerm-nvim}",
+      toggleterm_nvim = "${toggleterm-nvim}",
       mini = "${mini-nvim}",
       session_manager = "${pkgs.fetchgit {
         url = "https://github.com/Shatur/neovim-session-manager";

@@ -3,12 +3,16 @@ local g = vim.g
 local wo = vim.wo
 local o = vim.o
 
-opt.listchars.tag="> "
-opt.listchars.trail="-"
-opt.listchars.eol="$"
-opt.listchars.space="."
-opt.listchars.multispace="---."
 
+opt.list = true
+-- opt.listchars:append "space:⋅"
+opt.listchars:append "eol:↴"
+opt.listchars:append "tab:  "
+-- opt.listchars:append "multispace:|   "
+opt.listchars:append "trail:-"
+
+opt.copyindent = true
+opt.preserveindent = true
 opt.swapfile = true
 opt.backup = true
 opt.writebackup = true

@@ -56,7 +56,7 @@ local function config()
                     debounce_text_changes = 150,
                 },
                 -- cmd = { "clangd", "--background-index", "--pch-storage=disk", "-j=" .. tostring(num_of_job) }
-                cmd = { "clangd", "--background-index", "--pch-storage=disk","--malloc-trim","--all-scopes-completion", "--log=error",
+                cmd = { "clangd", "--background-index", "--pch-storage=disk", "--log=error",
                     num_of_job ~= 0 and "-j=" .. tostring(num_of_job) or nil }
             },
             extensions = {
