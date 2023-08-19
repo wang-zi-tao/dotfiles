@@ -34,7 +34,7 @@ local function config()
             type = "cppdbg",
             request = "launch",
             program = function()
-                return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file',"file")
+                return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file', "file")
             end,
             cwd = '${workspaceFolder}',
             stopOnEntry = true,
@@ -82,36 +82,36 @@ local function config()
 
     -- https://github.com/go-delve/delve/blob/master/Documentation/usage/dlv_dap.md
     dap.adapters.go = {
-        type = 'executable';
-        command = 'node';
-        args = { os.getenv('HOME') .. '/dev/golang/vscode-go/dist/debugAdapter.js' };
+        type = 'executable',
+        command = 'node',
+        args = { os.getenv('HOME') .. '/dev/golang/vscode-go/dist/debugAdapter.js' },
     }
     dap.configurations.go = {
         {
-            type = 'go';
-            name = 'Debug';
-            request = 'launch';
-            showLog = false;
-            program = "${file}";
+            type = 'go',
+            name = 'Debug',
+            request = 'launch',
+            showLog = false,
+            program = "${file}",
             dlvToolPath = vim.fn.exepath('dlv') -- Adjust to where delve is installed
         },
     }
 
     dap.adapters.python = {
-        type = 'executable';
-        command = 'python';
-        args = { '-m', 'debugpy.adapter' };
+        type = 'executable',
+        command = 'python',
+        args = { '-m', 'debugpy.adapter' },
     }
     dap.configurations.python = {
         {
             -- The first three options are required by nvim-dap
-            type = 'python'; -- the type here established the link to the adapter definition: `dap.adapters.python`
-            request = 'launch';
-            name = "Launch file";
+            type = 'python', -- the type here established the link to the adapter definition: `dap.adapters.python`
+            request = 'launch',
+            name = "Launch file",
 
             -- Options below are for debugpy, see https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings for supported options
 
-            program = "${file}"; -- This configuration will launch the current file if used.
+            program = "${file}", -- This configuration will launch the current file if used.
             pythonPath = function()
                 local python_path_cache = "python"
                 -- debugpy supports launching an application with a different interpreter then the one used to launch debugpy itself.
@@ -125,7 +125,7 @@ local function config()
                     python_path_cache = vim.fn.input("Path to python: ", python_path_cache, "file")
                     return python_path_cache
                 end
-            end;
+            end,
         },
     }
 end
@@ -141,29 +141,36 @@ return {
         require("which-key").register({ d = { name = "Debugger", u = { name = "UI" }, } }, { prefix = "<leader>" })
     end,
     keys = {
-        { "<leader>dp", function() require("dap").pause() end, desc = "Pause", },
-        { "<leader>dc", function() require("dap").continue() end, desc = "Continue", },
-        { "<leader>dC", function() require("dap").close() end, desc = "Close", },
-        { "<leader>do", function() require("dap").step_over() end, desc = "Step Over", },
-        { "<leader>dO", function() require("dap").step_back() end, desc = "Step Back", },
-        { "<leader>di", function() require("dap").step_into() end, desc = "Step Into", },
-        { "<leader>dI", function() require("dap").step_out() end, desc = "Step Out", },
+        { "<leader>dp", function() require("dap").pause() end,         desc = "Pause", },
+        { "<leader>dc", function() require("dap").continue() end,      desc = "Continue", },
+        { "<leader>dC", function() require("dap").close() end,         desc = "Close", },
+        { "<leader>do", function() require("dap").step_over() end,     desc = "Step Over", },
+        { "<leader>dO", function() require("dap").step_back() end,     desc = "Step Back", },
+        { "<leader>di", function() require("dap").step_into() end,     desc = "Step Into", },
+        { "<leader>dI", function() require("dap").step_out() end,      desc = "Step Out", },
         { "<leader>dl", function() require("dap").run_to_cursor() end, desc = "Run to Corsor", },
-        { "<leader>dr", function() require("dap").run() end, desc = "Run", },
-        { "<leader>dR", function() require("dap").repl.open() end, desc = "Repl", },
-
-        { "\\9", function() require('persistent-breakpoints.api').toggle_breakpoint() end, mode = "n",
-            desc = "BreakPoint", },
-        { "<F9>", function() require('persistent-breakpoints.api').toggle_breakpoint() end, mode = "n",
-            desc = "BreakPoint", },
-        { "\\%", function() require("dap").close() end, mode = "n", desc = "Close", },
-        { "<S-F5>", function() require("dap").close() end, mode = "n", desc = "Close", },
-        { "\\-", function() require("dap").step_over() end, mode = "n", desc = "Step over", },
-        { "<F11>", function() require("dap").step_over() end, mode = "n", desc = "Step over", },
-        { "\\0", function() require("dap").step_into() end, mode = "n", desc = "Step Into", },
-        { "<F10>", function() require("dap").step_into() end, mode = "n", desc = "Step into", },
-        { "\\5", function() require("dap").run() end, mode = "n", desc = "Run", },
-        { "<F5>", function() require("dap").run() end, mode = "n", desc = "Run", },
+        { "<leader>dr", function() require("dap").run() end,           desc = "Run", },
+        { "<leader>dR", function() require("dap").repl.open() end,     desc = "Repl", },
+        {
+            "\\9",
+            function() require('persistent-breakpoints.api').toggle_breakpoint() end,
+            mode = "n",
+            desc = "BreakPoint",
+        },
+        {
+            "<F9>",
+            function() require('persistent-breakpoints.api').toggle_breakpoint() end,
+            mode = "n",
+            desc = "BreakPoint",
+        },
+        { "\\%",    function() require("dap").close() end,     mode = "n", desc = "Close", },
+        { "<S-F5>", function() require("dap").close() end,     mode = "n", desc = "Close", },
+        { "\\-",    function() require("dap").step_over() end, mode = "n", desc = "Step over", },
+        { "<F11>",  function() require("dap").step_over() end, mode = "n", desc = "Step over", },
+        { "\\0",    function() require("dap").step_into() end, mode = "n", desc = "Step Into", },
+        { "<F10>",  function() require("dap").step_into() end, mode = "n", desc = "Step into", },
+        { "\\5",    function() require("dap").run() end,       mode = "n", desc = "Run", },
+        { "<F5>",   function() require("dap").run() end,       mode = "n", desc = "Run", },
     },
     dependencies = {
         {
@@ -202,7 +209,7 @@ return {
                         {
                             elements = {
                                 -- Elements can be strings or table with id and size keys.
-                                { id = "scopes", size = 0.25 },
+                                { id = "scopes",  size = 0.25 },
                                 { id = "watches", size = 0.16 },
                                 "stacks",
                                 { id = "breakpoints", size = 0.1 },
@@ -220,8 +227,8 @@ return {
                         },
                     },
                     floating = {
-                        max_height = nil, -- These can be integers or a float between 0 and 1.
-                        max_width = nil, -- Floats will be treated as percentage of your screen.
+                        max_height = nil,   -- These can be integers or a float between 0 and 1.
+                        max_width = nil,    -- Floats will be treated as percentage of your screen.
                         border = "rounded", -- Border style. Can be "single", "double" or "rounded"
                         mappings = {
                             close = { "q", "<Esc>" },
@@ -241,20 +248,20 @@ return {
             lazy = true,
             config = function()
                 require("nvim-dap-virtual-text").setup {
-                    enabled = true, -- enable this plugin (the default)
-                    enabled_commands = true, -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
-                    highlight_changed_variables = true, -- highlight changed values with NvimDapVirtualTextChanged, else always NvimDapVirtualText
-                    highlight_new_as_changed = true, -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
-                    show_stop_reason = true, -- show stop reason when stopped for exceptions
-                    commented = true, -- prefix virtual text with comment string
-                    only_first_definition = true, -- only show virtual text at first definition (if there are multiple)
-                    all_references = false, -- show virtual text on all all references of the variable (not only definitions)
+                    enabled = true,                        -- enable this plugin (the default)
+                    enabled_commands = true,               -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
+                    highlight_changed_variables = true,    -- highlight changed values with NvimDapVirtualTextChanged, else always NvimDapVirtualText
+                    highlight_new_as_changed = true,       -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
+                    show_stop_reason = true,               -- show stop reason when stopped for exceptions
+                    commented = true,                      -- prefix virtual text with comment string
+                    only_first_definition = true,          -- only show virtual text at first definition (if there are multiple)
+                    all_references = false,                -- show virtual text on all all references of the variable (not only definitions)
                     filter_references_pattern = '<module', -- filter references (not definitions) pattern when all_references is activated (Lua gmatch pattern, default filters out Python modules)
                     -- experimental features:
-                    virt_text_pos = 'eol', -- position of virtual text, see `:h nvim_buf_set_extmark()`
-                    all_frames = true, -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
-                    virt_lines = false, -- show virtual lines instead of virtual text (will flicker!)
-                    virt_text_win_col = nil -- position the virtual text at a fixed window column (starting from the first text column) ,
+                    virt_text_pos = 'eol',                 -- position of virtual text, see `:h nvim_buf_set_extmark()`
+                    all_frames = true,                     -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
+                    virt_lines = false,                    -- show virtual lines instead of virtual text (will flicker!)
+                    virt_text_win_col = nil                -- position the virtual text at a fixed window column (starting from the first text column) ,
                     -- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
                 }
             end,
@@ -264,21 +271,30 @@ return {
             dir = gen.persistent_breakpoints_nvim,
             name = "persistent_breakpoints_nvim",
             module = { "persistent-breakpoints", "persistent-breakpoints.api" },
-            lazy = true,
             config = function()
                 require('persistent-breakpoints').setup {
                     save_dir = vim.fn.stdpath('data') .. '/nvim_checkpoints',
                     -- record the performance of different function. run :lua require('persistent-breakpoints.api').print_perf_data() to see the result.
                     perf_record = false,
+                    load_breakpoints_event = { "BufReadPost" },
                 }
             end,
             keys = {
-                { "<leader>db", function() require('persistent-breakpoints.api').toggle_breakpoint() end,
-                    desc = "BreakPoint", },
-                { "<leader>dd", function() require('persistent-breakpoints.api').set_conditional_breakpoint() end,
-                    desc = "Conditional BreakPoint", },
-                { "<leader>dB", function() require('persistent-breakpoints.api').clear_all_breakpoints() end,
-                    desc = "Clear BreakPoint", },
+                {
+                    "<leader>db",
+                    function() require('persistent-breakpoints.api').toggle_breakpoint() end,
+                    desc = "BreakPoint",
+                },
+                {
+                    "<leader>dd",
+                    function() require('persistent-breakpoints.api').set_conditional_breakpoint() end,
+                    desc = "Conditional BreakPoint",
+                },
+                {
+                    "<leader>dB",
+                    function() require('persistent-breakpoints.api').clear_all_breakpoints() end,
+                    desc = "Clear BreakPoint",
+                },
             },
         },
     },

@@ -339,6 +339,7 @@ require("lazy").setup({
         dir = gen.focus,
         name = "focus_nvim",
         dependencies = "core",
+        enabled = false,
         lazy = true,
         cmd = { "FocusDisable", "FocusEnable", "FocusToggle", "FocusSplitNicely", "FocusSplitCycle",
             "FocusDisableWindow", "FocusEnableWindow", "FocusToggleWindow", "FocusGetDisabledWindows", "FocusSplitLeft",

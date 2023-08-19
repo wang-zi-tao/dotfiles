@@ -118,6 +118,7 @@ in
     shellcheck
     deno
     nodePackages.yaml-language-server
+    vala-language-server
 
     cpulimit
 

@@ -57,7 +57,7 @@ stdenvNoCC.mkDerivation {
         sha256 = "sha256-LULcXLoGBUirOwgt5CobR5lrblb4kQUsvWtxEPhUIas=";
       }}",
       nvim_treesitter = "${if enable-all then nvim-treesitter.withAllGrammars else nvim-treesitter.withPlugins ( p: with p; [
-        nix
+        nix cpp c java kotlin rust typescript python javascript
       ])}",
       nvim_treesitter_textobjects = "${nvim-treesitter-textobjects}",
       gitsigns_nvim = "${gitsigns-nvim}",

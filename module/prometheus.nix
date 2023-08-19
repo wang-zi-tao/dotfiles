@@ -22,7 +22,7 @@ in
           http_port = 9002;
           domain = "grafana.wangzicloud.cn";
         };
-        #security.adminPasswordFile = config.sops.secrets."prometheus/admin_password".path;
+        security.adminPasswordFile = config.sops.secrets."prometheus/admin_password".path;
       };
     };
     services.caddy = lib.optionalAttrs nodeConfig.prometheus.server {

@@ -164,6 +164,11 @@ nixpkgs.lib.nixosSystem
       networking.firewall.rejectPackets = lib.mkForce false;
       services.openssh.permitRootLogin = lib.mkForce "no";
       # services.openssh.passwordAuthentication = lib.mkForce false;
+      vm = {
+        guest-reserved = 1600;
+        host-reserved = 1600;
+        guest-reserved-percent = 0.8;
+      };
     })
   ];
 }

@@ -31,6 +31,7 @@ local function config()
             "yamlls",
             "cmake",
             "rnix",
+            "vala_ls",
         }
         local option = {
             on_attach = function(client)

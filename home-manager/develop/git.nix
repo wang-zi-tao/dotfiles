@@ -14,7 +14,7 @@ in
     extraConfig = {
       core = {
         editor = "vim";
-        fsmonitor = "rs-git-fsmonitor";
+        # fsmonitor = "rs-git-fsmonitor";
       };
       diff = { tool = "nvr"; };
       difftool = {
