@@ -1,0 +1,14 @@
+result*
+.direnv
+*.exe
+*.zip
+*.7z
+*.msi
+*.vsix
+*.doc
+*.xlsx
+*.orig
+*.qcow2
+.*
+mesa3d*
+dnSpy*

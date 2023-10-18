@@ -1,6 +1,10 @@
 local gen = gen
 local state = {}
 
+function toggle_term(number)
+    state.toggleterm_nvim[number]:toggle()
+end
+
 vim.g.mapleader = " "
 require("lazy").setup({
     require("core.plugins.cmp"),
@@ -31,6 +35,16 @@ require("lazy").setup({
         dependencies = "core",
         lazy = true,
         name = "plenary_nvim",
+        keys = {
+            {"<leader>pp", function()
+                require'plenary.profile'.start("profile.log", {flame = true})
+                vim.notify("start profiling")
+            end, desc = "Profile Start"},
+            {"<leader>pP", function() 
+                require'plenary.profile'.stop()
+                vim.notify("end profiling")
+            end, desc = "Profile Stop"},
+        }
     },
     {
         "andymass/vim-matchup",
@@ -266,8 +280,12 @@ require("lazy").setup({
             })
             local Terminal        = require('toggleterm.terminal').Terminal
             state.toggleterm_nvim = {
-                gitui = Terminal:new({ cmd = "gitui", hidden = true })
+                gitui = Terminal:new({ cmd = "gitui", hidden = true }),
+                rg = Terminal:new({ cmd = "nu", hidden = true })
             }
+            for i = 0, 9 do
+                state.toggleterm_nvim[i] = Terminal:new({ cmd = "nu", hidden = true })
+            end
         end,
         cmd = { "ToggleTerm" },
         init = function()
@@ -293,34 +311,21 @@ require("lazy").setup({
                 desc = "Float Terminal"
             },
             { "<leader>tg", function() state.toggleterm_nvim.gitui:toggle() end, desc = "GitUI" },
-            {
-                "<leader>tf",
-                function()
-                    vim.cmd [[ToggleTerm direction=float]]
-                end,
-                desc = "Terminal float"
-            },
-            {
-                "<leader>tb",
-                function()
-                    vim.cmd [[ToggleTerm direction=tab]]
-                end,
-                desc = "Terminal tab"
-            },
-            {
-                "<leader>th",
-                function()
-                    vim.cmd [[ToggleTerm direction=horizontal]]
-                end,
-                desc = "Terminal horizontal"
-            },
-            {
-                "<leader>tv",
-                function()
-                    vim.cmd [[ToggleTerm direction=vertical]]
-                end,
-                desc = "Terminal vertical"
-            },
+            { "<leader>tw", function() state.toggleterm_nvim.rg:toggle() end,    desc = "rg" },
+            { "<leader>tf", ":ToggleTerm direction=float<CR>",                   desc = "Terminal float" },
+            { "<leader>tb", ":ToggleTerm direction=tab<CR>",                     desc = "Terminal tab" },
+            { "<leader>th", ":ToggleTerm direction=horizontal<CR>",              desc = "Terminal horizontal" },
+            { "<leader>tv", ":ToggleTerm direction=vertical<CR>",                desc = "Terminal vertical" },
+            { "<leader>t1", function() toggle_term(1) end,    desc = "Terminal 1" },
+            { "<leader>t2", function() toggle_term(2) end,    desc = "Terminal 2" },
+            { "<leader>t3", function() toggle_term(3) end,    desc = "Terminal 3" },
+            { "<leader>t4", function() toggle_term(4) end,    desc = "Terminal 4" },
+            { "<leader>t5", function() toggle_term(5) end,    desc = "Terminal 5" },
+            { "<leader>t6", function() toggle_term(6) end,    desc = "Terminal 6" },
+            { "<leader>t7", function() toggle_term(7) end,    desc = "Terminal 7" },
+            { "<leader>t8", function() toggle_term(8) end,    desc = "Terminal 8" },
+            { "<leader>t9", function() toggle_term(9) end,    desc = "Terminal 9" },
+            { "<leader>t0", function() toggle_term(0) end,    desc = "Terminal 0" },
         }
     },
     {

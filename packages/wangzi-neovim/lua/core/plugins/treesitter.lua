@@ -1,30 +1,33 @@
 local function config()
+    if (1 == vim.fn.has("win32")) then
+        require 'nvim-treesitter.install'.prefer_git = false
+    end
     require('nvim-treesitter.configs').setup {
         -- A list of parser names, or "all"
-        -- ensure_installed = {
-        --     "lua",
-        --     "vim",
-        --     "rust",
-        --     "nix",
-        --     "c",
-        --     "cpp",
-        --     "java",
-        --     "javascript",
-        --     "typescript",
-        --     "python",
-        --     "cmake",
-        --     "diff",
-        --     "git_rebase",
-        --     "gitcommit",
-        --     "gitattributes",
-        --     "gitignore",
-        --     "json",
-        --     "llvm",
-        --     "regex",
-        --     "vue",
-        --     "markdown",
-        --     "markdown_inline",
-        -- },
+        ensure_installed = {
+            "lua",
+            "vim",
+            "rust",
+            "nix",
+            "c",
+            "cpp",
+            "java",
+            "javascript",
+            "typescript",
+            "python",
+            "cmake",
+            "diff",
+            "git_rebase",
+            "gitcommit",
+            "gitattributes",
+            "gitignore",
+            "json",
+            "llvm",
+            "regex",
+            "vue",
+            "markdown",
+            "markdown_inline",
+        },
 
         -- Install parsers synchronously (only applied to `ensure_installed`)
         sync_install = false,
@@ -180,7 +183,7 @@ return {
                             },
                             selection_modes = {
                                 ['@parameter.outer'] = 'v', -- charwise
-                                ['@function.outer'] = 'V', -- linewise
+                                ['@function.outer'] = 'V',  -- linewise
                                 ['@class.outer'] = '<c-v>', -- blockwise
                             },
                             include_surrounding_whitespace = true,

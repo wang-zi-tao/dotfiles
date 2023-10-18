@@ -23,7 +23,7 @@ local sources = {
     b.code_actions.gitsigns,
 
     -- other
-    null_ls.builtins.code_actions.cspell,
+    -- null_ls.builtins.code_actions.cspell,
     null_ls.builtins.code_actions.gitrebase,
     -- null_ls.builtins.code_actions.gitsigns,
     -- null_ls.builtins.code_actions.refactoring,

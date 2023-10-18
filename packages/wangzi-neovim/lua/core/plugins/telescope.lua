@@ -80,15 +80,15 @@ local function config()
                 },
             },
             fzf = {
-                fuzzy = true, -- false will only do exact matching
+                fuzzy = true,                   -- false will only do exact matching
                 override_generic_sorter = true, -- override the generic sorter
-                override_file_sorter = true, -- override the file sorter
-                case_mode = "smart_case", -- or "ignore_case" or "respect_case"
+                override_file_sorter = true,    -- override the file sorter
+                case_mode = "smart_case",       -- or "ignore_case" or "respect_case"
                 -- the default case_mode is "smart_case"
             },
             project = {
                 base_dirs = {
-                    { '~/Code', max_depth = 1 },
+                    { '~/Code',      max_depth = 1 },
                     { '~/workspace', max_depth = 4 },
                 },
                 hidden_files = true, -- default: false
@@ -141,46 +141,70 @@ return {
         config = config,
         init = function()
             require("which-key").register({
-                f = { name = "Telescope" },
-            },
+                    f = { name = "Telescope" },
+                },
                 { prefix = "<leader>" })
         end,
         keys = {
-            { "<leader>fk", function() telescope().keymaps() end, desc = "Keymaps" },
-            { "<leader>fw", function()
-                require("trailblazer").new_trail_mark()
-                telescope().live_grep()
-            end, desc = "Grep", },
-            { "<leader>fW", function() require('telescope.builtin').live_grep({grep_open_files=true}) end,
-                desc = "Grep Buffers", },
-            { "<leader>ff", function() telescope().find_files() end, desc = "Files", },
-            { "<leader>fr", function() telescope().registers() end, desc = "Registers", },
+            { "<leader>fk", function() telescope().keymaps() end,               desc = "Keymaps" },
+            {
+                "<leader>fw",
+                function()
+                    require("trailblazer").new_trail_mark()
+                    telescope().live_grep()
+                end,
+                desc = "Grep",
+            },
+            {
+                "<leader>fW",
+                function() require('telescope.builtin').live_grep({ grep_open_files = true }) end,
+                desc = "Grep Buffers",
+            },
+            { "<leader>ff", function() telescope().find_files() end,            desc = "Files", },
+            { "<leader>fr", function() telescope().registers() end,             desc = "Registers", },
             { "<leader>fo", function() telescope().lsp_workspace_symbols() end, desc = "WorkspaceSymbols", },
-            { "<leader>fa", function() vim.lsp.buf.code_action() end, desc = "Actions", },
-            { "<leader>fi", function()
-                require("trailblazer").new_trail_mark()
-                telescope().lsp_references()
-            end, desc = "LSP Reference", },
-            { "<leader>fb", function() telescope().buffers() end, desc = "Buffers", },
-            { "<leader>fs", function() telescope().git_status() end, desc = "GitStatus", },
-            { "<leader>ft", function() telescope().tags() end, desc = "Tags", },
-            { "<leader>fc", function() telescope().git_commits() end, desc = "GitCommits", },
+            { "<leader>fa", function() vim.lsp.buf.code_action() end,           desc = "Actions", },
+            {
+                "<leader>fi",
+                function()
+                    require("trailblazer").new_trail_mark()
+                    telescope().lsp_references()
+                end,
+                desc = "LSP Reference",
+            },
+            { "<leader>fb", function() telescope().buffers() end,      desc = "Buffers", },
+            { "<leader>fs", function() telescope().git_status() end,   desc = "GitStatus", },
+            { "<leader>ft", function() telescope().tags() end,         desc = "Tags", },
+            { "<leader>fc", function() telescope().git_commits() end,  desc = "GitCommits", },
             { "<leader>fB", function() telescope().git_branches() end, desc = "GitBranches", },
             { "<leader>fm", function() telescope().marks() end, desc = "Marks",
             },
-            { "<leader>fd", function() telescope().lsp_document_symbols() end, desc = "Lsp_document_symbols", },
+            { "<leader>fd", function() telescope().lsp_document_symbols() end,        desc = "Lsp_document_symbols", },
             { "<leader>fp", function() telescope().extensions.project.project {} end, desc = "Projects", },
-            { "<leader>fF", function() telescope().extensions.file_browser.file_browser() end,
-                desc = "File Tree", },
-            { "<leader>fr", function() telescope().lsp_references() end, desc = "LspReferences", },
-            { "<leader>fI", function()
-                require("trailblazer").new_trail_mark()
-                require("telescope.builtin").lsp_implementations()
-            end,
-                desc = "LSP Implementation", },
+            { "<leader>fr", function() telescope().lsp_references() end,              desc = "LspReferences", },
+            {
+                "<leader>fI",
+                function()
+                    require("trailblazer").new_trail_mark()
+                    require("telescope.builtin").lsp_implementations()
+                end,
+                desc = "LSP Implementation",
+            },
             { "<leader>ft", function() require("telescope.builtin").lsp_definitions() end, desc = "LSP Define", },
-            { "<leader>fT", function() require("telescope.builtin").lsp_type_definitions() end,
-                desc = "LSP TypeDefinition", },
+            {
+                "<leader>fT",
+                function() require("telescope.builtin").lsp_type_definitions() end,
+                desc = "LSP TypeDefinition",
+            },
+            {
+                "<leader>fg",
+                function()
+                    local glob = require("core.utils").cachedinput("telescope_grep_by_filetype", "filetype: ", ".cpp",
+                        "filetype")
+                    require('telescope.builtin').live_grep({ glob_pattern = glob })
+                end,
+                desc = "Grep by type",
+            },
 
         },
         dependencies = {
@@ -206,8 +230,11 @@ return {
                 module = "telescope._extensions.dap",
                 keys = {
                     { "<leader>dua", function() require("telescope").extensions.dap.commands({}) end, desc = "Commands", },
-                    { "<leader>duC", function() require("telescope").extensions.dap.configurations({}) end,
-                        desc = "Configurations", },
+                    {
+                        "<leader>duC",
+                        function() require("telescope").extensions.dap.configurations({}) end,
+                        desc = "Configurations",
+                    },
                 },
                 lazy = true,
             },
