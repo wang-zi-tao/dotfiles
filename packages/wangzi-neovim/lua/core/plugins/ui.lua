@@ -73,7 +73,7 @@ return {
                         format = "lsp_progress",
                         --- @type NoiceFormat|string
                         format_done = "lsp_progress_done",
-                        throttle = 1000 / 30, -- frequency to update lsp progress message
+                        throttle = 1000 / 15, -- frequency to update lsp progress message
                         view = "mini",
                     },
                     hover = { enabled = false, },
@@ -223,6 +223,7 @@ return {
                     end
                     opt = opt or {}
                     opt.timeout = 1000
+                    opt.animate = false
                 end
 
                 notify(msg, level, opt, ...)
@@ -240,6 +241,7 @@ return {
                 timeout = 2500,
                 max_width = 64,
                 max_height = 16,
+                stages = "static",
             })
         end,
     },

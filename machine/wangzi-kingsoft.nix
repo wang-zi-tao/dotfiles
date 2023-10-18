@@ -153,7 +153,6 @@ nixpkgs.lib.nixosSystem
           };
         };
       };
-      virtualisation.lxd.enable = true;
       services.nfs.server.enable = true;
       services.nfs.server.exports = ''
         /home/wangzi 192.168.122.117(rw,fsid=0,no_subtree_check)

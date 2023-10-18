@@ -42,20 +42,31 @@ opt.smartcase = true
 opt.smartindent = true
 opt.splitbelow = true
 opt.splitright = true
-opt.tabstop = 4
-opt.shiftwidth = 4
-opt.termguicolors = true
 opt.timeoutlen = 400
 opt.title = true
+opt.termguicolors = true
 opt.undofile = true
 opt.updatetime = 250
 opt.whichwrap:append("<>[]hl")
+
+opt.tabstop = 4
+opt.softtabstop = -1
+opt.shiftwidth = 0
+opt.shiftround = true
+opt.autoindent = true
+
 if (vim.env.BOMB or 1 == vim.fn.has("win32")) then
     o.bomb = true
     vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
         pattern = { "*.cpp", "*.h", "*.hpp", "*.pch", "*.def" },
         callback = function()
-            vim.cmd [[set bomb]]
+            opt.tabstop = 4
+            opt.softtabstop = -1
+            opt.shiftwidth = 0
+            opt.shiftround = true
+            opt.autoindent = true
+
+            -- vim.cmd [[set bomb]]
         end,
     })
 end
