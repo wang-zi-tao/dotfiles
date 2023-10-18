@@ -13,7 +13,14 @@
       yank
       power-theme
       continuum
-    ]);
+    ]) ++
+    (lib.mapAttrsToList
+      (remoteHostName: cfg:
+        (pkgs.writeScriptBin "ssh-${remoteHostName}"
+          (if (builtins.hasAttr "wangzi" cfg.users)
+          then ''ssh "wangzi@${remoteHostName}.wg" -X -Y $@''
+          else ''ssh "root@${remoteHostName}.wg" -X -Y $@'')))
+      config.cluster.nodes);
     programs.tmux = {
       enable = true;
       clock24 = true;

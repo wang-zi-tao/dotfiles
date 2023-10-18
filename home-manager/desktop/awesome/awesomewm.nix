@@ -11,8 +11,9 @@ let
 in
 with builtins;{
   options = with lib;{
-    desktop.lock-timeout = mkOption { type = types.int; default = 5; };
-    desktop.close-screen-timeout = mkOption { type = types.int; default = 10; };
+    services.rustdesk.enable = mkOption { type = types.bool; default = false; };
+    desktop.lock-timeout = mkOption { type = types.int; default = 30; };
+    desktop.close-screen-timeout = mkOption { type = types.int; default = 40; };
   };
   config = {
     services = {
@@ -187,5 +188,10 @@ with builtins;{
           ${pkgs.xautolock}/bin/xautolock -time ${toString config.desktop.lock-timeout} -locker ${lock_script}/bin/lock
         '';
     };
+    systemd.user.services.rustdesk = lib.mkIf config.services.rustdesk.enable (makeService {
+      Type = "simple";
+      ExecStart = "${pkgs.rustdesk}/bin/rustdesk";
+      Restart = "always";
+    });
   };
 }

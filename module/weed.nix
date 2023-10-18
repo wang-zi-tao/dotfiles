@@ -115,6 +115,17 @@ in
             };
           })
         )
+        # ++ (optional seaweedfs.config.server.enable
+        #   (nameValuePair "seaweedfs-server-clean-log"
+        #     {
+        #       enable = true;
+        #       description = "clean log";
+        #       Services = let script = pkgs.scripts."clean-seaweedfs-log.py"; in
+        #         {
+        #           Type = "oneshot";
+        #           ExecStart = "${script}";
+        #         };
+        #     }))
         ++ (optional seaweedfs.config.client.enable (nameValuePair "seaweedfs-mount-${hostname}" {
           enable = true;
           description = "mount seaweedfs";

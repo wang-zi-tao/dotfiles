@@ -1,0 +1,53 @@
+keys:
+  - &admin_wangzi age1va7sf254n8uzl5d27sq253duaf8u47jrketpy2xwv9ala9ttncqqsjk5k0
+  - &server-wangzi-pc age1jcn57c87a6k3admzkvmaeeuwdy6ru5lk3x6xw4tu5r70p7qmvdpsacm988
+  - &server-huawei-ecs age1en335kec3v9d2h3uzhas347j5xdye0ckafhv7m32edwnszrkguuqv69npm
+  - &server-aliyun-ecs age13dac29ek6ml4ukcgjnypsktrnwm9et46zr6a7wae3a7rtccdweaqr8mlaa
+  - &server-aliyun-hk age1qrhrpw9ecyhvxhlnegeg0y8ngp0qnkw3htj7htcqvlp8pnfkyumqtrhrm4 
+  - &server-wangzi-nuc age1cluv8spezap9kw7rs7wl59l4drcad6tqqtq3lm04q7meewcqc5cqgtywzq
+  - &server-wangzi-asus age1ddh950yq9gqvwzwsn2vnlwc5uk96cn4fz2a6cr94j8nr0y4uhfjskg9vth
+creation_rules:
+  - path_regex: secrets/public-key.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi
+      - *server-huawei-ecs
+      - *server-wangzi-pc
+      - *server-wangzi-nuc
+      - *server-aliyun-hk
+      - *server-aliyun-ecs
+      - *server-wangzi-asus
+  - path_regex: secrets/wangzi-pc.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi
+      - *server-wangzi-pc
+  - path_regex: secrets/huawei-ecs.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi
+      - *server-huawei-ecs
+  - path_regex: secrets/aliyun-hk.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi
+      - *server-aliyun-hk
+  - path_regex: secrets/aliyun-ecs.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi
+      - *server-aliyun-ecs
+  - path_regex: secrets/wangzi-nuc.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi
+      - *server-wangzi-nuc
+  - path_regex: secrets/wangzi-asus.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi
+      - *server-wangzi-asus
+  - path_regex: secrets/[^/]+\.yaml$
+    key_groups:
+    - age:
+      - *admin_wangzi

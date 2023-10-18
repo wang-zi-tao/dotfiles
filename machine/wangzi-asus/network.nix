@@ -34,6 +34,7 @@
         "directory mask" = "0755";
         "follow symlinks" = "yes";
         "wide links" = "yes";
+        "acl allow execute always" = "yes";
       };
       nix-store = {
         path = "/nix/store";

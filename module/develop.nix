@@ -13,5 +13,11 @@
       environment.etc.nixos = {
         source = ../.;
       };
+      systemd.coredump = {
+        enable = true;
+        extraConfig = ''
+          Storage=journal
+        '';
+      };
     };
 }

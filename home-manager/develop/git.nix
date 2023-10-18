@@ -45,5 +45,6 @@ in
     delta
     gitfs
     rs-git-fsmonitor
+    bfg-repo-cleaner
   ];
 }

@@ -113,6 +113,7 @@ with lib; with builtins;{
             gateway = "aliyun-hk";
           };
           wangzi-pc.peers.wangzi-nuc = { };
+          wangzi-asus.peers.wangzi-nuc = { };
           wangzi-pc.peers.aliyun-hk = {
             tunnel = true;
           };
@@ -237,7 +238,7 @@ with lib; with builtins;{
           virtualisation.enable = true;
         };
         wangzi-asus = {
-          users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
+          users.wangzi = ../home-manager/profiles/wangzi-asus.nix;
           wayland.enable = true;
           guiServer.enable = true;
           guiClient.enable = true;

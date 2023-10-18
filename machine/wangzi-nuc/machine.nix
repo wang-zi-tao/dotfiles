@@ -33,6 +33,8 @@ nixpkgs.lib.nixosSystem {
         cairo
         gobject-introspection
       ];
+      hardware.opengl.package = (pkgs.enableDebugging pkgs.mesa).drivers;
+      hardware.opengl.driSupport32Bit = true;
     })
 
   ];

@@ -39,24 +39,41 @@ nixpkgs.lib.nixosSystem {
       };
       boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod;
       boot.initrd.availableKernelModules =
-        [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" "nvme" ];
+        [
+          "xhci_pci"
+          "ahci"
+          "rtsx_usb_sdmmc"
+          "nvme"
+          "amdgpu"
+        ];
       boot.initrd.kernelModules = [
+        "vfio_pci"
+        "vfio"
+        "vfio_iommu_type1"
+      ];
+      boot.blacklistedKernelModules = [ "uvcvideo" ];
+      boot.kernelModules = [
         "nvidia"
         "nvidia_modeset"
         "nvidia_uvm"
         "nvidia_drm"
+        "kvm-intel"
+        "acpi_call"
+        "dm-snapshot"
+        "dm-raid"
+        "dm-cache-default"
+        "dm-thin-pool"
+        "dm-mirror"
       ];
-      boot.blacklistedKernelModules = [ "uvcvideo" ];
-      boot.kernelModules = [ "kvm-intel" "nvidia" "acpi_call" ];
       boot.kernelParams = [
         "i915.enable_gvt=1"
         "intel_iommu=on"
         "i915.enable_guc=1"
         "i915.enable_fbc=1"
+        "vfio-pci.ids=8086:a70d,1043:18ed"
       ];
       boot.extraModulePackages = [ ];
       boot.supportedFilesystems = [ "ext4" "fat32" "ntfs" ];
-
       hardware = {
         enableRedistributableFirmware = true;
         enableAllFirmware = true;
@@ -70,17 +87,17 @@ nixpkgs.lib.nixosSystem {
         ];
         opengl.setLdLibraryPath = true;
         opengl.driSupport = true;
-        nvidia.modesetting.enable = true;
+        # nvidia.modesetting.enable = true;
         nvidia.nvidiaSettings = true;
-        nvidia.prime = {
-          # sync.enable = true;
-          # reverseSync.enable = true;
-          offload.enable = true;
-          allowExternalGpu = true;
-          offload.enableOffloadCmd = true;
-          nvidiaBusId = "PCI:1:0:0";
-          intelBusId = "PCI:0:2:0";
-        };
+        # nvidia.prime = {
+        #   # sync.enable = true;
+        #   # reverseSync.enable = true;
+        #   offload.enable = true;
+        #   allowExternalGpu = true;
+        #   offload.enableOffloadCmd = true;
+        #   nvidiaBusId = "PCI:1:0:0";
+        #   intelBusId = "PCI:0:2:0";
+        # };
         bluetooth.enable = true;
         pulseaudio = { enable = true; };
       };
@@ -89,7 +106,8 @@ nixpkgs.lib.nixosSystem {
         dpi = 144;
         modules = with pkgs.xorg; [ xf86videonv xf86videointel xf86inputlibinput xf86videovesa ];
         videoDrivers = [
-          "nvidia"
+          # "nvidia"
+          "modesetting"
         ];
         screenSection = ''
           Option "metamodes" "nvidia-auto-select +0+0 { ForceCompositionPipeline = On }"

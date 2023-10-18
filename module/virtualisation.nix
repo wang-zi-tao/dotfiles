@@ -9,9 +9,24 @@ with builtins;{
     vm.guest-reserved-percent = mkOption { type = types.float; default = 0.0; };
   };
   config = lib.mkIf config.cluster.nodeConfig.virtualisation.enable {
+    boot.initrd.kernelModules = [
+      "vfio_pci"
+      "vfio"
+      "vfio_iommu_type1"
+      "vfio_virqfd"
+    ];
     boot.kernelParams = [
+      "intel_iommu=on"
+      "amd_iommu=on"
       "elevator=deadline"
     ];
+    boot.extraModprobeConfig = ''
+      softdep nouveau       pre: vfio-pci
+      softdep snd_hda_intel pre: vfio-pci
+      softdep xhci_pci      pre: vfio-pci
+
+      options vfio-pci ids=8086:a7a0
+    '';
     virtualisation = {
       lxd = {
         package = pkgs.lxd;
@@ -25,6 +40,13 @@ with builtins;{
         qemu.swtpm.enable = true;
         onBoot = "ignore";
         onShutdown = "shutdown";
+        extraConfig = ''
+          listen_tls = 0
+          listen_tcp = 1
+          tcp_port = "16509" 
+          listen_addr = "0.0.0.0"
+          auth_tcp = "none"
+        '';
       };
       # spiceUSBRedirection.enable = true;
       kvmgt.enable = true;
@@ -35,6 +57,9 @@ with builtins;{
       };
     };
     hardware.ksm.enable = true;
+    systemd.tmpfiles.rules = [
+      "f /dev/shm/looking-glass 0660 wangzi kvm -"
+    ];
     systemd.services.balloond = {
       enable = true;
       wantedBy = [ "libvirtd.service" ];
@@ -47,17 +72,11 @@ with builtins;{
       };
     };
     environment.etc."qemu/vhost-user".source = "${pkgs.qemu_full}/share/qemu/vhost-user";
-    environment.systemPackages = with pkgs; [ virtiofsd podman-compose qemu virt-manager virt-viewer rdesktop ];
+    environment.systemPackages = with pkgs; [ looking-glass-client virtiofsd podman-compose qemu virt-manager virt-viewer rdesktop ];
     systemd.services.libvirtd = with pkgs; {
       path = [ virtiofsd swtpm-tpm2 virglrenderer ];
       environment.LD_LIBRARY_PATH = "${virglrenderer}/lib";
     };
-    boot.initrd.kernelModules = [
-      "vfio_pci"
-      "vfio"
-      "vfio_iommu_type1"
-      "vfio_virqfd"
-    ];
     networking.firewall.trustedInterfaces = [ "virbr0" ];
   };
 }

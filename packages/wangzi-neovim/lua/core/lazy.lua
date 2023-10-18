@@ -33,15 +33,6 @@ require("lazy").setup({
         name = "plenary_nvim",
     },
     {
-        "andymass/vim-matchup",
-        dir = gen.vim_matchup,
-        name = "vim_matchup",
-        lazy = true,
-        event = "InsertEnter",
-        dependencies = "core",
-    },
-
-    {
         "max397574/better-escape.nvim",
         dir = gen.better_escape_nvim,
         name = "better_escape_nvim",

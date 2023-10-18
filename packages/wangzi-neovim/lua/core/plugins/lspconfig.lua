@@ -32,6 +32,7 @@ local function config()
             "cmake",
             "rnix",
             "vala_ls",
+            "clangd",
         }
         local option = {
             on_attach = function(client)

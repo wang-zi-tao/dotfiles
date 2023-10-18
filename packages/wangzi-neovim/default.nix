@@ -167,7 +167,7 @@ stdenvNoCC.mkDerivation {
         sha256 = "sha256-Zqos5LwjDzVQDpxKpWJVeZjmQ2+tKtub0f4wm6LFPOs=";
       }}",
       ts_autotag = "${nvim-ts-autotag}",
-      lspsaga = "${lspsaga-nvim-original}",
+      lspsaga = "${lspsaga-nvim}",
       virtual_types_nvim = "${virtual-types-nvim}",
 
       mason_nvim = "${mason-nvim}",

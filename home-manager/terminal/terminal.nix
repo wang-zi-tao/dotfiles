@@ -102,6 +102,7 @@
         dnsutils
       ];
     home.file.".config/nvim/parser/nix.so".source = lib.mkDefault "${pkgs.unstable.tree-sitter.builtGrammars.tree-sitter-nix}/parser";
+    home.file.".config/nvim/parser/rust.so".source = lib.mkDefault "${pkgs.unstable.tree-sitter.builtGrammars.tree-sitter-rust}/parser";
     home.file.".code-server/bin/node" = { source = "${pkgs.nodejs-16_x}/bin/node"; executable = true; };
     home.file.".config/direnv/direnvrc".text = ''
       use_flake() {

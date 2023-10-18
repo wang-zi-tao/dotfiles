@@ -6,6 +6,7 @@ local function config()
         name = "lldb",
     }
     local path_cache = vim.fn.getcwd() .. "/"
+
     dap.configurations.cpp = {
         {
             name = "cargo run",
@@ -26,6 +27,14 @@ local function config()
                 path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
                 return path_cache
             end,
+            cwd = "${workspaceFolder}",
+            -- stopOnEntry = true,
+        },
+        {
+            name = "attach",
+            type = "lldb",
+            request = "attach",
+            processId = require('dap.utils').pick_process,
             cwd = "${workspaceFolder}",
             -- stopOnEntry = true,
         },

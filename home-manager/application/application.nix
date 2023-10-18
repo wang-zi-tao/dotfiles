@@ -13,6 +13,38 @@
     kdenlive
   ];
   home.packages = with pkgs; [
+    libinput
+    seatd
+    mesa
+    udev
+    alsaLib
+    vulkan-loader
+    xorg.libXcursor
+    xorg.libXrandr
+    xorg.libXi # To use x11 feature
+    libxkbcommon
+    wayland # To use wayland feature
+    libglvnd
+    dbus.lib
+    fontconfig.lib
+    freetype
+    libglvnd
+    glib
+    gtk4
+    gtk3.debug
+    gnome2.pango
+    gdk-pixbuf
+    remarkable-toolchain
+    xorg.libX11
+    cairo
+    graphene
+    xorg.libxcb
+    libsForQt5.qt5.qtbase
+    harfbuzz
+    gvfs
+
+  ] ++ [
+
     mpdris2
     libmpc
     mpd

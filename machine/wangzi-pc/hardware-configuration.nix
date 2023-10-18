@@ -16,7 +16,6 @@
   boot.kernelModules = [ "kvm-intel" "nvidia" ];
   boot.kernelParams = [
     "i915.enable_gvt=1"
-    "intel_iommu=on"
     "i915.enable_guc=1"
     "i915.enable_fbc=1"
   ];

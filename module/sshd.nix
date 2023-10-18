@@ -30,6 +30,11 @@ in
         TCPKeepAlive yes
         ClientAliveCountMax 60
         ClientAliveInterval 60
+        AuthorizedKeysFile %h/.ssh/authorized_keys %h/.ssh/authorized_keys2 /etc/ssh/authorized_keys.d/%u ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
+
+        Match User *
+          AuthorizedKeysFile %h/.ssh/authorized_keys %h/.ssh/authorized_keys2 /etc/ssh/authorized_keys.d/%u ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
+
         Match User nix-ssh
           AllowAgentForwarding no
           AllowTcpForwarding no
@@ -37,8 +42,9 @@ in
           PermitTunnel no
           X11Forwarding no
           # ForceCommand nix-store --serve --write
-          AuthorizedKeysFile %h/.ssh/authorized_keys %h/.ssh/authorized_keys2 /etc/ssh/authorized_keys.d/% ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
-        Match All
+          AuthorizedKeysFile %h/.ssh/authorized_keys %h/.ssh/authorized_keys2 /etc/ssh/authorized_keys.d/%u ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
+
+        Match all
       '';
       ports = [ 22 64022 ];
       openFirewall = true;
