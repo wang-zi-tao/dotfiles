@@ -14,7 +14,8 @@ require("lazy").setup({
     require("core.plugins.lspconfig"),
     require("core.plugins.ui"),
 
-    require("core.plugins.nvimtree"),
+    -- require("core.plugins.nvimtree"),
+    require("core.plugins.neotree"),
     require("core.plugins.symbols_outline_pre"),
     require("core.plugins.gitsigns"),
     require("core.plugins.vgit"),
@@ -30,6 +31,7 @@ require("lazy").setup({
     },
     {
         "nvim-lua/plenary.nvim",
+        name = "plenary_nvim",
         dir = gen.plenary_nvim,
         module = "plenary",
         dependencies = "core",

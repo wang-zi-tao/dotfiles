@@ -126,7 +126,7 @@ with lib;{
       source-han-sans-simplified-chinese
       source-han-serif
       source-han-serif-simplified-chinese
-      hack-font
+      # hack-font
       powerline-fonts
       powerline-symbols
       iosevka

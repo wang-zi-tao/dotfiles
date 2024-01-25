@@ -99,9 +99,9 @@
       man = ''
         MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';
 
-      ls = "exa --icons";
-      ll = "exa -la --icons";
-      l = "exa -la --icons";
+      ls = "eza --icons always";
+      ll = "eza -la --icons always";
+      l = "eza -la --icons always";
 
       rcpp = "rg -C=8 -g='*.{c,cpp,h,hpp,mm,inl,INL}'";
       rts = "rg -C=8 -g='*.{ts}'";
@@ -214,5 +214,5 @@
     enable = true;
     enableZshIntegration = true;
   };
-  home.packages = with pkgs;[ ripgrep xclip powertop iotop iftop htop procs rmtrash bat exa du-dust duf tmuxinator tmux joshuto ];
+  home.packages = with pkgs;[ ripgrep xclip powertop iotop iftop htop procs rmtrash bat eza du-dust duf tmuxinator tmux joshuto ];
 }

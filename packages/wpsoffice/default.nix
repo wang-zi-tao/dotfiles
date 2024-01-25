@@ -50,25 +50,19 @@
 , zlib
 , libcxxabi
 , libcxx
-, qt4
+, nixpkgs-old
 , steam
 }:
 stdenv.mkDerivation rec {
   pname = "wpsoffice";
-  version = "11.1.0.10920";
+  version = "11.1.0.11711";
   src = fetchurl {
     url =
-      "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2019/11698/wps-office_11.1.0.11698_amd64.deb";
-    sha256 = "sha256-m7BOE2IF2m75mV/4X3HY9UJcidL0S0biqkidddp4LbQ=";
+      "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2019/11711/wps-office_11.1.0.11711_amd64.deb";
+    sha256 = "sha256-JHSTZZnOZoTpj8zF4C5PmjTkftEdxbeaqweY3ITiJto=";
   };
   unpackCmd = "dpkg -x $src .";
   sourceRoot = ".";
-
-  postUnpack = lib.optionalString (version == "11.1.0.9505") ''
-    # distribution is missing libjsapiservice.so, so we should not let
-    # autoPatchelfHook fail on the following dead libraries
-    rm opt/kingsoft/wps-office/office6/{libjsetapi.so,libjswppapi.so,libjswpsapi.so}
-  '';
 
   nativeBuildInputs =
     [ autoPatchelfHook dpkg wrapGAppsHook libsForQt5.qt5.wrapQtAppsHook ];
@@ -151,7 +145,7 @@ stdenv.mkDerivation rec {
     nss
     curl
     pango
-    qt4
+    nixpkgs-old.qt4
     libsForQt5.qt5.qtbase
     sqlite
     unixODBC

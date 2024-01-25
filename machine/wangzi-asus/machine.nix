@@ -1,4 +1,4 @@
-{ pkgs-template, nixpkgs, home-manager, sops-nix, nixseparatedebuginfod, ... }@inputs:
+{ pkgs-template, nixpkgs, home-manager, sops-nix, nixseparatedebuginfod, nixfs, ... }@inputs:
 let
   hostname = "wangzi-asus";
   system = "x86_64-linux";
@@ -11,6 +11,7 @@ nixpkgs.lib.nixosSystem {
     sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
     nixseparatedebuginfod.nixosModules.default
+    nixfs.nixosModules.nixfs
     ({ pkgs, lib, ... }: {
       imports = [
         ../../module/cluster.nix
@@ -18,8 +19,8 @@ nixpkgs.lib.nixosSystem {
         ./network.nix
       ];
       networking.hostName = hostname;
-      nixpkgs.config.allowUnfree = true;
       services.nixseparatedebuginfod.enable = true;
+	  services.nixfs.enable = true;
       sops.defaultSopsFile = ../../secrets/wangzi-asus.yaml;
       sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
       sops.age.keyFile = "/var/lib/sops-nix/key.txt";
@@ -106,7 +107,7 @@ nixpkgs.lib.nixosSystem {
         dpi = 144;
         modules = with pkgs.xorg; [ xf86videonv xf86videointel xf86inputlibinput xf86videovesa ];
         videoDrivers = [
-          # "nvidia"
+          "nvidia"
           "modesetting"
         ];
         screenSection = ''

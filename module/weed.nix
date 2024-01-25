@@ -45,6 +45,7 @@ with builtins; with lib;with lib.types; with lib.attrsets; let
   hostname = config.networking.hostName;
   enabled = hasAttr hostname config.cluster.seaweedfs.edges;
   mkIfEnbled = mkIf enabled;
+  pkg = pkgs.unstable.seaweedfs;
 in
 {
   options = {
@@ -58,9 +59,7 @@ in
     ./wireguard.nix
   ];
   config = {
-    environment.systemPackages = with pkgs; mkIfEnbled [
-      unstable.seaweedfs
-    ];
+    environment.systemPackages = with pkgs; mkIfEnbled [ pkg ];
     system.activationScripts.weed-self = mkIfEnbled ''
       ln -sfn /mnt/weed/mount/${hostname} /mnt/weed/mount/self
     '';
@@ -92,7 +91,7 @@ in
               IOSchedulingPriority = 0;
               ExecStartPre = "${pkgs.busybox}/bin/mkdir -p ${weed.server.path}/weed ${weed.server.path}/master ${weed.server.path}/volume";
               ExecStart =
-                ''${pkgs.unstable.seaweedfs}/bin/weed server \
+                ''${pkg}/bin/weed server \
             -ip=${wireguardConfig.clusterIp} \
             -ip.bind=0.0.0.0 \
             -dir=${weed.server.path}/weed \
@@ -147,7 +146,7 @@ in
               builtins.toString (pkgs.writeScript "weed-mount" ''
                 #!${pkgs.busybox}/bin/sh
                 ${pkgs.util-linux}/bin/umount ${weed.client.mount}/${hostname} -l || true
-                ${pkgs.unstable.seaweedfs}/bin/weed mount \
+                ${pkg}/bin/weed mount \
                   -filer=${hostname}:302 \
                   -dir=${weed.client.mount}/${hostname} \
                   -dirAutoCreate \
@@ -177,7 +176,7 @@ in
                     builtins.toString (pkgs.writeScript "weed-mount" ''
                       #!${pkgs.busybox}/bin/sh
                       ${pkgs.util-linux}/bin/umount ${weed.client.mount}/${remoteHostname} -l || true
-                      ${pkgs.unstable.seaweedfs}/bin/weed mount \
+                      ${pkg}/bin/weed mount \
                         -filer=${mountConfig.ip}:302 \
                         -dir=${weed.client.mount}/${remoteHostname} \
                         -dirAutoCreate \
@@ -203,7 +202,7 @@ in
                   Restart = "always";
                   RestartSec = "2s";
                   LimitNOFILE = 500000;
-                  ExecStart = ''${pkgs.unstable.seaweedfs}/bin/weed filer.sync \
+                  ExecStart = ''${pkg}/bin/weed filer.sync \
                   -a ${syncConfig.ipA}:302 \
                   -a.path=/${dir}/ \
                   -b ${syncConfig.ipB}:302 \

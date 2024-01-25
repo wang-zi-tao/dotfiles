@@ -35,9 +35,9 @@ with builtins;{
       lxc.lxcfs.enable = false;
       libvirtd = {
         enable = true;
-        qemu.ovmf.enable = true;
-        qemu.ovmf.packages = [ pkgs.OVMFFull ];
-        qemu.swtpm.enable = true;
+        # qemu.ovmf.enable = true;
+        # qemu.ovmf.packages = [ pkgs.OVMFFull ];
+        # qemu.swtpm.enable = true;
         onBoot = "ignore";
         onShutdown = "shutdown";
         extraConfig = ''
@@ -78,5 +78,6 @@ with builtins;{
       environment.LD_LIBRARY_PATH = "${virglrenderer}/lib";
     };
     networking.firewall.trustedInterfaces = [ "virbr0" ];
+    networking.dhcpcd.denyInterfaces = ["eno1"];
   };
 }

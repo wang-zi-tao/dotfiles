@@ -57,7 +57,7 @@
     upower
 
     xiezuo
-    wpsoffice
+    # wpsoffice
     qq
 
     # libreoffice

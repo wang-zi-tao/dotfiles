@@ -10,7 +10,7 @@
           # windowManager.xmonad.enable = true;
           windowManager.awesome.enable = true;
           windowManager.awesome.package = pkgs.awesome;
-          desktopManager.gnome.enable = true;
+          # desktopManager.gnome.enable = true;
           # desktopManager.plasma5.enable = true;
           displayManager.defaultSession = "none+awesome";
           displayManager.xpra = {
@@ -25,7 +25,7 @@
         };
       };
       programs.sway = {
-        enable = true;
+        enable = false;
         wrapperFeatures.gtk = true;
         wrapperFeatures.base = true;
         extraOptions = [
@@ -96,7 +96,7 @@
             enable = true;
             defaultFonts.monospace = [ "Iosevka Term Medium" ];
           };
-          fonts = with pkgs; [
+          packages = with pkgs; [
             noto-fonts
             noto-fonts-cjk
             noto-fonts-emoji
@@ -105,7 +105,7 @@
             source-han-sans-simplified-chinese
             source-han-serif
             source-han-serif-simplified-chinese
-            hack-font
+            # hack-font
             powerline-fonts
             powerline-symbols
             iosevka

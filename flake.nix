@@ -1,10 +1,10 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.05";
-    nixpkgs-22-11.url = "github:nixos/nixpkgs/release-22.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixpkgs-old.url = "github:nixos/nixpkgs/release-23.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     master.url = "github:nixos/nixpkgs";
-    home-manager.url = "github:nix-community/home-manager/release-23.05";
+    home-manager.url = "github:nix-community/home-manager/release-23.11";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -30,6 +30,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixseparatedebuginfod.url = "github:symphorien/nixseparatedebuginfod";
+    eza.url = "github:eza-community/eza";
+    nixfs.url = "github:illustris/nixfs";
   };
   outputs =
     inputs@{ self
@@ -44,7 +46,9 @@
     , deploy-rs
     , disko
     , nixseparatedebuginfod
+    , eza
     , master
+    , nixfs
     , ...
     }:
     let
@@ -61,19 +65,13 @@
       );
       overlays = with builtins; map (name: import (./overlays + "/${name}")) (attrNames (readDir ./overlays));
       packages = final: prev: with builtins;listToAttrs (map (name: { inherit name; value = final.callPackage (./packages + "/${name}") { }; }) (attrNames (readDir ./packages)));
-      pkgs-config = system: {
-        inherit system;
-        config = { allowUnfree = true; };
-        overlays = overlays ++ [ packages ];
+      config = {
+        allowUnfree = true;
+        permittedInsecurePackages = [ ];
       };
+      pkgs-config = system: { inherit system config; overlays = overlays ++ [ packages ]; };
       pkgs-template = system: import nixpkgs {
-        inherit system;
-        config = {
-          allowUnfree = true;
-          permittedInsecurePackages = [
-            "nodejs-16.20.2"
-          ];
-        };
+        inherit system config;
         overlays = with builtins; ([
           packages
           deploy-rs.overlay
@@ -82,10 +80,11 @@
           # nixpkgs-wayland.overlay
           nixseparatedebuginfod.overlays.default
           (final: prev: {
-            unstable = import inputs.nixpkgs-unstable { inherit system overlays; config = { allowUnfree = true; }; };
-            master = import inputs.master { inherit system overlays; config = { allowUnfree = true; }; };
-            nixpkgs-22-11 = import inputs.nixpkgs-22-11 { inherit system overlays; config = { allowUnfree = true; }; };
-            flake-inputs = inputs; 
+            unstable = import inputs.nixpkgs-unstable { inherit system overlays config; };
+            master = import inputs.master { inherit system overlays config; };
+            nixpkgs-old = import inputs.nixpkgs-old { inherit system overlays config; };
+            flake-inputs = inputs;
+            eza = eza.packages.${system}.default;
             scripts = map
               (f: prev.writeScriptBin f (readFile (./scripts + "/${f}")))
               (attrNames (readDir ./scripts));
@@ -167,6 +166,6 @@
               path = deploy-rs.lib.${self.nixos.${host}.pkgs.system}.activate.nixos self.nixos.${host};
             };
           };
-        }) [ "wangzi-nuc" "aliyun-hk" "aliyun-ecs" /*"huawei-ecs"*/ ]);
+        }) [ "wangzi-asus" "wangzi-nuc" "aliyun-hk" "aliyun-ecs" /*"huawei-ecs"*/ ]);
     };
 }

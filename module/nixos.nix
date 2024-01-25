@@ -37,7 +37,6 @@ let hostName = config.networking.hostName; in
   networking.proxy.noProxy = "mirrors.tuna.tsinghua.edu.cn,mirrors.ustc.edu.cn,127.0.0.1,localhost";
 
   # environment.memoryAllocator.provider = "jemalloc";
-  nixpkgs.config.allowUnfree = true;
   time.timeZone = "Asia/Shanghai";
   nix.nixPath = (lib.mapAttrsToList (name: value: "${name}=${value}") pkgs.flake-inputs) ++ [ "nixpkgs=${nixpkgs}" ];
   nix.registry = (builtins.mapAttrs

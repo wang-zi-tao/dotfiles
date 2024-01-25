@@ -37,6 +37,11 @@
       HandlePowerKey=suspend
     '';
     boot.extraSystemdUnitPaths = [ "/etc/systemd-mutable/system" ];
+    systemd.oomd = {
+      enable = true;
+      extraConfig = { DefaultMemoryPressureDurationSec = "15s"; };
+      enableSystemSlice = true;
+    };
     systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {
       wantedBy = [ "multi-user.target" ];
       before = [ "multi-user.target" ];

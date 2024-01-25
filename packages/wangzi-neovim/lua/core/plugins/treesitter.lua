@@ -4,30 +4,6 @@ local function config()
     end
     require('nvim-treesitter.configs').setup {
         -- A list of parser names, or "all"
-        ensure_installed = {
-            "lua",
-            "vim",
-            "rust",
-            "nix",
-            "c",
-            "cpp",
-            "java",
-            "javascript",
-            "typescript",
-            "python",
-            "cmake",
-            "diff",
-            "git_rebase",
-            "gitcommit",
-            "gitattributes",
-            "gitignore",
-            "json",
-            "llvm",
-            "regex",
-            "vue",
-            "markdown",
-            "markdown_inline",
-        },
 
         -- Install parsers synchronously (only applied to `ensure_installed`)
         sync_install = false,
@@ -65,15 +41,6 @@ local function config()
 
         parser_install_dir = vim.fn.stdpath("cache") .. "/treesitter",
 
-        rainbow = {
-            enable = true,
-            -- disable = { "jsx", "cpp" }, list of languages you want to disable the plugin for
-            extended_mode = true, -- Also highlight non-bracket delimiters like html tags, boolean or table: lang -> boolean
-            max_file_lines = nil, -- Do not enable for files with more than n lines, int
-            -- colors = {}, -- table of hex strings
-            -- termcolors = {} -- table of colour name strings
-        },
-
         incremental_selection = {
             enable = true,
             keymaps = {
@@ -99,10 +66,37 @@ return {
     dependencies = {
         "nvim_web_devicons",
         {
-            "p00f/nvim-ts-rainbow",
-            dir = gen.ts_rainbow,
-            name = "ts_rainbow",
+            "HiPhish/rainbow-delimiters.nvim",
+            dir = gen.rainbow_delimiters,
+            name = "rainbow_delimiters",
             lazy = true,
+            module = "rainbow-delimiters",
+            config = function()
+                local rainbow_delimiters = require 'rainbow-delimiters'
+                require('rainbow-delimiters.setup').setup {
+                    strategy = {
+                        [''] = rainbow_delimiters.strategy['global'],
+                        vim = rainbow_delimiters.strategy['local'],
+                    },
+                    query = {
+                        [''] = 'rainbow-delimiters',
+                        lua = 'rainbow-blocks',
+                    },
+                    priority = {
+                        [''] = 110,
+                        lua = 210,
+                    },
+                    highlight = {
+                        'RainbowDelimiterRed',
+                        'RainbowDelimiterYellow',
+                        'RainbowDelimiterBlue',
+                        'RainbowDelimiterOrange',
+                        'RainbowDelimiterGreen',
+                        'RainbowDelimiterViolet',
+                        'RainbowDelimiterCyan',
+                    },
+                }
+            end,
         },
         {
             "windwp/nvim-ts-autotag",

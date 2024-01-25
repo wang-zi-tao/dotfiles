@@ -26,18 +26,28 @@
     # shellcheck
     gef
 
-    (pkgs.buildEnv {
-      name = "cpp_compiler";
-      paths = with pkgs;[
-        clang
-        lldb
-        gcc
-        gdb
-        bintools-unwrapped
-      ];
-      ignoreCollisions = true;
-    })
+    gcc
+    gdb
+    (pkgs.writeScriptBin "clang" "${clang}/bin/clang")
+    (pkgs.writeScriptBin "clang++" "${clang}/bin/clang++")
+    (pkgs.writeScriptBin "lldb" "${lldb}/bin/lldb")
   ];
+  home.file.".gef.rc".text = ''
+    [gef]
+    autosave_breakpoints_file = "${config.home.homeDirectory}/.gef.breakpoints"
+
+    [context]
+    layout = -legend -regs -stack -code -args -threads trace extra memory source
+    nb_lines_threads = 1
+    nb_lines_code = 16
+    nb_lines_code_prev = 2
+    nb_lines_backtrace = 2
+    
+    [print-format]
+    max_size_preview = 16
+
+    [aliases]
+  '';
   programs.nix-index.enable = true;
   # home.file.".config/nvim/parser/cpp.so".source = lib.mkDefault "${pkgs.unstable.tree-sitter.builtGrammars.tree-sitter-cpp}/parser";
 }

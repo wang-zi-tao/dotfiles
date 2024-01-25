@@ -19,6 +19,27 @@ return {
         end,
     },
     {
+      's1n7ax/nvim-window-picker',
+      dir = gen.nvim_window_picker,
+      name = "nvim_window_picker",
+      version = '2.*',
+      config = function()
+          require('window-picker').setup({
+              filter_rules = {
+                  include_current_win = false,
+                  autoselect_one = true,
+                  -- filter using buffer options
+                  bo = {
+                      -- if the file type is one of following, the window will be ignored
+                      filetype = { 'neo-tree', "neo-tree-popup", "notify" },
+                      -- if the buffer type is one of following, the window will be ignored
+                      buftype = { 'terminal', "quickfix" },
+                  },
+          },
+      })
+      end,
+    },
+    {
         "folke/noice.nvim",
         dir = gen.noice_nvim,
         name = "noice",
@@ -27,12 +48,13 @@ return {
             "nvim_treesitter",
             {
                 "MunifTanjim/nui.nvim",
+                name = "nui_nvim",
                 dir = gen.nui_nvim,
             }
         },
         event = "VeryLazy",
         config = function()
-            require("nvim-tree")
+            pcall(require, "nvim-tree")
             vim.opt.lazyredraw = false
             require("noice").setup({
                 background_colour = "#000000",
@@ -304,29 +326,57 @@ return {
         name = "indent_blankline_nvim",
         event = "VeryLazy",
         lazy = true,
+        main = "ibl",
         config = function()
-            require("indent_blankline").setup({
-                indentLine_enabled = 1,
-                char = "▏",
-                filetype_exclude = {
-                    "help",
-                    "terminal",
-                    "alpha",
-                    "packer",
-                    "lspinfo",
-                    "TelescopePrompt",
-                    "TelescopeResults",
-                    "nvchad_cheatsheet",
-                    "lsp-installer",
-                    "",
+            local hooks = require "ibl.hooks"
+            hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
+                vim.api.nvim_set_hl(0, "RainbowRed", { fg = "#E06C75" })
+                vim.api.nvim_set_hl(0, "RainbowYellow", { fg = "#E5C07B" })
+                vim.api.nvim_set_hl(0, "RainbowBlue", { fg = "#61AFEF" })
+                vim.api.nvim_set_hl(0, "RainbowOrange", { fg = "#D19A66" })
+                vim.api.nvim_set_hl(0, "RainbowGreen", { fg = "#98C379" })
+                vim.api.nvim_set_hl(0, "RainbowViolet", { fg = "#C678DD" })
+                vim.api.nvim_set_hl(0, "RainbowCyan", { fg = "#56B6C2" })
+            end)
+            local highlight = {
+                "RainbowRed",
+                "RainbowYellow",
+                "RainbowBlue",
+                "RainbowOrange",
+                "RainbowGreen",
+                "RainbowViolet",
+                "RainbowCyan",
+            }
+
+            require("ibl").setup({
+                scope = {
+                    highlight = highlight,
                 },
-                buftype_exclude = { "terminal" },
-                show_trailing_blankline_indent = false,
-                show_first_indent_level = false,
-                show_end_of_line = true,
-                show_current_context = true,
-                show_current_context_start = true,
+                indent = {
+                    char = "▏",
+                },
+                whitespace = {
+                    highlight = highlight,
+                    remove_blankline_trail = false,
+                },
+                exclude = {
+                    filetypes = {
+                        "help",
+                        "terminal",
+                        "alpha",
+                        "packer",
+                        "lspinfo",
+                        "TelescopePrompt",
+                        "TelescopeResults",
+                        "nvchad_cheatsheet",
+                        "lsp-installer",
+                        "",
+                    },
+                    buftypes = { "terminal" },
+                },
             })
+
+            hooks.register(hooks.type.SCOPE_HIGHLIGHT, hooks.builtin.scope_highlight_from_extmark)
         end,
     },
     {

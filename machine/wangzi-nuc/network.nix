@@ -29,36 +29,39 @@
     };
   };
   systemd.services.NetworkManager-wait-online.enable = false;
-  services.dhcpd4 = {
+  services.kea.dhcp4 = {
     enable = true;
-    interfaces = [ "eno1" ];
-    extraConfig = ''
-      ddns-update-style none;
-      #option subnet-mask         255.255.255.0;
-      one-lease-per-client true;
-      subnet 192.168.32.0 netmask 255.255.255.0 {
-        range 192.168.32.192 192.168.32.254;
-        authoritative;
-        # Allows clients to request up to a week (although they won't)
-        # max-lease-time              "604800";
-        # By default a lease will expire in 24 hours.
-        # default-lease-time          "86400";
-        option subnet-mask          255.255.255.0;
-        option broadcast-address    192.168.32.255;
-      }
-    '';
-    machines = [
-      {
-        ipAddress = "192.168.32.129";
-        hostName = "wangzi-asus";
-        ethernetAddress = "08:bf:b8:c1:6e:ee";
-      }
-      {
-        ipAddress = "192.168.32.128";
-        hostName = "wangzi-pc";
-        ethernetAddress = "b0:25:aa:2f:3c:7d";
-      }
-    ];
+    settings = {
+      interfaces-config.interfaces = [ "eno1" ];
+      control-socket = {
+        socket-type = "unix";
+        socket-name = "/run/kea/kea4-ctrl-socket";
+      };
+      lease-database = {
+        name = "/var/lib/kea/dhcp4.leases";
+        persist = true;
+        type = "memfile";
+      };
+      max-valid-lifetime = 7200;
+      subnet4 = [{
+        pools = [{
+          pool = "192.168.32.192 - 192.168.32.254";
+        }];
+        subnet = "192.168.32.0/24";
+        reservations = [
+          {
+            hostname = "wangzi-asus";
+            hw-address = "08:bf:b8:c1:6e:ee";
+            ip-address = "192.168.32.129";
+          }
+          {
+            hostname = "wangzi-pc";
+            hw-address = "b0:25:aa:2f:3c:7d";
+            ip-address = "192.168.32.128";
+          }
+        ];
+      }];
+    };
   };
   networking.firewall.trustedInterfaces = [ "eno1" "wlp3s0" "lan@eno1" ];
   systemd.network.networks.main.routes.wg.routeConfig = {

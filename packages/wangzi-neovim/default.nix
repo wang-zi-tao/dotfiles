@@ -118,6 +118,8 @@ stdenvNoCC.mkDerivation {
 
       which_key = "${which-key-nvim}",
       noice_nvim = "${noice-nvim}",
+      nvim_window_picker = "${vimPlugins.nvim-window-picker}",
+      neo_tree = "${vimPlugins.neo-tree-nvim}",
       nui_nvim = "${nui-nvim}",
       null_ls = "${null-ls-nvim}",
       symbols_outline = "${symbols-outline-nvim}",
@@ -136,7 +138,7 @@ stdenvNoCC.mkDerivation {
         sha256 = "sha256-keK+IAnHTTA5uFkMivViMMAkYaBvouYqcR+wNPgN3n0=";
       }}",
       undotree = "${undotree}",
-      ts_rainbow = "${nvim-ts-rainbow}",
+      rainbow_delimiters = "${rainbow-delimiters-nvim}",
       diffview = "${diffview-nvim}",
       filetype = "${pkgs.fetchgit {
         url = "https://github.com/nathom/filetype.nvim/";
