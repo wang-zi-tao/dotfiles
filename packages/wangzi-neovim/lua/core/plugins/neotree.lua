@@ -21,6 +21,19 @@ local function config()
     --           return a.type > b.type
     --       end
     --   end , -- this sorts files and directories descendantly
+    sources = {
+      "filesystem",
+      "buffers",
+      "git_status",
+      "document_symbols",
+    },
+    source_selector = {
+      winbar = true,
+      statusline = true,
+      separator = { left = "▏", right = "" },
+      tabs_layout = "start",
+      show_separator_on_edge = true,
+    },
     default_component_configs = {
       container = {
         enable_character_fade = true,
@@ -90,7 +103,7 @@ local function config()
         required_width = 110, -- min width of window required to show this column
       },
       symlink_target = {
-        enabled = false,
+        enabled = true,
       },
     },
     -- A list of functions, each representing a global custom command
@@ -99,20 +112,21 @@ local function config()
     commands = {},
     window = {
       position = "left",
-      width = 40,
+      width = 32,
       mapping_options = {
         noremap = true,
         nowait = true,
       },
       mappings = {
-        ["<space>"] = {
-          "toggle_node",
-          nowait = false, -- disable `nowait` if you have existing combos starting with this char that you want to use
-        },
+        -- ["<space>"] = {
+        --   "toggle_node",
+        --   nowait = false, -- disable `nowait` if you have existing combos starting with this char that you want to use
+        -- },
         ["<2-LeftMouse>"] = "open",
         ["<cr>"] = "open",
         ["<esc>"] = "cancel", -- close preview or floating neo-tree window
         ["P"] = { "toggle_preview", config = { use_float = true, use_image_nvim = true } },
+        ["<space>"] = { "toggle_preview", config = { use_float = true, use_image_nvim = true } },
         -- Read `# Preview Mode` for more information
         ["l"] = "focus_preview",
         ["S"] = "open_split",
@@ -173,7 +187,7 @@ local function config()
           --"*/src/*/tsconfig.json",
         },
         always_show = { -- remains visible even if other settings would normally hide it
-          --".gitignored",
+          ".gitignored",
         },
         never_show = { -- remains hidden even if visible is toggled to true, this overrides always_show
           --".DS_Store",
@@ -194,10 +208,11 @@ local function config()
       -- "open_current",  -- netrw disabled, opening a directory opens within the
       -- window like netrw would, regardless of window.position
       -- "disabled",    -- netrw left alone, neo-tree does not handle opening dirs
-      use_libuv_file_watcher = false, -- This will use the OS level file watchers to detect changes
+      use_libuv_file_watcher = true, -- This will use the OS level file watchers to detect changes
       -- instead of relying on nvim autocmd events.
       window = {
         mappings = {
+          ["<space>"] = { "toggle_preview", config = { use_float = true, use_image_nvim = true } },
           ["<bs>"] = "navigate_up",
           ["."] = "set_root",
           ["H"] = "toggle_hidden",
@@ -237,7 +252,9 @@ local function config()
       group_empty_dirs = true, -- when true, empty folders will be grouped together
       show_unloaded = true,
       window = {
+        position = "float",
         mappings = {
+          ["<space>"] = { "toggle_preview", config = { use_float = true, use_image_nvim = true } },
           ["bd"] = "buffer_delete",
           ["<bs>"] = "navigate_up",
           ["."] = "set_root",
@@ -255,6 +272,7 @@ local function config()
       window = {
         position = "float",
         mappings = {
+          ["<space>"] = { "toggle_preview", config = { use_float = true, use_image_nvim = true } },
           ["A"] = "git_add_all",
           ["gu"] = "git_unstage_file",
           ["ga"] = "git_add_file",
@@ -272,6 +290,88 @@ local function config()
         },
       },
     },
+    document_symbols = {
+      follow_cursor = false,
+      client_filters = "first",
+      renderers = {
+        root = {
+          { "indent" },
+          { "icon", default = "C" },
+          { "name", zindex = 10 },
+        },
+        symbol = {
+          { "indent", with_expanders = true },
+          { "kind_icon", default = "?" },
+          {
+            "container",
+            content = {
+              { "name", zindex = 10 },
+              { "kind_name", zindex = 20, align = "right" },
+            },
+          },
+        },
+      },
+      window = {
+        mappings = {
+          ["<cr>"] = "jump_to_symbol",
+          ["o"] = "jump_to_symbol",
+          ["A"] = "noop", -- also accepts the config.show_path and config.insert_as options.
+          ["d"] = "noop",
+          ["y"] = "noop",
+          ["x"] = "noop",
+          ["p"] = "noop",
+          ["c"] = "noop",
+          ["m"] = "noop",
+          ["a"] = "noop",
+          ["/"] = "filter",
+          ["f"] = "filter_on_submit",
+        },
+      },
+      custom_kinds = {
+        -- define custom kinds here (also remember to add icon and hl group to kinds)
+        -- ccls
+        -- [252] = 'TypeAlias',
+        -- [253] = 'Parameter',
+        -- [254] = 'StaticMethod',
+        -- [255] = 'Macro',
+      },
+      kinds = {
+        Unknown = { icon = "?", hl = "" },
+        Root = { icon = "", hl = "NeoTreeRootName" },
+        File = { icon = "", hl = "Tag" },
+        Module = { icon = "", hl = "Exception" },
+        Namespace = { icon = "", hl = "Include" },
+        Package = { icon = "", hl = "Label" },
+        Class = { icon = "", hl = "Include" },
+        Method = { icon = "", hl = "Function" },
+        Property = { icon = "", hl = "@property" },
+        Field = { icon = "", hl = "@field" },
+        Constructor = { icon = "", hl = "@constructor" },
+        Enum = { icon = "", hl = "@number" },
+        Interface = { icon = "", hl = "Type" },
+        Function = { icon = "", hl = "Function" },
+        Variable = { icon = "", hl = "@variable" },
+        Constant = { icon = "", hl = "Constant" },
+        String = { icon = "", hl = "String" },
+        Number = { icon = "#", hl = "Number" },
+        Boolean = { icon = "", hl = "Boolean" },
+        Array = { icon = "", hl = "Type" },
+        Object = { icon = "", hl = "Type" },
+        Key = { icon = "", hl = "" },
+        Null = { icon = "", hl = "Constant" },
+        EnumMember = { icon = "", hl = "Number" },
+        Struct = { icon = "", hl = "Type" },
+        Event = { icon = "", hl = "Constant" },
+        Operator = { icon = "+", hl = "Operator" },
+        TypeParameter = { icon = "𝙏", hl = "Type" },
+
+        -- ccls
+        -- TypeAlias = { icon = ' ', hl = 'Type' },
+        -- Parameter = { icon = ' ', hl = '@parameter' },
+        -- StaticMethod = { icon = '󰠄 ', hl = 'Function' },
+        -- Macro = { icon = ' ', hl = 'Macro' },
+      },
+    },
   })
   vim.cmd([[nnoremap \ :Neotree reveal<cr>]])
 end
@@ -281,7 +381,12 @@ return {
   dir = gen.neo_tree,
   branch = "v3.x",
   keys = {
-    { "<leader>e", "<cmd>Neotree<cr>", desc = "File Tree" },
+    { "<leader>e", "<cmd>Neotree toggle<cr>", desc = "File Tree" },
+    { "<leader>Ef", "<cmd>Neotree filesystem<cr>", desc = "Files" },
+    { "<leader>EF", "<cmd>Neotree float<cr>", desc = "Float" },
+    { "<leader>Eb", "<cmd>Neotree buffers<cr>", desc = "Buffers" },
+    { "<leader>Eg", "<cmd>Neotree git_status<cr>", desc = "Git" },
+    { "<leader>Eo", "<cmd>Neotree document_symbols<cr>", desc = "Symbols" },
   },
   config = config,
   module = "neo-tree",
