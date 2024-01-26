@@ -151,7 +151,7 @@ return {
                 "<leader>fw",
                 function()
                     require("trailblazer").new_trail_mark()
-                    telescope().live_grep()
+                    vim.cmd("Telescope live_grep search_dirs="..( global.pwd or "." ))
                 end,
                 desc = "Grep",
             },
@@ -160,7 +160,9 @@ return {
                 function() require('telescope.builtin').live_grep({ grep_open_files = true }) end,
                 desc = "Grep Buffers",
             },
-            { "<leader>ff", function() telescope().find_files() end,            desc = "Files", },
+            { "<leader>ff", function()
+                vim.cmd("Telescope fd search_dirs="..( global.pwd or "." ))
+            end, desc = "Files", },
             { "<leader>fr", function() telescope().registers() end,             desc = "Registers", },
             { "<leader>fo", function() telescope().lsp_workspace_symbols() end, desc = "WorkspaceSymbols", },
             { "<leader>fa", function() vim.lsp.buf.code_action() end,           desc = "Actions", },

@@ -14,6 +14,7 @@ in
     extraConfig = {
       core = {
         editor = "vim";
+        autocrlf = false;
         # fsmonitor = "rs-git-fsmonitor";
       };
       diff = { tool = "nvr"; };
@@ -35,7 +36,7 @@ in
         };
       };
       safe = {
-        directory = [ "/mnt/weed/mount/self/config/nixos" ];
+        directory = [ "/mnt/weed/mount/self/config/nixos" "*"  ];
       };
       credential = { helper = "store"; };
     };

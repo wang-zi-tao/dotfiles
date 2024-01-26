@@ -3,6 +3,7 @@ require("core.map")
 require("core.env")
 require("core.auto")
 require("core.cmd")
+require("core.database")
 
 local n = require("core.gen")
 if n.core ~= null then

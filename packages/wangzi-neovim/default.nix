@@ -8,7 +8,7 @@
 , neovim-remote
 , gcc
 , enable-all ? true
-, enable-debuger ? enable-all
+, enable-debuger ? enable-all && (pkgs.system == "x86_64-linux")
 , enable-markdown-preview ? enable-all
 , enable-tabnine ? false
 }:
@@ -144,6 +144,11 @@ stdenvNoCC.mkDerivation {
         rev = "6604857365b13bfbcaa7ef377d4e60d2acb0be02";
         sha256 = "sha256-2UJep54dq6EAa7CL7uE0oeHNgMfXFK9SmG6z4L167JE=";
       }}",
+      sqlite_lua = "${sqlite-lua}",
+
+      which_key = "${which-key-nvim}",
+      markdown_preview = ${if enable-markdown-preview then ''"${markdown-preview-nvim}"'' else "false" },
+      marks = "${marks-nvim}",
       trailblazer = "${pkgs.fetchgit {
         url = "https://github.com/LeonHeidelbach/trailblazer.nvim";
         rev = "674bb6254a376a234d0d243366224122fc064eab";
@@ -178,8 +183,6 @@ stdenvNoCC.mkDerivation {
       noice_nvim = "${noice-nvim}",
       nvim_window_picker = "${nvim-window-picker}",
       nui_nvim = "${nui-nvim}",
-      markdown_preview = ${if enable-markdown-preview then ''"${markdown-preview-nvim}"'' else "false" },
-      marks = "${marks-nvim}",
       undotree = "${undotree}",
       focus = "${pkgs.fetchgit {
         url = "https://github.com/nvim-focus/focus.nvim";

@@ -2,14 +2,16 @@ local function config()
     require("nvim-tree").setup({
         disable_netrw = false,
         hijack_netrw = true,
-        -- auto_close = false,
-        auto_reload_on_write = true,
+        auto_close = true,
+        auto_reload_on_write = (1~=vim.fn.has("win32")),
+        reload_on_bufenter = (1~=vim.fn.has("win32")),
         open_on_tab = true,
         hijack_cursor = false,
         update_cwd = false,
         diagnostics = {
             enable = true,
             show_on_dirs = true,
+            debounce_delay = (1~=vim.fn.has("win32")) and 64 or 256,
             icons = {
                 hint = "",
                 info = "",
@@ -39,7 +41,13 @@ local function config()
             width = 25,
             hide_root_folder = false,
             side = "left",
+            debounce_delay = (1~=vim.fn.has("win32")) and 16 or 64,
             -- auto_resize = true,
+        },
+        filesystem_watchers = {
+            enable = true,
+            debounce_delay = (1~=vim.fn.has("win32")) and 64 or 256,
+            ignore_dirs = {},
         },
         trash = {
             cmd = "rmtrash",
@@ -125,5 +133,6 @@ return {
     config = config,
     keys = {
         { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "File Tree" },
+        { "<leader>E", "<cmd>NvimTreeFindFile<cr>", desc = "Focus On File Tree" },
     },
 }

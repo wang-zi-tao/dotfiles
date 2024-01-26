@@ -1,6 +1,28 @@
 #!/usr/bin/env bash
 set -e
 command=$1
+
+if [[ $OSTYPE == 'darwin'* ]]; then
+	if ! command -v brew &>/dev/null; then
+		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	fi
+	# if ! command -v git &>/dev/null; then
+	#     brew install git
+	# fi
+fi
+
+if ! command -v nix &>/dev/null; then
+	if [[ $OSTYPE == 'darwin'* ]]; then
+		command sh <(curl -L https://nixos.org/nix/install)
+	else
+		command sh <(curl -L https://nixos.org/nix/install) --daemon
+	fi
+fi
+
+realpath() {
+	[[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
 script_dir=$(realpath "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)")
 sudo() {
 	if command -v sudo &>/dev/null; then
@@ -10,9 +32,6 @@ sudo() {
 	fi
 }
 nix() {
-	if ! command -v nix &>/dev/null; then
-		command sh <(curl -L https://nixos.org/nix/install) --daemon
-	fi
 	nixversion=$(command nix --version)
 	nixversion="${nixversion:12:2}"
 	if [[ $nixversion -lt 4 ]]; then
@@ -38,6 +57,9 @@ nix) nix "$@" ;;
 shell)
 	mkdir .direnv || true
 	direnv allow .
+	;;
+develop)
+	nix develop
 	;;
 pkgs)
 	package=$1

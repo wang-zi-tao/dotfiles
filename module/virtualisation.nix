@@ -48,9 +48,9 @@ with builtins;{
           auth_tcp = "none"
         '';
       };
-      # spiceUSBRedirection.enable = true;
       kvmgt.enable = true;
       waydroid.enable = false;
+      # spiceUSBRedirection.enable = true;
       podman = {
         enable = true;
         defaultNetwork.settings.dns_enabled = true;

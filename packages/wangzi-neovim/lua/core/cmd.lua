@@ -26,6 +26,7 @@ local function OpenInVS()
     vim.cmd("!devenv " .. file .. " /edit " .. file .. " /command 'edit.goto " .. row .. "'")
 end
 vim.api.nvim_create_user_command("OpenInVS", OpenInVS, {})
+vim.api.nvim_create_user_command("ToVS", OpenInVS, {})
 
 vim.api.nvim_create_user_command("Open", function(opts)
     vim.cmd("e "..opts.args)
@@ -51,6 +52,9 @@ end, {})
 vim.api.nvim_create_user_command("ProfileStop", function()
     require'plenary.profile'.stop()
 end, {})
+vim.api.nvim_create_user_command("Cd", function(opts)
+    global.pwd = opts.args
+end, { nargs = 1, complete = "dir"})
 
 return {
     ClearTerm = ClearTerm,

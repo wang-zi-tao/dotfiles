@@ -1,5 +1,6 @@
 local gen = gen
 local state = {}
+global = {}
 
 function toggle_term(number)
     state.toggleterm_nvim[number]:toggle()
