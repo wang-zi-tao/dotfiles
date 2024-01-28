@@ -106,7 +106,10 @@
             sumneko-lua-language-server
             statix
             nixos-generators
-            (wangzi-neovim.override { enable-all = false; })
+            (pkgs.wangzi-neovim.override {
+              neovim-unwrapped = pkgs.unstable.neovim-unwrapped;
+              enable-all = true;
+            })
             pkgs.home-manager
           ];
         };

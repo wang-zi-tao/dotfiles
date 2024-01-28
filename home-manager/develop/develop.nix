@@ -124,11 +124,11 @@ in
 
   ];
   home.file = {
-    # ".cargo/config.toml".text = ''
-    #   [target.x86_64-unknown-linux-gnu]
-    #   linker = "${pkgs.clang_14}/bin/clang"
-    #   rustflags = ["-C", "link-arg=--ld-path=${pkgs.mold}/bin/mold", "-L", "${pkgs.glibc}/lib/Scrt1.o"]
-    # '';
+    ".cargo/config.toml".text = ''
+      [target.x86_64-unknown-linux-gnu]
+      linker = "${pkgs.clang_14}/bin/clang"
+      rustflags = ["-C", "link-arg=--ld-path=${pkgs.mold}/bin/mold", "-L", "${pkgs.glibc}/lib/Scrt1.o"]
+    '';
     ".gdbinit".text = ''
       set debuginfod enabled on
       define add-symbol-file-auto

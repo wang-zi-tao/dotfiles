@@ -18,8 +18,8 @@
       (remoteHostName: cfg:
         (pkgs.writeScriptBin "ssh-${remoteHostName}"
           (if (builtins.hasAttr "wangzi" cfg.users)
-          then ''ssh "wangzi@${remoteHostName}.wg" -X -Y $@''
-          else ''ssh "root@${remoteHostName}.wg" -X -Y $@'')))
+          then ''ssh "wangzi@${remoteHostName}.wg" -X -Y -t $@''
+          else ''ssh "root@${remoteHostName}.wg" -X -Y -t $@'')))
       config.cluster.nodes);
     programs.tmux = {
       enable = true;

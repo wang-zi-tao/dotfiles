@@ -19,25 +19,25 @@ return {
         end,
     },
     {
-      's1n7ax/nvim-window-picker',
-      dir = gen.nvim_window_picker,
-      name = "nvim_window_picker",
-      version = '2.*',
-      config = function()
-          require('window-picker').setup({
-              filter_rules = {
-                  include_current_win = false,
-                  autoselect_one = true,
-                  -- filter using buffer options
-                  bo = {
-                      -- if the file type is one of following, the window will be ignored
-                      filetype = { 'neo-tree', "neo-tree-popup", "notify" },
-                      -- if the buffer type is one of following, the window will be ignored
-                      buftype = { 'terminal', "quickfix" },
-                  },
-          },
-      })
-      end,
+        "s1n7ax/nvim-window-picker",
+        dir = gen.nvim_window_picker,
+        name = "nvim_window_picker",
+        version = "2.*",
+        config = function()
+            require("window-picker").setup({
+                filter_rules = {
+                    include_current_win = false,
+                    autoselect_one = true,
+                    -- filter using buffer options
+                    bo = {
+                        -- if the file type is one of following, the window will be ignored
+                        filetype = { "neo-tree", "neo-tree-popup", "notify" },
+                        -- if the buffer type is one of following, the window will be ignored
+                        buftype = { "terminal", "quickfix" },
+                    },
+                },
+            })
+        end,
     },
     {
         "folke/noice.nvim",
@@ -50,7 +50,7 @@ return {
                 "MunifTanjim/nui.nvim",
                 name = "nui_nvim",
                 dir = gen.nui_nvim,
-            }
+            },
         },
         event = "VeryLazy",
         config = function()
@@ -59,9 +59,9 @@ return {
             require("noice").setup({
                 background_colour = "#000000",
                 cmdline = {
-                    enabled = true,         -- enables the Noice cmdline UI
+                    enabled = true, -- enables the Noice cmdline UI
                     view = "cmdline_popup", -- view for rendering the cmdline. Change to `cmdline` to get a classic cmdline at the bottom
-                    opts = {},              -- global options for the cmdline. See section on views
+                    opts = {},    -- global options for the cmdline. See section on views
                     ---@type table<string, CmdlineFormat>
                     format = {
                         -- conceal: (default=true) This will hide the text in the cmdline that matches the pattern.
@@ -98,8 +98,8 @@ return {
                         throttle = 1000 / 15, -- frequency to update lsp progress message
                         view = "mini",
                     },
-                    hover = { enabled = false, },
-                    signature = { enabled = false, },
+                    hover = { enabled = false },
+                    signature = { enabled = false },
                     message = {
                         enabled = true,
                         view = "notify",
@@ -118,24 +118,24 @@ return {
                     },
                 },
                 presets = {
-                    bottom_search = false,         -- use a classic bottom cmdline for search
-                    command_palette = false,       -- position the cmdline and popupmenu together
+                    bottom_search = false, -- use a classic bottom cmdline for search
+                    command_palette = false, -- position the cmdline and popupmenu together
                     long_message_to_split = false, -- long messages will be sent to a split
-                    inc_rename = false,            -- enables an input dialog for inc-rename.nvim
-                    lsp_doc_border = false,        -- add a border to hover docs and signature help
+                    inc_rename = false,  -- enables an input dialog for inc-rename.nvim
+                    lsp_doc_border = false, -- add a border to hover docs and signature help
                 },
                 messages = {
                     -- NOTE: If you enable messages, then the cmdline is enabled automatically.
                     -- This is a current Neovim limitation.
-                    enabled = true,              -- enables the Noice messages UI
-                    view = "notify",             -- default view for messages
-                    view_error = "notify",       -- view for errors
-                    view_warn = "notify",        -- view for warnings
-                    view_history = "messages",   -- view for :messages
+                    enabled = true,    -- enables the Noice messages UI
+                    view = "notify",   -- default view for messages
+                    view_error = "notify", -- view for errors
+                    view_warn = "notify", -- view for warnings
+                    view_history = "messages", -- view for :messages
                     view_search = "virtualtext", -- view for search count messages. Set to `false` to disable
                 },
                 popupmenu = {
-                    enabled = true,  -- enables the Noice popupmenu UI
+                    enabled = true, -- enables the Noice popupmenu UI
                     ---@type 'nui'|'cmp'
                     backend = "nui", -- backend to use to show regular cmdline completions
                     ---@type NoicePopupmenuItemKind|false
@@ -250,7 +250,7 @@ return {
 
                 notify(msg, level, opt, ...)
             end
-        end
+        end,
     },
     {
         "rcarriga/nvim-notify",
@@ -316,9 +316,23 @@ return {
             require("core.plugins.bufferline")
         end,
         keys = {
-            { "<Tab>",   function() require("bufferline").cycle(1) end,  mode = "n", desc = "next tab" },
-            { "<S-Tab>", function() require("bufferline").cycle(-1) end, mode = "n", desc = "prev tab" },
-        }
+            {
+                "<Tab>",
+                function()
+                    require("bufferline").cycle(1)
+                end,
+                mode = "n",
+                desc = "next tab",
+            },
+            {
+                "<S-Tab>",
+                function()
+                    require("bufferline").cycle(-1)
+                end,
+                mode = "n",
+                desc = "prev tab",
+            },
+        },
     },
     {
         "lukas-reineke/indent-blankline.nvim",
@@ -328,7 +342,7 @@ return {
         lazy = true,
         main = "ibl",
         config = function()
-            local hooks = require "ibl.hooks"
+            local hooks = require("ibl.hooks")
             hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
                 vim.api.nvim_set_hl(0, "RainbowRed", { fg = "#E06C75" })
                 vim.api.nvim_set_hl(0, "RainbowYellow", { fg = "#E5C07B" })
@@ -386,16 +400,15 @@ return {
         event = "VeryLazy",
         lazy = true,
         config = function()
-            require("colorizer").setup({
-            }, {
-                RGB = true,      -- #RGB hex codes
-                RRGGBB = true,   -- #RRGGBB hex codes
-                names = true,    -- "Name" codes like Blue
+            require("colorizer").setup({}, {
+                RGB = true, -- #RGB hex codes
+                RRGGBB = true, -- #RRGGBB hex codes
+                names = true, -- "Name" codes like Blue
                 RRGGBBAA = true, -- #RRGGBBAA hex codes
-                rgb_fn = true,   -- CSS rgb() and rgba() functions
-                hsl_fn = true,   -- CSS hsl() and hsla() functions
-                css = true,      -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
-                css_fn = true,   -- Enable all CSS *functions*: rgb_fn, hsl_fn
+                rgb_fn = true, -- CSS rgb() and rgba() functions
+                hsl_fn = true, -- CSS hsl() and hsla() functions
+                css = true, -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
+                css_fn = true, -- Enable all CSS *functions*: rgb_fn, hsl_fn
 
                 -- Available modes: foreground, background
                 mode = "background", -- Set the display mode.
@@ -413,12 +426,12 @@ return {
         lazy = true,
         module = "baleia",
         config = function()
-            vim.cmd [[
+            vim.cmd([[
                 command! BaleiaColorize call luaeval("require('baleia').setup { }").once(bufnr('%'))
 
                 autocmd BufWinEnter my-buffer call luaeval("require('baleia').setup { }").automatically(bufnr('%'))
                 autocmd BufWinEnter *.log call luaeval("require('baleia').setup { }").automatically(bufnr('%'))
-            ]]
+            ]])
         end,
     },
     {
@@ -429,6 +442,40 @@ return {
         event = "VeryLazy",
         config = function()
             require("core.plugins.dressing")
+        end,
+    },
+    {
+        "petertriho/nvim-scrollbar",
+        dir = gen.scrollbar,
+        name = "scrollbar",
+        module = { "scrollbar", "scrollbar.handlers.search", "scrollbar.handlers.gitsigns" },
+        lazy = true,
+        event = { "BufNewFile", "BufReadPost" },
+        config = function()
+            require("scrollbar").setup({
+                marks = {
+                    Search = {
+                        text = { "-", "=" },
+                        priority = 1,
+                        gui = nil,
+                        color = nil,
+                        cterm = nil,
+                        color_nr = nil, -- cterm
+                        highlight = "ScrollbarSearch",
+                    },
+                },
+                excluded_buftypes = {
+                    "terminal",
+                },
+                excluded_filetypes = {
+                    "cmp_docs",
+                    "cmp_menu",
+                    "noice",
+                    "prompt",
+                    "TelescopePrompt",
+                    "neo-tree",
+                },
+            })
         end,
     },
 }

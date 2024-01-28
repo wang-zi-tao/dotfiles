@@ -1,8 +1,8 @@
 local function config()
-    if (1 == vim.fn.has("win32")) then
-        require 'nvim-treesitter.install'.prefer_git = false
+    if 1 == vim.fn.has("win32") then
+        require("nvim-treesitter.install").prefer_git = false
     end
-    require('nvim-treesitter.configs').setup {
+    require("nvim-treesitter.configs").setup({
         -- A list of parser names, or "all"
 
         -- Install parsers synchronously (only applied to `ensure_installed`)
@@ -54,14 +54,14 @@ local function config()
         indent = {
             enable = true,
         },
-    }
+    })
 end
 
 return {
     "nvim-treesitter/nvim-treesitter",
     dir = gen.nvim_treesitter,
     name = "nvim_treesitter",
-    event = "VeryLazy",
+    event = { "BufNewFile", "BufReadPost" },
     lazy = true,
     dependencies = {
         "nvim_web_devicons",
@@ -72,30 +72,30 @@ return {
             lazy = true,
             module = "rainbow-delimiters",
             config = function()
-                local rainbow_delimiters = require 'rainbow-delimiters'
-                require('rainbow-delimiters.setup').setup {
+                local rainbow_delimiters = require("rainbow-delimiters")
+                require("rainbow-delimiters.setup").setup({
                     strategy = {
-                        [''] = rainbow_delimiters.strategy['global'],
-                        vim = rainbow_delimiters.strategy['local'],
+                        [""] = rainbow_delimiters.strategy["global"],
+                        vim = rainbow_delimiters.strategy["local"],
                     },
                     query = {
-                        [''] = 'rainbow-delimiters',
-                        lua = 'rainbow-blocks',
+                        [""] = "rainbow-delimiters",
+                        lua = "rainbow-blocks",
                     },
                     priority = {
-                        [''] = 110,
+                        [""] = 110,
                         lua = 210,
                     },
                     highlight = {
-                        'RainbowDelimiterRed',
-                        'RainbowDelimiterYellow',
-                        'RainbowDelimiterBlue',
-                        'RainbowDelimiterOrange',
-                        'RainbowDelimiterGreen',
-                        'RainbowDelimiterViolet',
-                        'RainbowDelimiterCyan',
+                        "RainbowDelimiterRed",
+                        "RainbowDelimiterYellow",
+                        "RainbowDelimiterBlue",
+                        "RainbowDelimiterOrange",
+                        "RainbowDelimiterGreen",
+                        "RainbowDelimiterViolet",
+                        "RainbowDelimiterCyan",
                     },
-                }
+                })
             end,
         },
         {
@@ -103,9 +103,7 @@ return {
             dir = gen.ts_autotag,
             name = "ts_autotag",
             lazy = true,
-            config = function()
-
-            end,
+            config = function() end,
         },
         {
             "anuvyklack/pretty-fold.nvim",
@@ -124,7 +122,7 @@ return {
             dependencies = "pretty_fold",
             lazy = true,
             config = function()
-                require('fold-preview').setup { border = "rounded" }
+                require("fold-preview").setup({ border = "rounded" })
             end,
         },
         {
@@ -133,7 +131,9 @@ return {
             name = "hlslens",
             lazy = true,
             config = function()
-                require("core.plugins.hlslens")
+                require("scrollbar.handlers.search").setup({
+                    -- hlslens config overrides
+                })
             end,
         },
         {
@@ -141,7 +141,7 @@ return {
             dir = gen.nvim_treesitter_textobjects,
             name = "nvim_treesitter_textobjects",
             config = function()
-                require 'nvim-treesitter.configs'.setup {
+                require("nvim-treesitter.configs").setup({
                     textobjects = {
                         select = {
                             enable = true,
@@ -176,9 +176,9 @@ return {
                                 ["as"] = { query = "@scope", query_group = "locals", desc = "Select language scope" },
                             },
                             selection_modes = {
-                                ['@parameter.outer'] = 'v', -- charwise
-                                ['@function.outer'] = 'V',  -- linewise
-                                ['@class.outer'] = '<c-v>', -- blockwise
+                                ["@parameter.outer"] = "v", -- charwise
+                                ["@function.outer"] = "V", -- linewise
+                                ["@class.outer"] = "<c-v>", -- blockwise
                             },
                             include_surrounding_whitespace = true,
                         },
@@ -234,11 +234,11 @@ return {
                             },
                             goto_previous = {
                                 ["[i"] = "@conditional.outer",
-                            }
+                            },
                         },
                         lsp_interop = {
                             enable = true,
-                            border = 'none',
+                            border = "none",
                             floating_preview_opts = {},
                             peek_definition_code = {
                                 ["<leader>df"] = "@function.outer",
@@ -246,9 +246,9 @@ return {
                             },
                         },
                     },
-                }
-            end
-        }
+                })
+            end,
+        },
     },
     config = config,
     -- build = ":TSUpdate",

@@ -66,11 +66,32 @@ stdenvNoCC.mkDerivation {
         rev = "ee9081c304b44509b2f4267f1f7addc303f9fb9b";
         sha256 = "sha256-ucjVbpIwJ9eNBEQKVxN0a09GB773M2lTMdzYcLQ88QM=";
       }}",
+
+      -- LSP
       nvim_lspconfig = "${nvim-lspconfig}",
       lsp_signature_nvim = "${lsp_signature-nvim}",
+      lspsaga = "${lspsaga-nvim}",
+      symbol_usage = "${pkgs.fetchgit {
+        url = "https://github.com/Wansmer/symbol-usage.nvim";
+        rev = "d9578780b760ca22cbe7dd618cc880b155b0e84a";
+        sha256 = "sha256-Vy4IPYuMkjxK1Gf5JCnSzrrrOp3vZRrGQtVOpAewm7s=";
+      }}",
+      dr_lsp = "${pkgs.fetchgit {
+        url = "https://github.com/chrisgrieser/nvim-dr-lsp";
+        rev = "ce2c674970785d37e7ddc8896ec9b3a02da69dd1";
+        sha256 = "sha256-1/V1M6TL79uWGxfcFOozl0V7xw7MJWc7/hCNkL3odpE=";
+      }}",
+      navic = "${nvim-navic}",
+      navbuddy = "${nvim-navbuddy}",
+      symbols_outline = "${symbols-outline-nvim}",
+      rustaceanvim = "${rustaceanvim}",
+      null_ls = "${null-ls-nvim}",
+      clangd_extensions_nvim = "${clangd_extensions-nvim}",
+
       vim_matchup = "${vim-matchup}",
       better_escape_nvim = "${better-escape-nvim}",
 
+      -- cmp
       friendly_snippets = "${friendly-snippets}",
       luasnip = "${luasnip}",
 
@@ -100,6 +121,7 @@ stdenvNoCC.mkDerivation {
       nvim_comment = "${nvim-comment}",
       nvim_tree_lua = "${nvim-tree-lua}",
 
+      -- telescope
       telescope_nvim = "${telescope-nvim}",
       telescope_ui_select = "${telescope-ui-select-nvim}",
       telescope_dap_nvim = "${telescope-dap-nvim}",
@@ -115,18 +137,13 @@ stdenvNoCC.mkDerivation {
         rev = "53cac3fdb5f5e4e63e243232b6eccf3c764ae18a";
         sha256 = "sha256-F4xfIDZfhpQvsvS4Qwmp5qJQmDYWacIqRxdO06RZ42I=";
       }}",
-
-      which_key = "${which-key-nvim}",
-      noice_nvim = "${noice-nvim}",
-      nvim_window_picker = "${vimPlugins.nvim-window-picker}",
-      neo_tree = "${vimPlugins.neo-tree-nvim}",
-      nui_nvim = "${nui-nvim}",
-      null_ls = "${null-ls-nvim}",
-      symbols_outline = "${symbols-outline-nvim}",
-      rust_tools = "${rust-tools-nvim}",
-      clangd_extensions_nvim = "${clangd_extensions-nvim}",
-      markdown_preview = ${if enable-markdown-preview then ''"${markdown-preview-nvim}"'' else "false" },
-      marks = "${marks-nvim}",
+      
+      -- project
+      session_manager = "${pkgs.fetchgit {
+        url = "https://github.com/Shatur/neovim-session-manager";
+        rev = "6604857365b13bfbcaa7ef377d4e60d2acb0be02";
+        sha256 = "sha256-2UJep54dq6EAa7CL7uE0oeHNgMfXFK9SmG6z4L167JE=";
+      }}",
       trailblazer = "${pkgs.fetchgit {
         url = "https://github.com/LeonHeidelbach/trailblazer.nvim";
         rev = "674bb6254a376a234d0d243366224122fc064eab";
@@ -137,22 +154,38 @@ stdenvNoCC.mkDerivation {
         rev = "2c7a2943340ee2a36c6a61db812418fca1f57866";
         sha256 = "sha256-keK+IAnHTTA5uFkMivViMMAkYaBvouYqcR+wNPgN3n0=";
       }}",
-      undotree = "${undotree}",
+
+      -- keymap
+      navigator = "${Navigator-nvim}",
+
+      -- buffer UI
+      scrollbar = "${nvim-scrollbar}",
       rainbow_delimiters = "${rainbow-delimiters-nvim}",
-      diffview = "${diffview-nvim}",
+      hlslens = "${nvim-hlslens}",
       filetype = "${pkgs.fetchgit {
         url = "https://github.com/nathom/filetype.nvim/";
         rev = "b522628a45a17d58fc0073ffd64f9dc9530a8027";
         sha256 = "sha256-B+VvgQj8akiKe+MX/dV2/mdaaqF8s2INW3phdPJ5TFA=";
       }}",
-      navigator = "${Navigator-nvim}",
+
+      -- window UI
+      neo_tree = "${neo-tree-nvim}",
+      diffview = "${diffview-nvim}",
+
+      -- UI
+      which_key = "${which-key-nvim}",
+      noice_nvim = "${noice-nvim}",
+      nvim_window_picker = "${nvim-window-picker}",
+      nui_nvim = "${nui-nvim}",
+      markdown_preview = ${if enable-markdown-preview then ''"${markdown-preview-nvim}"'' else "false" },
+      marks = "${marks-nvim}",
+      undotree = "${undotree}",
       focus = "${pkgs.fetchgit {
         url = "https://github.com/nvim-focus/focus.nvim";
         rev = "3d9df42aa4f9b572348418207b752f81adea09a5";
         sha256 = "sha256-MpGDxBJ0IMMAIxuzFkxIgKtAn56NvpjfTNMVhnBhhsE=";
       }}",
       illuminate = "${vim-illuminate}",
-      hlslens = "${nvim-hlslens}",
       pretty_fold = "${pkgs.fetchgit {
         url = "https://github.com/anuvyklack/pretty-fold.nvim/";
         rev = "a7d8b424abe0eedf50116c460fbe6dfd5783b1d5";
@@ -169,7 +202,6 @@ stdenvNoCC.mkDerivation {
         sha256 = "sha256-Zqos5LwjDzVQDpxKpWJVeZjmQ2+tKtub0f4wm6LFPOs=";
       }}",
       ts_autotag = "${nvim-ts-autotag}",
-      lspsaga = "${lspsaga-nvim}",
       virtual_types_nvim = "${virtual-types-nvim}",
 
       mason_nvim = "${mason-nvim}",
@@ -186,11 +218,6 @@ stdenvNoCC.mkDerivation {
       fterm = "${FTerm-nvim}",
       toggleterm_nvim = "${toggleterm-nvim}",
       mini = "${mini-nvim}",
-      session_manager = "${pkgs.fetchgit {
-        url = "https://github.com/Shatur/neovim-session-manager";
-        rev = "6604857365b13bfbcaa7ef377d4e60d2acb0be02";
-        sha256 = "sha256-2UJep54dq6EAa7CL7uE0oeHNgMfXFK9SmG6z4L167JE=";
-      }}",
       firenvim = "${pkgs.fetchgit {
         url = "https://github.com/glacambre/firenvim";
         rev = "56a49d79904921a8b4405786e12b4e12fbbf171b";

@@ -17,7 +17,7 @@
     unixtools.xxd
 
     cmake-language-server
-    (wangzi-neovim.override { enable-all = config.neovim.full; })
+    config.neovim.pkg
     gcc-unwrapped.lib
     neovim-remote
     bear
