@@ -242,7 +242,7 @@
     enable = true;
     enableZshIntegration = true;
   };
-  home.packages = with pkgs;( [ ripgrep xclip iftop htop procs rmtrash bat exa du-dust duf tmuxinator tmux joshuto ]
+  home.packages = with pkgs;( [ ripgrep xclip iftop htop procs rmtrash bat eza du-dust duf tmuxinator tmux joshuto ]
   ++ (lib.optionals ( pkgs.system == "x86_64-linux" ) [powertop iotop]) 
   );
 }
