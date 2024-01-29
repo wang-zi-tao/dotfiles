@@ -95,7 +95,7 @@ return {
                         format = "lsp_progress",
                         --- @type NoiceFormat|string
                         format_done = "lsp_progress_done",
-                        throttle = 1000 / 15, -- frequency to update lsp progress message
+                        throttle = 60, -- frequency to update lsp progress message
                         view = "mini",
                     },
                     hover = { enabled = false },

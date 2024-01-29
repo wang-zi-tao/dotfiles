@@ -11,8 +11,8 @@
     securityType = "user";
     extraConfig = ''
       workgroup = WORKGROUP
-      server string = 192.168.16.11
-      netbios name = wangzi-pc
+      server string = 192.168.16.13
+      netbios name = wangzi-asus
       #use sendfile = yes
       #max protocol = smb2
       # note: localhost is the ipv6 localhost ::1

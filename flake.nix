@@ -103,6 +103,8 @@
             rnix-lsp
             nixfmt
             nix-du
+            nix-tree
+            nix-diff
             sumneko-lua-language-server
             statix
             nixos-generators

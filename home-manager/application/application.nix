@@ -11,6 +11,28 @@
     vlc
     obs-studio
     kdenlive
+    mpd
+    brightnessctl
+    pamixer
+    upower
+    unstable.wine
+    unstable.winetricks
+    xdotool
+    meld
+    nextcloud-client
+    "gnome.baobab"
+    "gnome.cheese"
+    "gnome.gnome-nettool"
+    dconf
+    "gnome.dconf-editor"
+    "gnome.gnome-tweaks"
+    tilix
+    weston
+    waypipe
+    x11docker
+    beekeeper-studio
+    peek
+    remmina
   ];
   home.packages = with pkgs; [
     libinput
@@ -23,18 +45,14 @@
     xorg.libXrandr
     xorg.libXi # To use x11 feature
     libxkbcommon
-    wayland # To use wayland feature
-    libglvnd
     dbus.lib
     fontconfig.lib
     freetype
-    libglvnd
     glib
     gtk4
     gtk3.debug
     gnome2.pango
     gdk-pixbuf
-    remarkable-toolchain
     xorg.libX11
     cairo
     graphene
@@ -47,16 +65,12 @@
 
     mpdris2
     libmpc
-    mpd
     mpv
     scrot
-    brightnessctl
-    pamixer
     polkit_gnome
     inotify-tools
-    upower
 
-    xiezuo
+    # xiezuo
     # wpsoffice
     qq
 
@@ -70,21 +84,14 @@
     # drawio
     # lens
 
-    unstable.wine
-    unstable.winetricks
 
     # wewechat
     # deepin-wine-tim
     # icalingua
     # nur.repos.linyinfeng.icalingua
 
-    xdotool
-    meld
-    nextcloud-client
 
     gnome.file-roller
-    gnome.baobab
-    gnome.cheese
     gnome.gedit
     gnome.gnome-calculator
     gnome.gnome-calendar
@@ -104,29 +111,19 @@
     # gnome.gnome-software
     # dolphin
 
-    gnome.gnome-nettool
     gnome.gnome-todo
     # google-chrome
-    dconf
-    gnome.dconf-editor
-    gnome.gnome-tweaks
     gnome.gpaste
     gnome.sushi
     gnome.nautilus
     gnome.seahorse
 
-    tilix
     adwaita-qt
     gnome.adwaita-icon-theme
     libadwaita
 
-    weston
-    waypipe
-    x11docker
     inotify-tools
-    beekeeper-studio
     kazam
     flameshot
-    peek
   ];
 }

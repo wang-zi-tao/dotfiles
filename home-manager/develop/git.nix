@@ -45,6 +45,8 @@ in
     delta
     gitfs
     rs-git-fsmonitor
+  ];
+  lazyPackage = with pkgs; [
     bfg-repo-cleaner
   ];
 }

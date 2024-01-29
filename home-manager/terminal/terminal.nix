@@ -9,7 +9,7 @@
   ];
   options = with lib;with lib.types;{
     lazyPackage = mkOption {
-      type = listOf package;
+      type = listOf (oneOf [ package str ]);
       default = [ ];
     };
     neovim.pkg = mkOption {
@@ -59,9 +59,16 @@
     '';
     lazyPackage = with pkgs;[ nmap ];
     home.packages = with pkgs;
-      scripts ++ (builtins.map (pkg: let name = pkg.pname; in pkgs.writeShellScriptBin name ''nix run nixpkgs#"${name}" $@'') config.lazyPackage) ++ [
-        rnix-lsp
-        nixfmt
+      scripts ++ (builtins.map
+        (pkg: if (builtins.typeOf pkg == "string") then 
+            if (lib.strings.hasPrefix "/" pkg) then
+                pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "/" pkg ) ) ''exec ${pkg} $@''
+            else
+                pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "." pkg ) ) ''nix run nixpkgs#"${pkg}" -- $@''
+        else
+            pkgs.writeShellScriptBin pkg.pname ''nix run nixpkgs#"${pkg.pname}" -- $@'')
+        config.lazyPackage)
+      ++ [
         neovim-remote
         config.neovim.pkg
 
@@ -101,7 +108,6 @@
         gzip
         openssh
         perl
-        bison
         dnsutils
       ];
     home.file.".config/nvim/parser/nix.so".source = lib.mkDefault "${pkgs.unstable.tree-sitter.builtGrammars.tree-sitter-nix}/parser";

@@ -45,19 +45,54 @@ in
     RUST_BACKTRACE = "1";
     PATH = "$PATH:$HOME/.local/bin:$HOME/.cargo/bin";
   };
-  home.packages = with pkgs; [
+  lazyPackage = with pkgs; [
+    "/nixfs/flake/str/nixpkgs#jdk/bin/java"
+    "/nixfs/flake/str/nixpkgs#jdk/bin/javac"
+    "/nixfs/flake/str/nixpkgs#jdk/bin/jar"
+    "/nixfs/flake/str/nixpkgs#jdk/bin/jshell"
+    "/nixfs/flake/str/nixpkgs#jdk/bin/jdb"
+    jdk
+
+    kubectl
+    k9s
+    kubernetes-helm
+    nix-prefetch
+    docker-compose
+    cpulimit
+    ctop
+
+    bison
+
+    yasm
+    xlsx2csv
+    pandoc
+    socat
+    devtodo
+    tokei
+    ctags
+
     rnix-lsp
     nixfmt
-    socat
-    pandoc
-    devtodo
+    google-java-format
+    stylua
+    shfmt
+    shellcheck
+    deno
+    vala-language-server
+    cmake-language-server
+    "nodePackages.typescript-language-server"
+    "nodePackages.yaml-language-server"
+    "nodePackages.prettier"
+    "luajitPackages.luacheck"
+    "luajitPackages.luarocks"
+    "nodePackages.pyright"
+  ];
+  home.packages = with pkgs; [
     graphviz
     curlie
     highlight
-    xlsx2csv
 
     pkg-config
-    ctags
     global
     ninja
     meson
@@ -71,31 +106,20 @@ in
     unixtools.xxd
     gh
 
-    yasm
     cargo-watch
 
     sumneko-lua-language-server
-    nodePackages.typescript-language-server
     nodejs
     nodePackages.typescript
-    nodePackages.pyright
-    cmake-language-server
+    
     lua5_4
 
-    jdk
     maven
     gradle
 
-    ctop
     # distant
     iperf2
-    tokei
-    nix-prefetch
     statix
-    docker-compose
-    k9s
-    kubectl
-    kubernetes-helm
 
     neovim-remote
 
@@ -108,20 +132,6 @@ in
         # pip
         # setuptools
       ]))
-
-    luajitPackages.luacheck
-    luajitPackages.luarocks
-    google-java-format
-    stylua
-    shfmt
-    nodePackages.prettier
-    shellcheck
-    deno
-    nodePackages.yaml-language-server
-    vala-language-server
-
-    cpulimit
-
   ];
   home.file = {
     ".cargo/config.toml".text = ''

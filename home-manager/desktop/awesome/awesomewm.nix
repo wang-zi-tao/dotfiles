@@ -103,7 +103,7 @@ with builtins;{
     systemd.user.services.barrier = makeService {
       enable = true;
       Type = "simple";
-      ExecStart = "${pkgs.barrier}/bin/barrier";
+      ExecStart = "${pkgs.barrier}/bin/barrier --config ${config.home.homeDirectory}/.barrier";
     };
     systemd.user.services.run_secret_script = makeService {
       Type = "simple";

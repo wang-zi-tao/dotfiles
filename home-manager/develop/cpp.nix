@@ -1,11 +1,20 @@
 { pkgs, config, lib, ... }: {
-  home.packages = with pkgs; [
-    devtodo
-
-    gnumake
-    cmake
-    clang-tools
+  lazyPackage = with pkgs; [
+    cmake-language-server
+    cpplint
     valgrind
+    cmake
+    ccls
+    gef
+    "/nixfs/flake/str/nixpkgs#clang/bin/clang"
+    "/nixfs/flake/str/nixpkgs#clang/bin/clang++"
+    "/nixfs/flake/str/nixpkgs#lldb/bin/lldb"
+    "/nixfs/flake/str/nixpkgs#gdb/bin/gdb"
+    "/nixfs/flake/str/nixpkgs#gdb/bin/gdbserver"
+  ];
+  home.packages = with pkgs; [
+    gnumake
+    clang-tools
     # clang
     #  libcxx
     #   libcxx.dev
@@ -16,21 +25,13 @@
 
     unixtools.xxd
 
-    cmake-language-server
     config.neovim.pkg
     gcc-unwrapped.lib
     neovim-remote
     bear
-    cpplint
     # shfmt
     # shellcheck
-    gef
-
     gcc
-    gdb
-    (pkgs.writeScriptBin "clang" "${clang}/bin/clang")
-    (pkgs.writeScriptBin "clang++" "${clang}/bin/clang++")
-    (pkgs.writeScriptBin "lldb" "${lldb}/bin/lldb")
   ];
   home.file.".gef.rc".text = ''
     [gef]
