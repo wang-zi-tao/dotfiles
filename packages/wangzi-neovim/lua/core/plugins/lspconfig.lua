@@ -71,7 +71,6 @@ local function on_attach(client, bufnr)
     -- keymap("n", "gt", "<cmd>Lspsaga peek_type_definition<CR>")
     -- keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
     -- keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
-
 end
 
 local function setup_lsp(capabilities)
@@ -601,6 +600,62 @@ return {
         },
     },
     {
+        "simrat39/rust-tools.nvim",
+        dir = gen.rust_tools,
+        name = "rust_tools",
+        dependencies = "nvim_lspconfig",
+        cmd = {
+            "RustSetInlayHints",
+            "RustDisableInlayHints",
+            "RustToggleInlayHints",
+            "RustRunnables",
+            "RustExpandMacro",
+            "RustOpenCargo",
+            "RustParentModule",
+            "RustJoinLines",
+            "RustHoverActions",
+            "RustHoverRange",
+            "RustMoveItemDown",
+            "RustMoveItemUp",
+            "RustStartStandaloneServerForBuffer",
+            "RustDebuggables",
+            "RustViewCrateGraph",
+            "RustReloadWorkspace",
+            "RustSSR",
+        },
+        lazy = true,
+        config = function()
+            local adapter
+            if gen.vscode_lldb then
+                adapter = require("rust-tools.dap").get_codelldb_adapter(
+                    gen.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/adapter/codelldb",
+                    gen.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/lldb/lib/liblldb.so"
+                )
+            end
+            require("rust-tools").setup({
+                tools = {
+                    inlay_hints = {
+                        show_variable_name = true,
+                    },
+                },
+                dap = {
+                    adapter = adapter,
+                },
+            })
+        end,
+        keys = {
+            {
+                "<leader>ca",
+                function()
+                    require("rust-tools").hover_actions.hover_actions()
+                end,
+                mode = "n",
+                desc = "Cargo actio",
+            },
+        },
+        ft = { "rs", "rust", "toml" },
+    },
+    disabled = {
         "mrcjkb/rustaceanvim",
         dir = gen.rustaceanvim,
         name = "rustaceanvim",
@@ -623,14 +678,14 @@ return {
                 function()
                     vim.cmd.RustLsp("parentModule")
                 end,
-                "Rust parent mod",
+                desc = "Rust parent mod",
             },
             {
                 "<leader>cP",
                 function()
                     vim.cmd.RustLsp("openCargo")
                 end,
-                "Rust Cargo.toml",
+                desc = "Rust Cargo.toml",
             },
         },
         ft = { "rs", "rust", "toml" },
@@ -843,99 +898,6 @@ return {
                 desc = "crate.io",
             },
         },
-    },
-    {
-        "Wansmer/symbol-usage.nvim",
-        dir = gen.symbol_usage,
-        name = "symbol_usage",
-        dependencies = { "nvim_lspconfig", "onedark_nvim" },
-        config = function()
-            local SymbolKind = vim.lsp.protocol.SymbolKind
-
-            local function h(name)
-                return vim.api.nvim_get_hl(0, { name = name })
-            end
-            -- hl-groups can have any name
-            vim.api.nvim_set_hl(0, "SymbolUsageRounding", { fg = h("CursorLine").bg, italic = true })
-            vim.api.nvim_set_hl(0, "SymbolUsageContent", { bg = h("CursorLine").bg, fg = h("Comment").fg, italic = true })
-            vim.api.nvim_set_hl(0, "SymbolUsageRef", { fg = h("Function").fg, bg = h("CursorLine").bg, italic = true })
-            vim.api.nvim_set_hl(0, "SymbolUsageDef", { fg = h("Type").fg, bg = h("CursorLine").bg, italic = true })
-            vim.api.nvim_set_hl(0, "SymbolUsageImpl", { fg = h("@keyword").fg, bg = h("CursorLine").bg, italic = true })
-
-            local function text_format(symbol)
-                local res = {}
-
-                local round_start = { "", "SymbolUsageRounding" }
-                local round_end = { "", "SymbolUsageRounding" }
-
-                if symbol.references then
-                    local usage = symbol.references <= 1 and "usage" or "usages"
-                    local num = symbol.references == 0 and "no" or symbol.references
-                    table.insert(res, round_start)
-                    table.insert(res, { " ", "SymbolUsageRef" })
-                    table.insert(res, { ("%s %s"):format(num, usage), "SymbolUsageContent" })
-                    table.insert(res, round_end)
-                end
-
-                if symbol.definition then
-                    if #res > 0 then
-                        table.insert(res, { " ", "NonText" })
-                    end
-                    table.insert(res, round_start)
-                    table.insert(res, { " ", "SymbolUsageDef" })
-                    table.insert(res, { symbol.definition .. " defs", "SymbolUsageContent" })
-                    table.insert(res, round_end)
-                end
-
-                if symbol.implementation then
-                    if #res > 0 then
-                        table.insert(res, { " ", "NonText" })
-                    end
-                    table.insert(res, round_start)
-                    table.insert(res, { " ", "SymbolUsageImpl" })
-                    table.insert(res, { symbol.implementation .. " impls", "SymbolUsageContent" })
-                    table.insert(res, round_end)
-                end
-
-                return res
-            end
-
-            ---@type UserOpts
-            require("symbol-usage").setup({
-                text_format = text_format,
-                ---@type table<string, any> `nvim_set_hl`-like options for highlight virtual text
-                hl = { link = "Comment" },
-                ---@type lsp.SymbolKind[] Symbol kinds what need to be count (see `lsp.SymbolKind`)
-                kinds = { SymbolKind.Function, SymbolKind.Method },
-                ---Additional filter for kinds. Recommended use in the filetypes override table.
-                ---fiterKind: function(data: { symbol:table, parent:table, bufnr:integer }): boolean
-                ---`symbol` and `parent` is an item from `textDocument/documentSymbol` request
-                ---See: #filter-kinds
-                ---@type table<lsp.SymbolKind, filterKind[]>
-                kinds_filter = {},
-                ---@type 'above'|'end_of_line'|'textwidth' above by default
-                vt_position = "above",
-                ---Text to display when request is pending. If `false`, extmark will not be
-                ---created until the request is finished. Recommended to use with `above`
-                ---vt_position to avoid "jumping lines".
-                ---@type string|table|false
-                request_pending_text = "loading...",
-                ---The function can return a string to which the highlighting group from `opts.hl` is applied.
-                ---Alternatively, it can return a table of tuples of the form `{ { text, hl_group }, ... }`` - in this case the specified groups will be applied.
-                ---See `#format-text-examples`
-                ---@type function(symbol: Symbol): string|table Symbol{ definition = integer|nil, implementation = integer|nil, references = integer|nil }
-                -- text_format = function(symbol) end,
-                references = { enabled = true, include_declaration = false },
-                definition = { enabled = false },
-                implementation = { enabled = false },
-                ---@type { lsp?: string[], filetypes?: string[] } Disables `symbol-usage.nvim' on certain LSPs or file types.
-                disable = { lsp = {}, filetypes = {} },
-                ---@type UserOpts[] See default overridings in `lua/symbol-usage/langs.lua`
-                -- filetypes = {},
-                ---@type 'start'|'end' At which position of `symbol.selectionRange` the request to the lsp server should start. Default is `end` (try changing it to `start` if the symbol counting is not correct).
-                symbol_request_pos = "end", -- Recommended redifine only in `filetypes` override table
-            })
-        end,
     },
     {
         "chrisgrieser/nvim-dr-lsp",

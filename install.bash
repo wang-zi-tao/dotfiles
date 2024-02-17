@@ -33,7 +33,7 @@ deploy)
 nix-lang-check) nix run 'nixpkgs#statix' check . ;;
 nix-lang-fix) nix run 'nixpkgs#statix' fix . ;;
 nix-boost) sh <(curl -L https://nixos.org/nix/install) --daemon ;;
-repl) nix run "$(realpath "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)")"\#repl ;;
+repl) nix repl --extra-experimental-features 'repl-flake repl' "${script_dir}#" ;;
 nix) nix "$@" ;;
 shell)
 	mkdir .direnv || true

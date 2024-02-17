@@ -1,2 +1,3 @@
-cargo expand > /tmp/expand.rs
-nvr /tmp/expand.rs
+TEMP=$(mktemp ./target/expand-XXXX.rs)
+cargo expand $@ > $TEMP
+nvr $TEMP

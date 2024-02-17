@@ -52,6 +52,12 @@ in
     "/nixfs/flake/str/nixpkgs#jdk/bin/jshell"
     "/nixfs/flake/str/nixpkgs#jdk/bin/jdb"
     jdk
+    ghc
+    "/nixfs/flake/str/nixpkgs#ghc/bin/ghci"
+
+    "/nixfs/flake/str/nixpkgs#scala/bin/scala"
+    "/nixfs/flake/str/nixpkgs#scala/bin/scalac"
+    "/nixfs/flake/str/nixpkgs#scala/bin/scalap"
 
     kubectl
     k9s
@@ -132,12 +138,13 @@ in
         # pip
         # setuptools
       ]))
+
   ];
   home.file = {
     ".cargo/config.toml".text = ''
       [target.x86_64-unknown-linux-gnu]
       linker = "${pkgs.clang_14}/bin/clang"
-      rustflags = ["-C", "link-arg=--ld-path=${pkgs.mold}/bin/mold", "-L", "${pkgs.glibc}/lib/Scrt1.o"]
+      rustflags = ["-C", "link-arg=--ld-path=${pkgs.mold}/bin/mold", "-L", "${pkgs.glibc}/lib/"]
     '';
     ".gdbinit".text = ''
       set debuginfod enabled on

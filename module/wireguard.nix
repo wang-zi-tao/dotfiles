@@ -110,7 +110,7 @@ in
                     (wireguard.config.gateway == otherNodeName)
                     (concatLists (mapAttrsToList
                       (nodeName: node:
-                        optionals (! hasAttr otherNodeName wireguard.peers) [ node.config.clusterIp node.config.clusterIpRange ])
+                        optionals (! hasAttr nodeName wireguard.peers) [ node.config.clusterIp node.config.clusterIpRange ])
                       wireguardCluster))
                 ;
               })

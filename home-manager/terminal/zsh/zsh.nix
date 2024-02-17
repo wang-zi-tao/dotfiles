@@ -83,7 +83,7 @@
       htop = "htop";
       ps = "procs";
 
-      rm = "rmtrash -I";
+      # rm = "rmtrash -I";
       # mv = "rsync -avP --delete-delay";
       # mv-origin = "mv";
       bat = "bat --theme=Coldark-Dark";
@@ -132,16 +132,51 @@
       fi
     '';
   };
-  programs.nushell = {
-    enable = true;
-    configFile.text = ''
-    '';
-  };
+  programs.nushell =
+    let scripts = pkgs.fetchgit {
+      url = "https://github.com/nushell/nu_scripts";
+      rev = "dbf4586594a30eeec3e3a39977a397d5ea4b6be0";
+      sha256 = "sha256-7PwB5DaXe3gfyytDd7ge4nRQtnzbrXoOgGij5MuakXY=";
+    }; in
+    {
+      enable = true;
+      configFile.text = ''
+        use ${scripts}/custom-completions/git/git-completions.nu *
+        use ${scripts}/custom-completions/make/make-completions.nu *
+        use ${scripts}/custom-completions/cargo/cargo-completions.nu *
+        use ${scripts}/custom-completions/nix/nix-completions.nu *
+
+        def --env get-env [name] { $env | get $name }
+        def --env set-env [name, value] { load-env { $name: $value } }
+        def --env unset-env [name] { hide-env $name }
+        let carapace_completer = {|spans|
+          carapace $spans.0 nushell $spans | from json
+        }
+        mut current = (($env | default {} config).config | default {} completions)
+        $current.completions = ($current.completions | default {} external)
+        $current.completions.external = ($current.completions.external
+            | default true enable
+            | default $carapace_completer completer)
+        $env.config = $current
+      '';
+    };
   programs.atuin = {
     enable = true;
     enableZshIntegration = true;
     enableBashIntegration = true;
     enableNushellIntegration = true;
+  };
+  programs.carapace = {
+    enable = true;
+    enableNushellIntegration = true;
+    enableBashIntegration = true;
+    enableZshIntegration = true;
+  };
+  programs.yazi = {
+    enable = true;
+    enableNushellIntegration = true;
+    enableBashIntegration = true;
+    enableZshIntegration = true;
   };
   programs.starship = {
     enable = true;

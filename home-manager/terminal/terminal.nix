@@ -57,7 +57,10 @@
        nix-index &
       fi
     '';
-    lazyPackage = with pkgs;[ nmap ];
+    lazyPackage = with pkgs;[
+        "/nixfs/flake/str/nixpkgs#btop/bin/btop"
+        nmap 
+    ];
     home.packages = with pkgs;
       scripts ++ (builtins.map
         (pkg: if (builtins.typeOf pkg == "string") then 

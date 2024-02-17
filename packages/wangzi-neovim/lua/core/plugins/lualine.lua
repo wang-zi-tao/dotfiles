@@ -310,6 +310,10 @@ local progress = {
 
 local lsp_count = {
   function()
+    local ft = vim.bo.filetype
+    if ft == "rust" then
+      return ""
+    end
     local data = require("dr-lsp").lspCountTable()
     return string.format("LSP: %dD >> %dR", data.workspace.definitions, data.workspace.references)
   end,

@@ -10,7 +10,7 @@
 , enable-all ? true
 , enable-debuger ? enable-all
 , enable-markdown-preview ? enable-all
-, enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux" || pkgs.system == "x86_64-darwin")
+, enable-tabnine ? false
 }:
 stdenvNoCC.mkDerivation {
   pname = "wangzi-neovim";
@@ -85,6 +85,7 @@ stdenvNoCC.mkDerivation {
       navbuddy = "${nvim-navbuddy}",
       symbols_outline = "${symbols-outline-nvim}",
       rustaceanvim = "${rustaceanvim}",
+      rust_tools = "${rust-tools-nvim}",
       null_ls = "${null-ls-nvim}",
       clangd_extensions_nvim = "${clangd_extensions-nvim}",
 
@@ -119,7 +120,6 @@ stdenvNoCC.mkDerivation {
       nvim_autopairs = "${nvim-autopairs}",
       dashboard_nvim = "${dashboard-nvim}",
       nvim_comment = "${nvim-comment}",
-      nvim_tree_lua = "${nvim-tree-lua}",
 
       -- telescope
       telescope_nvim = "${telescope-nvim}",
@@ -170,6 +170,7 @@ stdenvNoCC.mkDerivation {
 
       -- window UI
       neo_tree = "${neo-tree-nvim}",
+      nvim_tree_lua = "${nvim-tree-lua}",
       diffview = "${diffview-nvim}",
 
       -- UI

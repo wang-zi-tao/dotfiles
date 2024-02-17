@@ -33,6 +33,7 @@
     beekeeper-studio
     peek
     remmina
+    "/nixfs/flake/str/nixpkgs#geogebra/bin/geogebra"
   ];
   home.packages = with pkgs; [
     libinput
