@@ -154,23 +154,23 @@ nixpkgs.lib.nixosSystem
         };
       };
       fileSystems."/export/home" = {
-          device = "/home/wangzi";
-          options = [ "bind" ];
+        device = "/home/wangzi";
+        options = [ "bind" ];
       };
       services.nfs.server.enable = true;
       services.nfs.server.exports = ''
         /home 192.168.122.0/24(rw,all_squash,anonuid=1000,anongid=1000,insecure,no_subtree_check)
         /export 192.168.122.0/24(rw,all_squash,anonuid=1000,anongid=1000,insecure,no_subtree_check)
       '';
-      services.nfs.idmapd.settings = {
-
-      };
+      services.nfs.idmapd.settings = { };
       users.users.root.hashedPassword = "$6$EleVrSVkk8j6lvlN$5EPVW5nhguBtB7WFaLBWrJHCCT.7xj7.NNgMR9OVdf3ngH80miDyox3JXcuHEu65NTnbGtlCX14bzxg0F1po8.";
       users.users.wangzi.hashedPassword = "$6$zBepEnWeXpVqW3Di$neIo/RZP.X7WS/VjECbcsLgKvXw4Ax1tgkoKBQikhoy7qlAdYSE/V5QQkwbl/dwSAx3daPVW1f.V93H.7.EZb1";
       hardware.ksm.enable = true;
       networking.firewall.rejectPackets = lib.mkForce false;
       services.openssh.permitRootLogin = lib.mkForce "no";
       # services.openssh.passwordAuthentication = lib.mkForce false;
+      services.xserver.displayManager.lightdm.enable = lib.mkForce false;
+      services.xserver.displayManager.gdm.enable = lib.mkForce false;
 
       services.udev.extraRules = ''
         SUBSYSTEM=="usb", ATTR{idVendor}=="12d1", ATTR{idProduct}=="5000", GROUP="users", MODE="0777"
