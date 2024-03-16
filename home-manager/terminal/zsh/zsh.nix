@@ -87,7 +87,7 @@
       # mv = "rsync -avP --delete-delay";
       # mv-origin = "mv";
       bat = "bat --theme=Coldark-Dark";
-      cat = "bat --theme=Coldark-Dark --pager=never";
+      cat = "bat --theme=Coldark-Dark";
       less = "bat --theme=Coldark-Dark";
       man = ''
         MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';
@@ -130,6 +130,7 @@
       if [[ -e /run/secrets/shell/${config.home.username} ]];then
         source /run/secrets/shell/${config.home.username}
       fi
+      atuin login -u wangzi -p 03hat0zw0oEH7nipcKB6JqLpxptl7DdV -k $(cat /run/secrets-for-users/atuin-key) >> /dev/null
     '';
   };
   programs.nushell =
@@ -160,6 +161,7 @@
         $env.config = $current
       '';
     };
+  home.file.".config/atuin/config.toml".source = ./atuin.toml;
   programs.atuin = {
     enable = true;
     enableZshIntegration = true;

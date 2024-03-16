@@ -67,6 +67,7 @@
       packages = final: prev: with builtins;listToAttrs (map (name: { inherit name; value = final.callPackage (./packages + "/${name}") { }; }) (attrNames (readDir ./packages)));
       config = {
         allowUnfree = true;
+        allowBroken = true;
         permittedInsecurePackages = [ ];
       };
       pkgs-config = system: { inherit system config; overlays = overlays ++ [ packages ]; };
@@ -79,16 +80,19 @@
           fenix.overlays.default
           # nixpkgs-wayland.overlay
           nixseparatedebuginfod.overlays.default
-          (final: prev: {
-            unstable = import inputs.nixpkgs-unstable { inherit system overlays config; };
-            master = import inputs.master { inherit system overlays config; };
-            nixpkgs-old = import inputs.nixpkgs-old { inherit system overlays config; };
-            flake-inputs = inputs;
-            eza = eza.packages.${system}.default;
-            scripts = map
-              (f: prev.writeScriptBin f (readFile (./scripts + "/${f}")))
-              (attrNames (readDir ./scripts));
-          } // (listToAttrs (map (name: { inherit name; value = final.callPackage (./packages + "/${name}") { }; }) (attrNames (readDir ./packages)))))
+          (final: prev:
+            let unstable = import inputs.nixpkgs-unstable { inherit system overlays config; }; in
+            {
+              unstable = unstable;
+              master = import inputs.master { inherit system overlays config; };
+              nixpkgs-old = import inputs.nixpkgs-old { inherit system overlays config; };
+              flake-inputs = inputs;
+              eza = eza.packages.${system}.default;
+              atuin = unstable.atuin;
+              scripts = map
+                (f: prev.writeScriptBin f (readFile (./scripts + "/${f}")))
+                (attrNames (readDir ./scripts));
+            } // (listToAttrs (map (name: { inherit name; value = final.callPackage (./packages + "/${name}") { }; }) (attrNames (readDir ./packages)))))
         ] ++ overlays);
       };
     in

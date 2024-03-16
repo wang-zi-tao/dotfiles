@@ -44,7 +44,7 @@ stdenvNoCC.mkDerivation {
       plenary_nvim = "${plenary-nvim}",
       impatient_nvim = "${impatient-nvim}",
       notify_nvim = "${nvim-notify}",
-      nvim_base16 = "${nvim-base16}",
+      nvim_base16 = "${base16-nvim}",
       nvim_web_devicons = "${nvim-web-devicons}",
       feline_nvim = "${feline-nvim}",
       lualine_nvim = "${lualine-nvim}",
@@ -88,6 +88,8 @@ stdenvNoCC.mkDerivation {
       rust_tools = "${rust-tools-nvim}",
       null_ls = "${null-ls-nvim}",
       clangd_extensions_nvim = "${clangd_extensions-nvim}",
+      haskell_tools_nvim = "${haskell-tools-nvim}",
+      iron_nvim = "${iron-nvim}",
 
       vim_matchup = "${vim-matchup}",
       better_escape_nvim = "${better-escape-nvim}",
@@ -257,6 +259,7 @@ stdenvNoCC.mkDerivation {
     makeWrapper ${pkgs.unstable.neovim-unwrapped}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
         --set LUA_PATH "$LUA_PATH"
     ln -s ${pkgs.tree-sitter}/bin/tree-sitter $out/bin/tree-sitter
+    cp $out/bin/wnvim $out/bin/wangzi-neovim
     cp $out/bin/wnvim $out/bin/nvim
     cp $out/bin/wnvim $out/bin/vim
     cp $out/bin/wnvim $out/bin/vi

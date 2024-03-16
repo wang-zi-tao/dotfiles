@@ -42,6 +42,7 @@
       VISUAL = "nvim";
       NIX_AUTO_RUN = "1";
       NIXPKGS_ALLOW_UNFREE = "1";
+      NIXPKGS_ALLOW_BROKEN = "1";
       LIBVIRT_DEFAULT_URI = "qemu:///system";
       VIRSH_DEFAULT_CONNECT_URI = "qemu:///system";
     };

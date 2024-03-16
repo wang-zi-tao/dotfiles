@@ -701,6 +701,60 @@ return {
         config = function() end,
     },
     {
+      'mrcjkb/haskell-tools.nvim',
+      dir = gen.haskell_tools_nvim,
+      version = '^3', -- Recommended
+      ft = { 'hs', 'haskell', 'lhaskell', 'cabal', 'cabalproject' },
+    },
+    {
+        'Vigemus/iron.nvim',
+        dir = gen.iron_nvim,
+        config = function()
+            local iron = require("iron.core")
+
+            iron.setup {
+            config = {
+                -- Whether a repl should be discarded or not
+                scratch_repl = true,
+                -- Your repl definitions come here
+                repl_definition = {
+                sh = {
+                    -- Can be a table or a function that
+                    -- returns a table (see below)
+                    command = {"zsh"}
+                }
+                },
+                -- How the repl window will be displayed
+                -- See below for more information
+                repl_open_cmd = require('iron.view').bottom(40),
+            },
+            -- Iron doesn't set keymaps by default anymore.
+            -- You can set them here or manually add keymaps to the functions in iron.core
+            keymaps = {
+                send_motion = "<space>Rc",
+                visual_send = "<space>Rc",
+                send_file = "<space>Rf",
+                send_line = "<space>Rl",
+                send_until_cursor = "<space>Ru",
+                send_mark = "<space>Rm",
+                mark_motion = "<space>Rc",
+                mark_visual = "<space>Rc",
+                remove_mark = "<space>Rd",
+                cr = "<space>s<cr>",
+                interrupt = "<space>s<space>",
+                exit = "<space>Rq",
+                clear = "<space>Rl",
+            },
+            -- If the highlight is on, you can change how it looks
+            -- For the available options, check nvim_set_hl
+            highlight = {
+                italic = true
+            },
+            ignore_blank_lines = true, -- ignore blank lines when sending visual select lines
+            }
+        end
+    },
+    {
         "williamboman/mason.nvim",
         dir = gen.mason_nvim,
         name = "mason_nvim",

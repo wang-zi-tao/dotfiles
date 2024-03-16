@@ -28,7 +28,7 @@ system="${system%\"}"
 system="${system#\"}"
 case $command in
 deploy)
-	nix run "$script_dir#deploy-rs" -- -d --fast-connection true -c "$@"
+	nix run "$script_dir#deploy-rs" -- -d --fast-connection true --activation-timeout 60 --confirm-timeout 60 -c "$@"
 	;;
 nix-lang-check) nix run 'nixpkgs#statix' check . ;;
 nix-lang-fix) nix run 'nixpkgs#statix' fix . ;;

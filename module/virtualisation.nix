@@ -77,6 +77,7 @@ with builtins;{
       path = [ virtiofsd swtpm-tpm2 virglrenderer ];
       environment.LD_LIBRARY_PATH = "${virglrenderer}/lib";
     };
+
     networking.firewall.trustedInterfaces = [ "virbr0" ];
     networking.dhcpcd.denyInterfaces = [ "eno1" ];
 
