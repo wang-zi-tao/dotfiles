@@ -93,7 +93,7 @@ local function setup_lsp(capabilities)
         "rnix",
         "vala_ls",
         "wgsl_analyzer",
-        -- "clangd",
+        "clangd",
     }
     local option = {
         on_attach = on_attach,

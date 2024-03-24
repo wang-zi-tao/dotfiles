@@ -85,8 +85,8 @@ end
 M.mini = function()
     -- require('mini.animate').setup()
     require("mini.surround").setup({
-        n_lines = 65536,
-        highlight_duration = 500,
+        n_lines = 255,
+        highlight_duration = 16,
         mappings = {
             add = "S", -- Add surrounding
             delete = "ds", -- Delete surrounding

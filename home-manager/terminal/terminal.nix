@@ -76,9 +76,7 @@
         neovim-remote
         config.neovim.pkg
 
-        lm_sensors
         nix-tree
-        nload
         killall
         atool
         bat
@@ -113,7 +111,10 @@
         openssh
         perl
         dnsutils
-      ];
+      ] ++ (lib.optionals (pkgs.system == "x86_64-linux") [
+        nload
+        lm_sensors
+      ]);
     home.file.".config/nvim/parser/nix.so".source = lib.mkDefault "${pkgs.unstable.tree-sitter.builtGrammars.tree-sitter-nix}/parser";
     # home.file.".config/nvim/parser/rust.so".source = lib.mkDefault "${pkgs.unstable.tree-sitter.builtGrammars.tree-sitter-rust}/parser";
     # home.file.".code-server/bin/node" = { source = "${pkgs.nodejs-16_x}/bin/node"; executable = true; };

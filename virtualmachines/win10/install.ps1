@@ -17,6 +17,8 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope LocalMachine -Force
 cmd /c "sc create VirtioFsSvc binpath=`"C:\ProgramData\chocolatey\lib\virtio-drivers\tools\virtio\viofs\w10\amd64\virtiofs.exe`" start=auto depend=`"WinFsp.Launcher/VirtioFsDrv`" DisplayName=`"Virtio FS Service`""
 cmd /c "sc start VirtioFsSvc"
 
+Enable-WindowsOptionalFeature -FeatureName ServicesForNFS-ClientOnly, ClientForNFS-Infrastructure -Online -NoRestart
+
 # neovim
 mkdir ~/AppData/Local/nvim
 cp ../../packages/wangzi-neovim/* ~/AppData/Local/nvim -Force -Recurse
