@@ -14,7 +14,6 @@ in
       enableImagemagick = true;
       config.adminuser = "wang-zi-tao";
       config.adminpassFile = config.sops.secrets."nextcloud/admin_password".path;
-      enableBrokenCiphersForSSE = false;
       autoUpdateApps.enable = true;
       https = true;
     };

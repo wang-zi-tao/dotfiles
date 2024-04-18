@@ -38,7 +38,7 @@ nixpkgs.lib.nixosSystem {
         };
         timeout = 1;
       };
-      boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod;
+      # boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod;
       boot.initrd.availableKernelModules =
         [
           "xhci_pci"

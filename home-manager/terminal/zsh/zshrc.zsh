@@ -174,6 +174,9 @@ new-nix-shell-flake() {
             #   sha256 = lib.fakeHash;
             # })
           ];
+          nativeBuildInputs = with pkgs; [
+          
+          ];
         };
       });
 }

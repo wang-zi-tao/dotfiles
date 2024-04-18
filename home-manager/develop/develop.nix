@@ -86,6 +86,8 @@ in
     deno
     vala-language-server
     cmake-language-server
+    "haskellPackages.haskell-debug-adapter"
+    "haskellPackages.haskell-language-server"
     "nodePackages.typescript-language-server"
     "nodePackages.yaml-language-server"
     "nodePackages.prettier"
