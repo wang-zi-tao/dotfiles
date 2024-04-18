@@ -1,4 +1,4 @@
-{ pkgs-template, nixpkgs, home-manager, sops-nix, ... }@inputs:
+{ pkgs-template, nixpkgs, home-manager, sops-nix, nixfs, ... }@inputs:
 let
   hostname = "wangzi-kingsoft";
   system = "x86_64-linux";
@@ -11,6 +11,7 @@ nixpkgs.lib.nixosSystem
   modules = [
     sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
+    nixfs.nixosModules.nixfs
     ({ pkgs, lib, config, ... }: {
       imports = [
         ../module/cluster.nix
@@ -157,10 +158,15 @@ nixpkgs.lib.nixosSystem
         device = "/home/wangzi";
         options = [ "bind" ];
       };
+      fileSystems."/wps" = {
+        device = "/dev/pool/buildLinux";
+      };
       services.nfs.server.enable = true;
       services.nfs.server.exports = ''
         /home 192.168.122.0/24(rw,all_squash,anonuid=1000,anongid=1000,insecure,no_subtree_check)
         /export 192.168.122.0/24(rw,all_squash,anonuid=1000,anongid=1000,insecure,no_subtree_check)
+        /wps 192.168.122.0/24(rw,all_squash,anonuid=1000,anongid=1000,insecure,no_subtree_check)
+        /nix 192.168.122.0/24(rw,all_squash,anonuid=1000,anongid=1000,insecure,no_subtree_check)
       '';
       services.nfs.idmapd.settings = { };
       users.users.root.hashedPassword = "$6$EleVrSVkk8j6lvlN$5EPVW5nhguBtB7WFaLBWrJHCCT.7xj7.NNgMR9OVdf3ngH80miDyox3JXcuHEu65NTnbGtlCX14bzxg0F1po8.";
@@ -175,11 +181,27 @@ nixpkgs.lib.nixosSystem
       services.udev.extraRules = ''
         SUBSYSTEM=="usb", ATTR{idVendor}=="12d1", ATTR{idProduct}=="5000", GROUP="users", MODE="0777"
       '';
+      users.users.wangzi.extraGroups = [ "docker" ];
+
+      virtualisation.libvirtd.qemu = {
+        package = pkgs.qemu_full;
+        ovmf.enable = true;
+        ovmf.packages = [ pkgs.OVMFFull.fd pkgs.pkgsCross.aarch64-multiplatform.OVMF.fd ];
+      };
+      virtualisation.docker = {
+        enable = true;
+        enableOnBoot = true;
+      };
+      networking.firewall.allowedTCPPortRanges = [{
+        from = 5800;
+        to = 5816;
+      }];
       vm = {
         guest-reserved = 1600;
         host-reserved = 1600;
-        guest-reserved-percent = 0.6;
+        guest-reserved-percent = 0.2;
       };
+	  services.nixfs.enable = true;
     })
   ];
 }

@@ -71,7 +71,12 @@ with builtins;{
         ExecStart = "${pkgs.balloond}/bin/balloond -r ${toString cfg.guest-reserved} -R ${toString cfg.host-reserved} -p ${toString cfg.guest-reserved-percent} -d 1 -h 4";
       };
     };
-    environment.etc."qemu/vhost-user".source = "${pkgs.qemu}/share/qemu/vhost-user";
+    environment.etc."qemu/vhost-user".text = ''
+        listen_tls = 1
+        listen_tcp = 1
+        listen_addr = "10.13.148.196"
+    '';
+    environment.etc."libvirt/libvirtd.conf".source = "${pkgs.qemu}/share/qemu/vhost-user";
     environment.systemPackages = with pkgs; [ looking-glass-client virtiofsd podman-compose qemu virt-manager virt-viewer rdesktop ];
     systemd.services.libvirtd = with pkgs; {
       path = [ virtiofsd swtpm-tpm2 virglrenderer ];

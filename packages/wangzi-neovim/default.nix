@@ -264,6 +264,7 @@ stdenvNoCC.mkDerivation {
     ln -s ${pkgs.tree-sitter}/bin/tree-sitter $out/bin/tree-sitter
     cp $out/bin/wnvim $out/bin/wangzi-neovim
     cp $out/bin/wnvim $out/bin/nvim
+    cp $out/bin/wnvim $out/bin/wangzi-neovim
     cp $out/bin/wnvim $out/bin/vim
     cp $out/bin/wnvim $out/bin/vi
     cp $out/bin/wnvim $out/bin/v
