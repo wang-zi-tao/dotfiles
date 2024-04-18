@@ -111,8 +111,8 @@ local function config()
     -- see `:h neo-tree-custom-commands-global`
     commands = {},
     window = {
-      position = "left",
-      width = 32,
+      position = "float",
+      width = 128,
       mapping_options = {
         noremap = true,
         nowait = true,
@@ -202,13 +202,13 @@ local function config()
         --               -- the current file is changed while the tree is open.
         leave_dirs_open = false, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
       },
-      group_empty_dirs = false, -- when true, empty folders will be grouped together
+      group_empty_dirs = true, -- when true, empty folders will be grouped together
       hijack_netrw_behavior = "open_default", -- netrw disabled, opening a directory opens neo-tree
       -- in whatever position is specified in window.position
       -- "open_current",  -- netrw disabled, opening a directory opens within the
       -- window like netrw would, regardless of window.position
       -- "disabled",    -- netrw left alone, neo-tree does not handle opening dirs
-      use_libuv_file_watcher = false, -- This will use the OS level file watchers to detect changes
+      use_libuv_file_watcher = true, -- This will use the OS level file watchers to detect changes
       -- instead of relying on nvim autocmd events.
       window = {
         mappings = {
@@ -381,7 +381,10 @@ return {
   dir = gen.neo_tree,
   branch = "v3.x",
   keys = {
-    { "<leader>e", "<cmd>Neotree toggle<cr>", desc = "File Tree" },
+    { "<leader>e", 
+        function()
+            vim.cmd( [[Neotree reveal_file=]] .. vim.fn.expand('%'))
+        end, desc = "File Tree" },
     { "<leader>Ef", "<cmd>Neotree filesystem<cr>", desc = "Files" },
     { "<leader>EF", "<cmd>Neotree float<cr>", desc = "Float" },
     { "<leader>Eb", "<cmd>Neotree buffers<cr>", desc = "Buffers" },

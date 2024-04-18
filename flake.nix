@@ -4,6 +4,7 @@
     nixpkgs-old.url = "github:nixos/nixpkgs/release-23.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     master.url = "github:nixos/nixpkgs";
+    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     home-manager.url = "github:nix-community/home-manager/release-23.11";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
@@ -40,6 +41,7 @@
     , fenix
     , nixpkgs
     , nixpkgs-wayland
+    , nixos-wsl
     , flake-utils
     , nix-on-droid
     , sops-nix

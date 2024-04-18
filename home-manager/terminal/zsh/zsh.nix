@@ -87,7 +87,7 @@
       # mv = "rsync -avP --delete-delay";
       # mv-origin = "mv";
       bat = "bat --theme=Coldark-Dark";
-      cat = "bat --theme=Coldark-Dark --pager=never";
+      cat = "bat";
       less = "bat --theme=Coldark-Dark";
       man = ''
         MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';

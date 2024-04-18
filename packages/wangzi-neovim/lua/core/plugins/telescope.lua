@@ -164,7 +164,7 @@ return {
                 vim.cmd("Telescope fd search_dirs="..( global.pwd or "." ))
             end, desc = "Files", },
             { "<leader>fr", function() telescope().registers() end,             desc = "Registers", },
-            { "<leader>fo", function() telescope().lsp_workspace_symbols() end, desc = "WorkspaceSymbols", },
+            { "<leader>fo", function() telescope().lsp_dynamic_workspace_symbols() end, desc = "WorkspaceSymbols", },
             { "<leader>fa", function() vim.lsp.buf.code_action() end,           desc = "Actions", },
             {
                 "<leader>fi",

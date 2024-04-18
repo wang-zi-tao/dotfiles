@@ -1,20 +1,32 @@
-sqlite = require("sqlite")
+if vim.fn.has("win32") then
+    vim.g.sqlite_clib_path = "C:/dotfiles-install/lib/sqlite3.dll"
+end
 
-local M = {}
-M.sqlite = sqlite
+local sqlite = require("sqlite.db")
+local tbl = require("sqlite.tbl")
 
-local db = sqlite {
-    uri = vim.fn.stdpath("data") .. "/nvim.db",
-    projects = {
-        path = {"text", unique = true, primary = true},
-        cwd = {"text"},
-    },
-    breakpoints = {
-        file = {"text"},
-        line = {"integer"},
-        project = {"text"},
+local M = {
+    sqlite = sqlite,
+    tbl = tbl,
+    tables = {
+        uri = vim.fn.stdpath("data") .. "/nvim.db",
+        projects = tbl("projects", {
+            path = {"text", unique = true, primary = true},
+            cwd = {"text"},
+        } ),
+        breakpoints = tbl("breakpoints", {
+            file = {"text"},
+            line = {"integer"},
+            project = {"text"},
+        } ),
+        bookmarks = tbl("bookmarks", {
+            project = {"text"},
+            name = {"text"}
+        } )
     },
 }
+
+local db = sqlite(m.tables) 
 M.db = db
 
 return M

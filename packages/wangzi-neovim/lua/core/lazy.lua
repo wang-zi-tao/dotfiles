@@ -91,8 +91,8 @@ require("lazy").setup({
         "kkharji/sqlite.lua",
         dir = gen.sqlite,
         name = "sqlite",
-        module = "sqlite",
-        lazy = true,
+        module = { "sqlite", "sqlite.tbl", "sqlite.db" },
+        lazy = false,
         init = function()
             if gen.libsqlite then
                 vim.g.sqlite_clib_path = gen.libsqlite
