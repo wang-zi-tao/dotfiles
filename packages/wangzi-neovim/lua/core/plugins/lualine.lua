@@ -311,7 +311,7 @@ local progress = {
 local lsp_count = {
   function()
     local ft = vim.bo.filetype
-    if ft == "rust" then
+    if ft == "rust" or ft == "python" then
       return ""
     end
     local data = require("dr-lsp").lspCountTable()

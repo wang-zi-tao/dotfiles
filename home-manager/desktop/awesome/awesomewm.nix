@@ -144,6 +144,7 @@ with builtins;{
       ExecStart = "${config.programs.firefox.package}/bin/firefox";
     };
     systemd.user.services.xpra-shadow = makeService {
+      Restart = "always";
       ExecStart =
         let
           script = pkgs.writeShellScriptBin "xpra-shadow" ''

@@ -50,24 +50,28 @@ local function config()
       stopOnEntry = true,
     },
     {
-      name = "Attach to gdbserver :1234",
+      name = "Attach to gdbserver",
       type = "cppdbg",
       request = "launch",
       MIMode = "gdb",
       miDebuggerServerAddress = function()
-        ip_cache = vim.fn.input("ip address to attach: ", ip_cache, "")
+        ip_cache = vim.fn.input("ip address to attach: ", ip_cache)
         return ip_cache
       end,
       cwd = "${workspaceFolder}",
       program = function()
-        return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+        path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
+        return path_cache
       end,
     },
   }
   dap.adapters.cppdbg = {
-    id = "cppdbg",
-    type = "executable",
-    command = "/absolute/path/to/cpptools/extension/debugAdapters/bin/OpenDebugAD7",
+    id = 'cppdbg',
+    type = 'executable',
+    command = gen.core .. '/bin/OpenDebugAD7',
+    options = {
+        detached = false
+    }
   }
 
   dap.configurations.c = dap.configurations.cpp
@@ -186,7 +190,7 @@ return {
       function()
         require("dap").step_back()
       end,
-      desc = "Step Back",
+      desc = "Step Out",
     },
     {
       "<leader>di",
@@ -311,6 +315,13 @@ return {
       name = "dap_ui",
       module = "dapui",
       lazy = true,
+      dependencies = {
+          {
+              "nvim-neotest/nvim-nio",
+              dir = gen.nio,
+              name = "nio",
+          }
+      },
       keys = {
         {
           "<leader>duo",
@@ -399,14 +410,21 @@ return {
           show_stop_reason = true, -- show stop reason when stopped for exceptions
           commented = true, -- prefix virtual text with comment string
           only_first_definition = true, -- only show virtual text at first definition (if there are multiple)
-          all_references = false, -- show virtual text on all all references of the variable (not only definitions)
+          all_references = true, -- show virtual text on all all references of the variable (not only definitions)
           filter_references_pattern = "<module", -- filter references (not definitions) pattern when all_references is activated (Lua gmatch pattern, default filters out Python modules)
           -- experimental features:
-          virt_text_pos = "eol", -- position of virtual text, see `:h nvim_buf_set_extmark()`
-          all_frames = true, -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
+          virt_text_pos = vim.fn.has 'nvim-0.10' == 1 and 'inline' or 'eol', -- position of virtual text, see `:h nvim_buf_set_extmark()`
+          all_frames = false, -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
           virt_lines = false, -- show virtual lines instead of virtual text (will flicker!)
           virt_text_win_col = nil, -- position the virtual text at a fixed window column (starting from the first text column) ,
           -- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
+            display_callback = function(variable, buf, stackframe, node, options)
+                if options.virt_text_pos == 'inline' then
+                    return ' = ' .. variable.value
+                else
+                    return variable.name .. ' = ' .. variable.value
+                end
+            end,
         })
       end,
     },

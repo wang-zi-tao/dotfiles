@@ -80,6 +80,7 @@ local function setup_lsp(capabilities)
         "lua_ls",
         "vimls",
         "pyright",
+        "ruff",
         -- "rust_analyzer",
         "gopls",
         "html",

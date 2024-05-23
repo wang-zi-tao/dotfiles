@@ -1,4 +1,4 @@
-if vim.fn.has("win32") then
+if vim.fn.has("win32") == 1 then
     vim.g.sqlite_clib_path = "C:/dotfiles-install/lib/sqlite3.dll"
 end
 
@@ -26,7 +26,7 @@ local M = {
     },
 }
 
-local db = sqlite(m.tables) 
+local db = sqlite(M.tables) 
 M.db = db
 
 return M
