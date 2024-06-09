@@ -95,9 +95,9 @@ with builtins;{
       ExecStart = "/run/current-system/sw/bin/ibus-daemon -x -r -R";
       Restart = "always";
     };
-    systemd.user.services.xiezuo = makeService {
-      ExecStart = "${pkgs.xiezuo}/bin/xiezuo --no-sandbox --no-zygote --package-format=deb";
-    };
+    # systemd.user.services.xiezuo = makeService {
+    #   ExecStart = "${pkgs.xiezuo}/bin/xiezuo --no-sandbox --no-zygote --package-format=deb";
+    # };
     systemd.user.services.virt-manager = makeService {
       ExecStart = "virt-manager";
     };
@@ -148,9 +148,9 @@ with builtins;{
           script = pkgs.writeShellScriptBin "xpra-shadow" ''
             #!${pkgs.busybox}/bin/sh
             if command -v nvidia-smi; then
-              xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+6000)) --video-encoders=nvenc
+              ${pkgs.xpra-html5}/bin/xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+6000)) --video-encoders=nvenc
             else
-              xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+6000))
+              ${pkgs.xpra-html5}/bin/xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+6000))
             fi
           ''; in
         ''
@@ -163,9 +163,9 @@ with builtins;{
           script = pkgs.writeShellScriptBin "xpra-server" ''
             #!${pkgs.busybox}/bin/sh
             if command -v nvidia-smi ; then 
-              xpra-html5-start :$((${"\$"+"{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+7000)) --video-encoders=nvenc
+              ${pkgs.xpra-html5}/bin/xpra-html5-start :$((${"\$"+"{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+7000)) --video-encoders=nvenc
             else 
-              xpra-html5-start :$((${"\$"+"{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+7000))
+              ${pkgs.xpra-html5}/bin/xpra-html5-start :$((${"\$"+"{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$"+"{DISPLAY:1}"}+7000))
             fi
           ''; in
         ''

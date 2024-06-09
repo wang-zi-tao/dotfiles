@@ -86,8 +86,7 @@
       # rm = "rmtrash -I";
       # mv = "rsync -avP --delete-delay";
       # mv-origin = "mv";
-      bat = "bat --theme=Coldark-Dark";
-      cat = "bat --theme=Coldark-Dark";
+      cat = "bat";
       less = "bat --theme=Coldark-Dark";
       man = ''
         MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';
@@ -115,6 +114,7 @@
 
       ".." = "cd ..";
 
+      podmanexec = "podman exec -w $PWD -ti wps_build_linux_v8_2_2_multi_arch";
     };
     sessionVariables = config.home.sessionVariables // {
       _ZO_EXCLUDE_DIRS = "/nix";

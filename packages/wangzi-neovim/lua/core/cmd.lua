@@ -23,7 +23,7 @@ vim.api.nvim_create_user_command("CopyFilePath", [[ let @+ = expand('%:p')  ]], 
 local function OpenInVS()
     local file = vim.fn.expand('%')
     local row = vim.api.nvim_win_get_cursor(0)[1]
-    vim.cmd("!devenv " .. file .. " /edit " .. file .. " /command 'edit.goto " .. row .. "'")
+    vim.cmd("!devenv " .. file .. " /edit " .. file .. "'")
 end
 vim.api.nvim_create_user_command("OpenInVS", OpenInVS, {})
 vim.api.nvim_create_user_command("ToVS", OpenInVS, {})
