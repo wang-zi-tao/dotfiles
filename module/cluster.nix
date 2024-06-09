@@ -84,7 +84,7 @@ with lib; with builtins;{
       network = {
         nodes = {
           wangzi-pc.config = {
-            localIp = "192.168.32.128";
+            localIp = "192.168.1.145";
             doh.enable = true;
           };
           wangzi-nuc.config = {
@@ -92,7 +92,7 @@ with lib; with builtins;{
             doh.enable = true;
           };
           wangzi-asus.config = {
-            # localIp = "192.168.32.129";
+            localIp = "192.168.32.129";
             doh.enable = true;
           };
           huawei-ecs.config = { publicIp = "139.9.235.87"; };
@@ -175,21 +175,18 @@ with lib; with builtins;{
           wangzi-pc.to.wangzi-nuc = {
             mountDirs = {
               "wangzi-nuc" = {
-                ip = "192.168.32.1";
-                cacheSize = 8192;
+                # ip = "192.168.32.1";
+                cacheSize = 32*1024;
               };
             };
             syncDirs = {
-              "wangzi" = {
-                ipA = "192.168.32.128";
-                ipB = "192.168.32.1";
-              };
+              "wangzi" = { };
             };
           };
           wangzi-asus.to.wangzi-nuc = {
             mountDirs = {
               "wangzi-nuc" = {
-                # ip = "192.168.32.1";
+                ip = "192.168.32.1";
                 cacheSize = 4096;
               };
             };

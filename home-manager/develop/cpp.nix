@@ -38,9 +38,10 @@
     autosave_breakpoints_file = "${config.home.homeDirectory}/.gef.breakpoints"
 
     [context]
-    layout = -legend -regs -stack -code -args -threads trace extra memory source
+    # layout = -legend -regs -stack -code -args -threads trace extra memory source
+    layout = -legend regs stack code args source -threads -trace extra memory
     nb_lines_threads = 1
-    nb_lines_code = 16
+    nb_lines_code = 8
     nb_lines_code_prev = 2
     nb_lines_backtrace = 2
     

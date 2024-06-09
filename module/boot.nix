@@ -24,6 +24,7 @@
       };
     };
 
+    services.lvm.boot.thin.enable = true;
     services.fstrim.interval = "daily";
     documentation.nixos.enable = lib.mkDefault false;
     console.earlySetup = true;
@@ -40,8 +41,15 @@
     systemd.oomd = {
       enable = true;
       extraConfig = { DefaultMemoryPressureDurationSec = "15s"; };
+      enableUserSlices = true;
+      enableRootSlice = true;
       enableSystemSlice = true;
     };
+    services.earlyoom = {
+      enable = true;
+      enableNotifications = true;
+      extraArgs = ["-g" "--prefer '(^|/)(java|chromium|nvim|clang|clang\+\+|cargo|rustc|ghc|rust-analyzer|.haskell-language-server-.*)$'" ];
+    }; 
     systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {
       wantedBy = [ "multi-user.target" ];
       before = [ "multi-user.target" ];

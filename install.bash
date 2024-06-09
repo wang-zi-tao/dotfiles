@@ -19,10 +19,6 @@ if ! command -v nix &>/dev/null; then
 	fi
 fi
 
-realpath() {
-	[[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
-}
-
 script_dir=$(realpath "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)")
 sudo() {
 	if command -v sudo &>/dev/null; then
@@ -52,7 +48,7 @@ deploy)
 nix-lang-check) nix run 'nixpkgs#statix' check . ;;
 nix-lang-fix) nix run 'nixpkgs#statix' fix . ;;
 nix-boost) sh <(curl -L https://nixos.org/nix/install) --daemon ;;
-repl) nix repl --extra-experimental-features 'repl-flake repl' "${script_dir}#" ;;
+repl) nix repl --extra-experimental-features 'repl-flake repl' "${script_dir}#vars.$system" ;;
 nix) nix "$@" ;;
 shell)
 	mkdir .direnv || true

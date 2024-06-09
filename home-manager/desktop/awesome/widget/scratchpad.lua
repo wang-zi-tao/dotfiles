@@ -16,7 +16,7 @@ local chat_anim = {
 }
 
 local terminal_scratch = bling.module.scratchpad:new({
-    command = [[alacritty --class=alacrittydrop --config-file=${HOME}/.config/alacritty/alacritty-drop.yml]],
+    command = [[alacritty --class=alacrittydrop --config-file=${HOME}/.config/alacritty/alacritty-drop.toml]],
     rule = { instance = "alacrittydrop" },
     sticky = true,
     autoclose = false,

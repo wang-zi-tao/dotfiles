@@ -63,6 +63,6 @@
     enable = true;
     user = "wangzi";
   };
-  services.xserver.displayManager.defaultSession = lib.mkForce "gnome";
+  services.displayManager.defaultSession = lib.mkForce "gnome";
   services.xserver.desktopManager.gnome.enable = true;
 }

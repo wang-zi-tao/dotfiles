@@ -214,6 +214,11 @@ stdenvNoCC.mkDerivation {
       dap = "${nvim-dap}",
       dap_ui = "${nvim-dap-ui}",
       dap_virtual_text = "${nvim-dap-virtual-text}",
+      nvim_nio = "${pkgs.fetchgit {
+        url = "https://github.com/nvim-neotest/nvim-nio";
+        rev = "5800f585def265d52f1d8848133217c800bcb25d";
+        sha256 = "sha256-ZRYclqsgAvlRBwb59XHlqVat7CxUJTH1rD6QLwh1ang=";
+      }}",
       persistent_breakpoints_nvim = "${pkgs.fetchgit {
         url = "https://github.com/Weissle/persistent-breakpoints.nvim";
         rev = "0dee5374c68950a89d2739f8d59be2350a8503c7";

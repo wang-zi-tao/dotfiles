@@ -1,6 +1,6 @@
 { config, pkgs, lib, ... }: {
   config = lib.mkIf config.cluster.nodeConfig.guiClient.enable {
-    services.xserver.libinput = {
+    services.libinput = {
       enable = true;
       mouse = { accelSpeed = "1.0"; };
       touchpad = {

@@ -70,7 +70,8 @@
             else
                 pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "." pkg ) ) ''nix run nixpkgs#"${pkg}" -- $@''
         else
-            pkgs.writeShellScriptBin pkg.pname ''nix run nixpkgs#"${pkg.pname}" -- $@'')
+            let name = if (builtins.hasAttr "pname" pkg) then pkg.pname else pkg.name; 
+            in pkgs.writeShellScriptBin name ''nix run nixpkgs#"${name}" -- $@'')
         config.lazyPackage)
       ++ [
         neovim-remote

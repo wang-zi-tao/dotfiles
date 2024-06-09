@@ -62,6 +62,10 @@ nixpkgs.lib.nixosSystem {
         mode = "0500";
         restartUnits = [ "run-secrets-scripts" ];
       };
+      networking.firewall.allowedTCPPortRanges = [{
+        from = 8880;
+        to = 8888;
+      }];
     })
   ];
 }

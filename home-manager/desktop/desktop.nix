@@ -88,7 +88,7 @@ with lib;{
       };
     qt = {
       enable = true;
-      platformTheme = "gtk";
+      platformTheme.name = "gtk";
     };
     services.nextcloud-client = {
       enable = true;

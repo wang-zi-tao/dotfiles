@@ -3,7 +3,7 @@
   programs.zsh = {
     enable = true;
     autocd = true;
-    enableAutosuggestions = true;
+    autosuggestion.enable = true;
     oh-my-zsh = {
       enable = false;
       # theme = "agnoster";
@@ -244,7 +244,7 @@
     enable = true;
     enableZshIntegration = true;
   };
-  home.packages = with pkgs;( [ ripgrep xclip iftop htop procs rmtrash bat eza du-dust duf tmuxinator tmux joshuto ]
+  home.packages = with pkgs;( [ ripgrep xclip iftop htop procs rmtrash bat eza du-dust duf tmuxinator tmux unstable.joshuto ]
   ++ (lib.optionals ( pkgs.system == "x86_64-linux" ) [powertop iotop]) 
   );
 }

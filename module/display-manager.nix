@@ -28,7 +28,7 @@ let inherit (config.cluster) nodeConfig; in
       debug = true;
     };
     # hardware.nvidia.modesetting.enable = true;
-    services.xserver.displayManager.sddm.enable = false;
+    services.displayManager.sddm.enable = false;
     # services.touchegg.enable = true;
   };
 }

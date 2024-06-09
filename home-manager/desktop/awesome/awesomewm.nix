@@ -6,7 +6,7 @@ let
       PartOf = [ "graphical-session.target" ];
     };
     Install = { WantedBy = [ "graphical-session.target" ]; };
-    Service = service;
+    Service = service // {Type = "simple";};
   };
 in
 with builtins;{
@@ -96,17 +96,16 @@ with builtins;{
       Restart = "always";
     };
     systemd.user.services.xiezuo = makeService {
-      enable = false;
-      Type = "simple";
       ExecStart = "${pkgs.xiezuo}/bin/xiezuo --no-sandbox --no-zygote --package-format=deb";
     };
+    systemd.user.services.virt-manager = makeService {
+      ExecStart = "virt-manager";
+    };
     systemd.user.services.barrier = makeService {
-      enable = true;
       Type = "simple";
       ExecStart = "${pkgs.barrier}/bin/barrier --config ${config.home.homeDirectory}/.barrier";
     };
     systemd.user.services.run_secret_script = makeService {
-      Type = "simple";
       ExecStart = let script = pkgs.writeShellScriptBin "run_secret_script" ''
         if [[ -e /run/secrets/${config.home.username}/script ]]; then
           /run/secrets/${config.home.username}/script

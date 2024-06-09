@@ -6,6 +6,12 @@ require("nvim-web-devicons").setup({
             color = colors.blue,
             name = "c",
         },
+        rs = {
+            icon = "",
+            color = "#dea584",
+            cterm_color = "216",
+            name = "Rs",
+        },
         css = {
             icon = "",
             color = colors.blue,

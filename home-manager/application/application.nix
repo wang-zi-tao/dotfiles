@@ -93,7 +93,7 @@
 
 
     gnome.file-roller
-    gnome.gedit
+    gedit
     gnome.gnome-calculator
     gnome.gnome-calendar
     # gnome.gnome-characters
@@ -112,7 +112,7 @@
     # gnome.gnome-software
     # dolphin
 
-    gnome.gnome-todo
+    endeavour
     # google-chrome
     gnome.gpaste
     gnome.sushi

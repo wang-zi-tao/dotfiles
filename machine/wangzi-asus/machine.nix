@@ -1,4 +1,4 @@
-{ pkgs-template, nixpkgs, home-manager, sops-nix, nixseparatedebuginfod, nixfs, ... }@inputs:
+{ pkgs-template, nixpkgs, home-manager, sops-nix, nixfs, ... }@inputs:
 let
   hostname = "wangzi-asus";
   system = "x86_64-linux";
@@ -10,7 +10,6 @@ nixpkgs.lib.nixosSystem {
   modules = [
     sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
-    nixseparatedebuginfod.nixosModules.default
     nixfs.nixosModules.nixfs
     ({ pkgs, lib, ... }: {
       imports = [
@@ -19,7 +18,6 @@ nixpkgs.lib.nixosSystem {
         ./network.nix
       ];
       networking.hostName = hostname;
-      services.nixseparatedebuginfod.enable = true;
 	  services.nixfs.enable = true;
       sops.defaultSopsFile = ../../secrets/wangzi-asus.yaml;
       sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
@@ -118,7 +116,8 @@ nixpkgs.lib.nixosSystem {
       boot.plymouth.enable = lib.mkForce false;
 
       environment.systemPackages = with pkgs;[
-        # cudatoolkit
+        cudatoolkit
+        cudatoolkit.lib
       ];
       virtualisation.podman.enableNvidia = true;
       virtualisation.docker.enableNvidia = true;
@@ -133,8 +132,12 @@ nixpkgs.lib.nixosSystem {
             PCIE_ASPM_ON_BAT = "powersupersave";
           };
         };
+        ollama = {
+          enable = true;
+          listenAddress = "192.168.16.13:11434";
+          acceleration = "cuda";
+        };
       };
-
     })
   ];
 }

@@ -12,17 +12,17 @@
           windowManager.awesome.package = pkgs.awesome;
           desktopManager.gnome.enable = true;
           # desktopManager.plasma5.enable = true;
-          displayManager.defaultSession = "none+awesome";
           displayManager.xpra = {
             enable = false;
             bindTcp = "0.0.0.0:10000";
             pulseaudio = true;
           };
-          xkbOptions = "ctrl:nocaps";
+          xkb.options = "ctrl:nocaps";
           modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
           extraConfig = ''
           '';
         };
+        displayManager.defaultSession = "none+awesome";
       };
       programs.sway = {
         enable = true;
@@ -34,6 +34,7 @@
           "--unsupported-gpu"
         ];
       };
+      networking.firewall.allowedTCPPortRanges = [{ from = 6000; to = 6010; } { from = 7000; to = 7010; }]; # xpra
     })
     (lib.mkIf (config.cluster.nodeConfig.guiServer.enable && ! config.cluster.nodeConfig.guiClient.enable) {
       networking.firewall.allowedTCPPorts = [ 10000 ];

@@ -13,7 +13,6 @@ with builtins;{
       "vfio_pci"
       "vfio"
       "vfio_iommu_type1"
-      "vfio_virqfd"
     ];
     boot.kernelParams = [
       "intel_iommu=on"
@@ -38,6 +37,8 @@ with builtins;{
         # qemu.ovmf.enable = true;
         # qemu.ovmf.packages = [ pkgs.OVMFFull ];
         # qemu.swtpm.enable = true;
+
+        parallelShutdown = 8;
         onBoot = "ignore";
         onShutdown = "shutdown";
         extraConfig = ''
@@ -72,6 +73,10 @@ with builtins;{
       };
     };
     environment.etc."qemu/vhost-user".source = "${pkgs.qemu}/share/qemu/vhost-user";
+    environment.etc."libvirt/qemu/networks/host-bridge.xml".text = ''
+        <dns enable="no"/>
+    '';
+    programs.virt-manager.enable = true;
     environment.systemPackages = with pkgs; [ looking-glass-client virtiofsd podman-compose qemu virt-manager virt-viewer rdesktop ];
     systemd.services.libvirtd = with pkgs; {
       path = [ virtiofsd swtpm-tpm2 virglrenderer ];

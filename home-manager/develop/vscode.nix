@@ -21,7 +21,7 @@
       ms-python.python
       ms-python.vscode-pylance
       # rust
-      matklad.rust-analyzer
+      rust-lang.rust-analyzer
       # haskell
       justusadam.language-haskell
       # mark

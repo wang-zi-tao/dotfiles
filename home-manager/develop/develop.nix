@@ -77,8 +77,8 @@ in
     tokei
     ctags
 
-    rnix-lsp
-    nixfmt
+    "rnix-lsp"
+    "nixfmt"
     google-java-format
     stylua
     shfmt
@@ -119,7 +119,7 @@ in
     sumneko-lua-language-server
     nodejs
     nodePackages.typescript
-    
+
     lua5_4
 
     maven
@@ -130,6 +130,7 @@ in
     statix
 
     neovim-remote
+    sccache
 
     (python3.withPackages (ps:
       with ps; [
@@ -147,6 +148,8 @@ in
       [target.x86_64-unknown-linux-gnu]
       linker = "${pkgs.clang_14}/bin/clang"
       rustflags = ["-C", "link-arg=--ld-path=${pkgs.mold}/bin/mold", "-L", "${pkgs.glibc}/lib/"]
+      [build]
+      rustc-wrapper = "${pkgs.sccache}/bin/sccache"
     '';
     ".gdbinit".text = ''
       set debuginfod enabled on

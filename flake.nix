@@ -1,17 +1,16 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
-    nixpkgs-old.url = "github:nixos/nixpkgs/release-23.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixpkgs-old.url = "github:nixos/nixpkgs/release-23.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     master.url = "github:nixos/nixpkgs";
-    home-manager.url = "github:nix-community/home-manager/release-23.11";
+    home-manager.url = "github:nix-community/home-manager/release-24.05";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     deploy-rs = {
       url = "github:serokell/deploy-rs";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-on-droid = {
       url = "github:t184256/nix-on-droid";
@@ -29,7 +28,6 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixseparatedebuginfod.url = "github:symphorien/nixseparatedebuginfod";
     eza.url = "github:eza-community/eza";
     nixfs.url = "github:illustris/nixfs";
   };
@@ -45,7 +43,6 @@
     , sops-nix
     , deploy-rs
     , disko
-    , nixseparatedebuginfod
     , eza
     , master
     , nixfs
@@ -75,11 +72,9 @@
         inherit system config;
         overlays = with builtins; ([
           packages
-          deploy-rs.overlay
           nur.overlay
           fenix.overlays.default
           # nixpkgs-wayland.overlay
-          nixseparatedebuginfod.overlays.default
           (final: prev:
             let unstable = import inputs.nixpkgs-unstable { inherit system overlays config; }; in
             {
@@ -104,14 +99,14 @@
           buildInputs = with pkgs; [
             sops
             git
-            rnix-lsp
-            nixfmt
+            nixfmt-rfc-style
             nix-du
             nix-tree
             nix-diff
             sumneko-lua-language-server
             statix
             nixos-generators
+            nix
             (pkgs.wangzi-neovim.override {
               neovim-unwrapped = pkgs.unstable.neovim-unwrapped;
               enable-all = true;
@@ -175,6 +170,6 @@
               path = deploy-rs.lib.${self.nixos.${host}.pkgs.system}.activate.nixos self.nixos.${host};
             };
           };
-        }) [ "wangzi-asus" "wangzi-nuc" "aliyun-hk" "aliyun-ecs" /*"huawei-ecs"*/ ]);
+        }) [ "wangzi-asus" "wangzi-nuc" "wangzi-pc" "aliyun-hk" "aliyun-ecs" /*"huawei-ecs"*/ ]);
     };
 }
