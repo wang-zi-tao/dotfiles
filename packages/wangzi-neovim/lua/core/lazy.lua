@@ -20,6 +20,7 @@ require("lazy").setup({
     require("core.plugins.symbols_outline_pre"),
     require("core.plugins.gitsigns"),
     require("core.plugins.vgit"),
+    require("core.plugins.ai"),
 
     {
         dir = ".",
@@ -369,6 +370,7 @@ require("lazy").setup({
         cmd = { "SessionManager" },
         module = "session_manager",
         event = "VeryLazy",
+        dependencies = {"trailblazer"},
         config = function()
             require("core.plugins.others").session_manager()
         end,

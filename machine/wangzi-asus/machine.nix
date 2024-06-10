@@ -132,11 +132,6 @@ nixpkgs.lib.nixosSystem {
             PCIE_ASPM_ON_BAT = "powersupersave";
           };
         };
-        ollama = {
-          enable = true;
-          listenAddress = "192.168.16.13:11434";
-          acceleration = "cuda";
-        };
       };
     })
   ];

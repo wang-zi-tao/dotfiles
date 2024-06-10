@@ -56,7 +56,7 @@ return {
     lazy = true,
     config = config,
     keys = {
-        { "<leader>r",
+        { "<leader>wr",
             function()
                 require("trouble").toggle()
             end,

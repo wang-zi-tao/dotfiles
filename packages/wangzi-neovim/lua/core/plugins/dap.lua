@@ -239,6 +239,65 @@ return {
             desc = "Repl",
         },
         {
+            "<leader>dE",
+            function()
+                local expr = vim.fn.input("Expr: ", "")
+                require("dapui").eval(expr)
+            end,
+            desc = "Eval expr",
+        },
+        {
+            "<leader>de",
+            function()
+                require("dapui").eval()
+            end,
+            mode = "v",
+            desc = "Eval expr",
+        },
+        {
+            "<leader>de",
+            function()
+                require("dapui").eval()
+            end,
+            mode = "n",
+            desc = "Eval expr",
+        },
+        {
+            "<leader>dF",
+            function()
+                require("dapui").float_element(nil, { enter = true })
+            end,
+            desc = "Eval",
+        },
+        {
+            "<leader>dfv",
+            function()
+                require("dapui").float_element("scopes", { enter = true })
+            end,
+            desc = "Scopes",
+        },
+        {
+            "<leader>dfs",
+            function()
+                require("dapui").float_element("stacks", { enter = true })
+            end,
+            desc = "stacks",
+        },
+        {
+            "<leader>dfr",
+            function()
+                require("dapui").float_element("repl", { enter = true })
+            end,
+            desc = "repl window",
+        },
+        {
+            "<leader>dfb",
+            function()
+                require("dapui").float_element("breakpoints", { enter = true })
+            end,
+            desc = "breakpoints window",
+        },
+        {
             "\\9",
             function()
                 require("persistent-breakpoints.api").toggle_breakpoint()
@@ -411,7 +470,6 @@ return {
             "theHamsta/nvim-dap-virtual-text",
             dir = gen.dap_virtual_text,
             name = "dap_virtual_text",
-            lazy = true,
             config = function()
                 require("nvim-dap-virtual-text").setup({
                     enabled = true,              -- enable this plugin (the default)
@@ -420,15 +478,22 @@ return {
                     highlight_new_as_changed = true, -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
                     show_stop_reason = true,     -- show stop reason when stopped for exceptions
                     commented = true,            -- prefix virtual text with comment string
-                    only_first_definition = true, -- only show virtual text at first definition (if there are multiple)
+                    only_first_definition = false, -- only show virtual text at first definition (if there are multiple)
                     all_references = false,      -- show virtual text on all all references of the variable (not only definitions)
                     filter_references_pattern = "<module", -- filter references (not definitions) pattern when all_references is activated (Lua gmatch pattern, default filters out Python modules)
                     -- experimental features:
-                    virt_text_pos = "eol",       -- position of virtual text, see `:h nvim_buf_set_extmark()`
+                    virt_text_pos = "inline",       -- position of virtual text, see `:h nvim_buf_set_extmark()`
                     all_frames = true,           -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
                     virt_lines = false,          -- show virtual lines instead of virtual text (will flicker!)
                     virt_text_win_col = nil,     -- position the virtual text at a fixed window column (starting from the first text column) ,
                     -- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
+                    display_callback = function(variable, buf, stackframe, node, options)
+                        if options.virt_text_pos == "inline" then
+                            return " = " .. variable.value
+                        else
+                            return variable.name .. " = " .. variable.value
+                        end
+                    end,
                 })
             end,
         },

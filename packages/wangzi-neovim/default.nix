@@ -36,11 +36,7 @@ stdenvNoCC.mkDerivation {
       core = "$out",
       packer = "${packer-nvim}",
       onedark_nvim = "${onedark-nvim}",
-      alpha_nvim = "${pkgs.fetchgit {
-        url = "https://github.com/goolord/alpha-nvim";
-        rev = "1e12c492fdd09a812f960e83048af6d2d18b9b6b";
-        sha256 = "sha256-JB8rP9Bs/e8ZR7pbPl07jwo/YD/2VFNKe6PzvA2L5dk=";
-      }}",
+      alpha_nvim = "${alpha-nvim}",
       plenary_nvim = "${plenary-nvim}",
       impatient_nvim = "${impatient-nvim}",
       notify_nvim = "${nvim-notify}",
@@ -51,11 +47,7 @@ stdenvNoCC.mkDerivation {
       bufferline_nvim = "${bufferline-nvim}",
       indent_blankline_nvim = "${indent-blankline-nvim}",
       nvim_colorizer_lua = "${nvim-colorizer-lua}",
-      baleia_nvim = "${pkgs.fetchgit {
-        url = "https://github.com/m00qek/baleia.nvim";
-        rev = "v1.2.0";
-        sha256 = "sha256-LULcXLoGBUirOwgt5CobR5lrblb4kQUsvWtxEPhUIas=";
-      }}",
+      baleia_nvim = "${baleia-nvim}",
       nvim_treesitter = "${if enable-all then nvim-treesitter.withAllGrammars else nvim-treesitter.withPlugins ( p: with p; [
         nix cpp c java kotlin rust typescript python javascript
       ])}",
@@ -65,6 +57,13 @@ stdenvNoCC.mkDerivation {
         url = "https://github.com/tanvirtin/vgit.nvim";
         rev = "ee9081c304b44509b2f4267f1f7addc303f9fb9b";
         sha256 = "sha256-ucjVbpIwJ9eNBEQKVxN0a09GB773M2lTMdzYcLQ88QM=";
+      }}",
+
+      -- AI
+      gen_nvim = "${pkgs.fetchgit {
+        url = "https://github.com/David-Kunz/gen.nvim";
+        rev = "b1230ce2993b2be38a1e22606750d05a94307380";
+        sha256 = "sha256-z03a2au40RIcpDUTRSWlWAbo1E+MgEgVaobFWV8hIaI=";
       }}",
 
       -- LSP
@@ -113,11 +112,7 @@ stdenvNoCC.mkDerivation {
         rev = "1d8133e5637c73b3eb392682ae9661d521738268";
         sha256 = "sha256-49MghjnaVzrOlbawP+WM7nQvkGH2nWt/AFdiT4ijQgQ=";
       }}",
-      cmp_git = "${pkgs.fetchgit {
-        url = "https://github.com/petertriho/cmp-git";
-        rev = "fae6cdb407ad6c63a0b1928670bad1a67a55b887";
-        sha256 = "sha256-/fHoZxtJFG9v1sw/rQU2fa0ybO7bIovvRvY6M/mU5sc=";
-      }}",
+      cmp_git = "${cmp-git}",
 
       nvim_autopairs = "${nvim-autopairs}",
       dashboard_nvim = "${dashboard-nvim}",
@@ -186,17 +181,18 @@ stdenvNoCC.mkDerivation {
       nvim_window_picker = "${nvim-window-picker}",
       nui_nvim = "${nui-nvim}",
       undotree = "${undotree}",
+      edgy = "${pkgs.fetchgit {
+        url = "https://github.com/folke/edgy.nvim";
+        rev = "de79b7d92a5979cd71a9a1d8b6282515345e5055";
+        sha256 = "sha256-OgvrHDU+PcRsf3NtIglYFYIvnd8pAT481+w2bllZtXw=";
+      }}",
       focus = "${pkgs.fetchgit {
         url = "https://github.com/nvim-focus/focus.nvim";
         rev = "3d9df42aa4f9b572348418207b752f81adea09a5";
         sha256 = "sha256-MpGDxBJ0IMMAIxuzFkxIgKtAn56NvpjfTNMVhnBhhsE=";
       }}",
       illuminate = "${vim-illuminate}",
-      pretty_fold = "${pkgs.fetchgit {
-        url = "https://github.com/anuvyklack/pretty-fold.nvim/";
-        rev = "a7d8b424abe0eedf50116c460fbe6dfd5783b1d5";
-        sha256 = "sha256-PQPZw0qXwMtpVE4uSxR3xUvkHE9iG4T+ZwgV6H9pUjo=";
-      }}",
+      pretty_fold = "${pretty-fold-nvim}",
       pretty_fold_preview = "${pkgs.fetchgit {
         url = "https://github.com/anuvyklack/fold-preview.nvim";
         rev = "33c24101dc1b2be29876ee3354de98bb8bd14cb0";
@@ -214,11 +210,7 @@ stdenvNoCC.mkDerivation {
       dap = "${nvim-dap}",
       dap_ui = "${nvim-dap-ui}",
       dap_virtual_text = "${nvim-dap-virtual-text}",
-      nvim_nio = "${pkgs.fetchgit {
-        url = "https://github.com/nvim-neotest/nvim-nio";
-        rev = "5800f585def265d52f1d8848133217c800bcb25d";
-        sha256 = "sha256-ZRYclqsgAvlRBwb59XHlqVat7CxUJTH1rD6QLwh1ang=";
-      }}",
+      nvim_nio = "${nvim-nio}",
       persistent_breakpoints_nvim = "${pkgs.fetchgit {
         url = "https://github.com/Weissle/persistent-breakpoints.nvim";
         rev = "0dee5374c68950a89d2739f8d59be2350a8503c7";

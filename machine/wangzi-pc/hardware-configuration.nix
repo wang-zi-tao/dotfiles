@@ -34,7 +34,7 @@
     ];
     opengl.setLdLibraryPath = true;
     opengl.driSupport = true;
-    nvidia.open = true;
+    # nvidia.open = true;
     nvidia.modesetting.enable = true;
     nvidia.prime = {
       sync.enable = true;
@@ -49,7 +49,7 @@
   services.xserver = {
     modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput xf86videovesa ];
     videoDrivers = [
-      # "nvidia"
+      "nvidia"
       "modesetting"
     ];
   };
@@ -57,12 +57,12 @@
     i915-GVTg_V5_8.uuid = [ ];
     i915-GVTg_V5_4.uuid = [ "104319bc-2adb-11ed-ae66-73f45bf4765e" ];
   };
-  services.xserver.monitorSection = ''Modeline "1920x1080" 23.53 1920 1952 2040 2072 1080 1106 1108 1135'';
-  services.xserver.resolutions = [{ x = "1920"; y = "1080"; }];
-  services.xserver.displayManager.autoLogin = {
-    enable = true;
-    user = "wangzi";
-  };
-  services.displayManager.defaultSession = lib.mkForce "gnome";
+  # services.xserver.monitorSection = ''Modeline "1920x1080" 23.53 1920 1952 2040 2072 1080 1106 1108 1135'';
+  # services.xserver.resolutions = [{ x = "1920"; y = "1080"; }];
+  # services.xserver.displayManager.autoLogin = {
+  #   enable = true;
+  #   user = "wangzi";
+  # };
+  # services.displayManager.defaultSession = lib.mkForce "gnome";
   services.xserver.desktopManager.gnome.enable = true;
 }

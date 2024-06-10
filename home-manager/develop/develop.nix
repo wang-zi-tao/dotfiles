@@ -76,6 +76,9 @@ in
     devtodo
     tokei
     ctags
+    "/nixfs/flake/str/nixpkgs#lldb/bin/lldb"
+    "/nixfs/flake/str/nixpkgs#lldb/bin/lldb-vscode"
+    "/nixfs/flake/str/nixpkgs#lldb/bin/lldb-server"
 
     "rnix-lsp"
     "nixfmt"

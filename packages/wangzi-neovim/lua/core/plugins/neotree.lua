@@ -10,7 +10,6 @@ local function config()
     popup_border_style = "rounded",
     enable_git_status = true,
     enable_diagnostics = true,
-    enable_normal_mode_for_inputs = false, -- Enable normal mode for input dialogs.
     open_files_do_not_replace_types = { "terminal", "trouble", "qf" }, -- when opening files, do not use windows containing these filetypes or buftypes
     sort_case_insensitive = false, -- used when sorting files and directories in the tree
     sort_function = nil, -- use a custom function for sorting files and directories in the tree
@@ -387,13 +386,14 @@ return {
         end, desc = "File Tree" },
     { "<leader>Ef", "<cmd>Neotree filesystem<cr>", desc = "Files" },
     { "<leader>EF", "<cmd>Neotree float<cr>", desc = "Float" },
+    { "<leader>El", "<cmd>Neotree left<cr>", desc = "Neotree left" },
     { "<leader>Eb", "<cmd>Neotree buffers<cr>", desc = "Buffers" },
     { "<leader>Eg", "<cmd>Neotree git_status<cr>", desc = "Git" },
     { "<leader>Eo", "<cmd>Neotree document_symbols<cr>", desc = "Symbols" },
   },
   config = config,
   module = "neo-tree",
-  cmd = { "NvimTreeToggle", "NvimTreeFocus" },
+  cmd = { "Neotree", "NvimTreeToggle", "NvimTreeFocus" },
   lazy = (0 == vim.fn.has("win32")),
   requires = {
     "plenary_nvim",

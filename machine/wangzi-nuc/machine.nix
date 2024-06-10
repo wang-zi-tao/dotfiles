@@ -36,7 +36,15 @@ nixpkgs.lib.nixosSystem {
         gobject-introspection
       ];
       hardware.opengl.driSupport32Bit = true;
+      services.ollama = {
+          enable = true;
+          listenAddress = "0.0.0.0:11434";
+          # acceleration = "rocm";
+          environmentVariables = {
+              HTTP_PROXY = "http://aliyun-hk.wg:8889";
+              HTTPS_PROXY = "http://aliyun-hk.wg:8889";
+          };
+      };
     })
-
   ];
 }

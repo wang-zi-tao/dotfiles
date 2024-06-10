@@ -48,7 +48,7 @@ local function on_attach(client, bufnr)
     }
     -- map("n", m.declaration, "<cmd>lua vim.lsp.buf.declaration()<CR>")
     -- map("n", m.definition, "<cmd>lua vim.lsp.buf.definition()<CR>")
-    map("n", m.hover, "<cmd>lua vim.lsp.buf.hover()<CR>")
+    map("n", "K", "<cmd>Lspsaga hover_doc<CR>")
     -- map("n", m.implementation, "<cmd>lua vim.lsp.buf.implementation()<CR>")
     map("n", m.signature_help, "<cmd>lua vim.lsp.buf.signature_help()<CR>")
     map("n", m.add_workspace_folder, "<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>")
@@ -73,14 +73,16 @@ local function on_attach(client, bufnr)
     -- keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 end
 
+
 local function setup_lsp(capabilities)
+    vim.lsp.inlay_hint.enable(true)
     local lspconfig = require("lspconfig")
     -- lspservers with default config
     local servers = {
         "lua_ls",
         "vimls",
         "pyright",
-        -- "rust_analyzer",
+        "rust_analyzer",
         "gopls",
         "html",
         "tsserver",
@@ -272,7 +274,7 @@ local function setup_lspsaga()
             -- This option only works in Neovim 0.9
             title = true,
             -- Border type can be single, double, rounded, solid, shadow.
-            border = "single",
+            border = "rounded",
             winblend = 0,
             expand = "",
             collapse = "",
@@ -281,6 +283,12 @@ local function setup_lspsaga()
             outgoing = " ",
             hover = " ",
             kind = {},
+            button = { "", "" },
+            imp_sign = " ",
+        },
+        floaterm = {
+            height = 0.9,
+            width = 0.9,
         },
     })
     vim.api.nvim_create_autocmd({ "VimResized" }, {
@@ -354,7 +362,7 @@ vim.g.rustaceanvim = function()
 
                 --- whether to replace Neovim's built-in `vim.lsp.buf.hover`.
                 ---@type boolean
-                replace_builtin_hover = true,
+                replace_builtin_hover = false,
             },
 
             code_actions = {
@@ -573,7 +581,7 @@ return {
                         "gh",
                         function()
                             require("trailblazer").new_trail_mark()
-                            vim.cmd([[Lspsaga lsp_finder]])
+                            vim.cmd([[Lspsaga finder]])
                         end,
                         mode = "n",
                         desc = "LSP Finder",
@@ -594,7 +602,7 @@ return {
                     { "<leader>lc", "<cmd>Lspsaga incoming_calls<CR>",       desc = "Incoming call" },
                     { "<leader>lC", "<cmd>Lspsaga outgoing_calls<CR>",       desc = "Outgoing call" },
                     { "<leader>lt", "<cmd>Lspsaga term_toggle<CR>",          desc = "Terminal" },
-                    { "<leader>lh", "<cmd>Lspsaga lsp_finder<CR>",           desc = "finder" },
+                    { "<leader>lh", "<cmd>Lspsaga finder<CR>",               desc = "finder" },
                 },
             },
         },
@@ -635,6 +643,7 @@ return {
             require("rust-tools").setup({
                 tools = {
                     inlay_hints = {
+                        auto = false,
                         show_variable_name = true,
                     },
                 },
@@ -701,58 +710,58 @@ return {
         config = function() end,
     },
     {
-      'mrcjkb/haskell-tools.nvim',
-      dir = gen.haskell_tools_nvim,
-      version = '^3', -- Recommended
-      ft = { 'hs', 'haskell', 'lhaskell', 'cabal', 'cabalproject' },
+        "mrcjkb/haskell-tools.nvim",
+        dir = gen.haskell_tools_nvim,
+        version = "^3", -- Recommended
+        ft = { "hs", "haskell", "lhaskell", "cabal", "cabalproject" },
     },
     {
-        'Vigemus/iron.nvim',
+        "Vigemus/iron.nvim",
         dir = gen.iron_nvim,
         config = function()
             local iron = require("iron.core")
 
-            iron.setup {
-            config = {
-                -- Whether a repl should be discarded or not
-                scratch_repl = true,
-                -- Your repl definitions come here
-                repl_definition = {
-                sh = {
-                    -- Can be a table or a function that
-                    -- returns a table (see below)
-                    command = {"zsh"}
-                }
+            iron.setup({
+                config = {
+                    -- Whether a repl should be discarded or not
+                    scratch_repl = true,
+                    -- Your repl definitions come here
+                    repl_definition = {
+                        sh = {
+                            -- Can be a table or a function that
+                            -- returns a table (see below)
+                            command = { "zsh" },
+                        },
+                    },
+                    -- How the repl window will be displayed
+                    -- See below for more information
+                    repl_open_cmd = require("iron.view").bottom(40),
                 },
-                -- How the repl window will be displayed
-                -- See below for more information
-                repl_open_cmd = require('iron.view').bottom(40),
-            },
-            -- Iron doesn't set keymaps by default anymore.
-            -- You can set them here or manually add keymaps to the functions in iron.core
-            keymaps = {
-                send_motion = "<space>Rc",
-                visual_send = "<space>Rc",
-                send_file = "<space>Rf",
-                send_line = "<space>Rl",
-                send_until_cursor = "<space>Ru",
-                send_mark = "<space>Rm",
-                mark_motion = "<space>Rc",
-                mark_visual = "<space>Rc",
-                remove_mark = "<space>Rd",
-                cr = "<space>s<cr>",
-                interrupt = "<space>s<space>",
-                exit = "<space>Rq",
-                clear = "<space>Rl",
-            },
-            -- If the highlight is on, you can change how it looks
-            -- For the available options, check nvim_set_hl
-            highlight = {
-                italic = true
-            },
-            ignore_blank_lines = true, -- ignore blank lines when sending visual select lines
-            }
-        end
+                -- Iron doesn't set keymaps by default anymore.
+                -- You can set them here or manually add keymaps to the functions in iron.core
+                keymaps = {
+                    send_motion = "<space>Rc",
+                    visual_send = "<space>Rc",
+                    send_file = "<space>Rf",
+                    send_line = "<space>Rl",
+                    send_until_cursor = "<space>Ru",
+                    send_mark = "<space>Rm",
+                    mark_motion = "<space>Rc",
+                    mark_visual = "<space>Rc",
+                    remove_mark = "<space>Rd",
+                    cr = "<space>s<cr>",
+                    interrupt = "<space>s<space>",
+                    exit = "<space>Rq",
+                    clear = "<space>Rl",
+                },
+                -- If the highlight is on, you can change how it looks
+                -- For the available options, check nvim_set_hl
+                highlight = {
+                    italic = true,
+                },
+                ignore_blank_lines = true, -- ignore blank lines when sending visual select lines
+            })
+        end,
     },
     {
         "williamboman/mason.nvim",
@@ -1024,7 +1033,7 @@ return {
                 -- mappings are used for keys
                 -- that are not set by user
                 lsp = {
-                    auto_attach = false, -- If set to true, you don't need to manually use attach function
+                    auto_attach = true, -- If set to true, you don't need to manually use attach function
                     preference = nil, -- list of lsp server names in order of preference
                 },
                 source_buffer = {

@@ -10,7 +10,10 @@ nixpkgs.lib.nixosSystem {
   modules = [
     sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
-    ({ pkgs, ... }: {
+    ({ pkgs, config, ... }: 
+    let
+        networkConfig = config.cluster.network.edges.${config.cluster.nodeName}.config;
+    in {
       imports = [
         ../module/cluster.nix
       ];
@@ -66,6 +69,16 @@ nixpkgs.lib.nixosSystem {
         from = 8880;
         to = 8888;
       }];
+      services.caddy = {
+        enable = true;
+        virtualHosts = {
+          "http://aliyun-hk.wg:11434" = {
+            extraConfig = ''
+              reverse_proxy http://wangzi-pc.wg:11434
+            '';
+          };
+        };
+      };
     })
   ];
 }

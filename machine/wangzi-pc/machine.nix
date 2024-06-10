@@ -27,6 +27,15 @@ nixpkgs.lib.nixosSystem {
         mode = "0500";
         restartUnits = [ "run-secrets-scripts" ];
       };
+      services.ollama = {
+        enable = true;
+        listenAddress = "0.0.0.0:11434";
+        acceleration = "cuda";
+        environmentVariables = {
+            HTTP_PROXY = "http://aliyun-hk.wg:8889";
+            HTTPS_PROXY = "http://aliyun-hk.wg:8889";
+        };
+      };
     })
   ];
 }

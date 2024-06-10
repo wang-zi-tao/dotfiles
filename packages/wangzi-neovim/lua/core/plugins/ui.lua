@@ -262,7 +262,7 @@ return {
                 timeout = 2500,
                 max_width = 64,
                 max_height = 16,
-                stages = (1==vim.fn.has("win32")) and "static" or nil,
+                stages = (1 == vim.fn.has("win32")) and "static" or nil,
             })
         end,
     },
@@ -276,6 +276,52 @@ return {
         end,
         event = "VeryLazy",
         build = ":TSUpdate",
+    },
+    {
+        "folke/edgy.nvim",
+        name = "edgy",
+        dir = gen.edgy,
+        event = "VeryLazy",
+        config = function()
+            require("edgy").setup({
+                options = {
+                    left = { size = 30 },
+                    bottom = { size = 10 },
+                    right = { size = 30 },
+                    top = { size = 10 },
+                },
+                left = {},
+                right = {
+                    { ft = "codecompanion", title = "Code Companion Chat", size = {} },
+                    {
+                        ft = "markdown",
+                        filter = function(buf)
+                            return vim.api.nvim_buf_get_name(buf):sub(-#"gen.nvim") == "gen.nvim"
+                        end,
+                        title = "AI",
+                        size = {width=0.25},
+                    },
+                },
+                bottom = {
+                    {
+                        ft = "Trouble",
+                        title = "Trouble",
+                        size = {},
+                        open = function()
+                            require("trouble").toggle()
+                        end,
+                    },
+                    {
+                        ft = "qf",
+                        title = "TrailBlazer",
+                        size = {},
+                        open = function()
+                            require("trailblazer").toggle_trail_mark_list()
+                        end,
+                    },
+                },
+            })
+        end,
     },
     {
         "goolord/alpha-nvim",
