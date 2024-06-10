@@ -293,6 +293,7 @@ return {
                 left = {},
                 right = {
                     { ft = "codecompanion", title = "Code Companion Chat", size = {} },
+                    { ft = "sagaoutline", title = "Outline", size = {} },
                     {
                         ft = "markdown",
                         filter = function(buf)

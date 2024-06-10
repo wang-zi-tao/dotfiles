@@ -87,6 +87,8 @@ onedark.setup({
         DapStopped = {bg = "$green" ,fg = "$black" },
         DapStoppedIcon = {fg = "$cyan" },
         BufferLineBufferSelected = {bg = "$bg0", fg = "#ffffff"},
+        BufferLineDuplicate = {bg = "#131820", fg = "$grey"},
+        BufferLineDuplicateVisible = {bg = "$bg0", fg = "$grey"},
         BufferLineDuplicateSelected = {bg = "$bg0", fg = "$grey"},
         BufferLineHintSelected = {bg="$bg0", fg = "$cyan"},
         BufferLineWarningSelected = {bg="$bg0", fg = "$orange"},
@@ -96,6 +98,9 @@ onedark.setup({
         BufferLineErrorDiagnosticSelected = {bg="$bg0", fg = "$red" },
         SagaWinbarFileName = {bg =  "$bg0", fg="$grey"},
         SagaWinbarFolderName = {bg =  "$bg0", fg="$grey"},
+        EdgyWinBar = {bg="$bg0", fg="$fg"},
+        WinBar = {bg="$bg0", fg="$fg"},
+        WinBarNC = {bg="$bg0", fg="$fg"},
     }, -- Override highlight groupsko
 
     -- Plugins Config --
