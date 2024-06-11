@@ -78,6 +78,7 @@ in
     devtodo
     tokei
     ctags
+    rr
 
     rnix-lsp
     nixfmt

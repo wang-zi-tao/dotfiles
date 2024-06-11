@@ -202,6 +202,9 @@ nixpkgs.lib.nixosSystem
         guest-reserved-percent = 0.2;
       };
 	  services.nixfs.enable = true;
+	  services.ollama = {
+        enable = true;
+	  };
     })
   ];
 }
