@@ -6,7 +6,12 @@
 , vimPlugins
 , neovim-unwrapped
 , neovim-remote
+, autoPatchelfHook
+, zlib
+, lttng-ust_2_12
 , gcc
+, unzip
+, fetchurl
 , enable-all ? true
 , enable-debuger ? enable-all && (pkgs.system == "x86_64-linux")
 , enable-markdown-preview ? enable-all
@@ -17,17 +22,34 @@ stdenvNoCC.mkDerivation {
   version = "1.0.0";
 
   src = ./.;
+  datasrc = fetchurl {
+    url = "https://github.com/microsoft/vscode-cpptools/releases/download/v1.20.5/cpptools-linux.vsix";
+    sha256 = "16dwik9yigc433gsbvqjnpa57wy72a7d6js7lgl9q0qnfnvw3d3a";
+  };
 
-  buildInputs = [
+  nativeBuildInputs = [
+    autoPatchelfHook
     makeWrapper
+    unzip
+  ];
+  buildInputs = [
     neovim-unwrapped
     neovim-remote
     gcc
+    zlib
+    lttng-ust_2_12
   ];
 
   installPhase = with pkgs.unstable; with pkgs.unstable.vimPlugins; ''
-    rm default.nix
     mkdir -p $out/
+    mkdir -p $out/bin
+    mkdir -p $out/vscode-extensions/vscode-cpptools
+    unzip $datasrc -d $out/vscode-extensions/vscode-cpptools
+    opendebugad7_path="$out/vscode-extensions/vscode-cpptools/extension/debugAdapters/bin/OpenDebugAD7"
+    chmod +x $opendebugad7_path
+    ln -s $opendebugad7_path $out/bin/OpenDebugAD7
+
+    rm default.nix
     cp * -r $out/
     mkdir -p $out/bin
     rm $out/lua/core/gen.lua
@@ -217,6 +239,7 @@ stdenvNoCC.mkDerivation {
         sha256 = "sha256-uHvxAfz2hYDRu6ST/PsqtJ/LQitdLNhnwg5aoFJqW88=";
       }}",
       vscode_lldb = ${if enable-debuger then ''"${pkgs.unstable.vscode-extensions.vadimcn.vscode-lldb}"'' else "false" },
+      nio = "${nvim-nio}",
 
       fterm = "${FTerm-nvim}",
       toggleterm_nvim = "${toggleterm-nvim}",

@@ -158,9 +158,9 @@ nixpkgs.lib.nixosSystem
         device = "/home/wangzi";
         options = [ "bind" ];
       };
-      fileSystems."/wps" = {
-        device = "/dev/pool/buildLinux";
-      };
+      # fileSystems."/wps" = {
+      #   device = "/dev/pool/buildLinux";
+      # };
       services.nfs.server.enable = true;
       services.nfs.server.exports = ''
         /home 192.168.122.0/24(rw,all_squash,anonuid=1000,anongid=1000,insecure,no_subtree_check)
@@ -175,7 +175,7 @@ nixpkgs.lib.nixosSystem
       networking.firewall.rejectPackets = lib.mkForce false;
       services.openssh.permitRootLogin = lib.mkForce "no";
       # services.openssh.passwordAuthentication = lib.mkForce false;
-      services.xserver.displayManager.lightdm.enable = lib.mkForce false;
+      services.xserver.displayManager.lightdm.enable = lib.mkForce true;
       services.xserver.displayManager.gdm.enable = lib.mkForce false;
 
       services.udev.extraRules = ''
@@ -192,16 +192,19 @@ nixpkgs.lib.nixosSystem
         enable = true;
         enableOnBoot = true;
       };
-      networking.firewall.allowedTCPPortRanges = [{
-        from = 5800;
-        to = 5816;
-      }];
+      networking.firewall.allowedTCPPortRanges = [
+        { from = 5800; to = 5816; }
+        { from = 5900; to = 5916; }
+      ];
       vm = {
         guest-reserved = 1600;
         host-reserved = 1600;
         guest-reserved-percent = 0.2;
       };
 	  services.nixfs.enable = true;
+	  services.ollama = {
+        enable = true;
+	  };
     })
   ];
 }
