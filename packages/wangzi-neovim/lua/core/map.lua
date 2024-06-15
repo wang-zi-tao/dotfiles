@@ -10,7 +10,8 @@ wk.register({
         q = { "<cmd>close<CR>", "close" },
         Q = { "<cmd>quitall<CR>", "quit" },
         ['"'] = {
-            "<cmd>terminal<CR>", "Terminal"
+            "<cmd>terminal<CR>",
+            "Terminal",
         },
         g = {
             a = { ":!git add .<CR>", "Git Add" },
@@ -30,7 +31,8 @@ wk.register({
             y = { "<cmd>%y+ <CR>", "Copy" },
         },
         ["<Tab>"] = {
-            "<cmd>b#<CR>", "Switch Tab"
+            "<cmd>b#<CR>",
+            "Switch Tab",
         },
         w = {
             name = "Window / Workspace",
@@ -40,8 +42,9 @@ wk.register({
         z = {
             function()
                 require("lazy").profile()
-            end, "Packages"
-        }
+            end,
+            "Packages",
+        },
     },
     ["\\"] = {
         q = { "<cmd>close<CR>", "Close" },
@@ -59,19 +62,19 @@ wk.register({
     },
     ["<leader>"] = {
         p = { "<cmd>diffput<CR>" },
-    }
+    },
 }, { mode = "v" })
 
-for i = 0,9 do
-    map({ "n", "i" }, "<leader>w" .. i, "<cmd>" .. i .. "wincmd w<CR>", {desc="Goto Window "..i})
-    map({ "n", "i" }, "<C-w>" .. i, "<cmd>" .. i .. "wincmd w<CR>", {desc="Goto Window "..i})
+for i = 0, 9 do
+    map({ "n" }, "<leader>w" .. i, "<cmd>" .. i .. "wincmd w<CR>", { desc = "Goto Window " .. i })
+    map({ "n", "i" }, "<C-w>" .. i, "<cmd>" .. i .. "wincmd w<CR>", { desc = "Goto Window " .. i })
 end
 
-map("n", "\\q", "<cmd>close<CR>", {desc="Close"})
-map("n", "<leader>ws", "<cmd>sp<CR>", {desc="Split"})
-map("n", "<leader>wv", "<cmd>vs<CR>", {desc="Vertical Split"})
-map("n", "<leader>q", "<cmd>close<CR>", {desc="Close"})
-map("n", "<C-q>", "<cmd>close<CR>", {desc="Close"})
+map("n", "\\q", "<cmd>close<CR>", { desc = "Close" })
+map("n", "<leader>ws", "<cmd>sp<CR>", { desc = "Split" })
+map("n", "<leader>wv", "<cmd>vs<CR>", { desc = "Vertical Split" })
+map("n", "<leader>q", "<cmd>close<CR>", { desc = "Close" })
+map("n", "<C-q>", "<cmd>close<CR>", { desc = "Close" })
 map("n", "<C-up>", "<cmd>res +1<CR>")
 map("n", "<C-down>", "<cmd>res -1<CR>")
 map("n", "<C-left>", "<cmd>vertical resize-1<CR>")
@@ -89,4 +92,3 @@ map("t", "\\q", "<C-\\><C-n><cmd>close<CR>")
 map("n", "Q", "<Nop>")
 
 map("n", "<C-t>", "<cmd>enew <CR>") -- new buffer
-

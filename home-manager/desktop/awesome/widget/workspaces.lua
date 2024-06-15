@@ -30,14 +30,14 @@ bling.widget.tag_preview.enable({
 })
 return function(s)
     return awful.widget.taglist({
-        screen          = s,
-        filter          = function(tag)
+        screen = s,
+        filter = function(tag)
             return (awful.widget.taglist.filter.noempty(tag))
         end,
-        style           = {
+        style = {
             shape = util.rounded_shape(2),
         },
-        layout          = {
+        layout = {
             spacing = 1,
             layout = wibox.layout.flex.horizontal,
         },
@@ -74,7 +74,7 @@ return function(s)
                 self:get_children_by_id("index_role")[1].text = workspace_names[tag.index]
             end,
         },
-        buttons         = gears.table.join(
+        buttons = gears.table.join(
             awful.button({}, 1, function(t)
                 awesome.emit_signal("bling::tag_preview::visibility", s, false)
                 t:view_only()

@@ -8,9 +8,10 @@ local function run_once_pgrep(cmd)
     if firstspace then
         findme = cmd:sub(0, firstspace - 1)
     end
-    awful.spawn.easy_async_with_shell(string.format("pgrep -u $USER -x %s > /dev/null || (%s)", findme, cmd), function()
-
-    end)
+    awful.spawn.easy_async_with_shell(
+        string.format("pgrep -u $USER -x %s > /dev/null || (%s)", findme, cmd),
+        function() end
+    )
 end
 
 local function run_once_ps(findme, cmd)
@@ -28,4 +29,3 @@ local function run_once_grep(command)
         end
     end)
 end
-

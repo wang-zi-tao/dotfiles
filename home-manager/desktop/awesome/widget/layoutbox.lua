@@ -7,7 +7,7 @@ local dpi = xresources.apply_dpi
 local util = require("widget.util")
 return function(s)
     local layoutbox_buttons = gears.table.join(
-    -- Left click
+        -- Left click
         awful.button({}, 1, function(c)
             awful.layout.inc(1)
         end),

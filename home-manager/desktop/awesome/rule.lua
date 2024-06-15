@@ -35,7 +35,7 @@ awful.rules.rules = {
     {
         rule = {
             class = { "Virt-manager", "virt-manager" },
-            name = "win10 - QEMU/KVM"
+            name = "win10 - QEMU/KVM",
         },
         properties = { tag = "8" },
     },
@@ -49,8 +49,8 @@ awful.rules.rules = {
     {
         rule = { class = "Gpaste-ui" },
         properties = {
-            placement = awful.placement.centered
-        }
+            placement = awful.placement.centered,
+        },
     },
     -- Floating clients.
     {
@@ -93,7 +93,7 @@ awful.rules.rules = {
                 "pop-up", -- e.g. Google Chrome's (detached) Developer Tools.
             },
             type = {
-                "dialog"
+                "dialog",
             },
         },
         properties = { floating = true },
@@ -105,11 +105,11 @@ awful.rules.rules = {
     { rule = { class = "firefox" }, properties = { opacity = 1, maximized = false, floating = false } },
     {
         rule = {
-            instance = "alacrittydrop"
+            instance = "alacrittydrop",
         },
         callback = function(c)
             c.skip_taskbar = true
-        end
+        end,
     },
 
     -- Set Firefox to always map on the tag named "2" on screen 1.

@@ -21,8 +21,8 @@ local M = {
         }),
         bookmarks = tbl("bookmarks", {
             project = { "text" },
-            name = { "text" }
-        })
+            name = { "text" },
+        }),
     },
 }
 

@@ -1,12 +1,12 @@
 local onedark = require("onedark")
 onedark.setup({
     -- Main options --
-    style = "deep",                                                                    -- Default theme style. Choose between 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer' and 'light'
-    transparent = false,                                                               -- Show/hide background
-    term_colors = false,                                                               -- Change terminal color as per the selected theme style
-    ending_tildes = false,                                                             -- Show the end-of-buffer tildes. By default they are hidden
+    style = "deep", -- Default theme style. Choose between 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer' and 'light'
+    transparent = false, -- Show/hide background
+    term_colors = false, -- Change terminal color as per the selected theme style
+    ending_tildes = false, -- Show the end-of-buffer tildes. By default they are hidden
     -- toggle theme style ---
-    toggle_style_key = "<leader>wT",                                                   -- Default keybinding to toggle
+    toggle_style_key = "<leader>wT", -- Default keybinding to toggle
     toggle_style_list = { "dark", "light", "darker", "cool", "deep", "warm", "warmer" }, -- List of styles to toggle between
 
     -- Change code style ---
@@ -74,7 +74,7 @@ onedark.setup({
         DiagnosticVirtualTextInfo = { fg = "$blue" },
         DiagnosticVirtualTextHint = { fg = "$green" },
         DiagnosticVirtualTextError = { fg = "$red" },
-        DapUIPlayPauseNC = { bg = "$bg0", fg = "#a9ff68"},
+        DapUIPlayPauseNC = { bg = "$bg0", fg = "#a9ff68" },
         DapUIStopNC = { bg = "$bg0", fg = "#f70067" },
         DapUIRestartNC = { bg = "$bg0", fg = "#a9ff68" },
         DapUIUnavailableNC = { bg = "$bg0", fg = "#424242" },
@@ -82,38 +82,43 @@ onedark.setup({
         DapUIStepIntoNC = { bg = "$bg0", fg = "#00f1f5" },
         DapUIStepBackNC = { bg = "$bg0", fg = "#00f1f5" },
         DapUIStepOutNC = { bg = "$bg0", fg = "#00f1f5" },
-        DapBreakpoint = {fg = "$red" },
-        DapLogPoint = {fg = "$orange" },
-        DapStopped = {bg = "$green" ,fg = "$black" },
-        DapStoppedIcon = {fg = "$cyan" },
-        BufferLineBufferSelected = {bg = "$bg0", fg = "#ffffff"},
-        BufferLineDuplicate = {bg = "#131820", fg = "$grey"},
-        BufferLineDuplicateVisible = {bg = "$bg0", fg = "$grey"},
-        BufferLineDuplicateSelected = {bg = "$bg0", fg = "$grey"},
-        BufferLineHintSelected = {bg="$bg0", fg = "$cyan"},
-        BufferLineWarningSelected = {bg="$bg0", fg = "$orange"},
-        BufferLineErrorSelected = {bg="$bg0", fg = "$red" },
-        BufferLineHintDiagnosticSelected = {bg="$bg0", fg = "$cyan"},
-        BufferLineWarningDiagnosticSelected = {bg="$bg0", fg = "$orange"},
-        BufferLineErrorDiagnosticSelected = {bg="$bg0", fg = "$red" },
-        SagaWinbarFileName = {bg =  "$bg0", fg="$grey"},
-        SagaWinbarFolderName = {bg =  "$bg0", fg="$grey"},
-        EdgyWinBar = {bg="$bg0", fg="$fg"},
-        WinBar = {bg="$bg0", fg="$fg"},
-        WinBarNC = {bg="$bg0", fg="$fg"},
+        DapBreakpoint = { fg = "$red" },
+        DapLogPoint = { fg = "$orange" },
+        DapStopped = { bg = "$green", fg = "$black" },
+        DapStoppedIcon = { fg = "$cyan" },
+        BufferLineBufferSelected = { bg = "$bg0", fg = "#ffffff" },
+        BufferLineDuplicate = { bg = "#131820", fg = "$grey" },
+        BufferLineDuplicateVisible = { bg = "$bg0", fg = "$grey" },
+        BufferLineDuplicateSelected = { bg = "$bg0", fg = "$grey" },
+        BufferLineHintSelected = { bg = "$bg0", fg = "$cyan" },
+        BufferLineInfoSelected = { bg = "$bg0", fg = "$green" },
+        BufferLineWarningSelected = { bg = "$bg0", fg = "$orange" },
+        BufferLineErrorSelected = { bg = "$bg0", fg = "$red" },
+        BufferLineHintDiagnosticSelected = { bg = "$bg0", fg = "$cyan" },
+        BufferLineInfoDiagnosticSelected = { bg = "$bg0", fg = "$green" },
+        BufferLineWarningDiagnosticSelected = { bg = "$bg0", fg = "$orange" },
+        BufferLineErrorDiagnosticSelected = { bg = "$bg0", fg = "$red" },
+        SagaWinbarFileName = { bg = "$bg0", fg = "$grey" },
+        SagaWinbarFolderName = { bg = "$bg0", fg = "$grey" },
+        EdgyWinBar = { bg = "$bg0", fg = "$fg" },
+        WinBar = { bg = "$bg0", fg = "$fg" },
+        WinBarNC = { bg = "$bg0", fg = "$fg" },
     }, -- Override highlight groupsko
 
     -- Plugins Config --
     diagnostics = {
-        darker = true,  -- darker colors for diagnostic
+        darker = true, -- darker colors for diagnostic
         undercurl = true, -- use undercurl instead of underline for diagnostics
         background = false, -- use background color for virtual text
     },
 })
 onedark.load()
 
-vim.fn.sign_define('DapBreakpoint', { text='', texthl='DapBreakpoint', numhl='DapBreakpoint' })
-vim.fn.sign_define('DapBreakpointCondition', { text='ﳁ', texthl='DapBreakpoint', numhl='DapBreakpoint' })
-vim.fn.sign_define('DapBreakpointRejected', { text='', texthl='DapBreakpoint', numhl= 'DapBreakpoint' })
-vim.fn.sign_define('DapLogPoint', { text='', texthl='DapLogPoint', numhl= 'DapLogPoint' })
-vim.fn.sign_define('DapStopped', { text='', texthl='DapStoppedIcon', linehl='DapStopped', numhl= 'DapStopped' })
+vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "DapBreakpoint", numhl = "DapBreakpoint" })
+vim.fn.sign_define("DapBreakpointCondition", { text = "ﳁ", texthl = "DapBreakpoint", numhl = "DapBreakpoint" })
+vim.fn.sign_define("DapBreakpointRejected", { text = "", texthl = "DapBreakpoint", numhl = "DapBreakpoint" })
+vim.fn.sign_define("DapLogPoint", { text = "", texthl = "DapLogPoint", numhl = "DapLogPoint" })
+vim.fn.sign_define(
+    "DapStopped",
+    { text = "", texthl = "DapStoppedIcon", linehl = "DapStopped", numhl = "DapStopped" }
+)

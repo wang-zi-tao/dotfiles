@@ -28,11 +28,11 @@ awful.keyboard.append_global_keybindings({
         for _, tag in pairs(awful.screen.focused().selected_tags) do
             awful.spawn(
                 apps.default.terminal
-                .. " --title=alacritty-workspace-"
-                .. tag.index
-                .. " -e tmuxinator s 'workspace-"
-                .. tag.index
-                .. "'"
+                    .. " --title=alacritty-workspace-"
+                    .. tag.index
+                    .. " -e tmuxinator s 'workspace-"
+                    .. tag.index
+                    .. "'"
             )
             break
         end
@@ -238,7 +238,4 @@ client.connect_signal("request::default_mousebindings", function()
         end),
     })
 end)
-root.buttons(awful.util.table.join(
-    awful.button({}, 4, last_tag),
-    awful.button({}, 5, next_tag)
-))
+root.buttons(awful.util.table.join(awful.button({}, 4, last_tag), awful.button({}, 5, next_tag)))

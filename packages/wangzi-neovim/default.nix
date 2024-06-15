@@ -10,7 +10,7 @@
 , enable-all ? true
 , enable-debuger ? enable-all && (pkgs.system == "x86_64-linux")
 , enable-markdown-preview ? enable-all
-, enable-tabnine ? false
+, enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux")
 }:
 stdenvNoCC.mkDerivation {
   pname = "wangzi-neovim";
@@ -35,16 +35,22 @@ stdenvNoCC.mkDerivation {
     local M = {
       core = "$out",
       packer = "${packer-nvim}",
-      onedark_nvim = "${onedark-nvim}",
-      alpha_nvim = "${alpha-nvim}",
       plenary_nvim = "${plenary-nvim}",
       impatient_nvim = "${impatient-nvim}",
-      notify_nvim = "${nvim-notify}",
+
+      -- utils
+      profile_nvim = "${pkgs.fetchgit {
+        url = "https://github.com/stevearc/profile.nvim";
+        rev = "0ee32b7aba31d84b0ca76aaff2ffcb11f8f5449f";
+        sha256 = "sha256-usyy1kST8hq/3j0sp7Tpf/1mld6RtcVABPo/ygeqzbU=";
+      }}",
+
+      -- theme
+      onedark_nvim = "${onedark-nvim}",
       nvim_base16 = "${base16-nvim}",
       nvim_web_devicons = "${nvim-web-devicons}",
-      feline_nvim = "${feline-nvim}",
-      lualine_nvim = "${lualine-nvim}",
-      bufferline_nvim = "${bufferline-nvim}",
+
+      -- buffer
       indent_blankline_nvim = "${indent-blankline-nvim}",
       nvim_colorizer_lua = "${nvim-colorizer-lua}",
       baleia_nvim = "${baleia-nvim}",
@@ -52,6 +58,8 @@ stdenvNoCC.mkDerivation {
         nix cpp c java kotlin rust typescript python javascript
       ])}",
       nvim_treesitter_textobjects = "${nvim-treesitter-textobjects}",
+
+      -- git
       gitsigns_nvim = "${gitsigns-nvim}",
       vgit_nvim = "${pkgs.fetchgit {
         url = "https://github.com/tanvirtin/vgit.nvim";
@@ -85,7 +93,7 @@ stdenvNoCC.mkDerivation {
       symbols_outline = "${symbols-outline-nvim}",
       rustaceanvim = "${rustaceanvim}",
       rust_tools = "${rust-tools-nvim}",
-      null_ls = "${null-ls-nvim}",
+      none_ls = "${none-ls-nvim}",
       clangd_extensions_nvim = "${clangd_extensions-nvim}",
       haskell_tools_nvim = "${haskell-tools-nvim}",
       iron_nvim = "${iron-nvim}",
@@ -205,6 +213,10 @@ stdenvNoCC.mkDerivation {
       }}",
       ts_autotag = "${nvim-ts-autotag}",
       virtual_types_nvim = "${virtual-types-nvim}",
+      alpha_nvim = "${alpha-nvim}",
+      lualine_nvim = "${lualine-nvim}",
+      bufferline_nvim = "${bufferline-nvim}",
+      notify_nvim = "${nvim-notify}",
 
       mason_nvim = "${mason-nvim}",
       dap = "${nvim-dap}",

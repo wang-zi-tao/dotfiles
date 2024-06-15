@@ -7,7 +7,7 @@ local dpi = xresources.apply_dpi
 local util = require("widget.util")
 local apps = require("apps")
 local bling = require("module.bling")
-bling.widget.task_preview.enable {
+bling.widget.task_preview.enable({
     x = 20, -- The x-coord of the popup
     y = 20, -- The y-coord of the popup
     height = 450, -- The height of the popup
@@ -17,7 +17,7 @@ bling.widget.task_preview.enable {
             margins = {
                 top = 40,
                 left = 8,
-            }
+            },
         })
     end,
     -- Your widget will automatically conform to the given size due to a constraint container.
@@ -71,17 +71,17 @@ bling.widget.task_preview.enable {
         shape_border_color = beautiful.blue,
         shape = util.rounded_shape(16),
         widget = wibox.container.background,
-    }
-}
+    },
+})
 return function(s)
-    local tasklist = awful.widget.tasklist {
-        screen          = s,
+    local tasklist = awful.widget.tasklist({
+        screen = s,
         -- filter          = awful.widget.tasklist.filter.currenttags,
-        filter          = awful.widget.tasklist.filter.alltags,
+        filter = awful.widget.tasklist.filter.alltags,
         -- buttons         = tasklist_buttons,
-        layout          = {
+        layout = {
             spacing = 1,
-            layout  = wibox.layout.fixed.horizontal
+            layout = wibox.layout.fixed.horizontal,
         },
         -- Notice that there is *NO* wibox.wibox prefix, it is a template,
         -- not a widget instance.
@@ -89,15 +89,14 @@ return function(s)
             {
                 awful.widget.clienticon,
                 margins = 2,
-                widget  = wibox.container.margin
+                widget = wibox.container.margin,
             },
-            id              = "background_role",
-            bg              = beautiful.background2,
-            shape           = util.rounded_shape(8),
+            id = "background_role",
+            bg = beautiful.background2,
+            shape = util.rounded_shape(8),
             create_callback = function(self, c, _, _)
                 self:connect_signal("button::press", function()
-                    awesome.emit_signal("bling::task_preview::visibility", s,
-                        false, c)
+                    awesome.emit_signal("bling::task_preview::visibility", s, false, c)
                     if not c.active then
                         c:activate({
                             context = "through_dock",
@@ -107,17 +106,15 @@ return function(s)
                         c.minimized = true
                     end
                 end)
-                self:connect_signal('mouse::enter', function()
-                    awesome.emit_signal("bling::task_preview::visibility", s,
-                        true, c)
+                self:connect_signal("mouse::enter", function()
+                    awesome.emit_signal("bling::task_preview::visibility", s, true, c)
                 end)
-                self:connect_signal('mouse::leave', function()
-                    awesome.emit_signal("bling::task_preview::visibility", s,
-                        false, c)
+                self:connect_signal("mouse::leave", function()
+                    awesome.emit_signal("bling::task_preview::visibility", s, false, c)
                 end)
             end,
-            layout          = wibox.container.background
+            layout = wibox.container.background,
         },
-    }
+    })
     return tasklist
 end

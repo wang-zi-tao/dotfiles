@@ -86,6 +86,16 @@ in
     stylua
     shfmt
     shellcheck
+    yamlfmt
+    yamlfix
+    "/nixfs/flake/str/nixpkgs#libxml2.bin/bin/xmllint"
+    rustywind
+    codespell
+    stylelint
+    clazy
+    yapf
+    pylint
+    semgrep
     deno
     vala-language-server
     cmake-language-server

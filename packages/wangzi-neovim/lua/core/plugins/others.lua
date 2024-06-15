@@ -62,14 +62,12 @@ M.auto_save = function()
         callbacks = { -- functions to be executed at different intervals
             enabling = nil, -- ran when enabling auto-save
             disabling = nil, -- ran when disabling auto-save
-            before_asserting_save = function()
-            end, -- ran before checking `condition`
-            before_saving = function()
-            end, -- ran before doing the actual save
+            before_asserting_save = function() end, -- ran before checking `condition`
+            before_saving = function() end, -- ran before doing the actual save
             after_saving = function()
                 vim.notify("AutoSave: saved at " .. vim.fn.strftime("%H:%M:%S"))
-            end -- ran after doing the actual save
-        }
+            end, -- ran after doing the actual save
+        },
     })
 end
 M.scrollbar = function()
@@ -142,28 +140,28 @@ M.session_manager = function()
     })
 end
 M.distant = function()
-    local actions = require('distant.nav.actions')
+    local actions = require("distant.nav.actions")
 
     local settings = {
         distant = {
-            args = { '--shutdown-after', '60' },
+            args = { "--shutdown-after", "60" },
         },
         -- Settings that apply when editing a remote file
         file = {
             mappings = {
-                ['-'] = actions.up,
+                ["-"] = actions.up,
             },
         },
         -- Settings that apply to the navigation interface
         dir = {
             mappings = {
-                ['<Return>'] = actions.edit,
-                ['-']        = actions.up,
-                ['K']        = actions.mkdir,
-                ['N']        = actions.newfile,
-                ['R']        = actions.rename,
-                ['D']        = actions.remove,
-            }
+                ["<Return>"] = actions.edit,
+                ["-"] = actions.up,
+                ["K"] = actions.mkdir,
+                ["N"] = actions.newfile,
+                ["R"] = actions.rename,
+                ["D"] = actions.remove,
+            },
         },
         -- Maximimum time to wait (in milliseconds) for requests to finish
         max_timeout = 15 * 1000,
@@ -174,15 +172,15 @@ M.distant = function()
         -- see if an async function has completed
         poll_interval = 200,
         -- Settings to use to start LSP instances
-        lsp = {};
+        lsp = {},
     }
-    require('distant').setup {
+    require("distant").setup({
         -- Applies Chip's personal settings to every machine you connect to
         --
         -- 1. Ensures that distant servers terminate with no connections
         -- 2. Provides navigation bindings for remote directories
         -- 3. Provides keybinding to jump into a remote file's parent directory
-        ['*'] = settings
-    }
+        ["*"] = settings,
+    })
 end
 return M

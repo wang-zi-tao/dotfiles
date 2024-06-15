@@ -1,5 +1,5 @@
-require("cmp").register_source('crates', require('crates.src.cmp').new())
-require('crates').setup {
+require("cmp").register_source("crates", require("crates.src.cmp").new())
+require("crates").setup({
     smart_insert = true,
     insert_closing_quote = true,
     avoid_prerelease = true,
@@ -131,12 +131,12 @@ require('crates').setup {
         enabled = false,
         name = "crates.nvim",
     },
-}
+})
 
-require('crates').show()
+require("crates").show()
 vim.api.nvim_create_autocmd("BufRead", {
     pattern = { "Cargo.toml" },
     callback = function()
-        require('crates').show()
+        require("crates").show()
     end,
 })

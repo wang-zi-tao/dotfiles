@@ -105,8 +105,8 @@ local filesize = {
 }
 local filetype = {
     "filetype",
-    colored = true,           -- Displays filetype icon in color if set to true
-    icon_only = true,         -- Display only an icon for filetype
+    colored = true, -- Displays filetype icon in color if set to true
+    icon_only = true, -- Display only an icon for filetype
     icon = { align = "right" }, -- Display filetype icon on the right hand side
     align = "right",
     -- icon =    {'X', align='right'}
@@ -293,7 +293,7 @@ local lsp = {
 
 -- Add components to right sections
 local encoding = {
-    "encoding",       -- option component same as &encoding in viml
+    "encoding", -- option component same as &encoding in viml
     fmt = string.upper, -- I'm not sure why it's upper case either ;)
     cond = conditions.hide_in_width,
     color = { fg = colors.blue, gui = "bold" },

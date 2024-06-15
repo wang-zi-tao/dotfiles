@@ -12,23 +12,24 @@ local info_center = require("widget.info_center")
 
 awful.screen.connect_for_each_screen(function(s)
     s.mywibar = awful.wibar({
-        type     = "dock",
-        stretch  = true,
-        visible  = true,
-        height   = dpi(36),
-        ontop    = false,
-        width    = s.geometry.width - dpi(16),
-        screen   = s,
+        type = "dock",
+        stretch = true,
+        visible = true,
+        height = dpi(36),
+        ontop = false,
+        width = s.geometry.width - dpi(16),
+        screen = s,
         position = "top",
-        y        = dpi(3),
-        bg       = "#00000000",
-        buttons  = gears.table.join(
+        y = dpi(3),
+        bg = "#00000000",
+        buttons = gears.table.join(
             awful.button({}, 4, function(t)
                 awesome.emit_signal("tag::last::nonempty")
             end),
             awful.button({}, 5, function(t)
                 awesome.emit_signal("tag::next::nonempty")
-            end))
+            end)
+        ),
     })
     local mylayoutbox = require("widget.layoutbox")(s)
     -- local mytaglist = require("widget.workspaces")(s)

@@ -21,5 +21,5 @@ require("core.lazy")
 require("lazy.help").update = function() end
 if packer_bootstrap then
     require("lazy").install()
-    vim.cmd('TSUpdate')
+    vim.cmd("TSUpdate")
 end

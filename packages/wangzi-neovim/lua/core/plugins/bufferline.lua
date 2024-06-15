@@ -1,11 +1,9 @@
 local bufferline = require("bufferline")
-local devicons = require( 'nvim-web-devicons' )
+local devicons = require("nvim-web-devicons")
 
 local colors = require("core.colors").get()
 bufferline.setup({
-    highlights = {
-
-    },
+    highlights = {},
     options = {
         offsets = { { filetype = "NvimTree", text = "", padding = 1 } },
         buffer_close_icon = "",
@@ -52,15 +50,15 @@ bufferline.setup({
         end,
         custom_areas = {
             left = function()
-                local filename = vim.fn.expand('%:t')
+                local filename = vim.fn.expand("%:t")
                 local filetype = vim.bo.filetype
                 local icon, icon_color = devicons.get_icon_color(filename, filetype)
                 local result = {}
-                table.insert(result, { text = icon, bg = '#51afef', fg = '#ffffff' })
-                table.insert(result, { text = " " .. filename, bg = '#51afef', fg = '#ffffff' })
-                table.insert(result, { text = "" , fg = '#51afef', bg = "#42464e" })
-                table.insert(result, { text = "  " .. vim.b.gitsigns_head, bg = "#42464e", fg = '#51afef' })
-                table.insert(result, { text = "" , fg = "#42464e" })
+                table.insert(result, { text = icon, bg = "#51afef", fg = "#ffffff" })
+                table.insert(result, { text = " " .. filename, bg = "#51afef", fg = "#ffffff" })
+                table.insert(result, { text = "", fg = "#51afef", bg = "#42464e" })
+                table.insert(result, { text = "  " .. vim.b.gitsigns_head, bg = "#42464e", fg = "#51afef" })
+                table.insert(result, { text = "", fg = "#42464e" })
                 return result
             end,
             right = function()

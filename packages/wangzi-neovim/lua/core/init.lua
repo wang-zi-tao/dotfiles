@@ -16,4 +16,3 @@ if n.core ~= null then
         })
     end
 end
-

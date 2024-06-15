@@ -54,7 +54,7 @@ awful.screen.connect_for_each_screen(function(s)
 end)
 
 local M = {
-    visible = false
+    visible = false,
 }
 
 local function set_visibility(v)
@@ -75,8 +75,6 @@ local time = wibox.widget({
     refresh = 1,
     widget = wibox.widget.textclock,
 })
-
-
 
 local lock_animation_arc = wibox.widget({
     forced_width = dpi(256),
@@ -117,7 +115,6 @@ local animation_colors = {
     beautiful.xcolor2,
     beautiful.xcolor3,
 }
-
 
 -- Function that "animates" every key press
 local function key_animation(char_inserted)
@@ -233,6 +230,6 @@ lock_screen_box:setup({
         expand = "outside",
         layout = wibox.layout.align.horizontal,
     },
-    layout = wibox.layout.stack
+    layout = wibox.layout.stack,
 })
 return M

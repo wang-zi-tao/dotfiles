@@ -56,11 +56,12 @@ return {
     lazy = true,
     config = config,
     keys = {
-        { "<leader>wr",
+        {
+            "<leader>wr",
             function()
                 require("trouble").toggle()
             end,
-            desc = "Error/Warning"
+            desc = "Error/Warning",
         },
-    }
+    },
 }
