@@ -1,16 +1,58 @@
+local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+local function is_null_ls_formatting_enabled(bufnr)
+    local file_type = vim.api.nvim_buf_get_option(bufnr, "filetype")
+    local generators =
+        require("null-ls.generators").get_available(file_type, require("null-ls.methods").internal.FORMATTING)
+    return #generators > 0
+end
+
+local function lsp_formatting(bufnr)
+    vim.lsp.buf.format({
+        filter = function(client)
+            -- apply whatever logic you want (in this example, we'll only use null-ls)
+            return client.name ~= "null-ls"
+        end,
+        bufnr = bufnr,
+    })
+end
+
 local function on_attach(client, bufnr)
     local navbuddy = require("nvim-navbuddy")
     navbuddy.attach(client, bufnr)
 
+    if client.server_capabilities.documentFormattingProvider then
+        if client.name == "null-ls" and is_null_ls_formatting_enabled(bufnr) or client.name ~= "null-ls" then
+            vim.bo[bufnr].formatexpr = "v:lua.vim.lsp.formatexpr()"
+            vim.keymap.set("n", "<leader>gq", "<cmd>lua vim.lsp.buf.format({ async = true })<CR>", opts)
+        else
+            vim.bo[bufnr].formatexpr = nil
+        end
+    end
+
+    local is_none_ls = client.name == "null-ls"
+
     if client.supports_method("textDocument/formatting") then
         vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+        local use_none_ls_formator = #vim.api.nvim_get_autocmds({
+            group = augroup,
+            buffer = bufnr,
+        }) ~= 0 and not is_none_ls
         vim.api.nvim_create_autocmd("BufWritePre", {
             group = augroup,
             buffer = bufnr,
             callback = function()
                 local old_print = vim.notify
                 vim.notify = function(...) end
-                lsp_formatting(bufnr)
+                vim.lsp.buf.format({
+                    filter = function(formatting_client)
+                        if use_none_ls_formator then
+                            return formatting_client.name == "null-ls"
+                        else
+                            return formatting_client.name ~= "null-ls"
+                        end
+                    end,
+                    bufnr = bufnr,
+                })
                 vim.notify = old_print
             end,
         })
@@ -72,7 +114,6 @@ local function on_attach(client, bufnr)
     -- keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
     -- keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 end
-
 
 local function setup_lsp(capabilities)
     vim.lsp.inlay_hint.enable(true)
@@ -207,17 +248,6 @@ local function config()
     -- local illuminate = require("illuminate")
 
     require("core.plugins.lsp_handlers")
-
-    local lsp_formatting = function(bufnr)
-        vim.lsp.buf.format({
-            filter = function(client)
-                -- apply whatever logic you want (in this example, we'll only use null-ls)
-                return client.name == "null-ls"
-            end,
-            bufnr = bufnr,
-        })
-    end
-    local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 
     local capabilities = require("cmp_nvim_lsp").default_capabilities()
     capabilities.textDocument.completion.completionItem.documentationFormat = { "markdown", "plaintext" }
@@ -379,16 +409,7 @@ vim.g.rustaceanvim = function()
                 -- the border that is used for floating windows
                 ---@see vim.api.nvim_open_win()
                 ---@type string[][] | string
-                border = {
-                    { "╭", "FloatBorder" },
-                    { "─", "FloatBorder" },
-                    { "╮", "FloatBorder" },
-                    { "│", "FloatBorder" },
-                    { "╯", "FloatBorder" },
-                    { "─", "FloatBorder" },
-                    { "╰", "FloatBorder" },
-                    { "│", "FloatBorder" },
-                }, -- maybe: 'double', 'rounded', 'shadow', 'single',
+                border = "rounded", -- maybe: 'double', 'rounded', 'shadow', 'single',
 
                 --- maximal width of floating windows. Nil means no max.
                 ---@type integer | nil
@@ -509,15 +530,7 @@ return {
                     })
                 end,
             },
-            {
-                "jose-elias-alvarez/null-ls.nvim",
-                dir = gen.null_ls,
-                name = "null_ls",
-                lazy = true,
-                config = function()
-                    require("core.plugins.null_ls")
-                end,
-            },
+            require("core.plugins.null_ls"),
             {
                 "jubnzv/virtual-types.nvim",
                 dir = gen.virtual_types_nvim,
@@ -607,63 +620,63 @@ return {
             },
         },
     },
-    {
-        "simrat39/rust-tools.nvim",
-        dir = gen.rust_tools,
-        name = "rust_tools",
-        dependencies = "nvim_lspconfig",
-        cmd = {
-            "RustSetInlayHints",
-            "RustDisableInlayHints",
-            "RustToggleInlayHints",
-            "RustRunnables",
-            "RustExpandMacro",
-            "RustOpenCargo",
-            "RustParentModule",
-            "RustJoinLines",
-            "RustHoverActions",
-            "RustHoverRange",
-            "RustMoveItemDown",
-            "RustMoveItemUp",
-            "RustStartStandaloneServerForBuffer",
-            "RustDebuggables",
-            "RustViewCrateGraph",
-            "RustReloadWorkspace",
-            "RustSSR",
-        },
-        lazy = true,
-        config = function()
-            local adapter
-            if gen.vscode_lldb then
-                adapter = require("rust-tools.dap").get_codelldb_adapter(
-                    gen.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/adapter/codelldb",
-                    gen.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/lldb/lib/liblldb.so"
-                )
-            end
-            require("rust-tools").setup({
-                tools = {
-                    inlay_hints = {
-                        auto = false,
-                        show_variable_name = true,
-                    },
-                },
-                dap = {
-                    adapter = adapter,
-                },
-            })
-        end,
-        keys = {
-            {
-                "<leader>ca",
-                function()
-                    require("rust-tools").hover_actions.hover_actions()
-                end,
-                mode = "n",
-                desc = "Cargo actio",
-            },
-        },
-        ft = { "rs", "rust", "toml" },
-    },
+    -- {
+    --     "simrat39/rust-tools.nvim",
+    --     dir = gen.rust_tools,
+    --     name = "rust_tools",
+    --     dependencies = "nvim_lspconfig",
+    --     cmd = {
+    --         "RustSetInlayHints",
+    --         "RustDisableInlayHints",
+    --         "RustToggleInlayHints",
+    --         "RustRunnables",
+    --         "RustExpandMacro",
+    --         "RustOpenCargo",
+    --         "RustParentModule",
+    --         "RustJoinLines",
+    --         "RustHoverActions",
+    --         "RustHoverRange",
+    --         "RustMoveItemDown",
+    --         "RustMoveItemUp",
+    --         "RustStartStandaloneServerForBuffer",
+    --         "RustDebuggables",
+    --         "RustViewCrateGraph",
+    --         "RustReloadWorkspace",
+    --         "RustSSR",
+    --     },
+    --     lazy = true,
+    --     config = function()
+    --         local adapter
+    --         if gen.vscode_lldb then
+    --             adapter = require("rust-tools.dap").get_codelldb_adapter(
+    --                 gen.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/adapter/codelldb",
+    --                 gen.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/lldb/lib/liblldb.so"
+    --             )
+    --         end
+    --         require("rust-tools").setup({
+    --             tools = {
+    --                 inlay_hints = {
+    --                     auto = false,
+    --                     show_variable_name = true,
+    --                 },
+    --             },
+    --             dap = {
+    --                 adapter = adapter,
+    --             },
+    --         })
+    --     end,
+    --     keys = {
+    --         {
+    --             "<leader>ca",
+    --             function()
+    --                 require("rust-tools").hover_actions.hover_actions()
+    --             end,
+    --             mode = "n",
+    --             desc = "Cargo actio",
+    --         },
+    --     },
+    --     ft = { "rs", "rust", "toml" },
+    -- },
     disabled = {
         "mrcjkb/rustaceanvim",
         dir = gen.rustaceanvim,
