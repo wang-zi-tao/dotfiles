@@ -1,4 +1,10 @@
-{ config, pkgs, lib, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   config = lib.mkIf config.cluster.nodeConfig.container.enable {
     environment.etc."docker/daemon.json".text = ''
       {

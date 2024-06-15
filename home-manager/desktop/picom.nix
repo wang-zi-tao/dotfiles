@@ -1,21 +1,23 @@
-{ pkgs, ... }: {
-  home.packages = [
-    pkgs.picom
-  ];
+{ pkgs, ... }:
+{
+  home.packages = [ pkgs.picom ];
   services.picom = {
     enable = true;
-    extraArgs = [ "--dbus" "--experimental-backend" ];
+    extraArgs = [
+      "--dbus"
+      "--experimental-backend"
+    ];
     activeOpacity = 1.0;
     backend = "glx";
     fade = true;
     fadeDelta = 4;
     fadeExclude = [ ];
     fadeSteps = [
-      0.028
-      0.03
+      2.8e-2
+      3.0e-2
     ];
     shadow = false;
-    shadowExclude=[
+    shadowExclude = [
       "class_g  = 'awesome'"
       "class_g  = 'firefox'"
     ];

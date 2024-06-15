@@ -1,5 +1,19 @@
-{ pkgs, lib, stdenv, fetchurl, p7zip, dpkg, xwininfo, wqy_microhei, alsa-lib
-, alsa-plugins, libpulseaudio, openal, mpg123, gnutls }:
+{
+  pkgs,
+  lib,
+  stdenv,
+  fetchurl,
+  p7zip,
+  dpkg,
+  xwininfo,
+  wqy_microhei,
+  alsa-lib,
+  alsa-plugins,
+  libpulseaudio,
+  openal,
+  mpg123,
+  gnutls,
+}:
 stdenv.mkDerivation rec {
   pname = "deepin-wine-tim";
   version = "3.3.8.22043";
@@ -9,8 +23,7 @@ stdenv.mkDerivation rec {
   debpkgver = "9.3.2deepin20";
   timpkgname = "com.qq.office.deepin";
   src = fetchurl {
-    url =
-      "${mirror}/appstore/pool/appstore/c/${debpkgname}/${debpkgname}_${debpkgver}_i386.deb";
+    url = "${mirror}/appstore/pool/appstore/c/${debpkgname}/${debpkgname}_${debpkgver}_i386.deb";
     sha256 = "sha256-1f+Ke8s/ON9nQPYKTW8FgpwHHuKEiPlSVVPXFgvPLMI=";
   };
   unpackCmd = "dpkg -x $src .";
@@ -19,7 +32,10 @@ stdenv.mkDerivation rec {
     url = "https://dldir1.qq.com/qqfile/qq/PCTIM/TIM3.3.8/TIM${version}.exe";
     sha256 = "sha256-Q1sRuae+lNt6JJYDnwHXm5uciVlo5uvCAzQKPj0tjl0=";
   };
-  nativeBuildInputs = [ p7zip dpkg ];
+  nativeBuildInputs = [
+    p7zip
+    dpkg
+  ];
   buildInputs = [
     xwininfo
     wqy_microhei

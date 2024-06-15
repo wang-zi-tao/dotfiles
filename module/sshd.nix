@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
   sops-enable = config.sops.defaultSopsFile != "/";
@@ -46,7 +51,10 @@ in
 
         Match all
       '';
-      ports = [ 22 64022 ];
+      ports = [
+        22
+        64022
+      ];
       openFirewall = true;
     };
     programs.ssh.extraConfig = ''

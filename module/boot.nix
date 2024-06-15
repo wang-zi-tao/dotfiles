@@ -1,21 +1,32 @@
-{ config, pkgs, lib, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   config = lib.mkIf (!config.cluster.nodeConfig.inContainer) {
     boot = {
       initrd = {
-        /* network.enable = true; */
+        # network.enable = true;
         supportedFilesystems = [
           "f2fs"
           "ext4"
         ];
-        availableKernelModules =
-          [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" "nvme" ];
+        availableKernelModules = [
+          "xhci_pci"
+          "ahci"
+          "rtsx_usb_sdmmc"
+          "bcache"
+          "nvme"
+        ];
         kernelModules = [ ];
       };
       # extraModulePackages = with config.boot.kernelPackages; (lib.optional config.virtualisation.virtualbox.host.enable virtualbox);
       kernelParams = [ "quite" ];
       plymouth = {
         enable = true;
-        /* theme = "breeze"; */
+        # theme = "breeze";
       };
       kernel.sysctl = {
         "vm.swappiness" = 100;
@@ -41,7 +52,9 @@
     boot.extraSystemdUnitPaths = [ "/etc/systemd-mutable/system" ];
     systemd.oomd = {
       enable = true;
-      extraConfig = { DefaultMemoryPressureDurationSec = "15s"; };
+      extraConfig = {
+        DefaultMemoryPressureDurationSec = "15s";
+      };
       enableUserSlices = true;
       enableRootSlice = true;
       enableSystemSlice = true;
@@ -49,13 +62,22 @@
     services.earlyoom = {
       enable = true;
       enableNotifications = true;
-      extraArgs = ["-g" "--prefer '(^|/)(java|chromium|nvim|clang|clang\+\+|cargo|rustc|ghc|rust-analyzer|.haskell-language-server-.*)$'" ];
-    }; 
+      extraArgs = [
+        "-g"
+        "--prefer '(^|/)(java|chromium|nvim|clang|clang\+\+|cargo|rustc|ghc|rust-analyzer|.haskell-language-server-.*)$'"
+      ];
+    };
     systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {
       wantedBy = [ "multi-user.target" ];
       before = [ "multi-user.target" ];
-      path = with pkgs; [ busybox nix openssh ];
-      environment = { inherit (config.environment.sessionVariables) NIX_PATH; };
+      path = with pkgs; [
+        busybox
+        nix
+        openssh
+      ];
+      environment = {
+        inherit (config.environment.sessionVariables) NIX_PATH;
+      };
       script = ''
         if [[ -e /run/secrets/script ]]; then
           /run/secrets/script

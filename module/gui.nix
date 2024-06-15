@@ -1,4 +1,10 @@
-{ config, pkgs, lib, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   config = lib.mkMerge [
     (lib.mkIf config.cluster.nodeConfig.guiClient.enable {
       programs.ssh.askPassword = "${pkgs.gnome.seahorse}/libexec/seahorse/ssh-askpass";
@@ -18,9 +24,15 @@
             pulseaudio = true;
           };
           xkb.options = "ctrl:nocaps";
-          modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
-          extraConfig = ''
-          '';
+          modules = with pkgs.xorg; [
+            libXv
+            libXtst
+            libxcb
+            xcbutilkeysyms
+            xhost
+            xbacklight
+          ];
+          extraConfig = '''';
         };
         displayManager.defaultSession = "none+awesome";
       };
@@ -34,46 +46,59 @@
           "--unsupported-gpu"
         ];
       };
-      networking.firewall.allowedTCPPortRanges = [{ from = 6000; to = 6010; } { from = 7000; to = 7010; }]; # xpra
-    })
-    (lib.mkIf (config.cluster.nodeConfig.guiServer.enable && ! config.cluster.nodeConfig.guiClient.enable) {
-      networking.firewall.allowedTCPPorts = [ 10000 ];
-      services = {
-        xserver = {
-          enable = true;
-          # exportConfiguration = true;
-          displayManager.xpra = {
-            enable = true;
-            bindTcp = "0.0.0.0:10000";
-            pulseaudio = true;
-          };
-          # modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
-          # extraConfig = '' '';
-        };
-      };
-      systemd.services.display-manager.path = with pkgs;[ python39Full xdummy ];
-      services.xserver.displayManager.job.execCmd = lib.mkForce ''
-        export PULSE_COOKIE=/run/pulse/.config/pulse/cookie
-        exec ${pkgs.xpra}/bin/xpra start \
-          --daemon=off \
-          --log-dir=/var/log \
-          --log-file=xpra.log \
-          --opengl=on \
-          --clipboard=on \
-          --notifications=on \
-          --speaker=yes \
-          --mdns=no \
-          --pulseaudio=no \
-          --sound-source=pulse \
-          --socket-dirs=/run/xpra \
-          --bind-tcp=0.0.0.0:10000 \
-          --auth=pam \
-          --xvfb="xdummy ${builtins.concatStringsSep " " config.services.xserver.displayManager.xserverArgs}" \
-      '';
+      networking.firewall.allowedTCPPortRanges = [
+        {
+          from = 6000;
+          to = 6010;
+        }
+        {
+          from = 7000;
+          to = 7010;
+        }
+      ]; # xpra
     })
     (lib.mkIf
-      (config.cluster.nodeConfig.guiServer.enable
-        || config.cluster.nodeConfig.guiClient.enable)
+      (config.cluster.nodeConfig.guiServer.enable && !config.cluster.nodeConfig.guiClient.enable)
+      {
+        networking.firewall.allowedTCPPorts = [ 10000 ];
+        services = {
+          xserver = {
+            enable = true;
+            # exportConfiguration = true;
+            displayManager.xpra = {
+              enable = true;
+              bindTcp = "0.0.0.0:10000";
+              pulseaudio = true;
+            };
+            # modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
+            # extraConfig = '' '';
+          };
+        };
+        systemd.services.display-manager.path = with pkgs; [
+          python39Full
+          xdummy
+        ];
+        services.xserver.displayManager.job.execCmd = lib.mkForce ''
+          export PULSE_COOKIE=/run/pulse/.config/pulse/cookie
+          exec ${pkgs.xpra}/bin/xpra start \
+            --daemon=off \
+            --log-dir=/var/log \
+            --log-file=xpra.log \
+            --opengl=on \
+            --clipboard=on \
+            --notifications=on \
+            --speaker=yes \
+            --mdns=no \
+            --pulseaudio=no \
+            --sound-source=pulse \
+            --socket-dirs=/run/xpra \
+            --bind-tcp=0.0.0.0:10000 \
+            --auth=pam \
+            --xvfb="xdummy ${builtins.concatStringsSep " " config.services.xserver.displayManager.xserverArgs}" \
+        '';
+      }
+    )
+    (lib.mkIf (config.cluster.nodeConfig.guiServer.enable || config.cluster.nodeConfig.guiClient.enable)
       {
         services.xrdp.enable = true;
         services.xrdp.defaultWindowManager = "${pkgs.awesome}/bin/awesome";
@@ -137,7 +162,9 @@
         ];
         i18n.inputMethod = {
           enabled = "ibus";
-          ibus = { engines = with pkgs.ibus-engines; [ libpinyin ]; };
+          ibus = {
+            engines = with pkgs.ibus-engines; [ libpinyin ];
+          };
           uim.toolbar = "qt4";
         };
         services = {
@@ -183,6 +210,7 @@
           qrcodegen
           cups
         ];
-      })
+      }
+    )
   ];
 }

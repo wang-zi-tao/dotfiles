@@ -70,11 +70,12 @@ in
   programs.alacritty = {
     enable = true;
   };
-  home.file.".config/alacritty/alacritty.toml".text = setting + ''
-  '';
-  home.file.".config/alacritty/alacritty-drop.toml".text = setting + ''
+  home.file.".config/alacritty/alacritty.toml".text = setting + '''';
+  home.file.".config/alacritty/alacritty-drop.toml".text =
+    setting
+    + ''
 
-    [shell]
-    program = "${pkgs.writeScript "tmuxinator-s-drop" "tmuxinator s  drop"}"
-  '';
+      [shell]
+      program = "${pkgs.writeScript "tmuxinator-s-drop" "tmuxinator s  drop"}"
+    '';
 }

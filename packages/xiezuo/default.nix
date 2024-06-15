@@ -1,32 +1,36 @@
-{ lib
-, stdenv
-, fetchurl
-, autoPatchelfHook
-, dpkg
-, wrapGAppsHook
-, libsForQt5
-, xorg
-, alsa-lib
-, cups
-, libXdamage
-, nspr
-, libcxx
-, steam
-, mesa
+{
+  lib,
+  stdenv,
+  fetchurl,
+  autoPatchelfHook,
+  dpkg,
+  wrapGAppsHook,
+  libsForQt5,
+  xorg,
+  alsa-lib,
+  cups,
+  libXdamage,
+  nspr,
+  libcxx,
+  steam,
+  mesa,
 }:
 stdenv.mkDerivation rec {
   pname = "xiezuo";
   version = "3.16.0";
   src = fetchurl {
-    url =
-      "http://47.243.22.114/s/wY95ciKkQCGGrGz/download/xiezuo_3.16.0_amd64-stable-3.16.0.deb";
+    url = "http://47.243.22.114/s/wY95ciKkQCGGrGz/download/xiezuo_3.16.0_amd64-stable-3.16.0.deb";
     sha256 = "sha256-ExGajbmjoSZAnMwNlb961imAbUJ6tFCuRQBYTJPoBFo=";
   };
   unpackCmd = "dpkg -x $src .";
   sourceRoot = ".";
 
-  nativeBuildInputs =
-    [ autoPatchelfHook dpkg wrapGAppsHook libsForQt5.qt5.wrapQtAppsHook ];
+  nativeBuildInputs = [
+    autoPatchelfHook
+    dpkg
+    wrapGAppsHook
+    libsForQt5.qt5.wrapQtAppsHook
+  ];
 
   meta = with lib; {
     description = "金山协作客户端";
@@ -52,9 +56,7 @@ stdenv.mkDerivation rec {
   #   lib.makeLibraryPath buildInputs;
   installPhase =
     let
-      steam-run = (steam.override {
-        extraPkgs = p: buildInputs;
-      }).run;
+      steam-run = (steam.override { extraPkgs = p: buildInputs; }).run;
     in
     ''
       prefix=$out/opt/xiezuo

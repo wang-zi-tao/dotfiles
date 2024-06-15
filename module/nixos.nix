@@ -1,5 +1,15 @@
-{ config, pkgs, lib, nixpkgs, nixpkgs-unstable, nur, ... }:
-let hostName = config.networking.hostName; in
+{
+  config,
+  pkgs,
+  lib,
+  nixpkgs,
+  nixpkgs-unstable,
+  nur,
+  ...
+}:
+let
+  hostName = config.networking.hostName;
+in
 {
   nix = {
     settings.substituters = [
@@ -38,12 +48,10 @@ let hostName = config.networking.hostName; in
 
   # environment.memoryAllocator.provider = "jemalloc";
   time.timeZone = "Asia/Shanghai";
-  nix.nixPath = (lib.mapAttrsToList (name: value: "${name}=${value}") pkgs.flake-inputs) ++ [ "nixpkgs=${nixpkgs}" ];
-  nix.registry = (builtins.mapAttrs
-    (name: value: {
-      flake = nixpkgs;
-    })
-    pkgs.flake-inputs) // {
+  nix.nixPath = (lib.mapAttrsToList (name: value: "${name}=${value}") pkgs.flake-inputs) ++ [
+    "nixpkgs=${nixpkgs}"
+  ];
+  nix.registry = (builtins.mapAttrs (name: value: { flake = nixpkgs; }) pkgs.flake-inputs) // {
     n.flake = nixpkgs;
     nixpkgs.flake = nixpkgs;
     u.flake = nixpkgs-unstable;
@@ -59,4 +67,3 @@ let hostName = config.networking.hostName; in
   system.stateVersion = "22.11";
   programs.nix-ld.enable = true;
 }
-

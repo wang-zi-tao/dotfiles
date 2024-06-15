@@ -1,4 +1,9 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 let
   nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
   networkConfig = config.cluster.network.edges.${config.cluster.nodeName}.config;
@@ -35,7 +40,9 @@ in
       };
     };
     networking.firewall.allowedUDPPorts = [ 443 ];
-    networking.firewall.allowedTCPPorts = [ 80 443 ];
+    networking.firewall.allowedTCPPorts = [
+      80
+      443
+    ];
   };
 }
-

@@ -1,8 +1,16 @@
-{ config, pkgs, lib, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   config = lib.mkIf config.cluster.nodeConfig.guiClient.enable {
     services.libinput = {
       enable = true;
-      mouse = { accelSpeed = "1.0"; };
+      mouse = {
+        accelSpeed = "1.0";
+      };
       touchpad = {
         naturalScrolling = true;
         horizontalScrolling = true;

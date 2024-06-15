@@ -1,4 +1,12 @@
-{ stdenv, fetchgit, lib, gnumake, pkg-config, git, glibc }:
+{
+  stdenv,
+  fetchgit,
+  lib,
+  gnumake,
+  pkg-config,
+  git,
+  glibc,
+}:
 stdenv.mkDerivation rec {
   pname = "UDPspeeder";
   version = "fd7236";
@@ -11,7 +19,12 @@ stdenv.mkDerivation rec {
     mkdir -p $out/bin
     cp speederv2 $out/bin
   '';
-  nativeBuildInputs = [ pkg-config gnumake git glibc.static ];
+  nativeBuildInputs = [
+    pkg-config
+    gnumake
+    git
+    glibc.static
+  ];
   buildInputs = [ ];
   meta = with lib; {
     description = "A Tunnel which Improves your Network Quality on a High-latency Lossy Link by using Forward Error Correction, possible for All Traffics(TCP/UDP/ICMP) ";

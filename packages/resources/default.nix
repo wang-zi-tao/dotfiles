@@ -1,4 +1,4 @@
-{ stdenv, lib, }:
+{ stdenv, lib }:
 stdenv.mkDerivation rec {
   pname = "resources";
   version = "v1.0.0";

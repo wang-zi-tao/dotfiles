@@ -1,4 +1,9 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 let
   sshdTmpDirectory = "$HOME/.sshd-tmp";
   sshdDirectory = "$HOME/.sshd";

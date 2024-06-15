@@ -1,26 +1,37 @@
-{ config, pkgs, lib, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   config = lib.mkIf config.cluster.nodeConfig.shell.enable {
     programs.zsh.enable = true;
     programs.iotop.enable = true;
-    environment.systemPackages = with pkgs; [
-      nix-direnv
-      uutils-coreutils
-      pciutils
-      xclip
-      extra-container
-    ] ++ (with pkgs.tmuxPlugins; [
-      resurrect
-      yank
-      power-theme
-      continuum
-    ]) ++
-    (lib.mapAttrsToList
-      (remoteHostName: cfg:
-        (pkgs.writeScriptBin "ssh-${remoteHostName}"
-          (if (builtins.hasAttr "wangzi" cfg.users)
-          then ''ssh "wangzi@${remoteHostName}.wg" -X -Y -t $@''
-          else ''ssh "root@${remoteHostName}.wg" -X -Y -t $@'')))
-      config.cluster.nodes);
+    environment.systemPackages =
+      with pkgs;
+      [
+        nix-direnv
+        uutils-coreutils
+        pciutils
+        xclip
+        extra-container
+      ]
+      ++ (with pkgs.tmuxPlugins; [
+        resurrect
+        yank
+        power-theme
+        continuum
+      ])
+      ++ (lib.mapAttrsToList (
+        remoteHostName: cfg:
+        (pkgs.writeScriptBin "ssh-${remoteHostName}" (
+          if (builtins.hasAttr "wangzi" cfg.users) then
+            ''ssh "wangzi@${remoteHostName}.wg" -X -Y -t $@''
+          else
+            ''ssh "root@${remoteHostName}.wg" -X -Y -t $@''
+        ))
+      ) config.cluster.nodes);
     programs.tmux = {
       enable = true;
       clock24 = true;
@@ -116,6 +127,5 @@
         run-shell ${continuum.rtp}
       '';
     };
-
   };
 }

@@ -1,16 +1,42 @@
-{ pkgs, config, lib, ... }:
-with builtins; with lib;with lib.types; with lib.attrsets; let
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
+with builtins;
+with lib;
+with lib.types;
+with lib.attrsets;
+let
   hostname = config.networking.hostName;
   networkCluster = config.cluster.network.edges;
   network = networkCluster.${hostname};
   networkGraph = pkgs.graphType {
-    nodeOption = { nodeName, nodeConfig, ... }: {
-      hostname = mkOption { type = str; default = nodeName; };
-      publicIp = mkOption { type = nullOr str; default = null; };
-      localIp = mkOption { type = nullOr str; default = null; };
-      ips = mkOption { type = listOf str; default = [ ]; };
-      doh.enable = mkOption { type = bool; default = false; };
-    };
+    nodeOption =
+      { nodeName, nodeConfig, ... }:
+      {
+        hostname = mkOption {
+          type = str;
+          default = nodeName;
+        };
+        publicIp = mkOption {
+          type = nullOr str;
+          default = null;
+        };
+        localIp = mkOption {
+          type = nullOr str;
+          default = null;
+        };
+        ips = mkOption {
+          type = listOf str;
+          default = [ ];
+        };
+        doh.enable = mkOption {
+          type = bool;
+          default = false;
+        };
+      };
   };
 in
 {
@@ -22,7 +48,10 @@ in
   };
   config = lib.mkMerge [
     (lib.mkIf network.config.doh.enable {
-      networking.nameservers = [ "127.0.0.1" "::1" ];
+      networking.nameservers = [
+        "127.0.0.1"
+        "::1"
+      ];
       services.dnscrypt-proxy2 = {
         enable = true;
         settings = {
@@ -43,7 +72,10 @@ in
       };
     })
     {
-      networking.nameservers = [ "8.8.8.8" "9.9.9.9" ];
+      networking.nameservers = [
+        "8.8.8.8"
+        "9.9.9.9"
+      ];
       cluster.network = networkGraph.function config.cluster.network;
       networking = {
         firewall = {
@@ -69,45 +101,52 @@ in
           #     ip46tables -D nixos-fw -j trap-scan
           # '';
         };
-        hosts = listToAttrs
-          (concatLists
-            (mapAttrsToList
-              (nodeName: node:
+        hosts =
+          listToAttrs (
+            concatLists (
+              mapAttrsToList (
+                nodeName: node:
                 let
                   inherit (networkCluster.${nodeName}.config) publicIp;
                   inherit (networkCluster.${nodeName}.config) localIp;
                 in
                 if (publicIp != null) then
-                  [{
-                    name = publicIp;
-                    value = [ nodeName ];
-                  }] else if (localIp != null) then
-                  [{
-                    name = localIp;
-                    value = [ nodeName ];
-                  }] else [ ])
-              network.peers)
-          ) // {
-          "192.30.255.113" = [ "github.com" ];
-        };
+                  [
+                    {
+                      name = publicIp;
+                      value = [ nodeName ];
+                    }
+                  ]
+                else if (localIp != null) then
+                  [
+                    {
+                      name = localIp;
+                      value = [ nodeName ];
+                    }
+                  ]
+                else
+                  [ ]
+              ) network.peers
+            )
+          )
+          // {
+            "192.30.255.113" = [ "github.com" ];
+          };
       };
       boot.kernel.sysctl = {
         "net.ipv4.ip_forward" = 1;
         "net.ipv4.conf.all.proxy_arp" = 1;
       };
-      services.caddy = lib.optionalAttrs
-        (network.config.publicIp != null)
-        {
-          globalConfig = ''
-            servers {
-              protocol {
-              }
+      services.caddy = lib.optionalAttrs (network.config.publicIp != null) {
+        globalConfig = ''
+          servers {
+            protocol {
             }
-            http_port 89
-            default_sni ${toString network.config.publicIp}
-          '';
-        };
+          }
+          http_port 89
+          default_sni ${toString network.config.publicIp}
+        '';
+      };
     }
   ];
 }
-

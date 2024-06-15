@@ -1,4 +1,9 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 let
   dark = {
     foreground = "#ffffff";
@@ -26,14 +31,15 @@ let
     purple = "#B48EAD";
   };
 in
-with lib;{
-  options.theme = mapAttrs
-    (name: value:
-      mkOption {
-        type = types.str;
-        default = value;
-      })
-    theme;
+with lib;
+{
+  options.theme = mapAttrs (
+    name: value:
+    mkOption {
+      type = types.str;
+      default = value;
+    }
+  ) theme;
   imports = [
     # ./eww/eww.nix
     ./rofi/rofi.nix
@@ -50,9 +56,10 @@ with lib;{
       enable = true;
       timeout = 8;
     };
-    xresources.properties = { "Xft.dpi" = 96; };
-    home.file.".icons/default".source =
-      "${pkgs.layan-cursor-theme}/share/icons/Layan-white Cursors";
+    xresources.properties = {
+      "Xft.dpi" = 96;
+    };
+    home.file.".icons/default".source = "${pkgs.layan-cursor-theme}/share/icons/Layan-white Cursors";
     gtk =
       let
         extra_config = {
@@ -117,7 +124,7 @@ with lib;{
     '';
     home.file.".config/mimeapps.list".source = ./mineapps.list;
     fonts.fontconfig.enable = true;
-    home.packages = with pkgs;[
+    home.packages = with pkgs; [
       noto-fonts
       noto-fonts-cjk
       noto-fonts-emoji

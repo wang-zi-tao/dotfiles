@@ -44,7 +44,9 @@ let
       padding = mkLiteral "1px";
     };
 
-    "#textbox" = { text-color = mkLiteral "@foreground"; };
+    "#textbox" = {
+      text-color = mkLiteral "@foreground";
+    };
 
     "#inputbar" = {
       children = map mkLiteral [
@@ -135,7 +137,9 @@ let
       border-color = mkLiteral "@border-color";
     };
 
-    "#button" = { text-color = mkLiteral "@normal-foreground"; };
+    "#button" = {
+      text-color = mkLiteral "@normal-foreground";
+    };
 
     "#button.selected" = {
       background-color = mkLiteral "@selected-normal-background";
@@ -177,7 +181,8 @@ let
       foreground = mkLiteral "${theme.foreground1}";
     };
   };
-in {
+in
+{
   programs.rofi = {
     enable = true;
     terminal = "${pkgs.alacritty}/bin/alacritty";
@@ -193,17 +198,21 @@ in {
       # show-icons = true;
       icon-theme = "Tela blue";
       drun-icon-theme = "Tela blue";
-
     };
   };
-  home.file.".config/rofi/apps.css".text = builtins.readFile ./apps.css + ''
-    * {
-      al:  ${theme-cfg.background}00;
-      bg:  ${theme-cfg.background}ff;
-      se: ${theme-cfg.background1}ff;
-      fg:  ${theme-cfg.foreground}ff;
-      ac:  #42A5F5;
-    }
-  '';
-  home.packages = with pkgs; [ rofi-power-menu todofi-sh ];
+  home.file.".config/rofi/apps.css".text =
+    builtins.readFile ./apps.css
+    + ''
+      * {
+        al:  ${theme-cfg.background}00;
+        bg:  ${theme-cfg.background}ff;
+        se: ${theme-cfg.background1}ff;
+        fg:  ${theme-cfg.foreground}ff;
+        ac:  #42A5F5;
+      }
+    '';
+  home.packages = with pkgs; [
+    rofi-power-menu
+    todofi-sh
+  ];
 }

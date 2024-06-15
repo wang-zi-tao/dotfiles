@@ -1,4 +1,10 @@
-{ pkgs, config, lib, ... }: {
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
+{
   lazyPackage = with pkgs; [
     cmake-language-server
     cpplint
@@ -44,7 +50,7 @@
     nb_lines_code = 8
     nb_lines_code_prev = 2
     nb_lines_backtrace = 2
-    
+
     [print-format]
     max_size_preview = 16
 

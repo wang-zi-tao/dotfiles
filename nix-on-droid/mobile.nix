@@ -1,5 +1,14 @@
-inputs@{ pkgs, lib, config, nixpkgs, nur, nixpkgs-unstable, ... }: {
-  environment.packages = with pkgs;[
+inputs@{
+  pkgs,
+  lib,
+  config,
+  nixpkgs,
+  nur,
+  nixpkgs-unstable,
+  ...
+}:
+{
+  environment.packages = with pkgs; [
     gnugrep
     gnused
   ];

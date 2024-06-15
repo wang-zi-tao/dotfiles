@@ -6,20 +6,21 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
   outputs =
-    inputs@{ self
-    , nur
-    , nixpkgs
-    , nixpkgs-unstable
-    , flake-utils
-    , ...
+    inputs@{
+      self,
+      nur,
+      nixpkgs,
+      nixpkgs-unstable,
+      flake-utils,
+      ...
     }:
-    flake-utils.lib.eachDefaultSystem (system:
-    let
-      pkgs = nixpkgs.legacyPackages.${system};
-    in
-    {
-      devShell = pkgs.mkShell {
-        buildInputs = with pkgs; [ ];
-      };
-    });
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+      {
+        devShell = pkgs.mkShell { buildInputs = with pkgs; [ ]; };
+      }
+    );
 }

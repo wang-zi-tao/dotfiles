@@ -1,4 +1,10 @@
-{ lib, config, pkgs, ... }: {
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
+{
   imports = [
     ../terminal/terminal.nix
     ../develop/cpp.nix

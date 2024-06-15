@@ -1,4 +1,10 @@
-inputs@{ pkgs-template, nixpkgs, home-manager, nix-on-droid, ... }:
+inputs@{
+  pkgs-template,
+  nixpkgs,
+  home-manager,
+  nix-on-droid,
+  ...
+}:
 let
   hostname = "wangzi-nova9";
   system = "aarch64-linux";

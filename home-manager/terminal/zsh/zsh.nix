@@ -1,4 +1,10 @@
-{ pkgs, config, lib, ... }: {
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
+{
   imports = [ ];
   programs.zsh = {
     enable = true;
@@ -26,7 +32,11 @@
       enable = true;
       python.virtualenvAutoSwitch = true;
       screen.autoStartLocal = true;
-      syntaxHighlighting.highlighters = [ "main" "brackets" "line" ];
+      syntaxHighlighting.highlighters = [
+        "main"
+        "brackets"
+        "line"
+      ];
       pmodules = [
         "autosuggestions"
         "environment"
@@ -88,8 +98,7 @@
       # mv-origin = "mv";
       cat = "bat";
       less = "bat --theme=Coldark-Dark";
-      man = ''
-        MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';
+      man = ''MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';
 
       ls = "eza --icons always";
       ll = "eza -la --icons always";
@@ -125,20 +134,25 @@
       fi
       source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
     '';
-    initExtra = builtins.readFile ./p10k.zsh + builtins.readFile ./zshrc.zsh + ''
-      # source ${pkgs.tmuxinator}/share/zsh/site-functions/_tmuxinator
-      if [[ -e /run/secrets/shell/${config.home.username} ]];then
-        source /run/secrets/shell/${config.home.username}
-      fi
-      nohup atuin login -u wangzi -p 03hat0zw0oEH7nipcKB6JqLpxptl7DdV -k $(cat /run/secrets-for-users/atuin-key) &
-    '';
+    initExtra =
+      builtins.readFile ./p10k.zsh
+      + builtins.readFile ./zshrc.zsh
+      + ''
+        # source ${pkgs.tmuxinator}/share/zsh/site-functions/_tmuxinator
+        if [[ -e /run/secrets/shell/${config.home.username} ]];then
+          source /run/secrets/shell/${config.home.username}
+        fi
+        nohup atuin login -u wangzi -p 03hat0zw0oEH7nipcKB6JqLpxptl7DdV -k $(cat /run/secrets-for-users/atuin-key) &
+      '';
   };
   programs.nushell =
-    let scripts = pkgs.fetchgit {
-      url = "https://github.com/nushell/nu_scripts";
-      rev = "dbf4586594a30eeec3e3a39977a397d5ea4b6be0";
-      sha256 = "sha256-7PwB5DaXe3gfyytDd7ge4nRQtnzbrXoOgGij5MuakXY=";
-    }; in
+    let
+      scripts = pkgs.fetchgit {
+        url = "https://github.com/nushell/nu_scripts";
+        rev = "dbf4586594a30eeec3e3a39977a397d5ea4b6be0";
+        sha256 = "sha256-7PwB5DaXe3gfyytDd7ge4nRQtnzbrXoOgGij5MuakXY=";
+      };
+    in
     {
       enable = true;
       configFile.text = ''
@@ -234,17 +248,39 @@
   programs.nix-index = {
     enableZshIntegration = true;
   };
-  home.activation.nix-index = lib.mkIf config.programs.nix-index.enable (lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [[ ! -e $HOME/.cache/nix-index/files ]]; then
-     mkdir $HOME/.cache/nix-index/ -p || true
-     nix-index &
-    fi
-  '');
+  home.activation.nix-index = lib.mkIf config.programs.nix-index.enable (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      if [[ ! -e $HOME/.cache/nix-index/files ]]; then
+       mkdir $HOME/.cache/nix-index/ -p || true
+       nix-index &
+      fi
+    ''
+  );
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
   };
-  home.packages = with pkgs;( [ ripgrep xclip iftop htop procs rmtrash bat eza du-dust duf tmuxinator tmux unstable.joshuto ]
-  ++ (lib.optionals ( pkgs.system == "x86_64-linux" ) [powertop iotop]) 
-  );
+  home.packages =
+    with pkgs;
+    (
+      [
+        ripgrep
+        xclip
+        iftop
+        htop
+        procs
+        rmtrash
+        bat
+        eza
+        du-dust
+        duf
+        tmuxinator
+        tmux
+        unstable.joshuto
+      ]
+      ++ (lib.optionals (pkgs.system == "x86_64-linux") [
+        powertop
+        iotop
+      ])
+    );
 }

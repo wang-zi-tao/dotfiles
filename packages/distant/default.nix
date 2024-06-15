@@ -1,14 +1,14 @@
-{ lib
-, rustPlatform
-, fetchFromGitHub
-, pkg-config
-, openssl
-, perl
-, stdenv
+{
+  lib,
+  rustPlatform,
+  fetchFromGitHub,
+  pkg-config,
+  openssl,
+  perl,
+  stdenv,
 }:
 
-rustPlatform.buildRustPackage
-rec {
+rustPlatform.buildRustPackage rec {
   pname = "distant";
   version = "v0.16.4";
 
@@ -21,7 +21,12 @@ rec {
 
   cargoSha256 = "sha256-Yeht9Sv0/B1QC26jHMIfD2xmOtm48pZzxZXFcJ9rAXg=";
 
-  nativeBuildInputs = [ pkg-config perl openssl openssl.dev ];
+  nativeBuildInputs = [
+    pkg-config
+    perl
+    openssl
+    openssl.dev
+  ];
 
   RUST_BACKTRACE = "full";
 

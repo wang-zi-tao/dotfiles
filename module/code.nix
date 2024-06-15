@@ -1,16 +1,26 @@
-{ pkgs, config, lib, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
 let
   cfg = config.cluster;
   nodeConfig = cfg.nodes.${cfg.nodeName};
   networkConfig = config.cluster.network.nodes.${config.cluster.nodeName}.config;
 in
-with lib; with builtins; {
+with lib;
+with builtins;
+{
   config = lib.mkIf nodeConfig.CodeServer.enable {
     services.openvscode-server = {
       enable = true;
       user = "root";
       host = "0.0.0.0";
-      extraPackages = with pkgs;[ zsh tmux ];
+      extraPackages = with pkgs; [
+        zsh
+        tmux
+      ];
       # hashedPassword = "$argon2i$v=19$m=4096,t=3,p=1$tEUHulsHyVpSaxUJjUYoUw$LyAUrnqK5nx6F36mn3LWzrTP7xp4Ny5icZw1DiL1fs8";
     };
     services.caddy = lib.optionalAttrs nodeConfig.CodeServer.enable {

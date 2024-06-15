@@ -1,4 +1,10 @@
-{ stdenv, fetchgit, lib, makeWrapper, xpra }:
+{
+  stdenv,
+  fetchgit,
+  lib,
+  makeWrapper,
+  xpra,
+}:
 stdenv.mkDerivation rec {
   pname = "xpra-html5";
   version = "bf0d12";
@@ -23,4 +29,3 @@ stdenv.mkDerivation rec {
     platforms = platforms.unix;
   };
 }
-

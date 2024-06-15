@@ -1,28 +1,32 @@
-{ stdenv
-, lib
-, dpkg
-, glibc
-, gcc-unwrapped
-, autoPatchelfHook
-, glib
-, libsForQt5
-, at-spi2-atk
-, cups
-, mesa_drivers
-, xorg
-, alsaLib
-, cairo
-, gnome2
-, gtk3
-, gdk-pixbuf
+{
+  stdenv,
+  lib,
+  dpkg,
+  glibc,
+  gcc-unwrapped,
+  autoPatchelfHook,
+  glib,
+  libsForQt5,
+  at-spi2-atk,
+  cups,
+  mesa_drivers,
+  xorg,
+  alsaLib,
+  cairo,
+  gnome2,
+  gtk3,
+  gdk-pixbuf,
 }:
-stdenv.mkDerivation rec{
+stdenv.mkDerivation rec {
   name = "aTrust";
   version = "1.0.0";
 
   src = ./aTrustInstaller_amd64.deb;
 
-  autoPatchelfIgnoreMissingDeps = [ "liblber-2.4.so.2" "libldap_r-2.4.so.2" ];
+  autoPatchelfIgnoreMissingDeps = [
+    "liblber-2.4.so.2"
+    "libldap_r-2.4.so.2"
+  ];
   # Required for compilation
   nativeBuildInputs = [
     autoPatchelfHook # Automatically setup the loader, and do the magic

@@ -1,62 +1,7 @@
-local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
-local function is_null_ls_formatting_enabled(bufnr)
-    local file_type = vim.api.nvim_buf_get_option(bufnr, "filetype")
-    local generators =
-        require("null-ls.generators").get_available(file_type, require("null-ls.methods").internal.FORMATTING)
-    return #generators > 0
-end
-
-local function lsp_formatting(bufnr)
-    vim.lsp.buf.format({
-        filter = function(client)
-            -- apply whatever logic you want (in this example, we'll only use null-ls)
-            return client.name ~= "null-ls"
-        end,
-        bufnr = bufnr,
-    })
-end
-
 local function on_attach(client, bufnr)
     local navbuddy = require("nvim-navbuddy")
     navbuddy.attach(client, bufnr)
-
-    if client.server_capabilities.documentFormattingProvider then
-        if client.name == "null-ls" and is_null_ls_formatting_enabled(bufnr) or client.name ~= "null-ls" then
-            vim.bo[bufnr].formatexpr = "v:lua.vim.lsp.formatexpr()"
-            vim.keymap.set("n", "<leader>gq", "<cmd>lua vim.lsp.buf.format({ async = true })<CR>", opts)
-        else
-            vim.bo[bufnr].formatexpr = nil
-        end
-    end
-
-    local is_none_ls = client.name == "null-ls"
-
-    if client.supports_method("textDocument/formatting") then
-        vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
-        local use_none_ls_formator = #vim.api.nvim_get_autocmds({
-            group = augroup,
-            buffer = bufnr,
-        }) ~= 0 and not is_none_ls
-        vim.api.nvim_create_autocmd("BufWritePre", {
-            group = augroup,
-            buffer = bufnr,
-            callback = function()
-                local old_print = vim.notify
-                vim.notify = function(...) end
-                vim.lsp.buf.format({
-                    filter = function(formatting_client)
-                        if use_none_ls_formator then
-                            return formatting_client.name == "null-ls"
-                        else
-                            return formatting_client.name ~= "null-ls"
-                        end
-                    end,
-                    bufnr = bufnr,
-                })
-                vim.notify = old_print
-            end,
-        })
-    end
+    require("lsp-format").on_attach(client, bufnr)
 
     if client.supports_method("textDocument/codeLens") then
         require("virtualtypes").on_attach(client, bufnr)
@@ -134,7 +79,8 @@ local function setup_lsp(capabilities)
         "texlab",
         "yamlls",
         "cmake",
-        "rnix",
+        -- "rnix",
+        "nil_ls",
         "vala_ls",
         "wgsl_analyzer",
         "clangd",
@@ -149,6 +95,25 @@ local function setup_lsp(capabilities)
     for _, lsp in ipairs(servers) do
         lspconfig[lsp].setup(option)
     end
+    lspconfig.nil_ls.setup({
+        on_attach = on_attach,
+        capabilities = capabilities,
+        flags = {
+            debounce_text_changes = 150,
+        },
+        settings = {
+            formatting= {
+                command = "nixpkgs-fmt",
+            },
+            ["nil"] = {
+                flake = {
+                    autoArchive = true,
+                    autoEvalInputs = true,
+                    nixpkgsInputName = "nixpkgs"
+                }
+            }
+        }
+    })
     require("clangd_extensions").setup({
         server = {
             on_attach = on_attach,
@@ -522,12 +487,12 @@ return {
                         hint_scheme = "String",
                         hi_parameter = "Search",
                         max_height = 22,
-                        max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width
+                        max_width = 120,        -- max_width of signature floating_window, line will be wrapped if exceed max_width
                         handler_opts = {
                             border = "rounded", -- double, single, shadow, none
                         },
-                        zindex = 200, -- by default it will be on top of all floating windows, set to 50 send it to bottom
-                        padding = "", -- character to pad on left and right of signature can be ' ', or '|'  etc
+                        zindex = 200,           -- by default it will be on top of all floating windows, set to 50 send it to bottom
+                        padding = "",           -- character to pad on left and right of signature can be ' ', or '|'  etc
                     })
                 end,
             },
@@ -578,7 +543,7 @@ return {
                         mode = "n",
                         desc = "Diagnostic",
                     },
-                    { "gd", "<cmd>Lspsaga peek_definition<CR>", mode = "n", desc = "Peek Definition" },
+                    { "gd", "<cmd>Lspsaga peek_definition<CR>",      mode = "n", desc = "Peek Definition" },
                     {
                         "gD",
                         function()
@@ -588,7 +553,7 @@ return {
                         mode = "n",
                         desc = "Goto Definition",
                     },
-                    { "gr", "<cmd>Lspsaga rename<CR>", mode = "n", desc = "Rename" },
+                    { "gr", "<cmd>Lspsaga rename<CR>",               mode = "n", desc = "Rename" },
                     { "gt", "<cmd>Lspsaga peek_type_definition<CR>", mode = "n", desc = "Peek Type Definition" },
                     { "gT", "<cmd>Lspsaga goto_type_definition<CR>", mode = "n", desc = "Goto Type Definition" },
                     {
@@ -608,16 +573,38 @@ return {
                         desc = "Lspsaga Terminal",
                     },
 
-                    { "<leader>la", "<cmd>Lspsaga code_action<CR>", desc = "CodeActions" },
-                    { "<leader>lr", "<cmd>Lspsaga rename<CR>", desc = "Rename" },
-                    { "<leader>ld", "<cmd>Lspsaga peek_definition<CR>", desc = "PreviewDefinition" },
+                    { "<leader>la", "<cmd>Lspsaga code_action<CR>",          desc = "CodeActions" },
+                    { "<leader>lr", "<cmd>Lspsaga rename<CR>",               desc = "Rename" },
+                    { "<leader>ld", "<cmd>Lspsaga peek_definition<CR>",      desc = "PreviewDefinition" },
                     { "<leader>lD", "<cmd>Lspsaga peek_type_definition<CR>", desc = "PreviewDefinition" },
-                    { "<leader>lo", "<cmd>Lspsaga outline<CR>", desc = "Outline" },
-                    { "<leader>lc", "<cmd>Lspsaga incoming_calls<CR>", desc = "Incoming call" },
-                    { "<leader>lC", "<cmd>Lspsaga outgoing_calls<CR>", desc = "Outgoing call" },
-                    { "<leader>lt", "<cmd>Lspsaga term_toggle<CR>", desc = "Terminal" },
-                    { "<leader>lh", "<cmd>Lspsaga finder<CR>", desc = "finder" },
+                    { "<leader>lo", "<cmd>Lspsaga outline<CR>",              desc = "Outline" },
+                    { "<leader>lc", "<cmd>Lspsaga incoming_calls<CR>",       desc = "Incoming call" },
+                    { "<leader>lC", "<cmd>Lspsaga outgoing_calls<CR>",       desc = "Outgoing call" },
+                    { "<leader>lt", "<cmd>Lspsaga term_toggle<CR>",          desc = "Terminal" },
+                    { "<leader>lh", "<cmd>Lspsaga finder<CR>",               desc = "finder" },
                 },
+            },
+            {
+                "lukas-reineke/lsp-format.nvim",
+                dir = gen.lsp_format_nvim,
+                name = "lsp_format_nvim",
+                module = "lsp-format",
+                config = function()
+                    require("lsp-format").setup({})
+                end,
+            },
+            {
+                "ThePrimeagen/refactoring.nvim",
+                dir = gen.refactoring_nvim,
+                name = "refactoring_nvim",
+                module = "refactoring",
+                dependencies = {
+                    "plenary_nvim",
+                    "nvim_treesitter",
+                },
+                config = function()
+                    require("refactoring").setup()
+                end,
             },
         },
     },
@@ -910,14 +897,14 @@ return {
                 end,
                 desc = "CMake",
             },
-            { "<leader>cc", ":CMake configure<CR>", desc = "CMake configure" },
-            { "<leader>cC", ":CMake clean<CR>", desc = "CMake clean" },
-            { "<leader>cr", ":CMake build_and_run<CR>", desc = "CMake run" },
-            { "<leader>cd", ":CMake build_and_debug<CR>", desc = "CMake debug" },
+            { "<leader>cc", ":CMake configure<CR>",         desc = "CMake configure" },
+            { "<leader>cC", ":CMake clean<CR>",             desc = "CMake clean" },
+            { "<leader>cr", ":CMake build_and_run<CR>",     desc = "CMake run" },
+            { "<leader>cd", ":CMake build_and_debug<CR>",   desc = "CMake debug" },
             { "<leader>ct", ":CMake select_build_type<CR>", desc = "CMake build type" },
-            { "<leader>cs", ":CMake select_target<CR>", desc = "CMake select target" },
-            { "<leader>cB", ":CMake build_all<CR>", desc = "CMake build all" },
-            { "<leader>cb", ":CMake build<CR>", desc = "CMake build" },
+            { "<leader>cs", ":CMake select_target<CR>",     desc = "CMake select target" },
+            { "<leader>cB", ":CMake build_all<CR>",         desc = "CMake build all" },
+            { "<leader>cb", ":CMake build<CR>",             desc = "CMake build" },
         },
     },
     {
@@ -1012,9 +999,9 @@ return {
                     border = "rounded", -- "rounded", "double", "solid", "none"
                     -- or an array with eight chars building up the border in a clockwise fashion
                     -- starting with the top-left corner. eg: { "╔", "═" ,"╗", "║", "╝", "═", "╚", "║" }.
-                    size = "80%", -- Or table format example: { height = "40%", width = "100%"}
+                    size = "80%",     -- Or table format example: { height = "40%", width = "100%"}
                     position = "50%", -- Or table format example: { row = "100%", col = "0%"}
-                    scrolloff = nil, -- scrolloff value within navbuddy window
+                    scrolloff = nil,  -- scrolloff value within navbuddy window
                     sections = {
                         left = {
                             size = "20%",
@@ -1048,13 +1035,13 @@ return {
                 -- that are not set by user
                 lsp = {
                     auto_attach = true, -- If set to true, you don't need to manually use attach function
-                    preference = nil, -- list of lsp server names in order of preference
+                    preference = nil,   -- list of lsp server names in order of preference
                 },
                 source_buffer = {
                     follow_node = true, -- Keep the current node in focus on the source buffer
-                    highlight = true, -- Highlight the currently focused node
+                    highlight = true,   -- Highlight the currently focused node
                     reorient = "smart", -- "smart", "top", "mid" or "none"
-                    scrolloff = nil, -- scrolloff value when navbuddy is open
+                    scrolloff = nil,    -- scrolloff value when navbuddy is open
                 },
             })
         end,

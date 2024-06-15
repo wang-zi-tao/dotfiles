@@ -1,4 +1,11 @@
-{ config, lib, pkgs, modulesPath, ... }: {
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
+{
   services.power-profiles-daemon.enable = false;
   boot.loader = {
     systemd-boot.enable = true;
@@ -9,11 +16,21 @@
     timeout = 1;
   };
   boot.kernelParams = [
-    /* "amdgpu.virtual_display=0000:04:00.0,1" */
+    # "amdgpu.virtual_display=0000:04:00.0,1"
   ];
-  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
+  boot.initrd.availableKernelModules = [
+    "nvme"
+    "xhci_pci"
+    "ahci"
+    "usbhid"
+    "usb_storage"
+    "sd_mod"
+  ];
   boot.initrd.kernelModules = [ "amdgpu" ];
-  boot.kernelModules = [ "kvm-amd" "mt7921e" ];
+  boot.kernelModules = [
+    "kvm-amd"
+    "mt7921e"
+  ];
   # boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod_stable;
   boot.extraModulePackages = with config.boot.kernelPackages; [ ];
   boot.tmp.cleanOnBoot = false;
@@ -37,14 +54,22 @@
   fileSystems."/mnt/weed/server" = {
     device = "/dev/disk/by-uuid/ff337eaf-f0e7-468c-b23f-68a2ee2c0c73";
     fsType = "btrfs";
-    options = [ "rw" "noatime" ];
+    options = [
+      "rw"
+      "noatime"
+    ];
   };
   fileSystems."/mnt/data" = {
     device = "/dev/disk/by-uuid/ff337eaf-f0e7-468c-b23f-68a2ee2c0c73";
     fsType = "btrfs";
-    options = [ "rw" "noatime" ];
+    options = [
+      "rw"
+      "noatime"
+    ];
   };
-  services.btrfs.autoScrub = { enable = true; };
+  services.btrfs.autoScrub = {
+    enable = true;
+  };
 
   swapDevices = [ ];
 
@@ -69,20 +94,26 @@
     opengl.driSupport = true;
     opengl.driSupport32Bit = true;
     bluetooth.enable = true;
-    pulseaudio = { enable = true; };
+    pulseaudio = {
+      enable = true;
+    };
   };
 
   services.xserver = {
-    modules = with pkgs.xorg; [ xf86videoamdgpu xf86inputlibinput xf86videodummy xf86videovesa ];
+    modules = with pkgs.xorg; [
+      xf86videoamdgpu
+      xf86inputlibinput
+      xf86videodummy
+      xf86videovesa
+    ];
     videoDrivers = [ "amdgpu" ];
   };
 
-
-  /* services.xserver.monitorSection = ''Modeline "1920x1080" 23.53 1920 1952 2040 2072 1080 1106 1108 1135''; */
-  /* services.xserver.resolutions = [{ x = "1920"; y = "1080"; }]; */
-  /* services.xserver.displayManager.autoLogin = { */
-  /*   enable = true; */
-  /*   user = "wangzi"; */
-  /* }; */
-  /* services.xserver.displayManager.defaultSession = lib.mkForce "none+awesome"; */
+  # services.xserver.monitorSection = ''Modeline "1920x1080" 23.53 1920 1952 2040 2072 1080 1106 1108 1135'';
+  # services.xserver.resolutions = [{ x = "1920"; y = "1080"; }];
+  # services.xserver.displayManager.autoLogin = {
+  # enable = true;
+  # user = "wangzi";
+  # };
+  # services.xserver.displayManager.defaultSession = lib.mkForce "none+awesome";
 }

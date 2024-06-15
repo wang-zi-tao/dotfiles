@@ -1,9 +1,20 @@
-{ config, lib, pkgs, modulesPath, ... }: {
-  programs.fuse = { userAllowOther = true; };
-  swapDevices = [{
-    device = "/swapfile";
-    size = 1024 * 16;
-  }];
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
+{
+  programs.fuse = {
+    userAllowOther = true;
+  };
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 1024 * 16;
+    }
+  ];
   systemd.services = {
     create-swapfile = {
       serviceConfig.Type = "oneshot";
@@ -21,7 +32,5 @@
     device = "/dev/disk/by-uuid/ACC7-B8A2";
     fsType = "vfat";
   };
-  environment.systemPackages = with pkgs; [
-    duperemove
-  ];
+  environment.systemPackages = with pkgs; [ duperemove ];
 }

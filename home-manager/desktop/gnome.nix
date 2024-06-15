@@ -1,5 +1,6 @@
-{ pkgs, config, ... }: {
-  home.packages = with pkgs;[
+{ pkgs, config, ... }:
+{
+  home.packages = with pkgs; [
     flat-remix-gnome
     gnomeExtensions.net-speed
     gnomeExtensions.gsconnect

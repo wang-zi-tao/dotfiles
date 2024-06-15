@@ -1,4 +1,12 @@
-{ stdenv, fetchgit, lib, gnumake, pkg-config, git, glibc }:
+{
+  stdenv,
+  fetchgit,
+  lib,
+  gnumake,
+  pkg-config,
+  git,
+  glibc,
+}:
 stdenv.mkDerivation rec {
   pname = "udp2raw";
   version = "20200818.0";
@@ -11,7 +19,12 @@ stdenv.mkDerivation rec {
     mkdir -p $out/bin
     cp udp2raw $out/bin
   '';
-  nativeBuildInputs = [ pkg-config gnumake git glibc.static ];
+  nativeBuildInputs = [
+    pkg-config
+    gnumake
+    git
+    glibc.static
+  ];
   buildInputs = [ ];
   meta = with lib; {
     description = " A Tunnel which Turns UDP Traffic into Encrypted UDP/FakeTCP/ICMP Traffic by using Raw Socket,helps you Bypass UDP FireWalls(or Unstable UDP Environment) ";

@@ -1,12 +1,27 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   cfg = config.vm;
 in
-with builtins;{
-  options = with lib;{
-    vm.guest-reserved = mkOption { type = types.int; default = 400; };
-    vm.host-reserved = mkOption { type = types.int; default = 800; };
-    vm.guest-reserved-percent = mkOption { type = types.float; default = 0.0; };
+with builtins;
+{
+  options = with lib; {
+    vm.guest-reserved = mkOption {
+      type = types.int;
+      default = 400;
+    };
+    vm.host-reserved = mkOption {
+      type = types.int;
+      default = 800;
+    };
+    vm.guest-reserved-percent = mkOption {
+      type = types.float;
+      default = 0.0;
+    };
   };
   config = lib.mkIf config.cluster.nodeConfig.virtualisation.enable {
     boot.initrd.kernelModules = [
@@ -58,13 +73,13 @@ with builtins;{
       };
     };
     hardware.ksm.enable = true;
-    systemd.tmpfiles.rules = [
-      "f /dev/shm/looking-glass 0660 wangzi kvm -"
-    ];
+    systemd.tmpfiles.rules = [ "f /dev/shm/looking-glass 0660 wangzi kvm -" ];
     systemd.services.balloond = {
       enable = true;
       wantedBy = [ "libvirtd.service" ];
-      environment = { RUST_LOG = "info"; };
+      environment = {
+        RUST_LOG = "info";
+      };
       serviceConfig = {
         Type = "simple";
         Restart = "always";
@@ -74,13 +89,25 @@ with builtins;{
     };
     environment.etc."qemu/vhost-user".source = "${pkgs.qemu}/share/qemu/vhost-user";
     environment.etc."libvirt/qemu/networks/host-bridge.xml".text = ''
-        <dns enable="no"/>
+      <dns enable="no"/>
     '';
     programs.virt-manager.enable = true;
     environment.etc."libvirt/libvirtd.conf".source = "${pkgs.qemu}/share/qemu/vhost-user";
-    environment.systemPackages = with pkgs; [ looking-glass-client virtiofsd podman-compose qemu virt-manager virt-viewer rdesktop ];
+    environment.systemPackages = with pkgs; [
+      looking-glass-client
+      virtiofsd
+      podman-compose
+      qemu
+      virt-manager
+      virt-viewer
+      rdesktop
+    ];
     systemd.services.libvirtd = with pkgs; {
-      path = [ virtiofsd swtpm-tpm2 virglrenderer ];
+      path = [
+        virtiofsd
+        swtpm-tpm2
+        virglrenderer
+      ];
       environment.LD_LIBRARY_PATH = "${virglrenderer}/lib";
     };
 

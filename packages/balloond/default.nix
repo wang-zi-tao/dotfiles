@@ -1,13 +1,13 @@
-{ lib
-, rustPlatform
-, fetchFromGitHub
-, pkg-config
-, libvirt
-, libvirt-glib
+{
+  lib,
+  rustPlatform,
+  fetchFromGitHub,
+  pkg-config,
+  libvirt,
+  libvirt-glib,
 }:
 
-rustPlatform.buildRustPackage
-rec {
+rustPlatform.buildRustPackage rec {
   pname = "balloond";
   version = "0.1.3";
 
@@ -25,9 +25,7 @@ rec {
     libvirt-glib.dev
   ];
 
-  buildInputs = [
-    libvirt
-  ];
+  buildInputs = [ libvirt ];
 
   meta = with lib; {
     description = "auto balloon service for libvirt";

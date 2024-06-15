@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 
-let inherit (config) theme;
+let
+  inherit (config) theme;
 in
 {
   services.dunst = {
@@ -30,7 +31,9 @@ in
         inherit (theme) background;
         frame_color = theme.sky;
       };
-      experimental = { per_monitor_dpi = true; };
+      experimental = {
+        per_monitor_dpi = true;
+      };
       urgency_low = {
         inherit (theme) foreground;
         inherit (theme) background;

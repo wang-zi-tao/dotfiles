@@ -1,10 +1,17 @@
-{ pkgs, config, lib, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
 let
   cfg = config.cluster;
   nodeConfig = cfg.nodes.${cfg.nodeName};
   networkConfig = config.cluster.network.nodes.${config.cluster.nodeName}.config;
 in
-with lib; with builtins; {
+with lib;
+with builtins;
+{
   config = lib.mkIf nodeConfig.webssh.enable {
     systemd.services = {
       webssh = {

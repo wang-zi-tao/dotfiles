@@ -345,10 +345,10 @@ require("lazy").setup({
         end,
         event = "VeryLazy",
         keys = {
-            { "<leader>wh", ":FocusSplitLeft<CR>", silent = true, desc = "Split left" },
-            { "<leader>wk", ":FocusSplitUp<CR>", silent = true, desc = "Split up" },
-            { "<leader>wl", ":FocusSplitRight<CR>", silent = true, desc = "Split right" },
-            { "<leader>wj", ":FocusSplitDown<CR>", silent = true, desc = "Split down" },
+            { "<leader>wh", ":FocusSplitLeft<CR>",          silent = true, desc = "Split left" },
+            { "<leader>wk", ":FocusSplitUp<CR>",            silent = true, desc = "Split up" },
+            { "<leader>wl", ":FocusSplitRight<CR>",         silent = true, desc = "Split right" },
+            { "<leader>wj", ":FocusSplitDown<CR>",          silent = true, desc = "Split down" },
             { "<leader>wt", ":FocusSplitDown cmd term<CR>", silent = true, desc = "Terminal" },
         },
     },
@@ -404,18 +404,18 @@ require("lazy").setup({
             require("which-key").register({ p = { name = "Perf", l = { name = "Load" } } }, { prefix = "<leader>" })
         end,
         keys = {
-            { "<leader>plf", ":PerfLoadFlat<CR>", desc = "load flat" },
-            { "<leader>plg", ":PerfLoadCallGraph<CR>", desc = "load call graph" },
-            { "<leader>plo", ":PerfLoadFlameGraph<CR>", desc = "load flame graph" },
-            { "<leader>pe", ":PerfPickEvent<CR>", desc = "pick event" },
-            { "<leader>pa", ":PerfAnnotate<CR>", desc = "annotate" },
-            { "<leader>pf", ":PerfAnnotateFunction<CR>", desc = "annotate function" },
-            { "<leader>pA", ":PerfAnnotateSelection<CR>", desc = "annotate selection" },
-            { "<leader>pn", ":PerfToggleAnnotations<CR>", desc = "toggle annotate" },
-            { "<leader>ph", ":PerfHottestLines<CR>", desc = "hottest lines" },
-            { "<leader>ps", ":PerfHottestSymbols<CR>", desc = "hottest symbols" },
-            { "<leader>pc", ":PerfHottestCallersFunction<CR>", desc = "hottest callers function" },
-            { "<leader>pC", ":PerfHottestCallersSelection<CR>", desc = "hottest callers selection" },
+            { "<leader>plf", ":PerfLoadFlat<CR>",                desc = "load flat" },
+            { "<leader>plg", ":PerfLoadCallGraph<CR>",           desc = "load call graph" },
+            { "<leader>plo", ":PerfLoadFlameGraph<CR>",          desc = "load flame graph" },
+            { "<leader>pe",  ":PerfPickEvent<CR>",               desc = "pick event" },
+            { "<leader>pa",  ":PerfAnnotate<CR>",                desc = "annotate" },
+            { "<leader>pf",  ":PerfAnnotateFunction<CR>",        desc = "annotate function" },
+            { "<leader>pA",  ":PerfAnnotateSelection<CR>",       desc = "annotate selection" },
+            { "<leader>pn",  ":PerfToggleAnnotations<CR>",       desc = "toggle annotate" },
+            { "<leader>ph",  ":PerfHottestLines<CR>",            desc = "hottest lines" },
+            { "<leader>ps",  ":PerfHottestSymbols<CR>",          desc = "hottest symbols" },
+            { "<leader>pc",  ":PerfHottestCallersFunction<CR>",  desc = "hottest callers function" },
+            { "<leader>pC",  ":PerfHottestCallersSelection<CR>", desc = "hottest callers selection" },
         },
     },
     {
@@ -522,7 +522,7 @@ require("lazy").setup({
         -- defaults for the `Lazy log` command
         -- log = { "-10" }, -- show the last 10 commits
         log = { "--since=3 days ago" }, -- show commits from the last 3 days
-        timeout = 120, -- kill processes that take more than 2 minutes
+        timeout = 120,                  -- kill processes that take more than 2 minutes
         -- lazy.nvim requires git >=2.19.0. If you really want to use lazy with an older version,
         -- then set the below to false. This should work, but is NOT supported and will
         -- increase downloads a lot.
@@ -534,9 +534,9 @@ require("lazy").setup({
         },
         reset_packpath = true, -- reset the package path to improve startup time
         rtp = {
-            reset = true, -- reset the runtime path to $VIMRUNTIME and your config directory
+            reset = true,      -- reset the runtime path to $VIMRUNTIME and your config directory
             ---@type string[]
-            paths = {}, -- add any custom paths here that you want to includes in the rtp
+            paths = {},        -- add any custom paths here that you want to includes in the rtp
             ---@type string[] list any plugins you want to disable here
             disabled_plugins = {
                 -- "gzip",

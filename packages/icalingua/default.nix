@@ -1,4 +1,13 @@
-{ stdenv, fetchgit, lib, makeWrapper, electron, makeDesktopItem, imagemagick, fetchurl }:
+{
+  stdenv,
+  fetchgit,
+  lib,
+  makeWrapper,
+  electron,
+  makeDesktopItem,
+  imagemagick,
+  fetchurl,
+}:
 
 let
   desktopItem = makeDesktopItem {
@@ -10,13 +19,11 @@ let
     categories = "Network";
   };
 in
-stdenv.mkDerivation
-rec {
+stdenv.mkDerivation rec {
   pname = "icalingua";
   version = "9ba802";
   src = fetchgit {
-    url =
-      "https://github.com/MayuriNFC/Icalingua/";
+    url = "https://github.com/MayuriNFC/Icalingua/";
     rev = "9ba8027019daf74b28ab3c9edd2b9f164da6c940";
     sha256 = "1j52b65cpzzjx31n19m0xgxfp76rcvvmfvh8q4nn6w1b4rvww067";
   };

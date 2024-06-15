@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   programs.tmux = {
     enable = true;
     clock24 = true;
@@ -11,8 +12,10 @@
     terminal = "tmux-256color";
     historyLimit = 65536;
     baseIndex = 1;
-    plugins = with pkgs.tmuxPlugins;
-      with pkgs.tmuxPlugins; [
+    plugins =
+      with pkgs.tmuxPlugins;
+      with pkgs.tmuxPlugins;
+      [
         {
           plugin = resurrect;
           extraConfig = "set -g @resurrect-strategy-nvim 'session'";
@@ -67,7 +70,10 @@
       ];
     tmuxinator.enable = true;
   };
-  home.packages = with pkgs; [ xclip xsel ];
+  home.packages = with pkgs; [
+    xclip
+    xsel
+  ];
   home.file.".config/tmuxinator/drop.yml".source = ./drop.yml;
   home.file.".config/tmuxinator/workspace-1.yml".source = ./workspace-1.yml;
   home.file.".config/tmuxinator/workspace-2.yml".source = ./workspace-2.yml;

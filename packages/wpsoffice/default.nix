@@ -1,71 +1,75 @@
-{ lib
-, stdenv
-, fetchurl
-, autoPatchelfHook
-, dpkg
-, wrapGAppsHook
-, libsForQt5
-, xorg
-, alsa-lib
-, atk
-, bzip2
-, cairo
-, cups
-, dbus
-, expat
-, ffmpeg_4
-, rigsofrods-bin
-, mesa
-, fontconfig
-, freetype
-, gdk-pixbuf
-, glib
-, gperftools
-, gtk2-x11
-, libICE
-, libpng12
-, libSM
-, libtool
-, libuuid
-, libX11
-, libxcb
-, libXcomposite
-, libXcursor
-, libXdamage
-, libXext
-, libXfixes
-, libXi
-, libxml2
-, libXrandr
-, libXrender
-, libXScrnSaver
-, libXtst
-, nspr
-, nss
-, curl
-, pango
-, sqlite
-, unixODBC
-, xz
-, zlib
-, libcxxabi
-, libcxx
-, nixpkgs-old
-, steam
+{
+  lib,
+  stdenv,
+  fetchurl,
+  autoPatchelfHook,
+  dpkg,
+  wrapGAppsHook,
+  libsForQt5,
+  xorg,
+  alsa-lib,
+  atk,
+  bzip2,
+  cairo,
+  cups,
+  dbus,
+  expat,
+  ffmpeg_4,
+  rigsofrods-bin,
+  mesa,
+  fontconfig,
+  freetype,
+  gdk-pixbuf,
+  glib,
+  gperftools,
+  gtk2-x11,
+  libICE,
+  libpng12,
+  libSM,
+  libtool,
+  libuuid,
+  libX11,
+  libxcb,
+  libXcomposite,
+  libXcursor,
+  libXdamage,
+  libXext,
+  libXfixes,
+  libXi,
+  libxml2,
+  libXrandr,
+  libXrender,
+  libXScrnSaver,
+  libXtst,
+  nspr,
+  nss,
+  curl,
+  pango,
+  sqlite,
+  unixODBC,
+  xz,
+  zlib,
+  libcxxabi,
+  libcxx,
+  nixpkgs-old,
+  steam,
 }:
 stdenv.mkDerivation rec {
   pname = "wpsoffice";
   version = "11.1.0.11711";
   src = fetchurl {
-    url =
-      "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2019/11711/wps-office_11.1.0.11711_amd64.deb";
+    url = "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2019/11711/wps-office_11.1.0.11711_amd64.deb";
     sha256 = "sha256-JHSTZZnOZoTpj8zF4C5PmjTkftEdxbeaqweY3ITiJto=";
   };
   unpackCmd = "dpkg -x $src .";
   sourceRoot = ".";
 
-  nativeBuildInputs =
-    [ autoPatchelfHook dpkg wrapGAppsHook libsForQt5.qt5.wrapQtAppsHook ];
+  nativeBuildInputs = [
+    autoPatchelfHook
+    dpkg
+    wrapGAppsHook
+    libsForQt5.qt5.wrapQtAppsHook
+  ];
 
   meta = with lib; {
     description = "Office suite, formerly Kingsoft Office";
@@ -73,9 +77,11 @@ stdenv.mkDerivation rec {
     platforms = [ "x86_64-linux" ];
     hydraPlatforms = [ ];
     license = licenses.unfreeRedistributable;
-    maintainers = with maintainers; [ mlatus th0rgal ];
+    maintainers = with maintainers; [
+      mlatus
+      th0rgal
+    ];
   };
-
 
   dontPatchELF = true;
 
@@ -154,14 +160,11 @@ stdenv.mkDerivation rec {
     libcxxabi
     libcxx
   ];
-  libPath = with xorg;
-    lib.makeLibraryPath (buildInputs ++ [ ]);
+  libPath = with xorg; lib.makeLibraryPath (buildInputs ++ [ ]);
 
   installPhase =
     let
-      steam-run = (steam.override {
-        extraPkgs = p: buildInputs;
-      }).run;
+      steam-run = (steam.override { extraPkgs = p: buildInputs; }).run;
     in
     ''
       prefix=$out/opt/kingsoft/wps-office

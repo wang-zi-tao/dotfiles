@@ -1,8 +1,14 @@
-{ pkgs, config, lib, ... }: {
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
+{
   home.sessionVariables = with pkgs; {
     BOMB = "1";
   };
-  home.packages = with pkgs;[ noto-fonts-cjk-sans ];
+  home.packages = with pkgs; [ noto-fonts-cjk-sans ];
   fonts.fontconfig.enable = true;
   systemd.user.timers.wsl-clean = {
     Unit = {
@@ -13,7 +19,9 @@
       Unit = "wsl-clean.service";
       OnCalendar = "*-*-* *:00:00";
     };
-    Install = { WantedBy = [ "timers.target" ]; };
+    Install = {
+      WantedBy = [ "timers.target" ];
+    };
   };
   systemd.user.services.wsl-clean = {
     Unit = {
@@ -24,6 +32,8 @@
       Type = "oneshot";
       ExecStart = "echo 3 >> /proc/sys/vm/drop_caches";
     };
-    Install = { WantedBy = [ "multi-user.target" ]; };
+    Install = {
+      WantedBy = [ "multi-user.target" ];
+    };
   };
 }

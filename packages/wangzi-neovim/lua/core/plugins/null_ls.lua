@@ -30,7 +30,7 @@ local function config()
         -- js/ts
         -- b.formatting.deno_fmt,
         -- Lua
-        b.formatting.stylua.with({ extra_args = { "--indent-type", "Spaces", "--indent-width", "2" } }),
+        -- b.formatting.stylua.with({ extra_args = { "--indent-type", "Spaces", "--indent-width", "4" } }),
         -- Shell
         b.formatting.shfmt,
         -- git
@@ -41,6 +41,8 @@ local function config()
                 end,
             },
         }),
+        -- nix
+        b.formatting.nixfmt,
 
         -- other
         b.diagnostics.codespell,

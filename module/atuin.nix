@@ -1,4 +1,9 @@
-{ pkgs, config, lib, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
 let
   networkConfig = config.cluster.network.edges.${config.cluster.nodeName}.config;
   sops-enable = config.sops.defaultSopsFile != "/";

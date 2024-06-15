@@ -1,4 +1,12 @@
-{ stdenv, fetchgit, lib, cmake, lua, luajit, linux-pam }:
+{
+  stdenv,
+  fetchgit,
+  lib,
+  cmake,
+  lua,
+  luajit,
+  linux-pam,
+}:
 stdenv.mkDerivation rec {
   pname = "lua-pam";
   version = "57c5e64";
@@ -11,7 +19,10 @@ stdenv.mkDerivation rec {
     mkdir -p $out/lib
     cp liblua_pam.so $out/lib
   '';
-  nativeBuildInputs = [ cmake linux-pam ];
+  nativeBuildInputs = [
+    cmake
+    linux-pam
+  ];
   buildInputs = [ lua ];
   meta = with lib; {
     description = "";

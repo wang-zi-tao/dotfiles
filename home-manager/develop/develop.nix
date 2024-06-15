@@ -1,20 +1,28 @@
-{ pkgs, config, lib, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
 let
-  rust-env = pkgs.fenix.combine (with pkgs.fenix.complete; [
-    cargo
-    clippy
-    rust-std
-    rustc
-    rustfmt
-    rust-src
-    rust-docs
-    rust-analyzer-preview
-    rust-analysis
-    miri-preview
-    rls-preview
-  ]);
-  python3-env = pkgs.python3.withPackages (ps:
-    with ps; [
+  rust-env = pkgs.fenix.combine (
+    with pkgs.fenix.complete;
+    [
+      cargo
+      clippy
+      rust-std
+      rustc
+      rustfmt
+      rust-src
+      rust-docs
+      rust-analyzer-preview
+      rust-analysis
+      miri-preview
+      rls-preview
+    ]
+  );
+  python3-env = pkgs.python3.withPackages (
+    ps: with ps; [
       pynvim
       numpy
       pandas
@@ -27,7 +35,8 @@ let
       pip
       setuptools
       autopep8
-    ]);
+    ]
+  );
 in
 {
   imports = [
@@ -84,6 +93,7 @@ in
     rr
 
     "rnix-lsp"
+    nil
     "nixfmt"
     google-java-format
     stylua
@@ -148,16 +158,16 @@ in
     neovim-remote
     sccache
 
-    (python3.withPackages (ps:
-      with ps; [
+    (python3.withPackages (
+      ps: with ps; [
         debugpy
         numpy
         pandas
         # matplotlib
         # pip
         # setuptools
-      ]))
-
+      ]
+    ))
   ];
   home.file = {
     ".cargo/config.toml".text = ''

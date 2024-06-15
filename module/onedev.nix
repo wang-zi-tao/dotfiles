@@ -1,4 +1,9 @@
-{ pkgs, config, lib, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
 let
   nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
   networkConfig = config.cluster.network.edges.${config.cluster.nodeName}.config;
@@ -11,7 +16,10 @@ in
         "onedev:/opt/onedev"
         "/var/run/docker.sock:/var/run/docker.sock"
       ];
-      ports = [ "6610:6610" "6612:6611" ];
+      ports = [
+        "6610:6610"
+        "6612:6611"
+      ];
     };
     services.caddy = lib.optionalAttrs nodeConfig.OnedevServer.enable {
       enable = true;
@@ -30,6 +38,9 @@ in
       enableOnBoot = true;
     };
     networking.firewall.allowedUDPPorts = [ 6613 ];
-    networking.firewall.allowedTCPPorts = [ 6612 6613 ];
+    networking.firewall.allowedTCPPorts = [
+      6612
+      6613
+    ];
   };
 }

@@ -1,4 +1,9 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 let
   dark = {
     foreground = "#ffffff";
@@ -26,22 +31,34 @@ let
     purple = "#B48EAD";
   };
 in
-with lib; {
-  options.theme = mapAttrs
-    (name: value:
-      mkOption {
-        type = types.str;
-        default = value;
-      })
-    theme;
+with lib;
+{
+  options.theme = mapAttrs (
+    name: value:
+    mkOption {
+      type = types.str;
+      default = value;
+    }
+  ) theme;
   config = {
-    home.packages = with pkgs;
-      [ lxappearance lightlocker playerctl scrot imagemagickBig i3lock-fancy ];
+    home.packages = with pkgs; [
+      lxappearance
+      lightlocker
+      playerctl
+      scrot
+      imagemagickBig
+      i3lock-fancy
+    ];
     xsession = {
       windowManager.xmonad = {
         enable = false;
         enableContribAndExtras = true;
-        extraPackages = hp: with hp; [ dbus monad-logger xmonad-contrib ];
+        extraPackages =
+          hp: with hp; [
+            dbus
+            monad-logger
+            xmonad-contrib
+          ];
         config = ./xmonad.hs;
       };
     };
@@ -57,4 +74,3 @@ with lib; {
     home.file.".xmonad/background.jpg".source = "${pkgs.resources}/share/backgrounds/大鱼海棠16.jpg";
   };
 }
-

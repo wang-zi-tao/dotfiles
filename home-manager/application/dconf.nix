@@ -1,7 +1,8 @@
 # Generated via dconf2nix: https://github.com/gvolpe/dconf2nix
 { lib, ... }:
 
-let inherit (lib.hm.gvariant) mkTuple;
+let
+  inherit (lib.hm.gvariant) mkTuple;
 in
 {
   dconf.settings = {
@@ -22,7 +23,9 @@ in
       window-width = 540;
     };
 
-    "com/gexperts/Tilix" = { prompt-on-close-process = false; };
+    "com/gexperts/Tilix" = {
+      prompt-on-close-process = false;
+    };
 
     "com/github/amezin/ddterm" = {
       command = "custom-command";
@@ -63,32 +66,51 @@ in
     };
 
     "org/gnome/Weather" = {
-      locations =
-        "[<(uint32 2, <('重庆市, 重庆市, 中国', '', false, [(0.51600205200540983, 1.8596112594239504)], [(0.51596781213614429, 1.8596968032465784)])>)>]";
+      locations = "[<(uint32 2, <('重庆市, 重庆市, 中国', '', false, [(0.51600205200540983, 1.8596112594239504)], [(0.51596781213614429, 1.8596968032465784)])>)>]";
     };
 
     "org/gnome/baobab/ui" = {
-      window-size = mkTuple [ 960 600 ];
+      window-size = mkTuple [
+        960
+        600
+      ];
       window-state = 87168;
     };
 
     "org/gnome/builder" = {
       window-maximized = true;
-      window-position = mkTuple [ 0 26 ];
-      window-size = mkTuple [ 1920 1006 ];
+      window-position = mkTuple [
+        0
+        26
+      ];
+      window-size = mkTuple [
+        1920
+        1006
+      ];
     };
 
     "org/gnome/calendar" = {
       active-view = "month";
       window-maximized = true;
-      window-position = mkTuple [ 0 26 ];
-      window-size = mkTuple [ 1920 1054 ];
+      window-position = mkTuple [
+        0
+        26
+      ];
+      window-size = mkTuple [
+        1920
+        1054
+      ];
     };
 
-    "org/gnome/control-center" = { last-panel = "info-overview"; };
+    "org/gnome/control-center" = {
+      last-panel = "info-overview";
+    };
 
     "org/gnome/desktop/app-folders" = {
-      folder-children = [ "Utilities" "YaST" ];
+      folder-children = [
+        "Utilities"
+        "YaST"
+      ];
     };
 
     "org/gnome/desktop/app-folders/folders/Utilities" = {
@@ -127,13 +149,32 @@ in
       secondary-color = "#000000000000";
     };
 
-    "org/gnome/desktop/calendar" = { show-weekdate = false; };
+    "org/gnome/desktop/calendar" = {
+      show-weekdate = false;
+    };
 
     "org/gnome/desktop/input-sources" = {
-      mru-sources =
-        [ (mkTuple [ "ibus" "libpinyin" ]) (mkTuple [ "xkb" "us" ]) ];
+      mru-sources = [
+        (mkTuple [
+          "ibus"
+          "libpinyin"
+        ])
+        (mkTuple [
+          "xkb"
+          "us"
+        ])
+      ];
       per-window = false;
-      sources = [ (mkTuple [ "ibus" "libpinyin" ]) (mkTuple [ "xkb" "us" ]) ];
+      sources = [
+        (mkTuple [
+          "ibus"
+          "libpinyin"
+        ])
+        (mkTuple [
+          "xkb"
+          "us"
+        ])
+      ];
       xkb-options = [ "lv3:ralt_switch" ];
     };
 
@@ -193,19 +234,17 @@ in
       application-id = "org.gnome.baobab.desktop";
     };
 
-    "org/gnome/desktop/notifications/application/org-gnome-extensions-desktop" =
-      {
-        application-id = "org.gnome.Extensions.desktop.desktop";
-      };
+    "org/gnome/desktop/notifications/application/org-gnome-extensions-desktop" = {
+      application-id = "org.gnome.Extensions.desktop.desktop";
+    };
 
     "org/gnome/desktop/notifications/application/org-gnome-nautilus" = {
       application-id = "org.gnome.Nautilus.desktop";
     };
 
-    "org/gnome/desktop/notifications/application/org-gnome-shell-extensions-gsconnect" =
-      {
-        application-id = "org.gnome.Shell.Extensions.GSConnect.desktop";
-      };
+    "org/gnome/desktop/notifications/application/org-gnome-shell-extensions-gsconnect" = {
+      application-id = "org.gnome.Shell.Extensions.GSConnect.desktop";
+    };
 
     "org/gnome/desktop/notifications/application/org-manjaro-pamac-manager" = {
       application-id = "org.manjaro.pamac.manager.desktop";
@@ -215,18 +254,21 @@ in
       application-id = "org.moson.matray.desktop";
     };
 
-    "org/gnome/desktop/notifications/application/pycharm-community-pycharm-community" =
-      {
-        application-id = "pycharm-community_pycharm-community.desktop";
-      };
+    "org/gnome/desktop/notifications/application/pycharm-community-pycharm-community" = {
+      application-id = "pycharm-community_pycharm-community.desktop";
+    };
 
     "org/gnome/desktop/notifications/application/qv2ray" = {
       application-id = "qv2ray.desktop";
     };
 
-    "org/gnome/desktop/peripherals/keyboard" = { numlock-state = true; };
+    "org/gnome/desktop/peripherals/keyboard" = {
+      numlock-state = true;
+    };
 
-    "org/gnome/desktop/peripherals/mouse" = { speed = 1.0; };
+    "org/gnome/desktop/peripherals/mouse" = {
+      speed = 1.0;
+    };
 
     "org/gnome/desktop/peripherals/touchpad" = {
       speed = 1.0;
@@ -256,9 +298,13 @@ in
       ];
     };
 
-    "org/gnome/desktop/session" = { idle-delay = "uint32 0"; };
+    "org/gnome/desktop/session" = {
+      idle-delay = "uint32 0";
+    };
 
-    "org/gnome/desktop/wm/keybindings" = { panel-main-menu = [ "<Alt>F1" ]; };
+    "org/gnome/desktop/wm/keybindings" = {
+      panel-main-menu = [ "<Alt>F1" ];
+    };
 
     "org/gnome/desktop/wm/preferences" = {
       button-layout = "close,maximize,minimize:";
@@ -266,8 +312,14 @@ in
 
     "org/gnome/epiphany/state" = {
       is-maximized = false;
-      window-position = mkTuple [ 0 0 ];
-      window-size = mkTuple [ 1024 768 ];
+      window-position = mkTuple [
+        0
+        0
+      ];
+      window-size = mkTuple [
+        1024
+        768
+      ];
     };
 
     "org/gnome/evolution-data-server" = {
@@ -295,7 +347,13 @@ in
     };
 
     "org/gnome/gedit/plugins" = {
-      active-plugins = [ "spell" "sort" "modelines" "filebrowser" "docinfo" ];
+      active-plugins = [
+        "spell"
+        "sort"
+        "modelines"
+        "filebrowser"
+        "docinfo"
+      ];
     };
 
     "org/gnome/gedit/plugins/filebrowser" = {
@@ -310,13 +368,18 @@ in
       wrap-last-split-mode = "word";
     };
 
-    "org/gnome/gedit/preferences/ui" = { show-tabs-mode = "auto"; };
+    "org/gnome/gedit/preferences/ui" = {
+      show-tabs-mode = "auto";
+    };
 
     "org/gnome/gedit/state/window" = {
       bottom-panel-size = 140;
       side-panel-active-page = "GeditWindowDocumentsPanel";
       side-panel-size = 200;
-      size = mkTuple [ 900 700 ];
+      size = mkTuple [
+        900
+        700
+      ];
       state = 87040;
     };
 
@@ -327,7 +390,10 @@ in
       network-total-in-bits = false;
       show-dependencies = false;
       show-whose-processes = "all";
-      window-state = mkTuple [ 1440 560 ];
+      window-state = mkTuple [
+        1440
+        560
+      ];
     };
 
     "org/gnome/gnome-system-monitor/disktreenew" = {
@@ -336,8 +402,33 @@ in
     };
 
     "org/gnome/gnome-system-monitor/proctree" = {
-      columns-order =
-        [ 0 1 2 3 4 6 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 ];
+      columns-order = [
+        0
+        1
+        2
+        3
+        4
+        6
+        8
+        9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+        17
+        18
+        19
+        20
+        21
+        22
+        23
+        24
+        25
+        26
+      ];
       sort-col = 8;
       sort-order = 0;
     };
@@ -355,8 +446,7 @@ in
       sidebar-visible = true;
       sort-inverse = false;
       sort-type = "file::mtime";
-      startup-current-file =
-        "'file:///home/wangzi/%E4%B8%8B%E8%BD%BD/2ebf1cdf5aa52273.png'";
+      startup-current-file = "'file:///home/wangzi/%E4%B8%8B%E8%BD%BD/2ebf1cdf5aa52273.png'";
       startup-location = "'file:///home/wangzi/%E4%B8%8B%E8%BD%BD'";
       statusbar-visible = true;
       thumbnail-list-visible = true;
@@ -373,7 +463,9 @@ in
       grid-type = "thirds";
     };
 
-    "org/gnome/gthumb/data-migration" = { catalogs-2-10 = true; };
+    "org/gnome/gthumb/data-migration" = {
+      catalogs-2-10 = true;
+    };
 
     "org/gnome/gthumb/general" = {
       active-extensions = [
@@ -425,9 +517,13 @@ in
       overlay-key = "Super_L";
     };
 
-    "org/gnome/nautilus/icon-view" = { default-zoom-level = "small"; };
+    "org/gnome/nautilus/icon-view" = {
+      default-zoom-level = "small";
+    };
 
-    "org/gnome/nautilus/list-view" = { use-tree-view = true; };
+    "org/gnome/nautilus/list-view" = {
+      use-tree-view = true;
+    };
 
     "org/gnome/nautilus/preferences" = {
       click-policy = "single";
@@ -437,7 +533,10 @@ in
     };
 
     "org/gnome/nautilus/window-state" = {
-      initial-size = mkTuple [ 1315 528 ];
+      initial-size = mkTuple [
+        1315
+        528
+      ];
       maximized = false;
     };
 
@@ -463,12 +562,11 @@ in
       ];
     };
 
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" =
-      {
-        binding = "<Primary><Alt>t";
-        command = "alacritty";
-        name = "alacritty";
-      };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+      binding = "<Primary><Alt>t";
+      command = "alacritty";
+      name = "alacritty";
+    };
 
     "org/gnome/settings-daemon/plugins/power" = {
       sleep-inactive-ac-timeout = 7200;
@@ -535,7 +633,11 @@ in
 
     "org/gnome/shell/extensions/arcmenu" = {
       arc-menu-placement = "Panel";
-      available-placement = [ true false false ];
+      available-placement = [
+        true
+        false
+        false
+      ];
       distro-icon = 6;
       menu-button-icon = "Distro_Icon";
       pinned-app-list = [
@@ -571,7 +673,10 @@ in
     };
 
     "org/gnome/shell/extensions/gsconnect" = {
-      devices = [ "636a8ff1bc90495f" "94050a7e76e9fc11" ];
+      devices = [
+        "636a8ff1bc90495f"
+        "94050a7e76e9fc11"
+      ];
       id = "386952f5-6eac-4fa5-9a82-d09d8b29478f";
       name = "wangzipc";
     };

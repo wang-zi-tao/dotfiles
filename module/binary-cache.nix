@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
 in

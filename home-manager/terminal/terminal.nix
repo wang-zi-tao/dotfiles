@@ -1,4 +1,10 @@
-{ pkgs, config, lib, ... }: {
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
+{
   imports = [
     ./tmux/tmux.nix
     ./zsh/zsh.nix
@@ -7,26 +13,32 @@
     ./ranger/ranger.nix
     ../develop/git.nix
   ];
-  options = with lib;with lib.types;{
-    lazyPackage = mkOption {
-      type = listOf (oneOf [ package str ]);
-      default = [ ];
-    };
-    neovim.pkg = mkOption {
-      type = package;
-      default = pkgs.wangzi-neovim.override {
-        neovim-unwrapped = pkgs.unstable.neovim-unwrapped;
-        enable-all = config.neovim.full;
+  options =
+    with lib;
+    with lib.types;
+    {
+      lazyPackage = mkOption {
+        type = listOf (oneOf [
+          package
+          str
+        ]);
+        default = [ ];
+      };
+      neovim.pkg = mkOption {
+        type = package;
+        default = pkgs.wangzi-neovim.override {
+          neovim-unwrapped = pkgs.unstable.neovim-unwrapped;
+          enable-all = config.neovim.full;
+        };
+      };
+      neovim.full = mkOption {
+        type = bool;
+        default = false;
       };
     };
-    neovim.full = mkOption {
-      type = bool;
-      default = false;
-    };
-  };
   config = {
     xdg = {
-      /* enable = true; */
+      # enable = true;
     };
     programs.direnv = {
       enable = true;
@@ -58,21 +70,26 @@
        nix-index &
       fi
     '';
-    lazyPackage = with pkgs;[
-        "/nixfs/flake/str/nixpkgs#btop/bin/btop"
-        nmap 
+    lazyPackage = with pkgs; [
+      "/nixfs/flake/str/nixpkgs#btop/bin/btop"
+      nmap
     ];
-    home.packages = with pkgs;
-      scripts ++ (builtins.map
-        (pkg: if (builtins.typeOf pkg == "string") then 
-            if (lib.strings.hasPrefix "/" pkg) then
-                pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "/" pkg ) ) ''exec ${pkg} $@''
-            else
-                pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "." pkg ) ) ''nix run nixpkgs#"${pkg}" -- $@''
+    home.packages =
+      with pkgs;
+      scripts
+      ++ (builtins.map (
+        pkg:
+        if (builtins.typeOf pkg == "string") then
+          if (lib.strings.hasPrefix "/" pkg) then
+            pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "/" pkg)) ''exec ${pkg} $@''
+          else
+            pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "." pkg)) ''nix run nixpkgs#"${pkg}" -- $@''
         else
-            let name = if (builtins.hasAttr "pname" pkg) then pkg.pname else pkg.name; 
-            in pkgs.writeShellScriptBin name ''nix run nixpkgs#"${name}" -- $@'')
-        config.lazyPackage)
+          let
+            name = if (builtins.hasAttr "pname" pkg) then pkg.pname else pkg.name;
+          in
+          pkgs.writeShellScriptBin name ''nix run nixpkgs#"${name}" -- $@''
+      ) config.lazyPackage)
       ++ [
         neovim-remote
         config.neovim.pkg
@@ -112,7 +129,8 @@
         openssh
         perl
         dnsutils
-      ] ++ (lib.optionals (pkgs.system == "x86_64-linux") [
+      ]
+      ++ (lib.optionals (pkgs.system == "x86_64-linux") [
         nload
         lm_sensors
       ]);

@@ -1,54 +1,137 @@
-{ pkgs, config, lib, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
 let
   cfg = config.cluster;
   nodeConfig = cfg.nodes."${cfg.nodeName}";
 in
-with lib; with builtins;{
-  options =
-    with types; {
-      cluster = {
-        ssh.publicKeySops = mkOption { type = path; };
-        nodeName = mkOption { type = str; default = config.networking.hostName; };
-        nodeConfig = mkOption { type = attrs; default = nodeConfig; };
-        nodes = mkOption {
-          description = "nodes";
-          type = attrsOf
-            (submodule
-              ({ name, config, ... }: {
-                options = {
-                  hostname = mkOption { type = str; default = name; };
-                  inVM = mkOption { type = bool; default = false; };
-                  inContainer = mkOption { type = bool; default = false; };
-                  users = mkOption {
-                    type = attrsOf path;
-                    default = { root = ../home-manager/profiles/root.nix; };
-                  };
-                  sshd.enable = mkOption { type = bool; default = true; };
-                  prometheus = {
-                    server = mkOption { type = bool; default = false; };
-                    nodeExporter = mkOption { type = bool; default = true; };
-                  };
-                  NextCloudServer.enable = mkOption { type = bool; default = false; };
-                  MySQL.enable = mkOption { type = bool; default = false; };
-                  redis.enable = mkOption { type = bool; default = false; };
-                  OnedevServer.enable = mkOption { type = bool; default = false; };
-                  RustDeskServer.enable = mkOption { type = bool; default = false; };
-                  CodeServer.enable = mkOption { type = bool; default = false; };
-                  webssh.enable = mkOption { type = bool; default = false; };
-                  binary-cache.enable = mkOption { type = bool; default = false; };
-                  wayland.enable = mkOption { type = bool; default = false; };
-                  guiServer.enable = mkOption { type = bool; default = false; };
-                  guiClient.enable = mkOption { type = bool; default = false; };
-                  shell.enable = mkOption { type = bool; default = true; };
-                  develop.enable = mkOption { type = bool; default = true; };
-                  container.enable = mkOption { type = bool; default = false; };
-                  virtualisation.enable = mkOption { type = bool; default = false; };
-                  atuin.enable = mkOption { type = bool; default = false; };
+with lib;
+with builtins;
+{
+  options = with types; {
+    cluster = {
+      ssh.publicKeySops = mkOption { type = path; };
+      nodeName = mkOption {
+        type = str;
+        default = config.networking.hostName;
+      };
+      nodeConfig = mkOption {
+        type = attrs;
+        default = nodeConfig;
+      };
+      nodes = mkOption {
+        description = "nodes";
+        type = attrsOf (
+          submodule (
+            { name, config, ... }:
+            {
+              options = {
+                hostname = mkOption {
+                  type = str;
+                  default = name;
                 };
-              }));
-        };
+                inVM = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                inContainer = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                users = mkOption {
+                  type = attrsOf path;
+                  default = {
+                    root = ../home-manager/profiles/root.nix;
+                  };
+                };
+                sshd.enable = mkOption {
+                  type = bool;
+                  default = true;
+                };
+                prometheus = {
+                  server = mkOption {
+                    type = bool;
+                    default = false;
+                  };
+                  nodeExporter = mkOption {
+                    type = bool;
+                    default = true;
+                  };
+                };
+                NextCloudServer.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                MySQL.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                redis.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                OnedevServer.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                RustDeskServer.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                CodeServer.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                webssh.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                binary-cache.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                wayland.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                guiServer.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                guiClient.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                shell.enable = mkOption {
+                  type = bool;
+                  default = true;
+                };
+                develop.enable = mkOption {
+                  type = bool;
+                  default = true;
+                };
+                container.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                virtualisation.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+                atuin.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
+              };
+            }
+          )
+        );
       };
     };
+  };
   imports = [
     ./nixos.nix
     ./terminal.nix
@@ -95,9 +178,15 @@ with lib; with builtins;{
             localIp = "192.168.32.129";
             doh.enable = true;
           };
-          huawei-ecs.config = { publicIp = "139.9.235.87"; };
-          aliyun-hk.config = { publicIp = "47.243.22.114"; };
-          aliyun-ecs.config = { publicIp = "116.62.23.116"; };
+          huawei-ecs.config = {
+            publicIp = "139.9.235.87";
+          };
+          aliyun-hk.config = {
+            publicIp = "47.243.22.114";
+          };
+          aliyun-ecs.config = {
+            publicIp = "116.62.23.116";
+          };
           lxd = { };
           nova9 = { };
           M6 = { };
@@ -165,18 +254,28 @@ with lib; with builtins;{
             gateway = "aliyun-hk";
           };
         };
-        peersWhiteList = [ "aliyun-hk" "aliyun-ecs" "huawei-ecs" ];
+        peersWhiteList = [
+          "aliyun-hk"
+          "aliyun-ecs"
+          "huawei-ecs"
+        ];
       };
       keys.wireguard.sharedKeySops = ../secrets/public-key.yaml;
       seaweedfs = {
         nodes = {
-          wangzi-pc.config = { client.size = 32 * 1024; };
-          wangzi-pc.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
+          wangzi-pc.config = {
+            client.size = 32 * 1024;
+          };
+          wangzi-pc.to.aliyun-hk = {
+            syncDirs = {
+              "Cluster" = { };
+            };
+          };
           wangzi-pc.to.wangzi-nuc = {
             mountDirs = {
               "wangzi-nuc" = {
                 # ip = "192.168.32.1";
-                cacheSize = 32*1024;
+                cacheSize = 32 * 1024;
               };
             };
             syncDirs = {
@@ -201,17 +300,39 @@ with lib; with builtins;{
             server.path = "/srv/weed-server";
             client.size = 8 * 1024;
           };
-          wangzi-nuc.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
+          wangzi-nuc.to.aliyun-hk = {
+            syncDirs = {
+              "Cluster" = { };
+            };
+          };
           wangzi-asus.config = {
             server.path = "/srv/weed-server";
             client.size = 8 * 1024;
           };
-          wangzi-asus.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
-          huawei-ecs.config = { client.size = 1 * 1024; };
-          huawei-ecs.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
-          aliyun-hk.config = { client.size = 1 * 1024; };
-          aliyun-ecs.config = { client.size = 1 * 1024; };
-          aliyun-ecs.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
+          wangzi-asus.to.aliyun-hk = {
+            syncDirs = {
+              "Cluster" = { };
+            };
+          };
+          huawei-ecs.config = {
+            client.size = 1 * 1024;
+          };
+          huawei-ecs.to.aliyun-hk = {
+            syncDirs = {
+              "Cluster" = { };
+            };
+          };
+          aliyun-hk.config = {
+            client.size = 1 * 1024;
+          };
+          aliyun-ecs.config = {
+            client.size = 1 * 1024;
+          };
+          aliyun-ecs.to.aliyun-hk = {
+            syncDirs = {
+              "Cluster" = { };
+            };
+          };
         };
       };
       ssh.publicKeySops = ../secrets/public-key.yaml;
@@ -226,7 +347,7 @@ with lib; with builtins;{
         };
         wangzi-nuc = {
           users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
-          /* localIp = "192.168.32.1"; */
+          # localIp = "192.168.32.1";
           wayland.enable = true;
           guiServer.enable = true;
           guiClient.enable = true;

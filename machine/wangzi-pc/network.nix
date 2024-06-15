@@ -1,4 +1,10 @@
-{ config, pkgs, lib, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   networking = {
     #useDHCP = true;
     hostName = "wangzi-pc";

@@ -1,4 +1,11 @@
-{ config, lib, pkgs, modulesPath, ... }: {
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
+{
   boot.loader = {
     systemd-boot.enable = true;
     systemd-boot.configurationLimit = 5;
@@ -9,18 +16,31 @@
     timeout = 1;
   };
   boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_10;
-  boot.initrd.availableKernelModules =
-    [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" ];
+  boot.initrd.availableKernelModules = [
+    "xhci_pci"
+    "ahci"
+    "rtsx_usb_sdmmc"
+    "bcache"
+  ];
   boot.initrd.kernelModules = [ ];
   boot.blacklistedKernelModules = [ "uvcvideo" ];
-  boot.kernelModules = [ "kvm-intel" "nvidia" ];
+  boot.kernelModules = [
+    "kvm-intel"
+    "nvidia"
+  ];
   boot.kernelParams = [
     "i915.enable_gvt=1"
     "i915.enable_guc=1"
     "i915.enable_fbc=1"
   ];
   boot.extraModulePackages = [ ];
-  boot.supportedFilesystems = [ "btrfs" "ext4" "fat32" "ntfs" "f2fs" ];
+  boot.supportedFilesystems = [
+    "btrfs"
+    "ext4"
+    "fat32"
+    "ntfs"
+    "f2fs"
+  ];
   hardware.enableAllFirmware = true;
 
   hardware = {
@@ -44,10 +64,16 @@
       intelBusId = "PCI:0:2:0";
     };
     bluetooth.enable = true;
-    pulseaudio = { enable = true; };
+    pulseaudio = {
+      enable = true;
+    };
   };
   services.xserver = {
-    modules = with pkgs.xorg; [ xf86videointel xf86inputlibinput xf86videovesa ];
+    modules = with pkgs.xorg; [
+      xf86videointel
+      xf86inputlibinput
+      xf86videovesa
+    ];
     videoDrivers = [
       "nvidia"
       "modesetting"

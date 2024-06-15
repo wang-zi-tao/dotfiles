@@ -1,4 +1,8 @@
-{ lib, fetchFromGitHub, python39Packages }:
+{
+  lib,
+  fetchFromGitHub,
+  python39Packages,
+}:
 python39Packages.buildPythonApplication rec {
   pname = "gitfs";
   version = "0.5.2";
@@ -21,8 +25,17 @@ python39Packages.buildPythonApplication rec {
       'from pygit2 import RemoteCallbacks'
   '';
 
-  nativeCheckInputs = with python39Packages; [ pytest pytest-cov mock ];
-  propagatedBuildInputs = with python39Packages; [ atomiclong fusepy pygit2 six ];
+  nativeCheckInputs = with python39Packages; [
+    pytest
+    pytest-cov
+    mock
+  ];
+  propagatedBuildInputs = with python39Packages; [
+    atomiclong
+    fusepy
+    pygit2
+    six
+  ];
 
   checkPhase = "py.test";
   doCheck = false;
