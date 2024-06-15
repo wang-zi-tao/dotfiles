@@ -21,6 +21,7 @@
         "vm.swappiness" = 100;
         "fs.file-max" = 65535;
         "vm.nr_hugepages" = 0;
+        "perf_event_paranoid" = 1;
       };
     };
 

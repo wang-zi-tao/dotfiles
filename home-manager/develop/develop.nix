@@ -53,7 +53,9 @@ in
     "/nixfs/flake/str/nixpkgs#jdk/bin/jdb"
     jdk
     ghc
+    ruff
     "/nixfs/flake/str/nixpkgs#ghc/bin/ghci"
+    "/nixfs/flake/str/nixpkgs#pyright/bin/pyright-langserver"
 
     "/nixfs/flake/str/nixpkgs#scala/bin/scala"
     "/nixfs/flake/str/nixpkgs#scala/bin/scalac"
@@ -79,6 +81,7 @@ in
     "/nixfs/flake/str/nixpkgs#lldb/bin/lldb"
     "/nixfs/flake/str/nixpkgs#lldb/bin/lldb-vscode"
     "/nixfs/flake/str/nixpkgs#lldb/bin/lldb-server"
+    rr
 
     "rnix-lsp"
     "nixfmt"

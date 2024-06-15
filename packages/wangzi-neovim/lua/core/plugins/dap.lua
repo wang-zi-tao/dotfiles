@@ -79,11 +79,14 @@ local function config()
             end,
         },
     }
-    dap.adapters.cppdbg = {
-        id = "cppdbg",
-        type = "executable",
-        command = "/absolute/path/to/cpptools/extension/debugAdapters/bin/OpenDebugAD7",
+  dap.adapters.cppdbg = {
+    id = 'cppdbg',
+    type = 'executable',
+    command = gen.core .. '/bin/OpenDebugAD7',
+    options = {
+        detached = false
     }
+  }
 
     dap.configurations.c = dap.configurations.cpp
     dap.configurations.rust = dap.configurations.cpp

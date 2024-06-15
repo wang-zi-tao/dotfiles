@@ -66,7 +66,6 @@
       packages = final: prev: with builtins;listToAttrs (map (name: { inherit name; value = final.callPackage (./packages + "/${name}") { }; }) (attrNames (readDir ./packages)));
       config = {
         allowUnfree = true;
-        allowBroken = true;
         permittedInsecurePackages = [ ];
       };
       pkgs-config = system: { inherit system config; overlays = overlays ++ [ packages ]; };
