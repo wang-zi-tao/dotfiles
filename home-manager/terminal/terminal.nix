@@ -12,6 +12,7 @@
     ./htop.nix
     ./ranger/ranger.nix
     ../develop/git.nix
+    ./zellij.nix
   ];
   options =
     with lib;

@@ -1,4 +1,4 @@
-require("cmp").register_source("crates", require("crates.src.cmp").new())
+require("cmp").register_source("crates", require("crates.completion.cmp").new())
 require("crates").setup({
     smart_insert = true,
     insert_closing_quote = true,

@@ -12,6 +12,9 @@ local function config()
         },
     }
 
+    local parser_dir = vim.fn.stdpath("cache") .. "/treesitter"
+    vim.opt.runtimepath:append(parser_dir)
+
     require("nvim-treesitter.configs").setup({
         -- A list of parser names, or "all"
         --
@@ -51,7 +54,7 @@ local function config()
             additional_vim_regex_highlighting = true,
         },
 
-        parser_install_dir = vim.fn.stdpath("cache") .. "/treesitter",
+        parser_install_dir = parser_dir,
 
         incremental_selection = {
             enable = true,
@@ -160,7 +163,6 @@ return {
                             lookahead = true,
                             keymaps = {
                                 ["af"] = "@function.outer",
-                                ["aaf"] = "@function.outer",
                                 ["if"] = "@function.inner",
                                 ["iif"] = "@function.inner",
                                 ["iF"] = "@frame.inner",

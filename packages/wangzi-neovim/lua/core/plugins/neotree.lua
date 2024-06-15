@@ -5,8 +5,8 @@ local function config()
         enable_git_status = true,
         enable_diagnostics = true,
         open_files_do_not_replace_types = { "terminal", "trouble", "qf" }, -- when opening files, do not use windows containing these filetypes or buftypes
-        sort_case_insensitive = false, -- used when sorting files and directories in the tree
-        sort_function = nil, -- use a custom function for sorting files and directories in the tree
+        sort_case_insensitive = false,                                     -- used when sorting files and directories in the tree
+        sort_function = nil,                                               -- use a custom function for sorting files and directories in the tree
         -- sort_function = function (a,b)
         --       if a.type == b.type then
         --           return a.path > b.path
@@ -191,11 +191,11 @@ local function config()
                 },
             },
             follow_current_file = {
-                enabled = true, -- This will find and focus the file in the active buffer every time
+                enabled = true,                     -- This will find and focus the file in the active buffer every time
                 --               -- the current file is changed while the tree is open.
-                leave_dirs_open = false, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
+                leave_dirs_open = false,            -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
             },
-            group_empty_dirs = true, -- when true, empty folders will be grouped together
+            group_empty_dirs = true,                -- when true, empty folders will be grouped together
             hijack_netrw_behavior = "open_default", -- netrw disabled, opening a directory opens neo-tree
             -- in whatever position is specified in window.position
             -- "open_current",  -- netrw disabled, opening a directory opens within the
@@ -238,11 +238,11 @@ local function config()
         },
         buffers = {
             follow_current_file = {
-                enabled = true, -- This will find and focus the file in the active buffer every time
+                enabled = true,          -- This will find and focus the file in the active buffer every time
                 --              -- the current file is changed while the tree is open.
                 leave_dirs_open = false, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
             },
-            group_empty_dirs = true, -- when true, empty folders will be grouped together
+            group_empty_dirs = true,     -- when true, empty folders will be grouped together
             show_unloaded = true,
             window = {
                 position = "float",
@@ -289,16 +289,16 @@ local function config()
             renderers = {
                 root = {
                     { "indent" },
-                    { "icon", default = "C" },
-                    { "name", zindex = 10 },
+                    { "icon",  default = "C" },
+                    { "name",  zindex = 10 },
                 },
                 symbol = {
-                    { "indent", with_expanders = true },
+                    { "indent",    with_expanders = true },
                     { "kind_icon", default = "?" },
                     {
                         "container",
                         content = {
-                            { "name", zindex = 10 },
+                            { "name",      zindex = 10 },
                             { "kind_name", zindex = 20, align = "right" },
                         },
                     },
@@ -377,15 +377,20 @@ return {
         {
             "<leader>e",
             function()
-                vim.cmd([[Neotree reveal_file=]] .. vim.fn.expand("%"))
+                file = vim.fn.expand("%")
+                if file ~= "" then
+                    vim.cmd.Neotree("reveal_file=" .. file)
+                else
+                    vim.cmd.Neotree()
+                end
             end,
             desc = "File Tree",
         },
-        { "<leader>Ef", "<cmd>Neotree filesystem<cr>", desc = "Files" },
-        { "<leader>EF", "<cmd>Neotree float<cr>", desc = "Float" },
-        { "<leader>El", "<cmd>Neotree left<cr>", desc = "Neotree left" },
-        { "<leader>Eb", "<cmd>Neotree buffers<cr>", desc = "Buffers" },
-        { "<leader>Eg", "<cmd>Neotree git_status<cr>", desc = "Git" },
+        { "<leader>Ef", "<cmd>Neotree filesystem<cr>",       desc = "Files" },
+        { "<leader>EF", "<cmd>Neotree float<cr>",            desc = "Float" },
+        { "<leader>El", "<cmd>Neotree left<cr>",             desc = "Neotree left" },
+        { "<leader>Eb", "<cmd>Neotree buffers<cr>",          desc = "Buffers" },
+        { "<leader>Eg", "<cmd>Neotree git_status<cr>",       desc = "Git" },
         { "<leader>Eo", "<cmd>Neotree document_symbols<cr>", desc = "Symbols" },
     },
     config = config,
@@ -393,6 +398,8 @@ return {
     cmd = { "Neotree", "NvimTreeToggle", "NvimTreeFocus" },
     lazy = (0 == vim.fn.has("win32")),
     requires = {
+        "core",
+        "onedark_nvim",
         "plenary_nvim",
         "nvim_web_devicons", -- not strictly required, but recommended
         "nui_nvim",

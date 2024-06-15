@@ -142,7 +142,7 @@
         if [[ -e /run/secrets/shell/${config.home.username} ]];then
           source /run/secrets/shell/${config.home.username}
         fi
-        nohup atuin login -u wangzi -p 03hat0zw0oEH7nipcKB6JqLpxptl7DdV -k $(cat /run/secrets-for-users/atuin-key) &
+        nohup atuin login -u wangzi -p 03hat0zw0oEH7nipcKB6JqLpxptl7DdV -k $(cat /run/secrets-for-users/atuin-key) > /dev/null 2> /dev/null
       '';
   };
   programs.nushell =

@@ -122,3 +122,4 @@ vim.fn.sign_define(
     "DapStopped",
     { text = "", texthl = "DapStoppedIcon", linehl = "DapStopped", numhl = "DapStopped" }
 )
+

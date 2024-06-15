@@ -2,8 +2,9 @@ local gen = gen
 local state = {}
 global = {}
 
-function global.toggle_term(number)
-    state.toggleterm_nvim[number]:toggle()
+function global:toggle_term(number)
+    require("toggleterm")
+    self.toggleterm_nvim[number]:toggle()
 end
 
 vim.g.mapleader = " "

@@ -59,9 +59,9 @@ return {
             require("noice").setup({
                 background_colour = "#000000",
                 cmdline = {
-                    enabled = true, -- enables the Noice cmdline UI
+                    enabled = true,         -- enables the Noice cmdline UI
                     view = "cmdline_popup", -- view for rendering the cmdline. Change to `cmdline` to get a classic cmdline at the bottom
-                    opts = {}, -- global options for the cmdline. See section on views
+                    opts = {},              -- global options for the cmdline. See section on views
                     ---@type table<string, CmdlineFormat>
                     format = {
                         -- conceal: (default=true) This will hide the text in the cmdline that matches the pattern.
@@ -118,24 +118,24 @@ return {
                     },
                 },
                 presets = {
-                    bottom_search = false, -- use a classic bottom cmdline for search
-                    command_palette = false, -- position the cmdline and popupmenu together
+                    bottom_search = false,         -- use a classic bottom cmdline for search
+                    command_palette = false,       -- position the cmdline and popupmenu together
                     long_message_to_split = false, -- long messages will be sent to a split
-                    inc_rename = false, -- enables an input dialog for inc-rename.nvim
-                    lsp_doc_border = false, -- add a border to hover docs and signature help
+                    inc_rename = false,            -- enables an input dialog for inc-rename.nvim
+                    lsp_doc_border = false,        -- add a border to hover docs and signature help
                 },
                 messages = {
                     -- NOTE: If you enable messages, then the cmdline is enabled automatically.
                     -- This is a current Neovim limitation.
-                    enabled = true, -- enables the Noice messages UI
-                    view = "notify", -- default view for messages
-                    view_error = "notify", -- view for errors
-                    view_warn = "notify", -- view for warnings
-                    view_history = "messages", -- view for :messages
+                    enabled = true,              -- enables the Noice messages UI
+                    view = "notify",             -- default view for messages
+                    view_error = "notify",       -- view for errors
+                    view_warn = "notify",        -- view for warnings
+                    view_history = "messages",   -- view for :messages
                     view_search = "virtualtext", -- view for search count messages. Set to `false` to disable
                 },
                 popupmenu = {
-                    enabled = true, -- enables the Noice popupmenu UI
+                    enabled = true,  -- enables the Noice popupmenu UI
                     ---@type 'nui'|'cmp'
                     backend = "nui", -- backend to use to show regular cmdline completions
                     ---@type NoicePopupmenuItemKind|false
@@ -162,7 +162,7 @@ return {
                                 { error = true },
                                 { warning = true },
                                 { event = "msg_show", kind = { "" } },
-                                { event = "lsp", kind = "message" },
+                                { event = "lsp",      kind = "message" },
                             },
                         },
                     },
@@ -176,7 +176,7 @@ return {
                                 { error = true },
                                 { warning = true },
                                 { event = "msg_show", kind = { "" } },
-                                { event = "lsp", kind = "message" },
+                                { event = "lsp",      kind = "message" },
                             },
                         },
                         filter_opts = { count = 1 },
@@ -293,11 +293,11 @@ return {
                 left = {},
                 right = {
                     { ft = "codecompanion", title = "Code Companion Chat", size = {} },
-                    { ft = "sagaoutline", title = "Outline", size = {} },
+                    { ft = "sagaoutline",   title = "Outline",             size = {} },
                     {
                         ft = "markdown",
                         filter = function(buf)
-                            return vim.api.nvim_buf_get_name(buf):sub(-#"gen.nvim") == "gen.nvim"
+                            return vim.api.nvim_buf_get_name(buf):sub(- #"gen.nvim") == "gen.nvim"
                         end,
                         title = "AI",
                         size = { width = 0.25 },
@@ -447,14 +447,14 @@ return {
         lazy = true,
         config = function()
             require("colorizer").setup({}, {
-                RGB = true, -- #RGB hex codes
-                RRGGBB = true, -- #RRGGBB hex codes
-                names = true, -- "Name" codes like Blue
+                RGB = true,      -- #RGB hex codes
+                RRGGBB = true,   -- #RRGGBB hex codes
+                names = true,    -- "Name" codes like Blue
                 RRGGBBAA = true, -- #RRGGBBAA hex codes
-                rgb_fn = true, -- CSS rgb() and rgba() functions
-                hsl_fn = true, -- CSS hsl() and hsla() functions
-                css = true, -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
-                css_fn = true, -- Enable all CSS *functions*: rgb_fn, hsl_fn
+                rgb_fn = true,   -- CSS rgb() and rgba() functions
+                hsl_fn = true,   -- CSS hsl() and hsla() functions
+                css = true,      -- Enable all CSS features: rgb_fn, hsl_fn, names, RGB, RRGGBB
+                css_fn = true,   -- Enable all CSS *functions*: rgb_fn, hsl_fn
 
                 -- Available modes: foreground, background
                 mode = "background", -- Set the display mode.
@@ -601,11 +601,12 @@ return {
                 t = { name = "TrailBlazer / Terminal" },
             }, { prefix = "<leader>" })
         end,
+        module = "toggleterm",
         keys = {
             {
                 "\\'",
                 function()
-                    vim.cmd([[ToggleTerm]])
+                    vim.cmd.ToggleTerm()
                 end,
                 mode = { "n", "i", "v", "t" },
                 desc = "Float Terminal",
@@ -613,7 +614,7 @@ return {
             {
                 "<C-\\>",
                 function()
-                    vim.cmd([[ToggleTerm]])
+                    vim.cmd.ToggleTerm()
                 end,
                 mode = { "n", "i", "v", "t" },
                 desc = "Float Terminal",
@@ -632,77 +633,77 @@ return {
                 end,
                 desc = "rg",
             },
-            { "<leader>tf", ":ToggleTerm direction=float<CR>", desc = "Terminal float" },
-            { "<leader>tb", ":ToggleTerm direction=tab<CR>", desc = "Terminal tab" },
+            { "<leader>tf", ":ToggleTerm direction=float<CR>",      desc = "Terminal float" },
+            { "<leader>tb", ":ToggleTerm direction=tab<CR>",        desc = "Terminal tab" },
             { "<leader>th", ":ToggleTerm direction=horizontal<CR>", desc = "Terminal horizontal" },
-            { "<leader>tv", ":ToggleTerm direction=vertical<CR>", desc = "Terminal vertical" },
+            { "<leader>tv", ":ToggleTerm direction=vertical<CR>",   desc = "Terminal vertical" },
             {
                 "<leader>t1",
                 function()
-                    global.toggle_term(1)
+                    global:toggle_term(1)
                 end,
                 desc = "Terminal 1",
             },
             {
                 "<leader>t2",
                 function()
-                    global.toggle_term(2)
+                    global:toggle_term(2)
                 end,
                 desc = "Terminal 2",
             },
             {
                 "<leader>t3",
                 function()
-                    global.toggle_term(3)
+                    global:toggle_term(3)
                 end,
                 desc = "Terminal 3",
             },
             {
                 "<leader>t4",
                 function()
-                    global.toggle_term(4)
+                    global:toggle_term(4)
                 end,
                 desc = "Terminal 4",
             },
             {
                 "<leader>t5",
                 function()
-                    global.toggle_term(5)
+                    global:toggle_term(5)
                 end,
                 desc = "Terminal 5",
             },
             {
                 "<leader>t6",
                 function()
-                    global.toggle_term(6)
+                    global:toggle_term(6)
                 end,
                 desc = "Terminal 6",
             },
             {
                 "<leader>t7",
                 function()
-                    global.toggle_term(7)
+                    global:toggle_term(7)
                 end,
                 desc = "Terminal 7",
             },
             {
                 "<leader>t8",
                 function()
-                    global.toggle_term(8)
+                    global:toggle_term(8)
                 end,
                 desc = "Terminal 8",
             },
             {
                 "<leader>t9",
                 function()
-                    global.toggle_term(9)
+                    global:toggle_term(9)
                 end,
                 desc = "Terminal 9",
             },
             {
                 "<leader>t0",
                 function()
-                    global.toggle_term(0)
+                    global:toggle_term(0)
                 end,
                 desc = "Terminal 0",
             },

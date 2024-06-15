@@ -45,7 +45,7 @@ local function config()
         b.formatting.nixfmt,
 
         -- other
-        b.diagnostics.codespell,
+        b.diagnostics.codespell.with({ extra_args = { "--ignore-words=crate" } }),
         -- null_ls.builtins.code_actions.cspell,
         b.code_actions.gitrebase,
         -- null_ls.builtins.code_actions.gitsigns,
