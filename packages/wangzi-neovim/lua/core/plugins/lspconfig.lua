@@ -487,12 +487,12 @@ return {
                         hint_scheme = "String",
                         hi_parameter = "Search",
                         max_height = 22,
-                        max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width
+                        max_width = 120,        -- max_width of signature floating_window, line will be wrapped if exceed max_width
                         handler_opts = {
                             border = "rounded", -- double, single, shadow, none
                         },
-                        zindex = 200, -- by default it will be on top of all floating windows, set to 50 send it to bottom
-                        padding = "", -- character to pad on left and right of signature can be ' ', or '|'  etc
+                        zindex = 200,           -- by default it will be on top of all floating windows, set to 50 send it to bottom
+                        padding = "",           -- character to pad on left and right of signature can be ' ', or '|'  etc
                     })
                 end,
             },
@@ -1052,9 +1052,9 @@ return {
                     border = "rounded", -- "rounded", "double", "solid", "none"
                     -- or an array with eight chars building up the border in a clockwise fashion
                     -- starting with the top-left corner. eg: { "╔", "═" ,"╗", "║", "╝", "═", "╚", "║" }.
-                    size = "80%", -- Or table format example: { height = "40%", width = "100%"}
+                    size = "80%",     -- Or table format example: { height = "40%", width = "100%"}
                     position = "50%", -- Or table format example: { row = "100%", col = "0%"}
-                    scrolloff = nil, -- scrolloff value within navbuddy window
+                    scrolloff = nil,  -- scrolloff value within navbuddy window
                     sections = {
                         left = {
                             size = "20%",
@@ -1088,13 +1088,13 @@ return {
                 -- that are not set by user
                 lsp = {
                     auto_attach = true, -- If set to true, you don't need to manually use attach function
-                    preference = nil, -- list of lsp server names in order of preference
+                    preference = nil,   -- list of lsp server names in order of preference
                 },
                 source_buffer = {
                     follow_node = true, -- Keep the current node in focus on the source buffer
-                    highlight = true, -- Highlight the currently focused node
+                    highlight = true,   -- Highlight the currently focused node
                     reorient = "smart", -- "smart", "top", "mid" or "none"
-                    scrolloff = nil, -- scrolloff value when navbuddy is open
+                    scrolloff = nil,    -- scrolloff value when navbuddy is open
                 },
             })
         end,

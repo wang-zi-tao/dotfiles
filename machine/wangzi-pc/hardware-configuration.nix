@@ -76,7 +76,7 @@
     ];
     videoDrivers = [
       "nvidia"
-      "modesetting"
+      # "modesetting"
     ];
   };
   virtualisation.kvmgt.vgpus = {

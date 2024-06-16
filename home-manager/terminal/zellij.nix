@@ -2,8 +2,8 @@
 {
   programs.zellij = {
     enable = true;
-    enableBashIntegration = true;
-    enableZshIntegration = true;
+    # enableBashIntegration = true;
+    # enableZshIntegration = true;
   };
   home.file.".config/zellij/config.kdl".text = ''
     // If you'd like to override the default keybindings completely, be sure to change "keybinds" to "keybinds clear-defaults=true"
@@ -196,7 +196,7 @@
     plugins {
         tab-bar location="zellij:tab-bar"
         status-bar location="zellij:status-bar"
-        # strider location="zellij:strider"
+        // strider location="zellij:strider"
         compact-bar location="zellij:compact-bar"
         session-manager location="zellij:session-manager"
         welcome-screen location="zellij:session-manager" {

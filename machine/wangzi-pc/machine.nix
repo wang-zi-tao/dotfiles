@@ -36,6 +36,7 @@ nixpkgs.lib.nixosSystem {
           mode = "0500";
           restartUnits = [ "run-secrets-scripts" ];
         };
+        networking.firewall.allowedTCPPorts = [ 11434 ];
         services.ollama = {
           enable = true;
           listenAddress = "0.0.0.0:11434";
