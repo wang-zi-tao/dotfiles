@@ -54,7 +54,12 @@ vim.api.nvim_create_user_command("ProfileStop", function()
 end, {})
 vim.api.nvim_create_user_command("Cd", function(opts)
     global.pwd = opts.args
-end, { nargs = 1, complete = "dir" })
+end, { nargs = 1, complete = "dir"})
+local target_cache = ""
+local dir_cache = ""
+vim.api.nvim_create_user_command("Msbuild", function(opts)
+    require("toggleterm").exec("msbuild ../debug/WPSOffice.sln -m:32 -t:" .. opts.args)
+end, { nargs = 1, complete = "dir"})
 
 return {
     ClearTerm = ClearTerm,

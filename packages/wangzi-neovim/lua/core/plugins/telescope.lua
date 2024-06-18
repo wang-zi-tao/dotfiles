@@ -107,6 +107,14 @@ local function config()
                     ["codes"] = "~/Code",
                 },
             },
+            ast_grep = {
+                command = {
+                    "sg",
+                    "--json=stream",
+                }, -- must have --json=stream
+                grep_open_files = true, -- search in opened files
+                lang = nil, -- string value, specify language for ast-grep `nil` for default
+            }
         },
     })
 
@@ -301,6 +309,13 @@ return {
                 end,
                 desc = "Grep by type",
             },
+            {
+                "<leader>fS",
+                function()
+                    vim.cmd.Telescope("ast_grep")
+                end,
+                desc = "AST grep",
+            },
         },
         dependencies = {
             "nvim_web_devicons",
@@ -368,6 +383,13 @@ return {
                 dir = gen.telescope_file_browser_nvim,
                 name = "telescope_file_browser_nvim",
                 module = "telescope._extensions.file_browser",
+                lazy = true,
+            },
+            {
+                "Marskey/telescope-sg",
+                dir = gen.telescope_sg,
+                name = "telescope_sg",
+                module = "telescope._extensions.ast_grep",
                 lazy = true,
             },
         },

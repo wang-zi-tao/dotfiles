@@ -65,9 +65,6 @@ local function config()
     null_ls.setup({
         sources = sources,
         on_attach = function(client)
-            if client.server_capabilities.document_formatting then
-                vim.cmd("autocmd BufWritePre <buffer> silent! lua vim.lsp.buf.format()")
-            end
         end,
     })
 end

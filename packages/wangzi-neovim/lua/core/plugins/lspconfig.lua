@@ -61,7 +61,9 @@ local function on_attach(client, bufnr)
 end
 
 local function setup_lsp(capabilities)
-    vim.lsp.inlay_hint.enable(true)
+    if 0==vim.fn.has("win32") then
+        vim.lsp.inlay_hint.enable(true)
+    end
     local lspconfig = require("lspconfig")
     -- lspservers with default config
     local servers = {
@@ -591,6 +593,7 @@ return {
                 module = "lsp-format",
                 config = function()
                     require("lsp-format").setup({})
+                    vim.cmd.FormatDisable({"cpp"})
                 end,
             },
             {
