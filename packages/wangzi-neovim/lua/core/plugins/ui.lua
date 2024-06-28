@@ -40,17 +40,25 @@ return {
         end,
     },
     {
+        "MunifTanjim/nui.nvim",
+        name = "nui_nvim",
+        dir = gen.nui_nvim,
+        lazy = true,
+    },
+    {
+        "SmiteshP/nvim-navic",
+        dir = gen.navic,
+        name = "navic",
+        lazy = true,
+    },
+    {
         "folke/noice.nvim",
         dir = gen.noice_nvim,
         name = "noice",
         dependencies = {
             "notify_nvim",
             "nvim_treesitter",
-            {
-                "MunifTanjim/nui.nvim",
-                name = "nui_nvim",
-                dir = gen.nui_nvim,
-            },
+            "nui_nvim",
         },
         event = "VeryLazy",
         config = function()

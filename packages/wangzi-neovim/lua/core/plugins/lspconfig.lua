@@ -590,7 +590,9 @@ return {
                 name = "lsp_format_nvim",
                 module = "lsp-format",
                 config = function()
-                    require("lsp-format").setup({})
+                    require("lsp-format").setup({
+                        rust = { exclude = { "dxfmt", "leptosfmt" } }
+                    })
                 end,
             },
             {
@@ -1028,12 +1030,10 @@ return {
         dir = gen.navbuddy,
         name = "navbuddy",
         dependencies = {
-            {
-                "SmiteshP/nvim-navic",
-                dir = gen.navic,
-                name = "navic",
-            },
             "nui_nvim",
+            "navic",
+            "nvim_lspconfig",
+            "telescope_nvim",
         },
         cmd = "Navbuddy",
         keys = {

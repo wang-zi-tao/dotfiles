@@ -83,9 +83,9 @@ require("lazy").setup({
     },
 
     {
-        "terrortylor/nvim-comment",
-        dir = gen.nvim_comment,
-        name = "nvim_comment",
+        "numToStr/Comment.nvim",
+        dir = gen.comment_nvim,
+        name = "comment_nvim",
         dependencies = "core",
         module = "nvim_comment",
         keys = { "gcc", "gc" },
@@ -136,6 +136,7 @@ require("lazy").setup({
         dependencies = "core",
         lazy = true,
         event = { "TextChanged", "InsertEnter" },
+        cmd = "ASToggle",
         config = function()
             require("core.plugins.others").auto_save()
         end,
@@ -199,7 +200,7 @@ require("lazy").setup({
                 end,
                 desc = "Git Log This File",
             },
-            { "<leader>gf", ":DiffviewFileHistory %<CR>", desc = "File History" },
+            { "<leader>gf", "<cmd>DiffviewFileHistory %<CR>", desc = "File History" },
         },
     },
     {

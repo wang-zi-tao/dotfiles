@@ -13,9 +13,9 @@ local function config()
             },
         },
         signcolumn = true, -- Toggle with `:Gitsigns toggle_signs`
-        numhl = false, -- Toggle with `:Gitsigns toggle_numhl`
-        linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
-        word_diff = true, -- Toggle with `:Gitsigns toggle_word_diff`
+        numhl = false,     -- Toggle with `:Gitsigns toggle_numhl`
+        linehl = false,    -- Toggle with `:Gitsigns toggle_linehl`
+        word_diff = true,  -- Toggle with `:Gitsigns toggle_word_diff`
         watch_gitdir = {
             interval = 1000,
             follow_files = true,
@@ -65,20 +65,21 @@ return {
         }, { prefix = "<leader>" })
     end,
     keys = {
-        { "<leader>hs", "<cmd>Gitsigns stage_hunk<CR>", mode = { "n", "v" }, desc = "Stage" },
-        { "<leader>hr", "<cmd>Gitsigns reset_hunk<CR>", mode = { "n", "v" }, desc = "Reset" },
-        { "<leader>hp", "<cmd>Gitsigns preview_hunk<CR>", mode = "n", desc = "Preview" },
-        { "<leader>hu", "<cmd>Gitsigns undo_stage_hunk<CR>", mode = "n", desc = "Undo" },
-        { "<leader>bs", "<cmd>Gitsigns stage_buffer<CR>", mode = "n", desc = "Stage" },
-        { "<leader>br", "<cmd>Gitsigns reset_buffer<CR>", mode = "n", desc = "Reset" },
-        { "<leader>hb", "<cmd>Gitsigns reset_buffer<CR>", mode = "n", desc = "Reset" },
-        { "<leader>hB", "<cmd>Gitsigns toggle_current_line_blame<CR>", mode = "n", desc = "Blame" },
-        { "<leader>hd", "<cmd>Gitsigns diffthis<CR>", mode = "n", desc = "Diff This" },
-        { "<leader>hD", "<cmd>Gitsigns toggle_deleted<CR>", mode = "n", desc = "Delete" },
-        { "<leader>sh", "<cmd><C-U>Gitsigns select_hunk<CR>", mode = "o", desc = "Select Hunk" },
-        { "<leader>sh", "<cmd><C-U>Gitsigns select_hunk<CR>", mode = "x", desc = "Select Hunk" },
-        { "<leader>gb", "<cmd>Gitsigns blame_line<CR>", mode = "n", desc = "Blame line" },
-        { "[h", "<cmd>Gitsigns prev_hunk<CR>", mode = "n", desc = "Prev Hunk" },
-        { "]h", "<cmd>Gitsigns next_hunk<CR>", mode = "n", desc = "Next Hunk" },
+        { "<leader>hs", "<cmd>Gitsigns stage_hunk<CR>",                mode = { "n", "v" }, desc = "Stage" },
+        { "<leader>hr", "<cmd>Gitsigns reset_hunk<CR>",                mode = { "n", "v" }, desc = "Reset" },
+        { "<leader>hp", "<cmd>Gitsigns preview_hunk<CR>",              mode = "n",          desc = "Preview" },
+        { "<leader>hu", "<cmd>Gitsigns undo_stage_hunk<CR>",           mode = "n",          desc = "Undo" },
+        { "<leader>bs", "<cmd>Gitsigns stage_buffer<CR>",              mode = "n",          desc = "Stage" },
+        { "<leader>br", "<cmd>Gitsigns reset_buffer<CR>",              mode = "n",          desc = "Reset" },
+        { "<leader>hb", "<cmd>Gitsigns reset_buffer<CR>",              mode = "n",          desc = "Reset" },
+        { "<leader>hB", "<cmd>Gitsigns toggle_current_line_blame<CR>", mode = "n",          desc = "Blame" },
+        { "<leader>hd", "<cmd>Gitsigns diffthis<CR>",                  mode = "n",          desc = "Diff This" },
+        { "<leader>hD", "<cmd>Gitsigns toggle_deleted<CR>",            mode = "n",          desc = "Delete" },
+        { "<leader>sh", "<cmd><C-U>Gitsigns select_hunk<CR>",          mode = "o",          desc = "Select Hunk" },
+        { "<leader>sh", "<cmd><C-U>Gitsigns select_hunk<CR>",          mode = "x",          desc = "Select Hunk" },
+        { "<leader>gb", "<cmd>Gitsigns blame_line<CR>",                mode = "n",          desc = "Blame line" },
+        { "<leader>gB", "<cmd>Gitsigns blame<CR>",                     mode = "n",          desc = "Blame line" },
+        { "[h",         "<cmd>Gitsigns prev_hunk<CR>",                 mode = "n",          desc = "Prev Hunk" },
+        { "]h",         "<cmd>Gitsigns next_hunk<CR>",                 mode = "n",          desc = "Next Hunk" },
     },
 }

@@ -1,26 +1,49 @@
 local n = require("core.gen")
 local M = {}
 M.comment = function()
-    require("nvim_comment").setup({
-        -- Linters prefer comment and line to have a space in between markers
-        marker_padding = true,
-        -- should comment out empty or whitespace only lines
-        comment_empty = true,
-        -- trim empty comment whitespace
-        comment_empty_trim_whitespace = true,
-        -- Should key mappings be created
-        create_mappings = true,
-        -- Normal mode mapping left hand side
-        line_mapping = "gcc",
-        -- Visual/Operator mapping left hand side
-        operator_mapping = "gc",
-        -- text object mapping, comment chunk,,
-        comment_chunk_text_object = "ic",
-        -- Hook function to call before commenting takes place
-        hook = nil,
+    require('Comment').setup({
+        ---Add a space b/w comment and the line
+        padding = true,
+        ---Whether the cursor should stay at its position
+        sticky = true,
+        ---Lines to be ignored while (un)comment
+        ignore = nil,
+        ---LHS of toggle mappings in NORMAL mode
+        toggler = {
+            ---Line-comment toggle keymap
+            line = 'gcc',
+            ---Block-comment toggle keymap
+            block = 'gbc',
+        },
+        ---LHS of operator-pending mappings in NORMAL and VISUAL mode
+        opleader = {
+            ---Line-comment keymap
+            line = 'gc',
+            ---Block-comment keymap
+            block = 'gb',
+        },
+        ---LHS of extra mappings
+        extra = {
+            ---Add comment on the line above
+            above = 'gcO',
+            ---Add comment on the line below
+            below = 'gco',
+            ---Add comment at the end of line
+            eol = 'gcA',
+        },
+        ---Enable keybindings
+        ---NOTE: If given `false` then the plugin won't create any mappings
+        mappings = {
+            ---Operator-pending mapping; `gcc` `gbc` `gc[count]{motion}` `gb[count]{motion}`
+            basic = true,
+            ---Extra mapping; `gco`, `gcO`, `gcA`
+            extra = true,
+        },
+        ---Function to call before (un)comment
+        pre_hook = nil,
+        ---Function to call after (un)comment
+        post_hook = nil,
     })
-    vim.cmd([[autocmd BufEnter *.cpp,*.h :lua vim.api.nvim_buf_set_option(0, "commentstring", "// %s")]])
-    vim.cmd([[autocmd BufEnter *.nix :lua vim.api.nvim_buf_set_option(0, "commentstring", "# %s")]])
 end
 M.marks = function()
     require("marks").setup({
@@ -45,7 +68,7 @@ M.auto_save = function()
             message = function() -- message to print on save
                 return ""
             end,
-            dim = 0.18, -- dim the color of `message`
+            dim = 0.18,               -- dim the color of `message`
             cleaning_interval = 1250, -- (milliseconds) automatically clean MsgArea after displaying `message`. See :h MsgArea
         },
         trigger_events = { "InsertLeave", "TextChanged" },
@@ -55,15 +78,25 @@ M.auto_save = function()
             filetype_is_not = {},
             modifiable = true,
         },
+        condition = function(buf)
+            local utils = require("auto-save.utils.data")
+
+            if
+                vim.fn.getbufvar(buf, "&modifiable") == 1 and
+                utils.not_in(vim.fn.getbufvar(buf, "&filetype"), { "neo-tree" }) then
+                return true -- met condition(s), can save
+            end
+            return false    -- can't save
+        end,
         write_all_buffers = false,
         on_off_commands = true,
         clean_command_line_interval = 1000,
         debounce_delay = 135,
-        callbacks = { -- functions to be executed at different intervals
-            enabling = nil, -- ran when enabling auto-save
-            disabling = nil, -- ran when disabling auto-save
+        callbacks = {                               -- functions to be executed at different intervals
+            enabling = nil,                         -- ran when enabling auto-save
+            disabling = nil,                        -- ran when disabling auto-save
             before_asserting_save = function() end, -- ran before checking `condition`
-            before_saving = function() end, -- ran before doing the actual save
+            before_saving = function() end,         -- ran before doing the actual save
             after_saving = function()
                 vim.notify("AutoSave: saved at " .. vim.fn.strftime("%H:%M:%S"))
             end, -- ran after doing the actual save
@@ -86,12 +119,12 @@ M.mini = function()
         n_lines = 255,
         highlight_duration = 16,
         mappings = {
-            add = "S", -- Add surrounding
-            delete = "ds", -- Delete surrounding
-            find = "sf", -- Find surrounding (to the right)
-            find_left = "sF", -- Find surrounding (to the left)
-            highlight = "sh", -- Highlight surrounding
-            replace = "cs", -- Replace surrounding
+            add = "S",             -- Add surrounding
+            delete = "ds",         -- Delete surrounding
+            find = "sf",           -- Find surrounding (to the right)
+            find_left = "sF",      -- Find surrounding (to the left)
+            highlight = "sh",      -- Highlight surrounding
+            replace = "cs",        -- Replace surrounding
             update_n_lines = "sn", -- Update `n_lines`
         },
     })
@@ -125,13 +158,13 @@ end
 M.session_manager = function()
     local Path = require("plenary.path")
     require("session_manager").setup({
-        sessions_dir = Path:new(vim.fn.stdpath("data"), "sessions"), -- The directory where the session files will be saved.
-        path_replacer = "__", -- The character to which the path separator will be replaced for session files.
-        colon_replacer = "++", -- The character to which the colon symbol will be replaced for session files.
+        sessions_dir = Path:new(vim.fn.stdpath("data"), "sessions"),             -- The directory where the session files will be saved.
+        path_replacer = "__",                                                    -- The character to which the path separator will be replaced for session files.
+        colon_replacer = "++",                                                   -- The character to which the colon symbol will be replaced for session files.
         autoload_mode = require("session_manager.config").AutoloadMode.Disabled, -- Define what to do when Neovim is started without arguments. Possible values: Disabled, CurrentDir, LastSession
-        autosave_last_session = true, -- Automatically save last session on exit and on session switch.
-        autosave_ignore_not_normal = true, -- Plugin will not save a session when no buffers are opened, or all of them aren't writable or listed.
-        autosave_ignore_filetypes = { -- All buffers of these file types will be closed before the session is saved.
+        autosave_last_session = true,                                            -- Automatically save last session on exit and on session switch.
+        autosave_ignore_not_normal = true,                                       -- Plugin will not save a session when no buffers are opened, or all of them aren't writable or listed.
+        autosave_ignore_filetypes = {                                            -- All buffers of these file types will be closed before the session is saved.
             "gitcommit",
             "FTerm",
             "NvimTree",

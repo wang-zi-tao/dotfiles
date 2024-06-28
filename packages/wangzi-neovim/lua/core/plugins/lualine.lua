@@ -18,7 +18,7 @@ local colors = {
     magenta = '#c678dd',
     blue = '#51afef',
     red = '#ec5f67',
-    white = "#abb2bf",
+    white = "#ffffff",
     darker_black = "#1b1f27",
     black = "#1e222a",  --  nvim bg
     black2 = "#252931",
@@ -105,8 +105,8 @@ local filesize = {
 }
 local filetype = {
     "filetype",
-    colored = true, -- Displays filetype icon in color if set to true
-    icon_only = true, -- Display only an icon for filetype
+    colored = true,             -- Displays filetype icon in color if set to true
+    icon_only = true,           -- Display only an icon for filetype
     icon = { align = "right" }, -- Display filetype icon on the right hand side
     align = "right",
     -- icon =    {'X', align='right'}
@@ -265,7 +265,7 @@ local search = {
     color = { fg = colors.grey_fg2 },
 }
 local lsp_symbol = {
-    rust_analyzer = "",
+    ["rust-analyzer"] = "",
     clangd = " ",
     pyright = "",
     rnix = " ",
@@ -283,7 +283,7 @@ local lsp = {
         for _, client in ipairs(clients) do
             local filetypes = client.config.filetypes
             if filetypes and vim.fn.index(filetypes, buf_ft) ~= -1 then
-                return " LSP:" .. (lsp_symbol[client.name] or client.name)
+                return " " .. (lsp_symbol[client.name] or client.name)
             end
         end
         return msg
@@ -293,10 +293,10 @@ local lsp = {
 
 -- Add components to right sections
 local encoding = {
-    "encoding", -- option component same as &encoding in viml
+    "encoding",         -- option component same as &encoding in viml
     fmt = string.upper, -- I'm not sure why it's upper case either ;)
     cond = conditions.hide_in_width,
-    color = { fg = colors.blue, gui = "bold" },
+    color = { fg = colors.white, gui = "bold" },
 }
 
 local file_format = {
@@ -306,7 +306,7 @@ local file_format = {
         dos = "", -- e70f
         mac = "", -- e711
     },
-    color = { fg = colors.blue, gui = "bold" },
+    color = { fg = colors.white, gui = "bold" },
 }
 
 local location = {
@@ -328,15 +328,15 @@ local progress = {
 }
 
 local lsp_count = {
-  function()
-    local ft = vim.bo.filetype
-    if ft == "rust" or ft == "python" then
-      return ""
-    end
-    local data = require("dr-lsp").lspCountTable()
-    return string.format("LSP: %dD >> %dR", data.workspace.definitions, data.workspace.references)
-  end,
-  color = { fg = colors.blue },
+    function()
+        local ft = vim.bo.filetype
+        if ft == "rust" or ft == "python" then
+            return ""
+        end
+        local data = require("dr-lsp").lspCountTable()
+        return string.format("%dD >> %dR", data.workspace.definitions, data.workspace.references)
+    end,
+    color = { fg = colors.blue },
 }
 
 local datatime = {
@@ -350,7 +350,7 @@ local windows = {
     mdoe = 0,
     windows_color = {
         -- Same values as the general color option can be used here.
-        active = "lualine_b_normal", -- Color for active window.
+        active = "lualine_b_normal",     -- Color for active window.
         inactive = "lualine_b_inactive", -- Color for inactive window.
     },
 }
@@ -361,7 +361,7 @@ local buffers = {
     use_mode_colors = true,
     buffers_color = {
         -- Same values as the general color option can be used here.
-        active = "lualine_c_normal", -- Color for active buffer.
+        active = "lualine_c_normal",     -- Color for active buffer.
         inactive = "lualine_c_inactive", -- Color for inactive buffer.
     },
     symbols = {
@@ -378,7 +378,7 @@ local tabs = {
     },
     tabs_color = {
         -- Same values as the general color option can be used here.
-        active = "lualine_y_normal", -- Color for active tab.
+        active = "lualine_y_normal",     -- Color for active tab.
         inactive = "lualine_y_inactive", -- Color for inactive tab.
     },
     show_modified_status = true,
@@ -464,7 +464,6 @@ lualine.setup({
         lualine_a = { mode },
         lualine_b = { filetype, filename },
         lualine_c = {
-            branch,
             diff,
             lsp_count,
             {
@@ -474,9 +473,9 @@ lualine.setup({
             midle,
             lsp_indexing,
         },
-        lualine_x = { dap_state, diagnostics, lsp },
-        lualine_y = { encoding, file_format },
-        lualine_z = { "searchcount", "selectioncount", location, progress, filesize },
+        lualine_x = { "searchcount", "selectioncount", location, progress, filesize, dap_state, },
+        lualine_y = { diagnostics, lsp },
+        lualine_z = { encoding, file_format, },
     },
     inactive_sections = {
         -- these are to remove the defaults
@@ -486,9 +485,9 @@ lualine.setup({
             diff,
             lsp_count,
         },
-        lualine_x = { diagnostics, lsp },
-        lualine_y = { encoding, file_format },
-        lualine_z = { location, progress, filesize },
+        lualine_x = {},
+        lualine_y = { diagnostics, lsp },
+        lualine_z = { encoding, file_format, },
     },
     extensions = {
         "quickfix",

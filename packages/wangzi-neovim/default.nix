@@ -179,7 +179,7 @@ stdenvNoCC.mkDerivation {
 
         nvim_autopairs = "${nvim-autopairs}",
         dashboard_nvim = "${dashboard-nvim}",
-        nvim_comment = "${nvim-comment}",
+        comment_nvim = "${comment-nvim}",
 
         -- telescope
         telescope_nvim = "${telescope-nvim}",
@@ -223,8 +223,8 @@ stdenvNoCC.mkDerivation {
         auto_save = "${
           pkgs.fetchgit {
             url = "https://github.com/Pocco81/auto-save.nvim";
-            rev = "2c7a2943340ee2a36c6a61db812418fca1f57866";
-            sha256 = "sha256-keK+IAnHTTA5uFkMivViMMAkYaBvouYqcR+wNPgN3n0=";
+            rev = "979b6c82f60cfa80f4cf437d77446d0ded0addf0";
+            sha256 = "sha256-bWGil73YiCKZEaY7IuUOIU4Q7k7qCMjSeQ4I+cAVe44=";
           }
         }",
 
@@ -331,8 +331,8 @@ stdenvNoCC.mkDerivation {
        perfanno_nvim = "${
          pkgs.fetchgit {
            url = "https://github.com/t-troebst/perfanno.nvim";
-           rev = "3c7ee6e97f4995c064ebd3f26f08300898941904";
-           sha256 = "sha256-wcjrRGc/wVs8qCto7plx/GRQIdVXK6QQDFz74xV8KFk=";
+           rev = "b138718bf4289b429dc81cadaf80ace8221c647b";
+           sha256 = "sha256-7xEyXOGVG8AVRpO4QopfyDfMyKExUDuuf7SCoSd+SiU=";
          }
        }",
        hop_nvim = "${hop-nvim}",

@@ -91,6 +91,7 @@ in
     "/nixfs/flake/str/nixpkgs#lldb/bin/lldb-vscode"
     "/nixfs/flake/str/nixpkgs#lldb/bin/lldb-server"
     rr
+    "/nixfs/flake/str/nixpkgs#inferno/bin/inferno-flamegraph"
 
     "rnix-lsp"
     nil

@@ -16,3 +16,18 @@ windows:
 - Temp:
     layout: 57d8,191x50,0,0,19
     root: Temp
+- wangzi-nuc:
+    panes:
+    - ssh "wangzi@wangzi-nuc.wg" -X -Y -t "tmux attach"
+- wangzi-asus:
+    panes:
+    - ssh "wangzi@wangzi-asus.wg" -X -Y -t "tmux attach"
+- wangzi-pc:
+    panes:
+    - ssh "wangzi@wangzi-pc.wg" -X -Y -t "tmux attach"
+- aliyun-hk:
+    panes:
+    - ssh "root@aliyun-hk.wg" -X -Y -t "tmux attach"
+- aliyun-ecs:
+    panes:
+    - ssh "root@aliyun-ecs.wg" -X -Y -t "tmux attach"
