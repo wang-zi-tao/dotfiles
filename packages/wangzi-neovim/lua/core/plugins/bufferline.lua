@@ -1,14 +1,16 @@
 local bufferline = require("bufferline")
 local devicons = require("nvim-web-devicons")
 
-local colors = require("core.colors").get()
+local theme = require("core.theme")
+local colors = theme.colors
+local symbols = theme.symbols
 bufferline.setup({
     highlights = {},
     options = {
         offsets = { { filetype = "NvimTree", text = "", padding = 1 } },
-        buffer_close_icon = "",
+        buffer_close_icon = "󰖭",
         modified_icon = "",
-        close_icon = "",
+        close_icon = "󰖭",
         show_close_icon = true,
         left_trunc_marker = "",
         right_trunc_marker = "",
@@ -26,8 +28,7 @@ bufferline.setup({
         diagnostics_indicator = function(count, level, diagnostics_dict, context)
             local s = " "
             for e, n in pairs(diagnostics_dict) do
-                local sym = e == "error" and " " or (e == "warning" and " " or " ")
-                s = s .. n .. sym
+                s = s .. n .. symbols[e]
             end
             return s
         end,
@@ -54,15 +55,12 @@ bufferline.setup({
                 local filetype = vim.bo.filetype
                 local icon, icon_color = devicons.get_icon_color(filename, filetype)
                 local result = {}
-                table.insert(result, { text = icon, bg = "#51afef", fg = "#ffffff" })
-                table.insert(result, { text = " " .. filename, bg = "#51afef", fg = "#ffffff" })
-                table.insert(result, { text = "", fg = "#51afef", bg = "#42464e" })
-                table.insert(result, { text = "  " .. vim.b.gitsigns_head, bg = "#42464e", fg = "#51afef" })
-                table.insert(result, { text = "", fg = "#42464e" })
-                return result
-            end,
-            right = function()
-                local result = {}
+                table.insert(result, { text = icon, bg = colors.ui_main, fg = "#ffffff" })
+                table.insert(result, { text = " " .. filename, bg = colors.ui_main, fg = "#ffffff" })
+                table.insert(result, { text = " ", fg = colors.ui_main, bg = "#42464e" })
+                table.insert(result, { text = "  " .. vim.b.gitsigns_head, bg = "#42464e", fg = colors.ui_main })
+                table.insert(result, { text = "  ", fg = "#42464e" })
+
                 local seve = vim.diagnostic.severity
                 local error = #vim.diagnostic.get(0, { severity = seve.ERROR })
                 local warning = #vim.diagnostic.get(0, { severity = seve.WARN })
@@ -70,20 +68,21 @@ bufferline.setup({
                 local hint = #vim.diagnostic.get(0, { severity = seve.HINT })
 
                 if error ~= 0 then
-                    table.insert(result, { text = "  " .. error, fg = "#EC5241" })
+                    table.insert(result, { text = " " .. symbols.error .. error, fg = colors.error })
                 end
 
                 if warning ~= 0 then
-                    table.insert(result, { text = "  " .. warning, fg = "#EFB839" })
+                    table.insert(result, { text = " " .. symbols.warn .. warning, fg = colors.warning })
                 end
 
                 if hint ~= 0 then
-                    table.insert(result, { text = "  " .. hint, fg = "#A3BA5E" })
+                    table.insert(result, { text = " " .. symbols.info .. hint, fg = colors.info })
                 end
 
                 if info ~= 0 then
-                    table.insert(result, { text = "  " .. info, fg = "#7EA9A7" })
+                    table.insert(result, { text = " " .. symbols.hint .. info, fg = colors.hint })
                 end
+
                 return result
             end,
         },

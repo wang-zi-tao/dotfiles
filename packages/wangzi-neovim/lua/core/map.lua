@@ -52,6 +52,28 @@ wk.register({
         p = { '"+p', "Paste+" },
         P = { '"+P', "Prev Paste+" },
     },
+    K = {
+        function()
+            local filename = vim.fn.expand("%:t")
+            if filename == "Cargo.toml" then
+                require("crates").show_popup()
+            else
+                vim.cmd [[Lspsaga hover_doc]]
+            end
+        end,
+        "hover"
+    },
+    J = {
+        function()
+            local filetype = vim.bo.filetype
+            if filetype == "rust" then
+                vim.cmd [[RustLsp joinLines]]
+            else
+                vim.cmd [[join]]
+            end
+        end,
+        "hover"
+    },
 })
 wk.register({
     ["\\"] = {

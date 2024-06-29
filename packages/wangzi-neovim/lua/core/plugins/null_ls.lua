@@ -76,5 +76,6 @@ return {
     dir = gen.none_ls,
     name = "none_ls",
     lazy = true,
+    event = "LspAttach",
     config = config,
 }

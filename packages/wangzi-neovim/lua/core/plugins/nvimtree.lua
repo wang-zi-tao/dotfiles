@@ -126,13 +126,13 @@ return {
     "kyazdani42/nvim-tree.lua",
     dir = gen.nvim_tree_lua,
     name = "nvim_tree_lua",
-    dependencies = { "nvim_web_devicons", "onedark_nvim" },
+    dependencies = { "nvim_web_devicons", },
     module = "nvim-tree",
     cmd = { "NvimTreeToggle", "NvimTreeFocus" },
     lazy = (0 == vim.fn.has("win32")),
     config = config,
     keys = {
-        { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "File Tree" },
+        { "<leader>e", "<cmd>NvimTreeToggle<cr>",   desc = "File Tree" },
         { "<leader>E", "<cmd>NvimTreeFindFile<cr>", desc = "Focus On File Tree" },
     },
 }

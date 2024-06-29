@@ -21,14 +21,15 @@ local function config()
         },
         formatting = {
             format = function(entry, vim_item)
-                local icons = require("core.plugins.lspkind_icons")
-                vim_item.kind = string.format("%s %s", icons[vim_item.kind], vim_item.kind)
+                local icons = require("core.theme").symbols.lsp
+                local icon = icons[vim_item.kind] or {}
+                vim_item.kind = string.format("%s %s", icon.icon or "", vim_item.kind)
                 vim_item.menu = ({
                     buffer = "",
                     nvim_lsp = "",
                     nvim_lua = "",
                     path = "",
-                    cmp_tabnine = "AI",
+                    cmp_tabnine = " ",
                 })[entry.source.name]
                 if entry.source.name == "cmp_tabnine" then
                     local detail = (entry.completion_item.labelDetails or {}).detail
@@ -252,7 +253,7 @@ return {
             config = function()
                 require("cmp").register_source("zsh", require("cmp_zsh").new())
                 require("cmp_zsh").setup({
-                    zshrc = true, -- Source the zshrc (adding all custom completions). default: false
+                    zshrc = true,                      -- Source the zshrc (adding all custom completions). default: false
                     filetypes = { "deoledit", "zsh" }, -- Filetypes to enable cmp_zsh source. default: {"*"}
                 })
             end,
@@ -268,62 +269,62 @@ return {
             end,
         },
         gen.cmp_tabnine
-                and {
-                    "tzachar/cmp-tabnine",
-                    dir = gen.cmp_tabnine,
-                    name = "cmp_tabnine",
-                    build = tabnine_build,
-                    -- module = "cmp_tabnine",
-                    disable = gen.cmp_tabnine ~= false,
-                    lazy = true,
-                    config = function()
-                        require("cmp_tabnine").setup()
-                        require("cmp_tabnine.config"):setup({
-                            max_lines = 1000,
-                            max_num_results = 20,
-                            sort = true,
-                            run_on_every_keystroke = false,
-                            snippet_placeholder = "..",
-                            ignored_file_types = { -- default is not to ignore
-                                -- uncomment to ignore in lua:
-                                -- lua = true
-                            },
-                        })
-                        local cmp_tabnine = require("cmp_tabnine")
-                        local prefetch = vim.api.nvim_create_augroup("prefetch", { clear = true })
-                        vim.api.nvim_create_autocmd("BufRead", {
-                            group = prefetch,
-                            pattern = "*.h",
-                            callback = function()
-                                cmp_tabnine:prefetch(vim.fn.expand("%:p"))
-                            end,
-                        })
-                        vim.api.nvim_create_autocmd("BufRead", {
-                            group = prefetch,
-                            pattern = "*.cpp",
-                            callback = function()
-                                cmp_tabnine:prefetch(vim.fn.expand("%:p"))
-                            end,
-                        })
-                        local compare = require("cmp.config.compare")
-                        require("cmp").setup({
-                            sorting = {
-                                priority_weight = 2,
-                                comparators = {
-                                    require("cmp_tabnine.compare"),
-                                    compare.offset,
-                                    compare.exact,
-                                    compare.score,
-                                    compare.recently_used,
-                                    compare.kind,
-                                    compare.sort_text,
-                                    compare.length,
-                                    compare.order,
-                                },
-                            },
-                        })
+        and {
+            "tzachar/cmp-tabnine",
+            dir = gen.cmp_tabnine,
+            name = "cmp_tabnine",
+            build = tabnine_build,
+            -- module = "cmp_tabnine",
+            disable = gen.cmp_tabnine ~= false,
+            lazy = true,
+            config = function()
+                require("cmp_tabnine").setup()
+                require("cmp_tabnine.config"):setup({
+                    max_lines = 1000,
+                    max_num_results = 20,
+                    sort = true,
+                    run_on_every_keystroke = false,
+                    snippet_placeholder = "..",
+                    ignored_file_types = { -- default is not to ignore
+                        -- uncomment to ignore in lua:
+                        -- lua = true
+                    },
+                })
+                local cmp_tabnine = require("cmp_tabnine")
+                local prefetch = vim.api.nvim_create_augroup("prefetch", { clear = true })
+                vim.api.nvim_create_autocmd("BufRead", {
+                    group = prefetch,
+                    pattern = "*.h",
+                    callback = function()
+                        cmp_tabnine:prefetch(vim.fn.expand("%:p"))
                     end,
-                }
-            or {},
+                })
+                vim.api.nvim_create_autocmd("BufRead", {
+                    group = prefetch,
+                    pattern = "*.cpp",
+                    callback = function()
+                        cmp_tabnine:prefetch(vim.fn.expand("%:p"))
+                    end,
+                })
+                local compare = require("cmp.config.compare")
+                require("cmp").setup({
+                    sorting = {
+                        priority_weight = 2,
+                        comparators = {
+                            require("cmp_tabnine.compare"),
+                            compare.offset,
+                            compare.exact,
+                            compare.score,
+                            compare.recently_used,
+                            compare.kind,
+                            compare.sort_text,
+                            compare.length,
+                            compare.order,
+                        },
+                    },
+                })
+            end,
+        }
+        or {},
     },
 }

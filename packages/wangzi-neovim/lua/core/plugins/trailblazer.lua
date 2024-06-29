@@ -205,7 +205,6 @@ return {
     "LeonHeidelbach/trailblazer.nvim",
     dir = gen.trailblazer,
     name = "trailblazer",
-    dependencies = "core",
     lazy = true,
     event = "BufRead",
     module = "trailblazer",

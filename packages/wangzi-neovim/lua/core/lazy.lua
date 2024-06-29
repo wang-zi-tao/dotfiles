@@ -19,25 +19,26 @@ require("lazy").setup({
     -- require("core.plugins.nvimtree"),
     require("core.plugins.neotree"),
     require("core.plugins.symbols_outline_pre"),
-    require("core.plugins.gitsigns"),
+    require("core.plugins.git"),
     require("core.plugins.vgit"),
     require("core.plugins.ai"),
+    require("core.plugins.terminal"),
+    require("core.plugins.coding"),
+    require("core.plugins.navigation"),
+    require("core.plugins.view"),
+    require("core.plugins.trouble"),
+    require("core.plugins.trailblazer"),
+    require("core.plugins.perf"),
+    require("core.plugins.lsp"),
+    require("core.plugins.rust"),
+    require("core.plugins.cpp"),
+    require("core.plugins.null_ls"),
 
-    {
-        dir = ".",
-        name = "core",
-        module = "core",
-        priority = 100,
-        config = function()
-            require("core")
-        end,
-    },
     {
         "nvim-lua/plenary.nvim",
         name = "plenary_nvim",
         dir = gen.plenary_nvim,
         module = "plenary",
-        dependencies = "core",
         lazy = true,
         keys = {
             {
@@ -58,42 +59,6 @@ require("lazy").setup({
             },
         },
     },
-    {
-        "max397574/better-escape.nvim",
-        dir = gen.better_escape_nvim,
-        name = "better_escape_nvim",
-        disable = true,
-        lazy = true,
-        event = "VeryLazy",
-        config = function()
-            require("better_escape").setup({})
-        end,
-    },
-
-    {
-        "windwp/nvim-autopairs",
-        dir = gen.nvim_autopairs,
-        name = "nvim_autopairs",
-        lazy = true,
-        event = "InsertEnter",
-        config = function()
-            local autopairs = require("nvim-autopairs")
-            autopairs.setup({ fast_wrap = {} })
-        end,
-    },
-
-    {
-        "numToStr/Comment.nvim",
-        dir = gen.comment_nvim,
-        name = "comment_nvim",
-        dependencies = "core",
-        module = "nvim_comment",
-        keys = { "gcc", "gc" },
-        lazy = true,
-        config = function()
-            require("core.plugins.others").comment()
-        end,
-    },
 
     {
         "kkharji/sqlite.lua",
@@ -107,191 +72,6 @@ require("lazy").setup({
             end
         end,
     },
-    require("core.plugins.trouble"),
-    require("core.plugins.trailblazer"),
-    gen.markdown_preview and {
-        "davidgranstrom/nvim-markdown-preview",
-        dir = gen.markdown_preview,
-        name = "markdown_preview",
-        ft = "markdown",
-        cmd = "MarkdownPreview",
-        lazy = true,
-        disable = not gen.markdown_preview,
-    } or {},
-    {
-        "chentoast/marks.nvim",
-        dir = gen.marks,
-        name = "marks",
-        dependencies = "core",
-        lazy = true,
-        config = function()
-            require("core.plugins.others").marks()
-        end,
-        keys = { "m" },
-    },
-    {
-        "pocco81/auto-save.nvim",
-        dir = gen.auto_save,
-        name = "auto_save",
-        dependencies = "core",
-        lazy = true,
-        event = { "TextChanged", "InsertEnter" },
-        cmd = "ASToggle",
-        config = function()
-            require("core.plugins.others").auto_save()
-        end,
-    },
-    {
-        "mbbill/undotree",
-        dir = gen.undotree,
-        dependencies = "core",
-        name = "undotree",
-        cmd = "UndotreeToggle",
-        lazy = true,
-        keys = {
-            { "<leader>u", "<cmd>UndotreeToggle<CR>", mode = "n", desc = "Undo Tree" },
-        },
-    },
-    {
-        "sindrets/diffview.nvim",
-        dir = gen.diffview,
-        name = "diffview",
-        dependencies = "plenary_nvim",
-        module = "diffview",
-        lazy = true,
-        cmd = {
-            "DiffviewOpen",
-            "DiffviewClose",
-            "DiffviewClose",
-            "DiffviewFocusFiles",
-            "DiffviewRefresh",
-            "DiffviewFileHistory",
-        },
-        config = function()
-            require("diffview").setup({})
-        end,
-        keys = {
-            {
-                "<leader>gd",
-                function()
-                    vim.cmd([[NvimTreeClose]])
-                    require("diffview").open()
-                end,
-                desc = "Open Diff",
-            },
-            {
-                "<leader>gD",
-                function()
-                    require("diffview").close()
-                end,
-                desc = "Close Diff",
-            },
-            {
-                "<leader>gh",
-                function()
-                    require("diffview").file_history()
-                end,
-                desc = "Git Log",
-            },
-            {
-                "<leader>gH",
-                function()
-                    require("diffview").file_history("%")
-                end,
-                desc = "Git Log This File",
-            },
-            { "<leader>gf", "<cmd>DiffviewFileHistory %<CR>", desc = "File History" },
-        },
-    },
-    {
-        "numToStr/Navigator.nvim",
-        dir = gen.navigator,
-        name = "navigator",
-        dependencies = "core",
-        module = "Navigator",
-        lazy = true,
-        config = function()
-            require("Navigator").setup({ autosave = "all" })
-        end,
-        keys = {
-            {
-                "<C-h>",
-                function()
-                    require("Navigator").left()
-                end,
-                mode = { "n", "t" },
-                desc = "Navigator left",
-            },
-            {
-                "<C-k>",
-                function()
-                    require("Navigator").up()
-                end,
-                mode = { "n", "t" },
-                desc = "Navigator up",
-            },
-            {
-                "<C-l>",
-                function()
-                    require("Navigator").right()
-                end,
-                mode = { "n", "t" },
-                desc = "Navigator right",
-            },
-            {
-                "<C-j>",
-                function()
-                    require("Navigator").down()
-                end,
-                mode = { "n", "t" },
-                desc = "Navigator down",
-            },
-            {
-                "<A-p>",
-                function()
-                    require("Navigator").previous()
-                end,
-                mode = "n",
-                desc = "Navigator previous",
-            },
-        },
-    },
-    {
-        "RRethy/vim-illuminate",
-        dir = gen.illuminate,
-        name = "illuminate",
-        module = "illuminate",
-        lazy = true,
-        event = "VeryLazy",
-    },
-    {
-        "stevearc/profile.nvim",
-        dir = gen.profile_nvim,
-        name = "profile_nvim",
-        module = "profile",
-        lazy = true,
-        cmd = { "ToggleProfile" },
-        config = function()
-            local function toggle_profile()
-                local prof = require("profile")
-                if prof.is_recording() then
-                    prof.stop()
-                    vim.ui.input(
-                        { prompt = "Save profile to:", completion = "file", default = "profile.json" },
-                        function(filename)
-                            if filename then
-                                prof.export(filename)
-                                vim.notify(string.format("Wrote %s", filename))
-                            end
-                        end
-                    )
-                else
-                    prof.start("*")
-                end
-            end
-            vim.api.nvim_create_user_command("ToggleProfile", toggle_profile, {})
-        end,
-    },
     {
         "anuvyklack/keymap-amend.nvim",
         dir = gen.keymap_amend,
@@ -301,197 +81,13 @@ require("lazy").setup({
     },
 
     {
-        "echasnovski/mini.nvim",
-        dir = gen.mini,
-        name = "mini",
-        dependencies = "core",
-        lazy = true,
-        config = function()
-            require("core.plugins.others").mini()
-        end,
-        event = "VeryLazy",
-    },
-    {
-        "beauwilliams/focus.nvim",
-        dir = gen.focus,
-        name = "focus_nvim",
-        dependencies = "core",
-        enabled = false,
-        lazy = true,
-        cmd = {
-            "FocusDisable",
-            "FocusEnable",
-            "FocusToggle",
-            "FocusSplitNicely",
-            "FocusSplitCycle",
-            "FocusDisableWindow",
-            "FocusEnableWindow",
-            "FocusToggleWindow",
-            "FocusGetDisabledWindows",
-            "FocusSplitLeft",
-            "FocusSplitDown",
-            "FocusSplitUp",
-            "FocusSplitRight",
-            "FocusEqualise",
-            "FocusMaximise",
-            "FocusMaxOrEqual",
-        },
-        config = function()
-            require("focus").setup({
-                excluded_filetypes = { "toggleterm", "notify", "markdown" },
-                -- hybridnumber = true,
-                treewidth = 30,
-                width = 96,
-                height = 30,
-            })
-        end,
-        event = "VeryLazy",
-        keys = {
-            { "<leader>wh", ":FocusSplitLeft<CR>",          silent = true, desc = "Split left" },
-            { "<leader>wk", ":FocusSplitUp<CR>",            silent = true, desc = "Split up" },
-            { "<leader>wl", ":FocusSplitRight<CR>",         silent = true, desc = "Split right" },
-            { "<leader>wj", ":FocusSplitDown<CR>",          silent = true, desc = "Split down" },
-            { "<leader>wt", ":FocusSplitDown cmd term<CR>", silent = true, desc = "Terminal" },
-        },
-    },
-    {
-        "Shatur/neovim-session-manager",
-        dir = gen.session_manager,
-        name = "session_manager",
-        lazy = true,
-        cmd = { "SessionManager" },
-        module = "session_manager",
-        event = "VeryLazy",
-        dependencies = { "trailblazer" },
-        config = function()
-            require("core.plugins.others").session_manager()
-        end,
-    },
-    {
         "glacambre/firenvim",
         dir = gen.firenvim,
         name = "firenvim",
-        dependencies = "core",
         lazy = true,
         build = function()
             vim.fn["firenvim#install"](0)
         end,
-    },
-    {
-        "t-troebst/perfanno.nvim",
-        dir = gen.perfanno_nvim,
-        name = "perfanno_nvim",
-        cmd = {
-            "PerfLoadFlat",
-            "PerfLoadCallGraph",
-            "PerfLoadFlameGraph",
-            "PerfLuaProfileStart",
-            "PerfLuaProfileStop",
-            "PerfPickEvent",
-            "PerfCycleFormat",
-            "PerfAnnotate",
-            "PerfToggleAnnotations",
-            "PerfAnnotateSelection",
-            "PerfAnnotateFunction",
-            "PerfHottestLines",
-            "PerfHottestSymbols",
-            "PerfHottestCallersSelection",
-            "PerfHottestCallersFunction",
-        },
-        lazy = true,
-        config = function()
-            require("core.plugins.perf")
-        end,
-        init = function()
-            require("which-key").register({ p = { name = "Perf", l = { name = "Load" } } }, { prefix = "<leader>" })
-        end,
-        keys = {
-            { "<leader>plf", ":PerfLoadFlat<CR>",                desc = "load flat" },
-            { "<leader>plg", ":PerfLoadCallGraph<CR>",           desc = "load call graph" },
-            { "<leader>plo", ":PerfLoadFlameGraph<CR>",          desc = "load flame graph" },
-            { "<leader>pe",  ":PerfPickEvent<CR>",               desc = "pick event" },
-            { "<leader>pa",  ":PerfAnnotate<CR>",                desc = "annotate" },
-            { "<leader>pf",  ":PerfAnnotateFunction<CR>",        desc = "annotate function" },
-            { "<leader>pA",  ":PerfAnnotateSelection<CR>",       desc = "annotate selection" },
-            { "<leader>pn",  ":PerfToggleAnnotations<CR>",       desc = "toggle annotate" },
-            { "<leader>ph",  ":PerfHottestLines<CR>",            desc = "hottest lines" },
-            { "<leader>ps",  ":PerfHottestSymbols<CR>",          desc = "hottest symbols" },
-            { "<leader>pc",  ":PerfHottestCallersFunction<CR>",  desc = "hottest callers function" },
-            { "<leader>pC",  ":PerfHottestCallersSelection<CR>", desc = "hottest callers selection" },
-        },
-    },
-    {
-        "phaazon/hop.nvim",
-        dir = gen.hop_nvim,
-        name = "hop_nvim",
-        module = "hop",
-        lazy = true,
-        config = function()
-            require("hop").setup({})
-        end,
-        init = function()
-            require("which-key").register({
-                T = { name = "Hop" },
-            }, { prefix = "<leader>" })
-        end,
-        keys = {
-            {
-                "<leader>j",
-                function()
-                    require("hop").hint_char1()
-                end,
-                desc = "hop char1",
-            },
-            {
-                "<leader>k",
-                function()
-                    require("hop").hint_char2()
-                end,
-                desc = "hop char1",
-            },
-            {
-                "<leader>Ta",
-                function()
-                    require("hop").hint_anywhere()
-                end,
-                desc = "any",
-            },
-            {
-                "<leader>Tw",
-                function()
-                    require("hop").hint_words()
-                end,
-                desc = "words",
-            },
-            {
-                "<leader>Tc",
-                function()
-                    require("hop").hint_char1()
-                end,
-                desc = "char1",
-            },
-            {
-                "<leader>Th",
-                function()
-                    require("hop").hint_char1()
-                end,
-                desc = "char1",
-            },
-            {
-                "<leader>Te",
-                function()
-                    require("hop").hint_char1({ direction = require("hop.hint").HintDirection.AFTER_CURSOR })
-                end,
-                desc = "back",
-            },
-            {
-                "<leader>Tb",
-                function()
-                    require("hop").hint_char1({ direction = require("hop.hint").HintDirection.BEFORE_CURSOR })
-                end,
-                desc = "forward",
-            },
-        },
     },
     {
         "chipsenkbeil/distant.nvim",
@@ -530,6 +126,7 @@ require("lazy").setup({
         -- increase downloads a lot.
         filter = true,
     },
+    checker = { enabled = vim.fn.has("win32") == 1 },
     performance = {
         cache = {
             enabled = true,

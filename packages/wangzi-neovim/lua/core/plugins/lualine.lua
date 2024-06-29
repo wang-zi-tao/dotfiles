@@ -1,49 +1,7 @@
--- Eviline config for lualine
--- Author: shadmansaleh
--- Credit: glepnir
 local lualine = require("lualine")
 local noice = require("noice")
-
--- Color table for highlights
--- stylua: ignore
-local colors = {
-    bg = '#202328',
-    fg = '#bbc2cf',
-    yellow = '#ECBE7B',
-    cyan = '#008080',
-    darkblue = '#081633',
-    green = '#98be65',
-    orange = '#FF8800',
-    violet = '#a9a1e1',
-    magenta = '#c678dd',
-    blue = '#51afef',
-    red = '#ec5f67',
-    white = "#ffffff",
-    darker_black = "#1b1f27",
-    black = "#1e222a",  --  nvim bg
-    black2 = "#252931",
-    one_bg = "#282c34", -- real bg of onedark
-    one_bg2 = "#353b45",
-    one_bg3 = "#30343c",
-    grey = "#42464e",
-    grey_fg = "#565c64",
-    grey_fg2 = "#6f737b",
-    light_grey = "#6f737b",
-    baby_pink = "#DE8C92",
-    pink = "#ff75a0",
-    line = "#2a2e36", -- for lines like vertsplit
-    vibrant_green = "#7eca9c",
-    nord_blue = "#81A1C1",
-    sun = "#EBCB8B",
-    purple = "#b4bbc8",
-    dark_purple = "#c882e7",
-    teal = "#519ABA",
-    statusline_bg = "#22262e",
-    lightbg = "#2d3139",
-    lightbg2 = "#262a32",
-    pmenu_bg = "#A3BE8C",
-    folder_bg = "#61afef",
-}
+local colors = require("core.theme").colors
+local symbols = require("core.theme").symbols
 
 local conditions = {
     buffer_not_empty = function()
@@ -59,36 +17,10 @@ local conditions = {
     end,
 }
 
--- Config
-
--- Inserts a component in lualine_c at left section
-
-local mode_color = {
-    n = colors.red,
-    i = colors.green,
-    v = colors.blue,
-    [""] = colors.blue,
-    V = colors.blue,
-    c = colors.magenta,
-    no = colors.red,
-    s = colors.orange,
-    S = colors.orange,
-    [""] = colors.orange,
-    ic = colors.yellow,
-    R = colors.violet,
-    Rv = colors.violet,
-    cv = colors.red,
-    ce = colors.red,
-    r = colors.cyan,
-    rm = colors.cyan,
-    ["r?"] = colors.cyan,
-    ["!"] = colors.red,
-    t = colors.red,
-}
 local mode = {
     -- mode component
     function()
-        return ""
+        return "󰕷 "
     end,
     color = { fg = "#ffffff" },
     -- color = function()
@@ -160,7 +92,7 @@ local diff = {
     "diff",
     icon = "",
     -- Is it me or the symbol for modified us really weird
-    symbols = { added = " ", modified = "", removed = " " },
+    symbols = symbols.git,
     diff_color = {
         added = { fg = colors.green },
         modified = { fg = colors.orange },
@@ -173,24 +105,10 @@ local diff = {
         separator = { left = "" },
     },
 }
-local left_separator = {
-    function()
-        return ""
-    end,
-    color = {},
-}
-
-local right_separator = {
-    function()
-        return ""
-    end,
-    color = {},
-}
-
 local diagnostics = {
     "diagnostics",
     sources = { "nvim_diagnostic" },
-    symbols = { error = " ", warn = " ", info = " " },
+    symbols = symbols,
     diagnostics_color = {
         color_error = { fg = colors.red },
         color_warn = { fg = colors.yellow },
@@ -198,8 +116,6 @@ local diagnostics = {
     },
 }
 
--- Insert mid section. You can make any number of sections in neovim :)
--- for lualine it's any number greater then 2
 local midle = {
     "%=",
     color = {
@@ -274,7 +190,7 @@ local lsp_symbol = {
 local lsp = {
     -- Lsp server name .
     function()
-        local msg = "No Active Lsp"
+        local msg = " No Active Lsp"
         local buf_ft = vim.api.nvim_buf_get_option(0, "filetype")
         local clients = vim.lsp.get_active_clients()
         if next(clients) == nil then
@@ -283,7 +199,7 @@ local lsp = {
         for _, client in ipairs(clients) do
             local filetypes = client.config.filetypes
             if filetypes and vim.fn.index(filetypes, buf_ft) ~= -1 then
-                return " " .. (lsp_symbol[client.name] or client.name)
+                return " " .. (lsp_symbol[client.name] or client.name)
             end
         end
         return msg
@@ -365,7 +281,7 @@ local buffers = {
         inactive = "lualine_c_inactive", -- Color for inactive buffer.
     },
     symbols = {
-        modified = " ●", -- Text to show when the buffer is modified
+        modified = "● ", -- Text to show when the buffer is modified
         alternate_file = "", -- Text to show to identify the alternate file
         directory = "", -- Text to show when the buffer is a directory
     },
@@ -395,7 +311,7 @@ local tabs = {
 }
 
 local function window_number()
-    return " " .. vim.api.nvim_win_get_number(0)
+    return " " .. vim.api.nvim_win_get_number(0)
 end
 
 local dap_state = {
@@ -418,34 +334,20 @@ local dap_state_bufferline = {
     color = { fg = "#ffffff" },
 }
 
--- Now don't forget to initialize lualine
+local split_right = {
+    function()
+        return symbols.lualine_split_right
+    end
+}
 
 lualine.setup({
     options = {
-        -- Disable sections and component separators
         -- component_separators = '',
         -- section_separators = '',
         section_separators = { left = "", right = "" },
         component_separators = { left = "", right = "" },
         -- component_separators = { left = '', right = '' },
-        theme = {
-            normal = {
-                a = { bg = colors.blue, fg = "#ffffff" },
-                b = { bg = colors.grey, fg = colors.blue },
-                c = { bg = colors.black, fg = "#ffffff" },
-            },
-
-            insert = { a = { bg = colors.green } },
-            terminal = { a = { bg = colors.violet } },
-            visual = { a = { bg = colors.yellow } },
-            replace = { a = { bg = colors.red } },
-
-            inactive = {
-                a = { bg = colors.one_bg3 },
-                b = { bg = colors.one_bg2 },
-                c = { bg = colors.one_bg },
-            },
-        },
+        theme = 'tokyonight',
         disabled_filetypes = {
             "NvimTree",
             "Outline",
@@ -473,8 +375,17 @@ lualine.setup({
             midle,
             lsp_indexing,
         },
-        lualine_x = { "searchcount", "selectioncount", location, progress, filesize, dap_state, },
-        lualine_y = { diagnostics, lsp },
+        lualine_x = {
+            "searchcount",
+            "selectioncount",
+            location,
+            progress,
+            filesize,
+            dap_state,
+            split_right,
+            diagnostics,
+        },
+        lualine_y = { lsp },
         lualine_z = { encoding, file_format, },
     },
     inactive_sections = {
@@ -485,8 +396,8 @@ lualine.setup({
             diff,
             lsp_count,
         },
-        lualine_x = {},
-        lualine_y = { diagnostics, lsp },
+        lualine_x = { diagnostics, },
+        lualine_y = { lsp },
         lualine_z = { encoding, file_format, },
     },
     extensions = {

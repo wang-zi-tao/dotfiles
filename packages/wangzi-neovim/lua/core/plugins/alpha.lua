@@ -54,12 +54,13 @@ end
 local buttons = {
     type = "group",
     val = {
-        button("SPC s l", "  Load Session  ", ":lua require'session_manager'.load_current_dir_session()<CR>"),
+        button("SPC s l", "󰁯  Load Session  ", ":lua require'session_manager'.load_current_dir_session()<CR>"),
         button("SPC f f", "  Find File  ", ":lua require('telescope.builtin').find_files()<CR>"),
-        button("SPC f o", "  Recent File  ", ":lua require('telescope.builtin').oldfiles()<CR>"),
-        button("SPC f w", "  Find Word  ", ":lua require('telescope.builtin').live_grep()<CR>"),
+        button("SPC f o", "󰃨  Recent File  ", ":lua require('telescope.builtin').oldfiles()<CR>"),
+        button("SPC f w", "  Find Word  ", ":lua require('telescope.builtin').live_grep()<CR>"),
         button("SPC b m", "  Bookmarks  ", ":lua require('telescope.builtin').marks()<CR>"),
         button("SPC g C", "  Commits  ", ":lua require('telescope.builtin').git_commits()<CR>"),
+        button("SPC g C", "󰊢  Git  ", ":Neogit<CR>"),
     },
     opts = {
         spacing = 1,

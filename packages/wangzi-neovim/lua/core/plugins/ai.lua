@@ -1,4 +1,10 @@
 local function config()
+    local ollama_host = vim.env.OLLAMA_HOST
+    local host = vim.env.HOST
+    if host == "wangzi-nuc" or host == "wangzi-asus" then
+        ollama_host = "wangzi-pc.wg"
+    end
+    ollama_host = ollama_host or "localhost"
     local gen = require("gen")
     gen.prompts["Elaborate_Text"] = {
         prompt = "Elaborate the following text:\n$text",
@@ -12,7 +18,7 @@ local function config()
     }
     gen.setup({
         model = vim.env.OLLAMA_MODEL or "deepseek-coder:6.7b", -- The default model to use.
-        host = vim.env.OLLAMA_HOST or "wangzi-pc.wg",          -- The host running the Ollama service.
+        host = ollama_host,                                    -- The host running the Ollama service.
         port = vim.env.OLLAMA_PORT or "11434",                 -- The port on which the Ollama service is listening.
         quit_map = "q",                                        -- set keymap for close the response window
         retry_map = "<c-r>",                                   -- set keymap to re-send the current prompt

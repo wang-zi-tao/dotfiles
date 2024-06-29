@@ -77,6 +77,7 @@ stdenvNoCC.mkDerivation {
         onedark_nvim = "${onedark-nvim}",
         nvim_base16 = "${base16-nvim}",
         nvim_web_devicons = "${nvim-web-devicons}",
+        tokyonight_nvim = "${tokyonight-nvim}",
 
         -- buffer
         indent_blankline_nvim = "${indent-blankline-nvim}",
@@ -111,6 +112,7 @@ stdenvNoCC.mkDerivation {
             sha256 = "sha256-ucjVbpIwJ9eNBEQKVxN0a09GB773M2lTMdzYcLQ88QM=";
           }
         }",
+        neogit = "${neogit}",
 
         -- AI
         gen_nvim = "${
@@ -150,6 +152,15 @@ stdenvNoCC.mkDerivation {
         iron_nvim = "${iron-nvim}",
         lsp_format_nvim = "${lsp-format-nvim}",
         refactoring_nvim = "${refactoring-nvim}",
+        garbage_day = "${
+          pkgs.fetchgit {
+            url = "https://github.com/Zeioth/garbage-day.nvim";
+            rev = "4a1160bfffb2f499fb55a54333f29d160ab3c8a1";
+            sha256 = "sha256-qvdjsq41P03IYs2/3Hio/L2acso5+q+rPJLTanzB95Q=";
+          }
+        }",
+        obsidian_nvim = "${obsidian-nvim}",
+        neotest = "${neotest}",
 
         vim_matchup = "${vim-matchup}",
         better_escape_nvim = "${better-escape-nvim}",
@@ -230,6 +241,7 @@ stdenvNoCC.mkDerivation {
 
         -- keymap
         navigator = "${Navigator-nvim}",
+        flash_nvim = "${flash-nvim}",
 
         -- buffer UI
         scrollbar = "${nvim-scrollbar}",
@@ -290,6 +302,8 @@ stdenvNoCC.mkDerivation {
         lualine_nvim = "${lualine-nvim}",
         bufferline_nvim = "${bufferline-nvim}",
         notify_nvim = "${nvim-notify}",
+        FixCursorHold_nvim = "${FixCursorHold-nvim}",
+        nvim_nio = "${nvim-nio}",
 
         mason_nvim = "${mason-nvim}",
         dap = "${nvim-dap}",

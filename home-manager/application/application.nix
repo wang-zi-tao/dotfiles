@@ -42,6 +42,7 @@
     beekeeper-studio
     peek
     remmina
+    obsidian
     "/nixfs/flake/str/nixpkgs#geogebra/bin/geogebra"
   ];
   home.packages =
