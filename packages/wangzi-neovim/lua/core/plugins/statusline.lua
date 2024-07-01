@@ -1,7 +1,8 @@
 local feline = require("feline")
+local colors = require("core.theme").colors
 
 local default = {
-    colors = require("core.colors").get(),
+    colors = colors,
     lsp = require("feline.providers.lsp"),
     lsp_severity = vim.diagnostic.severity,
     config = {

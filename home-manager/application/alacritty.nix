@@ -1,49 +1,45 @@
 { pkgs, ... }:
 let
   setting = ''
-    [colors.bright]
-    black = "#5c6370"
-    blue = "#61afef"
-    cyan = "#56b6c2"
-    green = "#98c379"
-    magenta = "#c678dd"
-    red = "#e06c75"
-    white = "#e6efff"
-    yellow = "#d19a66"
-
-    [colors.dim]
-    black = "#1e2127"
-    blue = "#61afef"
-    cyan = "#56b6c2"
-    green = "#98c379"
-    magenta = "#c678dd"
-    red = "#e06c75"
-    white = "#828791"
-    yellow = "#d19a66"
-
-    [colors.normal]
-    black = "#1e2127"
-    blue = "#61afef"
-    cyan = "#56b6c2"
-    green = "#98c379"
-    magenta = "#c678dd"
-    red = "#e06c75"
-    white = "#828791"
-    yellow = "#d19a66"
-
     [colors.primary]
-    background = "#000000"
-    foreground = "#FFFFFF"
+    background = "#1a1b26"
+    foreground = "#c0caf5"
+
+    #[colors.cursor]
+    #cursor = "#c0caf5"
+    #text = "#1a1b26"
+
+    # Normal colors
+    [colors.normal]
+    black = "#15161e"
+    red = "#f7768e"
+    green = "#9ece6a"
+    yellow = "#e0af68"
+    blue = "#7aa2f7"
+    magenta = "#bb9af7"
+    cyan = "#7dcfff"
+    white = "#a9b1d6"
+
+    # Bright colors
+    [colors.bright]
+    black = "#414868"
+    red = "#f7768e"
+    green = "#9ece6a"
+    yellow = "#e0af68"
+    blue = "#7aa2f7"
+    magenta = "#bb9af7"
+    cyan = "#7dcfff"
+    white = "#c0caf5"
 
     [font]
     size = 10.5
 
     [font.bold]
-    family = "Iosevka Term"
+    family = "Iosevka Nerd Font"
     style = "Bold"
 
     [font.bold_italic]
-    family = "Iosevka Term"
+    family = "Iosevka Nerd Font"
     style = "Bold Italic"
 
     [font.glyph_offset]
@@ -51,11 +47,11 @@ let
     y = 0
 
     [font.italic]
-    family = "Iosevka Term"
+    family = "Iosevka Nerd Font"
     style = "Italic"
 
     [font.normal]
-    family = "Iosevka Term"
+    family = "Iosevka Nerd Font"
     style = "Medium"
 
     [font.offset]

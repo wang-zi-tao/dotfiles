@@ -77,6 +77,7 @@ stdenvNoCC.mkDerivation {
         onedark_nvim = "${onedark-nvim}",
         nvim_base16 = "${base16-nvim}",
         nvim_web_devicons = "${nvim-web-devicons}",
+        tokyonight_nvim = "${tokyonight-nvim}",
 
         -- buffer
         indent_blankline_nvim = "${indent-blankline-nvim}",
@@ -111,6 +112,7 @@ stdenvNoCC.mkDerivation {
             sha256 = "sha256-ucjVbpIwJ9eNBEQKVxN0a09GB773M2lTMdzYcLQ88QM=";
           }
         }",
+        neogit = "${neogit}",
 
         -- AI
         gen_nvim = "${
@@ -150,6 +152,15 @@ stdenvNoCC.mkDerivation {
         iron_nvim = "${iron-nvim}",
         lsp_format_nvim = "${lsp-format-nvim}",
         refactoring_nvim = "${refactoring-nvim}",
+        garbage_day = "${
+          pkgs.fetchgit {
+            url = "https://github.com/Zeioth/garbage-day.nvim";
+            rev = "4a1160bfffb2f499fb55a54333f29d160ab3c8a1";
+            sha256 = "sha256-qvdjsq41P03IYs2/3Hio/L2acso5+q+rPJLTanzB95Q=";
+          }
+        }",
+        obsidian_nvim = "${obsidian-nvim}",
+        neotest = "${neotest}",
 
         vim_matchup = "${vim-matchup}",
         better_escape_nvim = "${better-escape-nvim}",
@@ -179,7 +190,7 @@ stdenvNoCC.mkDerivation {
 
         nvim_autopairs = "${nvim-autopairs}",
         dashboard_nvim = "${dashboard-nvim}",
-        nvim_comment = "${nvim-comment}",
+        comment_nvim = "${comment-nvim}",
 
         -- telescope
         telescope_nvim = "${telescope-nvim}",
@@ -224,13 +235,14 @@ stdenvNoCC.mkDerivation {
         auto_save = "${
           pkgs.fetchgit {
             url = "https://github.com/Pocco81/auto-save.nvim";
-            rev = "2c7a2943340ee2a36c6a61db812418fca1f57866";
-            sha256 = "sha256-keK+IAnHTTA5uFkMivViMMAkYaBvouYqcR+wNPgN3n0=";
+            rev = "979b6c82f60cfa80f4cf437d77446d0ded0addf0";
+            sha256 = "sha256-bWGil73YiCKZEaY7IuUOIU4Q7k7qCMjSeQ4I+cAVe44=";
           }
         }",
 
         -- keymap
         navigator = "${Navigator-nvim}",
+        flash_nvim = "${flash-nvim}",
 
         -- buffer UI
         scrollbar = "${nvim-scrollbar}",
@@ -291,6 +303,8 @@ stdenvNoCC.mkDerivation {
         lualine_nvim = "${lualine-nvim}",
         bufferline_nvim = "${bufferline-nvim}",
         notify_nvim = "${nvim-notify}",
+        FixCursorHold_nvim = "${FixCursorHold-nvim}",
+        nvim_nio = "${nvim-nio}",
 
         mason_nvim = "${mason-nvim}",
         dap = "${nvim-dap}",
@@ -332,8 +346,8 @@ stdenvNoCC.mkDerivation {
        perfanno_nvim = "${
          pkgs.fetchgit {
            url = "https://github.com/t-troebst/perfanno.nvim";
-           rev = "3c7ee6e97f4995c064ebd3f26f08300898941904";
-           sha256 = "sha256-wcjrRGc/wVs8qCto7plx/GRQIdVXK6QQDFz74xV8KFk=";
+           rev = "b138718bf4289b429dc81cadaf80ace8221c647b";
+           sha256 = "sha256-7xEyXOGVG8AVRpO4QopfyDfMyKExUDuuf7SCoSd+SiU=";
          }
        }",
        hop_nvim = "${hop-nvim}",

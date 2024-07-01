@@ -45,4 +45,21 @@ function M.cachedinput(key, prompt, default, completion)
     return value
 end
 
+function M.num_of_core()
+    local num_of_processers = 16
+    if vim.fn.has("win32") > 0 then
+        num_of_processers = tonumber(vim.env.NUMBER_OF_PROCESSORS or 0)
+    elseif vim.fn.has("unix") > 0 then
+        local handle = io.popen("nproc")
+        local result = handle:read("*a")
+        handle:close()
+        num_of_processers = tonumber(result or 0)
+    end
+    local num_of_job = num_of_processers
+    if num_of_processers > 4 then
+        num_of_job = num_of_processers - 4
+    end
+    return num_of_job
+end
+
 return M

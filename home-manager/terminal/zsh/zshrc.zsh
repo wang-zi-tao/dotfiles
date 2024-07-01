@@ -192,15 +192,23 @@ EOF
     direnv allow
   fi
 }
+
 function nrun() {
   command nix run "nixpkgs#$1"
 }
+
 function nshell() {
   command nix shell "nixpkgs#$1"
 }
+
 function nix-dev() {
     command nix-shell '<nixpkgs>' --attr "$1" --run 'eval "${unpackPhase:-unpackPhase} ; cd \$sourceRoot ; ${patchPhase:-patchPhase} ; ${configurePhase:-configurePhase} ; ${buildPhase:-buildPhase}"'
 }
+
+function nix-dev-bear() {
+    command bear -- nix-shell '<nixpkgs>' --attr "$1" --run 'eval "${unpackPhase:-unpackPhase} ; cd \$sourceRoot ; ${patchPhase:-patchPhase} ; ${configurePhase:-configurePhase} ; ${buildPhase:-buildPhase}"'
+}
+
 if [[ -n "$TMUX" && ( -n "$SSH_CONNECTION" ) ]]; then
   command tmux set-option prefix2 C-a
 fi

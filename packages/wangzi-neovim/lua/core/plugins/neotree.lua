@@ -64,19 +64,7 @@ local function config()
                 highlight = "NeoTreeFileName",
             },
             git_status = {
-                symbols = {
-                    -- Change type
-                    added = "", -- or "✚", but this is redundant info if you use git_status_colors on the name
-                    modified = "", -- or "", but this is redundant info if you use git_status_colors on the name
-                    deleted = "✖", -- this can only be used in the git_status source
-                    renamed = "", -- this can only be used in the git_status source
-                    -- Status type
-                    untracked = "",
-                    ignored = "",
-                    unstaged = "",
-                    staged = "",
-                    conflict = "",
-                },
+                symbols = require("core.theme").symbols.git,
             },
             -- If you don't want to use these columns, you can set `enabled = false` for each of them individually
             file_size = {
@@ -328,45 +316,9 @@ local function config()
                 -- [254] = 'StaticMethod',
                 -- [255] = 'Macro',
             },
-            kinds = {
-                Unknown = { icon = "?", hl = "" },
-                Root = { icon = "", hl = "NeoTreeRootName" },
-                File = { icon = "", hl = "Tag" },
-                Module = { icon = "", hl = "Exception" },
-                Namespace = { icon = "", hl = "Include" },
-                Package = { icon = "", hl = "Label" },
-                Class = { icon = "", hl = "Include" },
-                Method = { icon = "", hl = "Function" },
-                Property = { icon = "", hl = "@property" },
-                Field = { icon = "", hl = "@field" },
-                Constructor = { icon = "", hl = "@constructor" },
-                Enum = { icon = "", hl = "@number" },
-                Interface = { icon = "", hl = "Type" },
-                Function = { icon = "", hl = "Function" },
-                Variable = { icon = "", hl = "@variable" },
-                Constant = { icon = "", hl = "Constant" },
-                String = { icon = "", hl = "String" },
-                Number = { icon = "#", hl = "Number" },
-                Boolean = { icon = "", hl = "Boolean" },
-                Array = { icon = "", hl = "Type" },
-                Object = { icon = "", hl = "Type" },
-                Key = { icon = "", hl = "" },
-                Null = { icon = "", hl = "Constant" },
-                EnumMember = { icon = "", hl = "Number" },
-                Struct = { icon = "", hl = "Type" },
-                Event = { icon = "", hl = "Constant" },
-                Operator = { icon = "+", hl = "Operator" },
-                TypeParameter = { icon = "𝙏", hl = "Type" },
-
-                -- ccls
-                -- TypeAlias = { icon = ' ', hl = 'Type' },
-                -- Parameter = { icon = ' ', hl = '@parameter' },
-                -- StaticMethod = { icon = '󰠄 ', hl = 'Function' },
-                -- Macro = { icon = ' ', hl = 'Macro' },
-            },
+            kinds = require("core.theme").symbols.lsp,
         },
     })
-    vim.cmd([[nnoremap \ :Neotree reveal<cr>]])
 end
 
 return {
@@ -398,8 +350,6 @@ return {
     cmd = { "Neotree", "NvimTreeToggle", "NvimTreeFocus" },
     lazy = (0 == vim.fn.has("win32")),
     requires = {
-        "core",
-        "onedark_nvim",
         "plenary_nvim",
         "nvim_web_devicons", -- not strictly required, but recommended
         "nui_nvim",

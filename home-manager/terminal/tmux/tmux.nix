@@ -31,14 +31,14 @@
             set -g @custom_copy_command 'xclip'
           '';
         }
-        {
-          plugin = power-theme;
-          extraConfig = ''
-            # set -g @tmux_power_show_upload_speed true
-            # set -g @tmux_power_show_download_speed true
-            set -g @tmux_power_theme 'sky'
-          '';
-        }
+        # {
+        #   plugin = power-theme;
+        #   extraConfig = ''
+        #     # set -g @tmux_power_show_upload_speed true
+        #     # set -g @tmux_power_show_download_speed true
+        #     set -g @tmux_power_theme 'sky'
+        #   '';
+        # }
         # sensible
         {
           plugin = jump;

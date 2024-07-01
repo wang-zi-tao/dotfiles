@@ -267,27 +267,22 @@
     // Define color themes for Zellij
     // For more examples, see: https://github.com/zellij-org/zellij/tree/main/example/themes
     // Once these themes are defined, one of them should to be selected in the "theme" section of this file
-    //
-    // themes {
-    //     dracula {
-    //         fg 248 248 242
-    //         bg 40 42 54
-    //         red 255 85 85
-    //         green 80 250 123
-    //         yellow 241 250 140
-    //         blue 98 114 164
-    //         magenta 255 121 198
-    //         orange 255 184 108
-    //         cyan 139 233 253
-    //         black 0 0 0
-    //         white 255 255 255
-    //     }
-    // }
 
-    // Choose the theme that is specified in the themes section.
-    // Default: default
-    //
-    theme "Catppuccin Mocha"
+    themes {
+        tokyonight_night {
+            fg "#c0caf5"
+            bg "#292e42"
+            black "#15161e"
+            red "#f7768e"
+            green "#9ece6a"
+            yellow "#e0af68"
+            blue "#7aa2f7"
+            magenta "#bb9af7"
+            cyan "#7dcfff"
+            white "#a9b1d6"
+            orange "#ff9e64"
+        }
+    }
 
     // The name of the default layout to load on startup
     // Default: "default"

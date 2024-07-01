@@ -23,3 +23,5 @@ if packer_bootstrap then
     require("lazy").install()
     vim.cmd("TSUpdate")
 end
+
+require("core")
