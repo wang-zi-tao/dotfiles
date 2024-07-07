@@ -82,7 +82,7 @@ local function config()
   dap.adapters.cppdbg = {
     id = 'cppdbg',
     type = 'executable',
-    command = gen.core .. '/bin/OpenDebugAD7',
+    command = ( gen.core  or '' ) .. '/bin/OpenDebugAD7',
     options = {
         detached = false
     }
@@ -114,7 +114,7 @@ local function config()
     dap.adapters.go = {
         type = "executable",
         command = "node",
-        args = { os.getenv("HOME") .. "/dev/golang/vscode-go/dist/debugAdapter.js" },
+        args = { "/dev/golang/vscode-go/dist/debugAdapter.js" },
     }
     dap.configurations.go = {
         {

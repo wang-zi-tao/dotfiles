@@ -202,6 +202,7 @@ stdenvNoCC.mkDerivation {
         telescope_fzf_native_nvim = "${telescope-fzf-native-nvim}",
         telescope_frecency_nvim = "${telescope-frecency-nvim}",
         telescope_file_browser_nvim = "${telescope-file-browser-nvim}",
+        telescope_sg = "${telescope-sg}",
 
         libsqlite = "${sqlite.out}/lib/libsqlite3.so",
         sqlite = "${

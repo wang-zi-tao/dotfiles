@@ -87,16 +87,16 @@ wk.register({
     },
 }, { mode = "v" })
 
-for i = 0, 9 do
-    map({ "n" }, "<leader>w" .. i, "<cmd>" .. i .. "wincmd w<CR>", { desc = "Goto Window " .. i })
-    map({ "n", "i" }, "<C-w>" .. i, "<cmd>" .. i .. "wincmd w<CR>", { desc = "Goto Window " .. i })
+for i = 0,9 do
+    map("n", "<leader>w" .. i, "<cmd>" .. i .. "wincmd w<CR>", {desc="Goto Window "..i})
+    map({ "n", "i" }, "<C-w>" .. i, "<cmd>" .. i .. "wincmd w<CR>", {desc="Goto Window "..i})
 end
 
-map("n", "\\q", "<cmd>close<CR>", { desc = "Close" })
-map("n", "<leader>ws", "<cmd>sp<CR>", { desc = "Split" })
-map("n", "<leader>wv", "<cmd>vs<CR>", { desc = "Vertical Split" })
-map("n", "<leader>q", "<cmd>close<CR>", { desc = "Close" })
-map("n", "<C-q>", "<cmd>close<CR>", { desc = "Close" })
+map("n", "\\q", "<cmd>close<CR>", {desc="Close"})
+map("n", "<leader>ws", "<cmd>sp<CR>", {desc="Split"})
+map("n", "<leader>wv", "<cmd>vs<CR>", {desc="Vertical Split"})
+map("n", "<leader>q", "<cmd>close<CR>", {desc="Close"})
+map("n", "<C-Q>", "<cmd>close<CR>", {desc="Close"})
 map("n", "<C-up>", "<cmd>res +1<CR>")
 map("n", "<C-down>", "<cmd>res -1<CR>")
 map("n", "<C-left>", "<cmd>vertical resize-1<CR>")
