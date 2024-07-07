@@ -61,8 +61,9 @@ stdenvNoCC.mkDerivation {
       local M = {
         core = "$out",
         packer = "${packer-nvim}",
-        plenary_nvim = "${plenary-nvim}",
+        plenary_nvim = "${pkgs.vimPlugins.plenary-nvim}",
         impatient_nvim = "${impatient-nvim}",
+        promise_async = "${promise-async}",
 
         -- utils
         profile_nvim = "${
@@ -304,6 +305,7 @@ stdenvNoCC.mkDerivation {
         notify_nvim = "${nvim-notify}",
         FixCursorHold_nvim = "${FixCursorHold-nvim}",
         nvim_nio = "${nvim-nio}",
+        nvim_ufo = "${nvim-ufo}",
 
         mason_nvim = "${mason-nvim}",
         dap = "${nvim-dap}",

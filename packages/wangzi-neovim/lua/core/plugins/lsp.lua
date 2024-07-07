@@ -81,30 +81,34 @@ local function setup_lspsaga()
     })
 end
 
+local function lsp_signature_on_attach(bufnr)
+    require("lsp_signature").on_attach({
+        bind = true,
+        doc_lines = 0,
+        floating_window = true,
+        fix_pos = true,
+        hint_enable = true,
+        hint_prefix = symbols.hint,
+        hint_scheme = "String",
+        hi_parameter = "Search",
+        max_height = 22,
+        max_width = 120,        -- max_width of signature floating_window, line will be wrapped if exceed max_width
+        handler_opts = {
+            border = "rounded", -- double, single, shadow, none
+        },
+        zindex = 200,           -- by default it will be on top of all floating windows, set to 50 send it to bottom
+        padding = "",           -- character to pad on left and right of signature can be ' ', or '|'  etc
+    }, bufnr)
+end
+
 return {
+    lsp_signature_on_attach = lsp_signature_on_attach,
     {
         "ray-x/lsp_signature.nvim",
         dir = gen.lsp_signature_nvim,
         name = "lsp_signature_nvim",
         event = "LspAttach",
         config = function()
-            require("lsp_signature").setup({
-                bind = true,
-                doc_lines = 0,
-                floating_window = true,
-                fix_pos = true,
-                hint_enable = true,
-                hint_prefix = symbols.hint,
-                hint_scheme = "String",
-                hi_parameter = "Search",
-                max_height = 22,
-                max_width = 120,        -- max_width of signature floating_window, line will be wrapped if exceed max_width
-                handler_opts = {
-                    border = "rounded", -- double, single, shadow, none
-                },
-                zindex = 200,           -- by default it will be on top of all floating windows, set to 50 send it to bottom
-                padding = "",           -- character to pad on left and right of signature can be ' ', or '|'  etc
-            })
         end,
     },
     {
@@ -189,7 +193,6 @@ return {
         dir = gen.lsp_format_nvim,
         name = "lsp_format_nvim",
         module = "lsp-format",
-        event = "LspAttach",
         config = function()
             require("lsp-format").setup({
                 rust = { exclude = { "dxfmt", "leptosfmt" } }
@@ -362,6 +365,8 @@ return {
         config = function()
             require("garbage-day").setup({
                 grace_period = 60 * 60,
+                notifications = true,
+                timeout = 1000 * 16,
             })
         end
     },
@@ -395,18 +400,26 @@ return {
         dependencies = { "plenary_nvim" },
         module = "obsidian",
         config = function()
-            require("obsidian").setup({
-                workspaces = {
+            local async = require "plenary.async"
+            local path_lib = require "plenary.path"
+            local home = vim.loop.os_homedir()
+            async.run(function()
+                local workspaces = {
                     {
                         name = "personal",
-                        path = "~/文档/Obsidian",
+                        path = home .. "/文档/Obsidian",
                     },
                     {
                         name = "work",
-                        path = "~/文档/Obsidian-work",
+                        path = home .. "/文档/Obsidian-work",
                     },
-                },
-            })
+                }
+                for _, workspace in pairs(workspaces) do
+                    local path = path_lib:new(workspace.path)
+                    path:mkdir({ parents = true, exists_ok = true })
+                end
+                require("obsidian").setup({ workspaces = workspaces })
+            end)
         end,
     },
 }

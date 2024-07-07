@@ -80,7 +80,7 @@ in
       "wg0"
       "wg1"
     ];
-    environment.systemPackages = with pkgs; mkIfWireguard [ wireguard-tools ];
+    lazyPackage = with pkgs; mkIfWireguard [ wireguard-tools ];
     networking.hosts = mkIfWireguard (
       listToAttrs (
         concatLists (

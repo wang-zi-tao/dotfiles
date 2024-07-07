@@ -26,10 +26,16 @@
       ++ (lib.mapAttrsToList (
         remoteHostName: cfg:
         (pkgs.writeScriptBin "ssh-${remoteHostName}" (
-          if (builtins.hasAttr "wangzi" cfg.users) then
-            ''ssh "wangzi@${remoteHostName}.wg" -X -Y -t $@''
-          else
-            ''ssh "root@${remoteHostName}.wg" -X -Y -t $@''
+          let
+            make_command = user: ''
+              if (( "$#" == 0 )); then
+                exec ssh "${user}@${remoteHostName}.wg" -X -Y -t "tmux attach"
+              else
+                exec ssh "${user}@${remoteHostName}.wg" -X -Y -t $@
+              fi
+            '';
+          in
+          if (builtins.hasAttr "wangzi" cfg.users) then make_command "wangzi" else make_command "root"
         ))
       ) config.cluster.nodes);
     programs.tmux = {

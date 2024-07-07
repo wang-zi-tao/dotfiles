@@ -14,14 +14,6 @@ in
     sops.secrets."ssh-public-keys" = lib.mkIf sops-enable {
       sopsFile = config.cluster.ssh.publicKeySops;
     };
-    users.users.nix-ssh = {
-      description = "Nix SSH store user";
-      isSystemUser = true;
-      group = "nix-ssh";
-      useDefaultShell = true;
-    };
-    users.groups.nix-ssh = { };
-    # nix.settings.trusted-users = [ "nix-ssh" ];
     services.openssh = {
       enable = true;
       settings = {
@@ -33,8 +25,6 @@ in
       authorizedKeysFiles = lib.optional sops-enable config.sops.secrets.ssh-public-keys.path;
       extraConfig = ''
         TCPKeepAlive yes
-        ClientAliveCountMax 60
-        ClientAliveInterval 60
         AuthorizedKeysFile %h/.ssh/authorized_keys %h/.ssh/authorized_keys2 /etc/ssh/authorized_keys.d/%u ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
 
         Match User *
@@ -47,7 +37,7 @@ in
           PermitTunnel no
           X11Forwarding no
           # ForceCommand nix-store --serve --write
-          AuthorizedKeysFile %h/.ssh/authorized_keys %h/.ssh/authorized_keys2 /etc/ssh/authorized_keys.d/%u ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
+          AuthorizedKeysFile ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
 
         Match all
       '';

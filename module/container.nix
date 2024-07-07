@@ -27,7 +27,7 @@
       };
     };
     programs.criu.enable = true;
-    environment.systemPackages = with pkgs; [ criu ];
+    lazyPackage = with pkgs; [ criu ];
     # systemd.services.k3s = {
     #   enable = false;
     #   description = "k3s.wangzicloud.cn";

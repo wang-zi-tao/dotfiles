@@ -107,7 +107,22 @@ return {
                     h.GitSignsAdd = { fg = "#8bcd5b" }
                     h.GitSignsChange = { fg = "#41a7fc" }
                     h.GitSignsDeletexxx = { fg = "#f65866" }
+
+                    h.RainbowRed = { fg = c.red }
+                    h.RainbowYellow = { fg = c.yellow }
+                    h.RainbowBlue = { fg = c.blue }
+                    h.RainbowOrange = { fg = c.orange }
+                    h.RainbowGreen = { fg = c.green }
+                    h.RainbowViolet = { fg = c.purple }
+                    h.RainbowCyan = { fg = c.cyan }
                 end,
+                cache = true,
+                plugins = {
+                    auto = false,
+                    all = true,
+                    rainbow = true,
+                    telescope = true,
+                },
             })
         end
     }

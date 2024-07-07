@@ -83,7 +83,7 @@ local function config()
                     end
                     local time = os.difftime(os.time(), blame.author_time) / (60 * 60 * 24 * 30 * 12)
                     local time_divisions = {
-                        { 1, "years" },
+                        { 1,  "years" },
                         { 12, "months" },
                         { 30, "days" },
                         { 24, "hours" },

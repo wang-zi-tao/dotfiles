@@ -32,5 +32,4 @@
     device = "/dev/disk/by-uuid/ACC7-B8A2";
     fsType = "vfat";
   };
-  environment.systemPackages = with pkgs; [ duperemove ];
 }

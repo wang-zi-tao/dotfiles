@@ -74,6 +74,8 @@
     lazyPackage = with pkgs; [
       "/nixfs/flake/str/nixpkgs#btop/bin/btop"
       nmap
+      gitui
+      lazygit
     ];
     home.packages =
       with pkgs;

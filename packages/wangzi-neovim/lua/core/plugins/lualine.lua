@@ -190,16 +190,16 @@ local lsp_symbol = {
 local lsp = {
     -- Lsp server name .
     function()
-        local msg = " No Active Lsp"
+        local msg = ""
         local buf_ft = vim.api.nvim_buf_get_option(0, "filetype")
-        local clients = vim.lsp.get_active_clients()
+        local clients = vim.lsp.get_clients({ bufnr = 0 })
         if next(clients) == nil then
-            return msg
+            return msg .. "No Active Lsp"
         end
         for _, client in ipairs(clients) do
             local filetypes = client.config.filetypes
             if filetypes and vim.fn.index(filetypes, buf_ft) ~= -1 then
-                return " " .. (lsp_symbol[client.name] or client.name)
+                msg = msg .. " " .. (lsp_symbol[client.name] or client.name)
             end
         end
         return msg
@@ -378,9 +378,9 @@ lualine.setup({
         lualine_x = {
             "searchcount",
             "selectioncount",
-            location,
-            progress,
-            filesize,
+            -- location,
+            -- progress,
+            -- filesize,
             dap_state,
             split_right,
             diagnostics,
@@ -396,7 +396,9 @@ lualine.setup({
             diff,
             lsp_count,
         },
-        lualine_x = { diagnostics, },
+        lualine_x = {
+            diagnostics,
+        },
         lualine_y = { lsp },
         lualine_z = { encoding, file_format, },
     },

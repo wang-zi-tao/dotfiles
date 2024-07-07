@@ -25,15 +25,15 @@ local function config()
                 local icon = icons[vim_item.kind] or {}
                 vim_item.kind = string.format("%s %s", icon.icon or "", vim_item.kind)
                 vim_item.menu = ({
-                    buffer = "",
-                    nvim_lsp = "",
-                    nvim_lua = "",
-                    path = "",
+                    buffer = " ",
+                    nvim_lsp = " ",
+                    nvim_lua = " ",
+                    path = " ",
                     cmp_tabnine = " ",
                 })[entry.source.name]
                 if entry.source.name == "cmp_tabnine" then
                     local detail = (entry.completion_item.labelDetails or {}).detail
-                    vim_item.kind = ""
+                    vim_item.kind = " "
                     if detail and detail:find(".*%%.*") then
                         vim_item.kind = vim_item.kind .. " " .. detail
                     end
@@ -49,6 +49,10 @@ local function config()
         mapping = cmp.mapping.preset.insert({
             ["<C-b>"] = cmp.mapping.scroll_docs(-4),
             ["<C-f>"] = cmp.mapping.scroll_docs(4),
+            ["<C-u>"] = cmp.mapping.scroll_docs(-4),
+            ["<C-d>"] = cmp.mapping.scroll_docs(4),
+            ["<C-j>"] = cmp.mapping.scroll_docs(-1),
+            ["<C-k>"] = cmp.mapping.scroll_docs(1),
             ["<C-Space>"] = cmp.mapping.complete(),
             ["<C-e>"] = cmp.mapping.abort(),
             ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.

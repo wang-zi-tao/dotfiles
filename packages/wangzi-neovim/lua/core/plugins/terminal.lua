@@ -37,6 +37,12 @@ return {
         name = "toggleterm",
         dir = gen.toggleterm_nvim,
         config = function()
+            vim.api.nvim_create_autocmd({ "TermOpen" }, {
+                callback = function(args)
+                    local opts = { buffer = args.buf }
+                    vim.keymap.set('t', '<C-\\>', [[<cmd>q<CR>]], opts)
+                end,
+            })
             local shell = vim.o.shell
             if 1 == vim.fn.has("win32") and vim.fn.executable("nu") == 1 then
                 shell = "nu"
@@ -64,7 +70,7 @@ return {
             })
             local Terminal = require("toggleterm.terminal").Terminal
             global.toggleterm_nvim = {
-                gitui = Terminal:new({ cmd = "gitui", hidden = true }),
+                gitui = Terminal:new({ cmd = "lazygit", hidden = true }),
                 rg = Terminal:new({ cmd = "nu", hidden = true }),
             }
             for i = 0, 9 do

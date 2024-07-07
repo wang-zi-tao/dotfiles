@@ -225,7 +225,7 @@
     // Choose the path to the default shell that zellij will use for opening new panes
     // Default: $SHELL
     //
-    // default_shell "fish"
+    default_shell "zsh"
 
     // Choose the path to override cwd that zellij will use for opening new panes
     //
@@ -236,7 +236,7 @@
     //   - true (default)
     //   - false
     //
-    // pane_frames true
+    pane_frames false
 
     // Toggle between having Zellij lay out panes according to a predefined set of layouts whenever possible
     // Options:
@@ -250,7 +250,7 @@
     //   - true (default)
     //   - false
     //
-    // session_serialization false
+    session_serialization true
 
     // Whether pane viewports are serialized along with the session, default is false
     // Options:
@@ -283,6 +283,8 @@
             orange "#ff9e64"
         }
     }
+
+    theme "tokyonight_night"
 
     // The name of the default layout to load on startup
     // Default: "default"
@@ -333,7 +335,7 @@
     // Enable or disable automatic copy (and clear) of selection when releasing mouse
     // Default: true
     //
-    // copy_on_select false
+    copy_on_select true
 
     // Path to the default editor to use to edit pane scrollbuffer
     // Default: $EDITOR or $VISUAL

@@ -52,7 +52,7 @@ return {
             {
                 "<leader>gH",
                 function()
-                    require("diffview").file_history("%")
+                    vim.cmd.DiffviewFileHistory("%")
                 end,
                 desc = "Git Log This File",
             },

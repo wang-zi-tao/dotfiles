@@ -111,6 +111,7 @@ map("i", "<C-a>", "<ESC>^i")
 
 map("t", "\\<ESC>", "<C-\\><C-n>")
 map("t", "\\q", "<C-\\><C-n><cmd>close<CR>")
+map("t", "<C-\\>", "<cmd>close<CR>")
 map("n", "Q", "<Nop>")
 
 map("n", "<C-t>", "<cmd>enew <CR>") -- new buffer

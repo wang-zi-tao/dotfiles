@@ -179,6 +179,12 @@
         };
         programs.dconf.enable = true;
         programs.gpaste.enable = true;
+        lazyPackage = with pkgs; [
+          virtualgl
+          turbovnc
+          xwayland
+          weston
+        ];
         environment.systemPackages = with pkgs; [
           appimage-run
           glxinfo
@@ -199,14 +205,10 @@
           glfw
           alsa-lib
 
-          virtualgl
-          turbovnc
           # xpraWithNvenc
           xpra
           xpra-html5
           pulseaudioFull
-          xwayland
-          weston
           qrcodegen
           cups
         ];

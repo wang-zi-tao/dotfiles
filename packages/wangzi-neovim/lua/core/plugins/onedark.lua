@@ -121,7 +121,7 @@ local function config()
     vim.fn.sign_define("DapLogPoint", { text = "", texthl = "DapLogPoint", numhl = "DapLogPoint" })
     vim.fn.sign_define(
         "DapStopped",
-        { text = "󱖐", texthl = "DapStoppedIcon", linehl = "DapStopped", numhl = "DapStopped" }
+        { text = "", texthl = "DapStoppedIcon", linehl = "DapStopped", numhl = "DapStopped" }
     )
 end
 

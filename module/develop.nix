@@ -9,6 +9,8 @@
     services.nixseparatedebuginfod.enable = true;
     environment.systemPackages = with pkgs; [
       config.boot.kernelPackages.perf
+    ];
+    lazyPackage = with pkgs;[
       perf-tools
       gperftools
       criu

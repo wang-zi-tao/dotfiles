@@ -122,7 +122,7 @@ in
   programs.fuse = {
     userAllowOther = true;
   };
-  environment.systemPackages = with pkgs; [
+  lazyPackage = with pkgs; [
     duperemove
     btrfs-progs
   ];

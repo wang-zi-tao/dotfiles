@@ -58,6 +58,11 @@ if vim.env.BOMB or 1 == vim.fn.has("win32") then
     o.bomb = true
 end
 
+-- vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+--     callback = function()
+--     end,
+-- })
+
 vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
     pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "CMakeLists.txt", "*.h", "*.hpp", "*.pch", "*.def" },
     callback = function()

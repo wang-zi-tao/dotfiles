@@ -1,10 +1,10 @@
-require("core.opt")
-require("core.map")
-require("core.env")
-require("core.auto")
-require("core.cmd")
-require("core.theme")
-require("core.database")
+pcall(require, "core.opt")
+pcall(require, "core.map")
+pcall(require, "core.env")
+pcall(require, "core.auto")
+pcall(require, "core.cmd")
+pcall(require, "core.theme")
+pcall(require, "core.database")
 
 local n = require("core.gen")
 if n.core ~= null then

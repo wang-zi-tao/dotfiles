@@ -43,7 +43,7 @@ system="${system%\"}"
 system="${system#\"}"
 case $command in
 deploy)
-	nix run "$script_dir#deploy-rs" -- -d --fast-connection true --activation-timeout 60 --confirm-timeout 60 -c "$@"
+	nix run "$script_dir#deploy-rs" -- -d -c "$@"
 	;;
 nix-lang-check) nix run 'nixpkgs#statix' check . ;;
 nix-lang-fix) nix run 'nixpkgs#statix' fix . ;;
@@ -66,6 +66,11 @@ pkgs-shell)
 	package=$1
 	shift
 	nix shell "$script_dir#vars.$system.pkgs.$package" "$@"
+	;;
+pkgs-run)
+	package=$1
+	shift
+	nix run "$script_dir#vars.$system.pkgs.$package" "$@"
 	;;
 home-manager)
 	profile=$1
@@ -95,11 +100,9 @@ nixos)
 nixos-remote)
 	profile=$1
 	shift
-	host=$1
-	shift
 	nix build "$script_dir#nixos.$profile.config.system.build.toplevel" "$@"
 	result=$(realpath ./result)
-	nix copy --to "ssh://root@$host" "$result"
+	nix copy --to "ssh://root@$profile" "$result"
 	ssh "root@$host" "nix-env -p /nix/var/nix/profiles/system --set $result"
 	ssh "root@$host" "$result/bin/switch-to-configuration switch"
 	;;

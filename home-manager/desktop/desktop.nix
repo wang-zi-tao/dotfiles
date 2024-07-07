@@ -89,7 +89,7 @@ with lib;
         iconTheme.name = "Tela-blue";
         iconTheme.package = pkgs.tela-icon-theme;
         font.package = pkgs.iosevka;
-        font.name = "Iosevka Term";
+        font.name = "Iosevka Nerd Font";
         gtk3.extraConfig = extra_config;
         gtk4.extraConfig = extra_config;
       };

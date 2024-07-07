@@ -29,6 +29,10 @@ with builtins;
             { name, config, ... }:
             {
               options = {
+                arch = mkOption {
+                  type = str;
+                  default = "x86_64-linux";
+                };
                 hostname = mkOption {
                   type = str;
                   default = name;
@@ -125,6 +129,10 @@ with builtins;
                   type = bool;
                   default = false;
                 };
+                buildNode.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
               };
             }
           )
@@ -202,6 +210,7 @@ with builtins;
             gateway = "aliyun-hk";
           };
           wangzi-pc.peers.wangzi-nuc = { };
+          wangzi-asus.peers.wangzi-nuc = { };
           # wangzi-asus.peers.wangzi-nuc = { };
           wangzi-pc.peers.aliyun-hk = {
             tunnel = true;
@@ -344,6 +353,7 @@ with builtins;
           develop.enable = true;
           container.enable = true;
           virtualisation.enable = true;
+          buildNode.enable = true;
         };
         wangzi-nuc = {
           users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
@@ -354,6 +364,7 @@ with builtins;
           develop.enable = true;
           container.enable = true;
           virtualisation.enable = true;
+          buildNode.enable = true;
         };
         wangzi-asus = {
           users.wangzi = ../home-manager/profiles/wangzi-asus.nix;
@@ -363,6 +374,7 @@ with builtins;
           develop.enable = true;
           container.enable = true;
           virtualisation.enable = true;
+          buildNode.enable = true;
         };
         huawei-ecs = {
           container.enable = true;
@@ -390,8 +402,12 @@ with builtins;
         lxd = {
           inContainer = true;
         };
-        nova9 = { };
-        M6 = { };
+        nova9 = {
+          arch = "aarch64-linux";
+        };
+        M6 = {
+          arch = "aarch64-linux";
+        };
       };
       nfs = {
         nodes = { };

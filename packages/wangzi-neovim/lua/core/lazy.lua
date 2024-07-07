@@ -33,6 +33,7 @@ require("lazy").setup({
     require("core.plugins.rust"),
     require("core.plugins.cpp"),
     require("core.plugins.null_ls"),
+    require("core.plugins.fold"),
 
     {
         "nvim-lua/plenary.nvim",
@@ -44,7 +45,7 @@ require("lazy").setup({
             {
                 "<leader>pp",
                 function()
-                    require("plenary.profile").start("profile.log", { flame = true })
+                    require("plenary.profile").start(".nvim-profile.log", { flame = true })
                     vim.notify("start profiling")
                 end,
                 desc = "Profile Start",
@@ -52,7 +53,16 @@ require("lazy").setup({
             {
                 "<leader>pP",
                 function()
+                    local Job = require 'plenary.job'
+                    local file = ".nvim-profile.log"
                     require("plenary.profile").stop()
+                    Job:new({
+                        command = "nix",
+                        args = { "-p", "inferno", "--command", "inferno-flamegraph " .. file .. " > .nvim-profile.svg" },
+                        on_exit = function(j)
+                            Job:new({ command = "xdg-open", args = { file } }):start()
+                        end
+                    }):start()
                     vim.notify("end profiling")
                 end,
                 desc = "Profile Stop",

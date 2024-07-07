@@ -12,7 +12,7 @@ in
   config = lib.mkIf nodeConfig.NextCloudServer.enable {
     services.nextcloud = {
       enable = true;
-      package = pkgs.nextcloud27;
+      package = pkgs.nextcloud28;
       hostName = networkConfig.publicIp;
       caching.redis = true;
       appstoreEnable = true;

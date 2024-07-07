@@ -2,6 +2,7 @@ local function on_attach(client, bufnr)
     local navbuddy = require("nvim-navbuddy")
     navbuddy.attach(client, bufnr)
     require("lsp-format").on_attach(client, bufnr)
+    require("core.plugins.lsp").lsp_signature_on_attach(bufnr)
 
     if client.supports_method("textDocument/codeLens") then
         require("virtualtypes").on_attach(client, bufnr)
@@ -181,6 +182,7 @@ return {
         },
         dependencies = {
             "none_ls",
+            "lsp_signature_nvim",
         }
     },
     {
