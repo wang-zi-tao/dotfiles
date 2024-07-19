@@ -11,3 +11,10 @@ autocmd("FileType", {
         vim.opt.noexpandtab = true
     end,
 })
+
+autocmd("FileType", {
+    pattern = { "*.inc" },
+    callback = function()
+        vim.cmd[[set ft=cpp]]
+    end,
+})

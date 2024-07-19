@@ -9,13 +9,41 @@ local function config()
         -- C++
         b.diagnostics.cmake_lint,
         null_ls.builtins.diagnostics.clazy,
+        -- null_ls.builtins.diagnostics.cpplint,
         b.diagnostics.cppcheck.with({
-            args = {
-                "--enable=warning,style,performance,portability",
-                "--template=gcc",
-                "--project=compile-commands.json",
-                "$FILENAME",
-            },
+            root_dir = require("null-ls.utils").root_pattern("compile_commands.json"),
+            to_temp_file = false,
+            args = function(params)
+                local Path = require("plenary.path")
+                local uri = params.lsp_params.textDocument.uri
+                local p = "file:///" .. params.cwd .. "/"
+                local relative_path = (uri:sub(0, #p) == p) and uri:sub(#p+1) or uri
+                vim.notify(relative_path)
+                return {
+                    "--platform=win32W",
+                    "--std=c++17",
+                    "-D_MSC_VER=1924",
+                    "-D__RPCNDR_H_VERSION__=(500)",
+                    "-D__i386__=1",
+                    "-D__cplusplus",
+                    "-IC:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/VC/Tools/MSVC/14.29.30133/include",
+                    "-I../3rdparty/qt5/build_x86/qtbase/include/",
+                    "-I../3rdparty/qt5/build_x86/qtbase/include/QtCore",
+                    "-I../3rdparty/qt5/build_x86/qtbase/include/QtGui",
+                    "-I../3rdparty/qt5/build_x86/qtbase/include/QtWidgets",
+                    "-I../3rdparty/default/x86-windows/include/",
+                    "--inconclusive",
+                    "--check-level=exhaustive",
+                    "--performance-valueflow-max-if-count=16",
+                    -- "--enable=warning,style,performance,portability",
+                    "--enable=all",
+                    "--template=gcc",
+                    -- "--project=../debug/WPSOffice.sln",
+                    "--project=./compile_commands.json",
+                    "--cppcheck-build-dir=./.cppcheck",
+                    "--file-filter=" .. relative_path,
+                }
+            end,
         }),
         -- b.formatting.clang_format,
         -- Python
@@ -64,6 +92,7 @@ local function config()
     vim.notify("none_ls init")
     null_ls.setup({
         sources = sources,
+        debug = true,
         on_attach = function(client)
         end,
     })

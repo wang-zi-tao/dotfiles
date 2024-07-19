@@ -120,26 +120,28 @@ return {
             lazy = true,
             config = function() end,
         },
-        {
-            "anuvyklack/pretty-fold.nvim",
-            dir = gen.pretty_fold,
-            name = "pretty_fold",
-            lazy = true,
-            config = function()
-                require("core.plugins.pretty_fold")
-            end,
-        },
-        {
-            "anuvyklack/fold-preview.nvim",
-            dir = gen.pretty_fold_preview,
-            name = "pretty_fold_preview",
-            -- dependencies = "keymap_amend",
-            dependencies = "pretty_fold",
-            lazy = true,
-            config = function()
-                require("fold-preview").setup({ border = "rounded" })
-            end,
-        },
+        -- {
+        --     "anuvyklack/pretty-fold.nvim",
+        --     dir = gen.pretty_fold,
+        --     name = "pretty_fold",
+        --     enabled = false,
+        --     lazy = true,
+        --     config = function()
+        --         require("core.plugins.pretty_fold")
+        --     end,
+        -- },
+        -- {
+        --     "anuvyklack/fold-preview.nvim",
+        --     dir = gen.pretty_fold_preview,
+        --     name = "pretty_fold_preview",
+        --     enabled = false,
+        --     -- dependencies = "keymap_amend",
+        --     dependencies = "pretty_fold",
+        --     lazy = true,
+        --     config = function()
+        --         require("fold-preview").setup({ border = "rounded" })
+        --     end,
+        -- },
         {
             "kevinhwang91/nvim-hlslens",
             dir = gen.hlslens,

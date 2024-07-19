@@ -71,7 +71,7 @@ return {
         cmd = { "SessionManager" },
         module = "session_manager",
         event = "VeryLazy",
-        dependencies = { "trailblazer" },
+        -- dependencies = { "trailblazer" },
         config = function()
             local Path = require("plenary.path")
             require("session_manager").setup({

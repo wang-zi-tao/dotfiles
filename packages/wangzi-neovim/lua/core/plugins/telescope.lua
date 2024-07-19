@@ -270,6 +270,7 @@ return {
             {
                 "<leader>fr",
                 function()
+                    require("trailblazer").new_trail_mark()
                     telescope().lsp_references()
                 end,
                 desc = "LspReferences",
@@ -285,6 +286,7 @@ return {
             {
                 "<leader>ft",
                 function()
+                    require("trailblazer").new_trail_mark()
                     require("telescope.builtin").lsp_definitions()
                 end,
                 desc = "LSP Define",
