@@ -80,15 +80,15 @@ local function config()
                 },
             },
             fzf = {
-                fuzzy = true, -- false will only do exact matching
+                fuzzy = true,                   -- false will only do exact matching
                 override_generic_sorter = true, -- override the generic sorter
-                override_file_sorter = true, -- override the file sorter
-                case_mode = "smart_case", -- or "ignore_case" or "respect_case"
+                override_file_sorter = true,    -- override the file sorter
+                case_mode = "smart_case",       -- or "ignore_case" or "respect_case"
                 -- the default case_mode is "smart_case"
             },
             project = {
                 base_dirs = {
-                    { "~/Code", max_depth = 1 },
+                    { "~/Code",      max_depth = 1 },
                     { "~/workspace", max_depth = 4 },
                 },
                 hidden_files = true, -- default: false
@@ -111,9 +111,9 @@ local function config()
                 command = {
                     "sg",
                     "--json=stream",
-                }, -- must have --json=stream
+                },                      -- must have --json=stream
                 grep_open_files = true, -- search in opened files
-                lang = nil, -- string value, specify language for ast-grep `nil` for default
+                lang = nil,             -- string value, specify language for ast-grep `nil` for default
             }
         },
     })
@@ -130,7 +130,9 @@ local function config()
         "noice",
     }
     for _, ext in ipairs(extensions) do
-        pcall(telescope.load_extension, telescope, ext)
+        if not pcall(telescope.load_extension, ext) then
+            vim.notify("failed to load telescope extension: " .. ext, "error")
+        end
     end
 end
 
@@ -301,13 +303,15 @@ return {
             {
                 "<leader>fg",
                 function()
-                    local glob = require("core.utils").cachedinput(
+                    require("core.utils").cachedinput(
                         "telescope_grep_by_filetype",
                         "filetype: ",
-                        ".cpp",
-                        "filetype"
+                        "*.cpp",
+                        "filetype",
+                        function(glob)
+                            require("telescope.builtin").live_grep({ glob_pattern = glob })
+                        end
                     )
-                    require("telescope.builtin").live_grep({ glob_pattern = glob })
                 end,
                 desc = "Grep by type",
             },

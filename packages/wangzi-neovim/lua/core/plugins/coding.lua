@@ -1,4 +1,4 @@
-return {
+﻿return {
     {
         "windwp/nvim-autopairs",
         dir = gen.nvim_autopairs,
@@ -66,7 +66,7 @@ return {
     {
         "Shatur/neovim-session-manager",
         dir = gen.session_manager,
-        name = "session_manager",
+
         lazy = true,
         cmd = { "SessionManager" },
         module = "session_manager",
