@@ -10,6 +10,7 @@ end
 vim.g.mapleader = " "
 require("lazy").setup({
     require("core.plugins.cmp"),
+    require("core.plugins.snippets"),
     require("core.plugins.telescope"),
     require("core.plugins.treesitter"),
     require("core.plugins.dap"),

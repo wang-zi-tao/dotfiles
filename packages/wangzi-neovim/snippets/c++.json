@@ -3,5 +3,5 @@
     "prefix": "vec",
     "body": ["vec<${1}>"],
     "description": "vec<…>"
-  },
+  }
 }

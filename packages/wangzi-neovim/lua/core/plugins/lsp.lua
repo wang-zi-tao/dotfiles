@@ -195,7 +195,7 @@ return {
         module = "lsp-format",
         config = function()
             require("lsp-format").setup({
-                cpp = { exclude = { "astyle", "clang_format", "uncrustify", "clangd"} },
+                cpp = { exclude = { "astyle", "clang_format", "uncrustify", "clangd" } },
                 rust = { exclude = { "dxfmt", "leptosfmt" } }
             })
         end,
@@ -405,16 +405,31 @@ return {
             local path_lib = require "plenary.path"
             local home = vim.loop.os_homedir()
             async.run(function()
-                local workspaces = {
-                    {
-                        name = "personal",
-                        path = home .. "/文档/Obsidian",
-                    },
-                    {
-                        name = "work",
-                        path = home .. "/文档/Obsidian-work",
-                    },
-                }
+                local workspaces
+                if vim.fn.has("win32") == 0 then
+                    workspaces = {
+                        {
+                            name = "personal",
+                            path = home .. "/文档/Obsidian",
+                        },
+                        {
+                            name = "work",
+                            path = home .. "/文档/Obsidian-work",
+                        },
+                    }
+                else
+                    workspaces = {
+                        {
+                            name = "work",
+                            path = home .. "/Documents/Obsidian-work",
+                        },
+                        {
+                            name = "personal",
+                            path = home .. "/Documents/Obsidian",
+                        },
+                    }
+                end
+
                 for _, workspace in pairs(workspaces) do
                     local path = path_lib:new(workspace.path)
                     path:mkdir({ parents = true, exists_ok = true })

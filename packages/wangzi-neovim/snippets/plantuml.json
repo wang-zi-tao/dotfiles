@@ -1,0 +1,12 @@
+{
+  "class_parent":{
+    "prefix": "class",
+    "body": ["${1} --|> ${2}"],
+    "description": "class --|> parent"
+  },
+  "class_interface":{
+    "prefix": "class_interface",
+    "body": ["${1} ..|> ${2}"],
+    "description": "class ..|> interface"
+  }
+}

@@ -111,4 +111,12 @@ function M.num_of_core()
     return num_of_job
 end
 
+function M.config_dir()
+    if gen.core then
+        return gen.core
+    else
+        return vim.fn.stdpath("config")
+    end
+end
+
 return M
