@@ -80,15 +80,15 @@ local function config()
                 },
             },
             fzf = {
-                fuzzy = true, -- false will only do exact matching
+                fuzzy = true,                   -- false will only do exact matching
                 override_generic_sorter = true, -- override the generic sorter
-                override_file_sorter = true, -- override the file sorter
-                case_mode = "smart_case", -- or "ignore_case" or "respect_case"
+                override_file_sorter = true,    -- override the file sorter
+                case_mode = "smart_case",       -- or "ignore_case" or "respect_case"
                 -- the default case_mode is "smart_case"
             },
             project = {
                 base_dirs = {
-                    { "~/Code", max_depth = 1 },
+                    { "~/Code",      max_depth = 1 },
                     { "~/workspace", max_depth = 4 },
                 },
                 hidden_files = true, -- default: false
@@ -111,9 +111,9 @@ local function config()
                 command = {
                     "sg",
                     "--json=stream",
-                }, -- must have --json=stream
+                },                      -- must have --json=stream
                 grep_open_files = true, -- search in opened files
-                lang = nil, -- string value, specify language for ast-grep `nil` for default
+                lang = nil,             -- string value, specify language for ast-grep `nil` for default
             }
         },
     })
@@ -254,6 +254,13 @@ return {
                 desc = "Marks",
             },
             {
+                "<leader>fD",
+                function()
+                    telescope().lsp_definitions()
+                end,
+                desc = "lsp definitions",
+            },
+            {
                 "<leader>fd",
                 function()
                     telescope().lsp_document_symbols()
@@ -270,9 +277,16 @@ return {
             {
                 "<leader>fr",
                 function()
-                    telescope().lsp_references()
+                    telescope().lsp_incoming_calls()
                 end,
-                desc = "LspReferences",
+                desc = "lsp incomint calls",
+            },
+            {
+                "<leader>fR",
+                function()
+                    telescope().lsp_outgoing_calls()
+                end,
+                desc = "lsp outgoing calls",
             },
             {
                 "<leader>fI",

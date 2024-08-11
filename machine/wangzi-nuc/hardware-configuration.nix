@@ -85,7 +85,6 @@
       mesa
     ];
     opengl.extraPackages = with pkgs; [
-      # (pkgs.enableDebugging amdvlk)
       amdvlk
       libva
       mesa

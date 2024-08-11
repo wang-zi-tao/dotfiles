@@ -122,6 +122,7 @@ return {
                     all = true,
                     rainbow = true,
                     telescope = true,
+                    dap = false,
                 },
             })
         end

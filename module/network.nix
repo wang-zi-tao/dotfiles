@@ -73,6 +73,7 @@ in
     })
     {
       networking.nameservers = [
+        "240C::6666"
         "8.8.8.8"
         "9.9.9.9"
       ];

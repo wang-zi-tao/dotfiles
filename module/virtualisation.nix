@@ -109,6 +109,9 @@ with builtins;
         virglrenderer
       ];
       environment.LD_LIBRARY_PATH = "${virglrenderer}/lib";
+      unitConfig = {
+        After = [ "kea-dhcp4-server.service" ];
+      };
     };
 
     networking.firewall.trustedInterfaces = [ "virbr0" ];

@@ -176,15 +176,12 @@ with builtins;
         nodes = {
           wangzi-pc.config = {
             localIp = "192.168.1.145";
-            doh.enable = true;
           };
           wangzi-nuc.config = {
             localIp = "192.168.32.1";
-            doh.enable = true;
           };
           wangzi-asus.config = {
             localIp = "192.168.32.129";
-            doh.enable = true;
           };
           huawei-ecs.config = {
             publicIp = "139.9.235.87";

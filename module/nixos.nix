@@ -54,7 +54,7 @@ in {
 
       distributedBuilds = true;
       buildMachines = builtins.concatLists (lib.mapAttrsToList (host: node:
-        lib.optional node.buildNode.enable {
+        lib.optional (node.buildNode.enable && host != hostName) {
           hostName = "${host}";
           system = "x86_64-linux";
           systems = [ "x86_64-linux" "aarch64-linux" ];

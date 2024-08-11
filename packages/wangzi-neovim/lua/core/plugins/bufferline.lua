@@ -19,38 +19,38 @@ bufferline.setup({
         tab_size = 20,
         show_tab_indicators = true,
         duplicates_across_groups = true,
-        groups = {
-            options = {
-                toggle_hidden_on_enter = true
-            },
-            items = {
-                {
-                    name = "Tests", -- Mandatory
-                    icon = " ", -- Optional
-                    matcher = function(buf) -- Mandatory
-                        return buf.path:match('%test%')
-                    end,
-                },
-                {
-                    name = "Config", -- Mandatory
-                    icon = " ", -- Optional
-                    matcher = function(buf) -- Mandatory
-                        local path = buf.path
-                        local filetype = buf.buftype
-                        return path and (path:match('%CMakeLists.txt') or path:match('%Cargo.toml'))
-                            or filetype and (filetype == "json" or filetype == "xml")
-                    end,
-                },
-                {
-                    name = "Terminal", -- Mandatory
-                    icon = " ", -- Optional
-                    matcher = function(buf) -- Mandatory
-                        local filetype = buf.buftype
-                        return filetype == "toggleterm" or filetype == "terminal"
-                    end,
-                },
-            }
-        },
+        -- groups = {
+        --     options = {
+        --         toggle_hidden_on_enter = true
+        --     },
+        --     items = {
+        --         {
+        --             name = "Tests", -- Mandatory
+        --             icon = " ", -- Optional
+        --             matcher = function(buf) -- Mandatory
+        --                 return buf.path:match('%test%')
+        --             end,
+        --         },
+        --         {
+        --             name = "Config", -- Mandatory
+        --             icon = " ", -- Optional
+        --             matcher = function(buf) -- Mandatory
+        --                 local path = buf.path
+        --                 local filetype = buf.buftype
+        --                 return path and (path:match('%CMakeLists.txt') or path:match('%Cargo.toml'))
+        --                     or filetype and (filetype == "json" or filetype == "xml")
+        --             end,
+        --         },
+        --         {
+        --             name = "Terminal", -- Mandatory
+        --             icon = " ", -- Optional
+        --             matcher = function(buf) -- Mandatory
+        --                 local filetype = buf.buftype
+        --                 return filetype == "toggleterm" or filetype == "terminal"
+        --             end,
+        --         },
+        --     }
+        -- },
         enforce_regular_tabs = false,
         view = "multiwindow",
         show_buffer_close_icons = true,

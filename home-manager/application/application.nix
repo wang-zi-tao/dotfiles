@@ -44,6 +44,8 @@
     remmina
     obsidian
     "/nixfs/flake/str/nixpkgs#geogebra/bin/geogebra"
+    gcolor3
+    gpick
   ];
   home.packages =
     with pkgs;

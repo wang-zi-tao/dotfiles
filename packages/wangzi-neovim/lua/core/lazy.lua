@@ -57,7 +57,7 @@ require("lazy").setup({
                     local file = ".nvim-profile.log"
                     require("plenary.profile").stop()
                     Job:new({
-                        command = "nix",
+                        command = "nix-shell",
                         args = { "-p", "inferno", "--command", "inferno-flamegraph " .. file .. " > .nvim-profile.svg" },
                         on_exit = function(j)
                             Job:new({ command = "xdg-open", args = { file } }):start()

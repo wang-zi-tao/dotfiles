@@ -188,6 +188,11 @@ stdenvNoCC.mkDerivation {
           }
         }",
         cmp_git = "${cmp-git}",
+        nvim_cmp_lsp_rs = "${pkgs.fetchgit {
+            url = "https://github.com/zjp-CN/nvim-cmp-lsp-rs";
+            rev = "d9ebeca9ea07ba2fd57f997b2d6a8bc7da51abed";
+            sha256 = "sha256-NYbNj7vdhmJaz/H2Fm7eWZxrM4GFAw4hpYR3y38ye10=";
+        }}",
 
         nvim_autopairs = "${nvim-autopairs}",
         dashboard_nvim = "${dashboard-nvim}",

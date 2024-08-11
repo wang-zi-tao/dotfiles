@@ -149,6 +149,15 @@ end
 
 function M.setup()
     vim.cmd [[colorscheme tokyonight-moon]]
+
+    vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "DapBreakpoint", numhl = "DapBreakpoint" })
+    vim.fn.sign_define("DapBreakpointCondition", { text = "", texthl = "DapBreakpoint", numhl = "DapBreakpoint" })
+    vim.fn.sign_define("DapBreakpointRejected", { text = "", texthl = "DapBreakpoint", numhl = "DapBreakpoint" })
+    vim.fn.sign_define("DapLogPoint", { text = "", texthl = "DapLogPoint", numhl = "DapLogPoint" })
+    vim.fn.sign_define(
+        "DapStopped",
+        { text = "", texthl = "DapStoppedIcon", linehl = "DapStopped", numhl = "DapStopped" }
+    )
 end
 
 return M

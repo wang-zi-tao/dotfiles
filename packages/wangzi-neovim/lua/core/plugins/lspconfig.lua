@@ -36,7 +36,7 @@ local function on_attach(client, bufnr)
     }
     -- map("n", m.declaration, "<cmd>lua vim.lsp.buf.declaration()<CR>")
     -- map("n", m.definition, "<cmd>lua vim.lsp.buf.definition()<CR>")
-    map("n", "K", "<cmd>Lspsaga hover_doc<CR>")
+    -- map("n", "K", "<cmd>Lspsaga hover_doc<CR>")
     -- map("n", m.implementation, "<cmd>lua vim.lsp.buf.implementation()<CR>")
     map("n", m.signature_help, "<cmd>lua vim.lsp.buf.signature_help()<CR>")
     map("n", m.add_workspace_folder, "<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>")

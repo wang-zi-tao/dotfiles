@@ -195,7 +195,8 @@ return {
         module = "lsp-format",
         config = function()
             require("lsp-format").setup({
-                rust = { exclude = { "dxfmt", "leptosfmt" } }
+                rust = { exclude = { "dxfmt", "leptosfmt" } },
+                cpp = { exclude = { "clangd" } },
             })
         end,
     },

@@ -311,7 +311,7 @@ return {
                 },
                 bottom = {
                     {
-                        ft = "Trouble",
+                        ft = "trouble",
                         title = "Trouble",
                         size = {},
                         open = function()
