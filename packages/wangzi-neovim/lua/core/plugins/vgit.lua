@@ -124,7 +124,7 @@ local function config()
                 end,
             },
             live_gutter = {
-                enabled = true,
+                enabled = false,
                 edge_navigation = true, -- This allows users to navigate within a hunk
             },
             authorship_code_lens = {

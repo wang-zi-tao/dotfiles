@@ -130,7 +130,9 @@ local function config()
         "noice",
     }
     for _, ext in ipairs(extensions) do
-        pcall(telescope.load_extension, telescope, ext)
+        if not pcall(telescope.load_extension, ext) then
+            vim.notify("failed to load telescope extension: " .. ext, "error")
+        end
     end
 end
 
@@ -277,7 +279,8 @@ return {
             {
                 "<leader>fr",
                 function()
-                    telescope().lsp_incoming_calls()
+                    require("trailblazer").new_trail_mark()
+                    telescope().lsp_references()
                 end,
                 desc = "lsp incomint calls",
             },
@@ -299,6 +302,7 @@ return {
             {
                 "<leader>ft",
                 function()
+                    require("trailblazer").new_trail_mark()
                     require("telescope.builtin").lsp_definitions()
                 end,
                 desc = "LSP Define",
@@ -313,13 +317,15 @@ return {
             {
                 "<leader>fg",
                 function()
-                    local glob = require("core.utils").cachedinput(
+                    require("core.utils").cachedinput(
                         "telescope_grep_by_filetype",
                         "filetype: ",
-                        ".cpp",
-                        "filetype"
+                        "*.cpp",
+                        "filetype",
+                        function(glob)
+                            require("telescope.builtin").live_grep({ glob_pattern = glob })
+                        end
                     )
-                    require("telescope.builtin").live_grep({ glob_pattern = glob })
                 end,
                 desc = "Grep by type",
             },

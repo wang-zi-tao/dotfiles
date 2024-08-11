@@ -59,6 +59,10 @@ local function on_attach(client, bufnr)
     -- keymap("n", "gt", "<cmd>Lspsaga peek_type_definition<CR>")
     -- keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
     -- keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
+
+    if vim.fn.has("win32") == 0 then
+        vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+    end
 end
 
 local function get_capabilities()
@@ -87,14 +91,13 @@ local function config()
     require("core.plugins.lsp_handlers")
 
     local capabilities = get_capabilities()
-    vim.lsp.inlay_hint.enable(true)
     -- lspservers with default config
     local servers = {
         "lua_ls",
         "vimls",
         "pyright",
         "ruff",
-        -- "rust_analyzer",
+        "rust_analyzer",
         "gopls",
         "html",
         "tsserver",
@@ -120,6 +123,7 @@ local function config()
     for _, lsp in ipairs(servers) do
         lspconfig[lsp].setup(option)
     end
+    require("core.plugins.cpp").clangd_config(on_attach, capabilities)
     lspconfig.nil_ls.setup({
         on_attach = on_attach,
         capabilities = capabilities,
@@ -139,7 +143,6 @@ local function config()
             },
         },
     })
-    require("core.plugins.cpp").clangd_config(on_attach, capabilities)
 end
 
 return {

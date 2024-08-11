@@ -13,5 +13,5 @@
     "prefix": "Vec",
     "body": ["Vec<${1}>"],
     "description": "Vec<…>"
-  },
+  }
 }

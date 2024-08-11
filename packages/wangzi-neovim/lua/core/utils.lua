@@ -1,3 +1,5 @@
+local database = require("core.database")
+
 local M = {}
 
 M.hide_statusline = function()
@@ -28,6 +30,11 @@ M.hide_statusline = function()
 end
 
 M.cache = {}
+
+function M.project_dir()
+    return vim.fn.getcwd()
+end
+
 function M.cached(key, callback)
     if M.cache[key] ~= nil then
         return M.cache[key]
@@ -38,11 +45,53 @@ function M.cached(key, callback)
     end
 end
 
-function M.cachedinput(key, prompt, default, completion)
-    default = M.cache[key] or default
-    local value = vim.fn.input(prompt, default, completion)
-    M.cache[key] = value
-    return value
+function M.cachedinput(key, prompt, default, completion, callback)
+    local function ui_input()
+        local value = vim.fn.input(prompt, default, completion)
+        database.tables.caches:insert({
+            project = M.project_dir(),
+            key = key,
+            value = value,
+        })
+        callback(value)
+    end
+
+    local list = database.tables.caches:get({
+        select = { "distinct value" },
+        where = {
+            project = M.project_dir(),
+            key = key,
+        }
+    })
+
+    if #list ~= 0 then
+        local itemStringList = {}
+        for _, item in pairs(list) do
+            table.insert(itemStringList, item.value)
+        end
+        vim.ui.select(itemStringList, { prompt = prompt }, function(item, index)
+            if index ~= nil then
+                callback(item)
+            else
+                ui_input()
+            end
+        end)
+    else
+        ui_input()
+    end
+end
+
+function M.argOrCachedInput(arg, key, prompt, default, completion, callback)
+    if #arg > 0 then
+        database.tables.caches:insert({
+            project = M.project_dir(),
+            key = key,
+            value = arg,
+        })
+        callback(arg)
+    else
+        M.cachedinput(key, prompt, default, completion, callback)
+    end
 end
 
 function M.num_of_core()
@@ -60,6 +109,14 @@ function M.num_of_core()
         num_of_job = num_of_processers - 4
     end
     return num_of_job
+end
+
+function M.config_dir()
+    if gen.core then
+        return gen.core
+    else
+        return vim.fn.stdpath("config")
+    end
 end
 
 return M

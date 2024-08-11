@@ -152,35 +152,7 @@ return {
     event = { "VeryLazy" },
     dependencies = {
         "friendly_snippets",
-        {
-            "rafamadriz/friendly-snippets",
-            dir = gen.friendly_snippets,
-            name = "friendly_snippets",
-            module = "cmp_nvim_lsp",
-            lazy = true,
-        },
-        {
-            "l3mon4d3/luasnip",
-            dir = gen.luasnip,
-            name = "luasnip",
-            module = "luasnip",
-            dependencies = "friendly_snippets",
-            lazy = true,
-            config = function()
-                require("luasnip").config.set_config({
-                    history = true,
-                    updateevents = "TextChanged,TextChangedI",
-                })
-                require("luasnip/loaders/from_vscode").load({
-                    paths = {
-                        "./rust.json",
-                        "./c++.json",
-                    },
-                })
-                require("luasnip/loaders/from_vscode").load()
-            end,
-        },
-
+        "luasnip",
         {
             "saadparwaiz1/cmp_luasnip",
             dir = gen.cmp_luasnip,

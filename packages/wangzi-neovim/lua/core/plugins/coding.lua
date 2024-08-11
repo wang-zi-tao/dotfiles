@@ -1,4 +1,4 @@
-return {
+﻿return {
     {
         "windwp/nvim-autopairs",
         dir = gen.nvim_autopairs,
@@ -66,12 +66,12 @@ return {
     {
         "Shatur/neovim-session-manager",
         dir = gen.session_manager,
-        name = "session_manager",
+
         lazy = true,
         cmd = { "SessionManager" },
         module = "session_manager",
         event = "VeryLazy",
-        dependencies = { "trailblazer" },
+        -- dependencies = { "trailblazer" },
         config = function()
             local Path = require("plenary.path")
             require("session_manager").setup({
