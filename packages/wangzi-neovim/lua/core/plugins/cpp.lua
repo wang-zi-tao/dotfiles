@@ -123,4 +123,14 @@ return {
             { "<leader>cb", ":CMake build<CR>",             desc = "CMake build" },
         },
     },
+    {
+        dir = gen.xmake,
+        "Mythos-404/xmake.nvim",
+        lazy = true,
+        event = "BufReadPost xmake.lua",
+        config = true,
+        dependencies = { "nui_nvim", "plenary_nvim" },
+        keys = {
+        },
+    }
 }

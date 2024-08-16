@@ -54,6 +54,9 @@ opt.shiftwidth = 0
 opt.shiftround = true
 opt.autoindent = true
 
+opt.laststatus = 3
+opt.splitkeep = "screen"
+
 if vim.env.BOMB or 1 == vim.fn.has("win32") then
     o.bomb = true
 end
@@ -189,3 +192,12 @@ vim.diagnostic.config({
 --         vim.diagnostic.open_float(nil, { focusable = false })
 --     end,
 -- })
+--
+
+if vim.has("win32") == 1 then
+    local pid = vim.fn.getpid()
+    require("plenary.job"):new({
+        command = "wmic",
+        args = { "where", "ProcessId=" .. pid, "call", "setpriority", "AboveNormal" }
+    }):start()
+end

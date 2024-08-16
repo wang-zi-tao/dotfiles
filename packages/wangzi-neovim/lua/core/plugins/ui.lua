@@ -289,14 +289,51 @@ return {
         dir = gen.edgy,
         event = "VeryLazy",
         config = function()
+            local function isFloadWindow(win)
+                return vim.api.nvim_win_get_config(win).relative == "win"
+            end
             require("edgy").setup({
                 options = {
-                    left = { size = 30 },
+                    left = { size = 40 },
                     bottom = { size = 10 },
                     right = { size = 30 },
                     top = { size = 10 },
                 },
-                left = {},
+                left = {
+                    {
+                        title = "Neo-Tree",
+                        ft = "neo-tree",
+                        filter = function(buf, win)
+                            return vim.b[buf].neo_tree_source == "filesystem" and not isFloadWindow(win)
+                        end,
+                        -- size = { height = 0.5 },
+                        -- collapsed = true, -- show window as closed/collapsed on start
+                    },
+                    {
+                        title = "Neo-Tree Git",
+                        ft = "neo-tree",
+                        filter = function(buf, win)
+                            return vim.b[buf].neo_tree_source == "git_status" and not isFloadWindow(win)
+                        end,
+                        open = "Neotree position=right git_status",
+                    },
+                    {
+                        title = "Neo-Tree Buffers",
+                        ft = "neo-tree",
+                        filter = function(buf, win)
+                            return vim.b[buf].neo_tree_source == "buffers" and not isFloadWindow(win)
+                        end,
+                        open = "Neotree position=top buffers",
+                    },
+                    {
+                        ft = "trouble",
+                        title = "Trouble",
+                        filter = function(buf, win)
+                            local trouble = vim.w[win].trouble
+                            return trouble and trouble.position == "left"
+                        end,
+                    },
+                },
                 right = {
                     { ft = "codecompanion", title = "Code Companion Chat", size = {} },
                     { ft = "sagaoutline",   title = "Outline",             size = {} },
@@ -308,14 +345,30 @@ return {
                         title = "AI",
                         size = { width = 0.25 },
                     },
+                    {
+                        ft = "trouble",
+                        title = "Trouble Outline",
+                        size = { height = 0.5 },
+                        filter = function(buf, win)
+                            local trouble = vim.w[win].trouble
+                            return trouble and trouble.position == "right"
+                        end,
+                        open = function()
+                            require("trouble").open({
+                                mode = "lsp_document_symbols",
+                                open_no_results = true,
+                                win = { position = "right" }
+                            })
+                        end,
+                    },
                 },
                 bottom = {
                     {
                         ft = "trouble",
                         title = "Trouble",
-                        size = {},
-                        open = function()
-                            require("trouble").toggle()
+                        filter = function(buf, win)
+                            local trouble = vim.w[win].trouble
+                            return trouble and trouble.position == "bottom"
                         end,
                     },
                     {

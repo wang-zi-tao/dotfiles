@@ -2,7 +2,7 @@ local function config()
     require("trailblazer").setup({
         -- lang = "en",
         auto_save_trailblazer_state_on_exit = true,
-        auto_load_trailblazer_state_on_enter = true,
+        auto_load_trailblazer_state_on_enter = false,
         -- custom_session_storage_dir = vim.fn.stdpath("data") .. "/trailblazer/", -- i.e. "~/trail_blazer_sessions/"
         -- trail_options = {
         --     -- The trail mark priority sets the global render priority of trail marks in the sign/number

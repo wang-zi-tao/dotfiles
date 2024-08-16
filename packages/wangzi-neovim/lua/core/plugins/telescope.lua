@@ -1,5 +1,6 @@
 local function config()
     local telescope = require("telescope")
+    local open_with_trouble = require("trouble.sources.telescope").open
     telescope.setup({
         defaults = {
             vimgrep_arguments = {
@@ -46,6 +47,10 @@ local function config()
             qflist_previewer = require("telescope.previewers").vim_buffer_qflist.new,
             -- Developer configurations: Not meant for general override
             buffer_previewer_maker = require("telescope.previewers").buffer_previewer_maker,
+            mappings = {
+                i = { ["<c-t>"] = open_with_trouble },
+                n = { ["<c-t>"] = open_with_trouble },
+            },
         },
         extensions = {
             ["ui-select"] = {
@@ -272,7 +277,7 @@ return {
             {
                 "<leader>fp",
                 function()
-                    telescope().extensions.project.project({})
+                    require("telescope").extensions.project.project({})
                 end,
                 desc = "Projects",
             },
