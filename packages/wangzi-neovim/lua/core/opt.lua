@@ -56,6 +56,7 @@ opt.autoindent = true
 
 opt.laststatus = 3
 opt.splitkeep = "screen"
+opt.endofline = false
 
 if vim.env.BOMB or 1 == vim.fn.has("win32") then
     o.bomb = true
