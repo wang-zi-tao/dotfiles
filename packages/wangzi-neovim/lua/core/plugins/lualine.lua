@@ -335,7 +335,7 @@ local dap_state_bufferline = {
 }
 
 local trouble = require("trouble")
-local symbols = trouble.statusline({
+local trouble_symbols = trouble.statusline({
     mode = "lsp_document_symbols",
     groups = {},
     title = false,
@@ -345,9 +345,9 @@ local symbols = trouble.statusline({
     -- Set it to the lualine section you want to use
     hl_group = "lualine_c_normal",
 })
-local trouble = {
-    symbols.get,
-    cond = symbols.has,
+local trouble_lsp_symbol = {
+    trouble_symbols.get,
+    cond = trouble_symbols.has,
 }
 
 local split_right = {
@@ -391,7 +391,7 @@ lualine.setup({
         },
         lualine_x = {
             "searchcount",
-            trouble,
+            trouble_lsp_symbol,
             "selectioncount",
             -- location,
             -- progress,

@@ -342,6 +342,13 @@ stdenvNoCC.mkDerivation {
         }",
         dressing_nvim = "${dressing-nvim}",
         trouble_nvim = "${trouble-nvim}",
+        xmake = "${
+          pkgs.fetchgit {
+            url = "https://github.com/Mythos-404/xmake.nvim";
+            rev = "778ba49655645aee2a46a8c7f2ac15f4fe77b743";
+            sha256 = "sha256-CZX5TGvr4vOpOFa2Id3ec3MpNnfNmXrmzaDCi0zHLXc=";
+          }
+        }",
         cmake = "${
           pkgs.fetchgit {
             url = "https://github.com/Shatur/neovim-cmake";

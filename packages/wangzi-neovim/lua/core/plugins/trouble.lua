@@ -58,6 +58,7 @@ return {
     lazy = true,
     config = config,
     cmd = "Trouble",
+    module = "trouble",
     keys = {
         {
             "<leader>wr",

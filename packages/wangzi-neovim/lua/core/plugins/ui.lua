@@ -306,7 +306,7 @@ return {
                         filter = function(buf, win)
                             return vim.b[buf].neo_tree_source == "filesystem" and not isFloadWindow(win)
                         end,
-                        -- size = { height = 0.5 },
+                        size = { height = 0.3 },
                         -- collapsed = true, -- show window as closed/collapsed on start
                     },
                     {
@@ -364,7 +364,7 @@ return {
                 },
                 bottom = {
                     {
-                        ft = "trouble",
+                        ft = "Trouble",
                         title = "Trouble",
                         filter = function(buf, win)
                             local trouble = vim.w[win].trouble
@@ -405,7 +405,7 @@ return {
         "nvim-lualine/lualine.nvim",
         dir = gen.lualine_nvim,
         name = "lualine_nvim",
-        dependencies = { "nvim_web_devicons", },
+        dependencies = { "nvim_web_devicons", "trouble_nvim" },
         config = function()
             require("core.plugins.lualine")
         end,

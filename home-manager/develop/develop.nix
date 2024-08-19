@@ -111,6 +111,7 @@ in
     pylint
     semgrep
     deno
+    xmake
     vala-language-server
     cmake-language-server
     "haskellPackages.haskell-debug-adapter"
