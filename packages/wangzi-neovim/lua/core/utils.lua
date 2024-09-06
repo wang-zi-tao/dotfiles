@@ -31,6 +31,7 @@ end
 
 M.cache = {}
 
+---@return string
 function M.project_dir()
     return vim.fn.getcwd()
 end
@@ -117,6 +118,23 @@ function M.config_dir()
     else
         return vim.fn.stdpath("config")
     end
+end
+
+M.module_dir_names = {
+    "CMakeLists.txt",
+    "Cargo.toml",
+}
+
+function M.module_dir()
+    local current = vim.fn.expand('%:p:h')
+    for k, v in ipairs(M.module_dir_names) do
+        ---@type string
+        local path = vim.fn.finddir('Coding/..', current .. ';')
+        if path ~= current then
+            return path
+        end
+    end
+    return M.project_dir()
 end
 
 return M

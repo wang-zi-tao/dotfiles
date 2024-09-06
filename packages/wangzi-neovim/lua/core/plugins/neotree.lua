@@ -5,7 +5,7 @@ local function config()
         enable_git_status = true,
         enable_diagnostics = true,
         open_files_do_not_replace_types = { "terminal", "trouble", "qf" }, -- when opening files, do not use windows containing these filetypes or buftypes
-        sort_case_insensitive = false,                                     -- used when sorting files and directories in the tree
+        sort_case_insensitive = true,                                      -- used when sorting files and directories in the tree
         sort_function = nil,                                               -- use a custom function for sorting files and directories in the tree
         -- sort_function = function (a,b)
         --       if a.type == b.type then
@@ -157,9 +157,9 @@ local function config()
         filesystem = {
             filtered_items = {
                 visible = false, -- when true, they will just be displayed differently than normal items
-                hide_dotfiles = true,
-                hide_gitignored = true,
-                hide_hidden = true, -- only works on Windows for hidden files/directories
+                hide_dotfiles = false,
+                hide_gitignored = false,
+                hide_hidden = false,
                 hide_by_name = {
                     --"node_modules"
                 },

@@ -355,6 +355,10 @@ local split_right = {
         return symbols.lualine_split_right
     end
 }
+local dr_lsp = {
+    require("dr-lsp").lspProgress,
+    color = { fg = colors.blue },
+}
 
 lualine.setup({
     options = {
@@ -377,6 +381,11 @@ lualine.setup({
             "trouble",
             "qf",
         },
+        refresh = {
+            statusline = 1000,
+            tabline = 1000,
+            winbar = 1000,
+        }
     },
     sections = {
         lualine_a = { mode },
@@ -384,10 +393,7 @@ lualine.setup({
         lualine_c = {
             diff,
             lsp_count,
-            {
-                require("dr-lsp").lspProgress,
-                color = { fg = colors.blue },
-            },
+            dr_lsp,
         },
         lualine_x = {
             "searchcount",

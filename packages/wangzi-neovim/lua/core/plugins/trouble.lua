@@ -1,4 +1,5 @@
 local function config()
+    local symbols = require("core.theme").symbols
     require("trouble").setup({
         position = "bottom", -- position of the list can be: bottom, top, left, right
         height = 10, -- height of the trouble list when position is top or bottom
@@ -10,7 +11,7 @@ local function config()
         group = true, -- group results by file
         padding = false, -- add an extra new line on top of the list
         follow = false,
-        max_items = 1024,
+        max_items = 256,
         action_keys = { -- key mappings for actions in the trouble list
             -- map to {} to remove a mapping, for example:
             -- close = {},
@@ -40,10 +41,10 @@ local function config()
         auto_jump = { "lsp_definitions" }, -- for the given modes, automatically jump if there is only a single result
         signs = {
             -- icons / text used for a diagnostic
-            error = "",
-            warning = "",
-            hint = "",
-            information = "",
+            error = symbols.error,
+            warning = symbols.warning,
+            hint = symbols.hint,
+            information = symbols.info,
             other = "﫠",
         },
         use_diagnostic_signs = false, -- enabling this will use the signs defined in your lsp client

@@ -54,7 +54,6 @@ opt.shiftwidth = 0
 opt.shiftround = true
 opt.autoindent = true
 
-opt.laststatus = 3
 opt.splitkeep = "screen"
 opt.endofline = false
 
