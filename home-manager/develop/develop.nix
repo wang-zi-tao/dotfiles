@@ -77,6 +77,7 @@ in
     docker-compose
     cpulimit
     ctop
+    sqlite
 
     bison
 
@@ -114,6 +115,8 @@ in
     xmake
     vala-language-server
     cmake-language-server
+    java-language-server
+    "/nixfs/flake/str/nixpkgs#jdt-language-server/bin/jdtls"
     "haskellPackages.haskell-debug-adapter"
     "haskellPackages.haskell-language-server"
     "nodePackages.typescript-language-server"

@@ -44,6 +44,10 @@ return {
                 return t { "", "" }
             end
 
+            ls.add_snippets("rs", {
+                s("default", { t("Default::default()") }),
+            })
+
             ls.add_snippets("markdown", {
                 s("class_parent", { i(1, "class"), t(" --|> "), i(2, "parent_class"), newline() }),
                 s("class_interface", { i(1, "class"), t(" ..|> "), i(2, "interface"), newline() }),

@@ -19,6 +19,7 @@ vim.g.rustaceanvim = function()
     local cfg = require("rustaceanvim.config")
     return {
         tools = {
+            enable_clippy = true,
 
             --- how to execute terminal commands
             --- options right now: termopen / quickfix / toggleterm / vimux
@@ -106,13 +107,11 @@ vim.g.rustaceanvim = function()
             adapter = cfg.get_codelldb_adapter(codelldb_path, liblldb_path),
         },
         server = {
+            cmd = { "rust-analyzer" },
             on_attach = require("core.plugins.lspconfig").on_attach,
-            settings = function(project_root)
-                local ra = require("rustaceanvim.config.server")
-                return ra.load_rust_analyzer_settings(project_root, {
-                    settings_file_pattern = "rust-analyzer.json",
-                })
-            end,
+            settings = {
+                ['rust-analyzer'] = { checkOnSave = { overrideCommand = {} } } -- here
+            }
         },
     }
 end
@@ -192,6 +191,7 @@ return {
         },
         cmd = { "RustLsp" },
         lazy = true,
+        -- enabled = false,
         init = function()
             require("which-key").register({
                 r = { name = "Rust" },

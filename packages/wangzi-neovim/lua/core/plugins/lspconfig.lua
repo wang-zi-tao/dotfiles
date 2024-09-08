@@ -90,14 +90,25 @@ local function config()
 
     require("core.plugins.lsp_handlers")
 
-    local capabilities = get_capabilities()
+    local function setup_lsp(lsp_name, opts)
+        local opts = opts or {}
+        lspconfig[lsp_name].setup({
+            on_attach = on_attach,
+            flags = {
+                debounce_text_changes = 150,
+            },
+            settings = opts.settings,
+            cmd = opts.cmd,
+        })
+    end
+
     -- lspservers with default config
     local servers = {
         "lua_ls",
         "vimls",
         "pyright",
         "ruff",
-        "rust_analyzer",
+        -- "rust_analyzer",
         "gopls",
         "html",
         "tsserver",
@@ -113,23 +124,14 @@ local function config()
         "wgsl_analyzer",
         "clangd",
     }
-    local option = {
-        on_attach = on_attach,
-        capabilities = capabilities,
-        flags = {
-            debounce_text_changes = 150,
-        },
-    }
     for _, lsp in ipairs(servers) do
-        lspconfig[lsp].setup(option)
+        setup_lsp(lsp)
     end
-    require("core.plugins.cpp").clangd_config(on_attach, capabilities)
-    lspconfig.nil_ls.setup({
-        on_attach = on_attach,
-        capabilities = capabilities,
-        flags = {
-            debounce_text_changes = 150,
-        },
+    require("core.plugins.cpp").clangd_config(on_attach, nil)
+    setup_lsp("java_language_server", {
+        cmd = { "java-language-server" }
+    })
+    setup_lsp("nil_ls", {
         settings = {
             formatting = {
                 command = "nixpkgs-fmt",

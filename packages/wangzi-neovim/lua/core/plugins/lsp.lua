@@ -193,6 +193,7 @@ return {
         dir = gen.lsp_format_nvim,
         name = "lsp_format_nvim",
         module = "lsp-format",
+        dependencies = { "nvim_lspconfig" },
         config = function()
             require("lsp-format").setup({
                 cpp = { exclude = { "astyle", "clang_format", "uncrustify", "clangd" } },
@@ -217,14 +218,30 @@ return {
     {
         "mrcjkb/haskell-tools.nvim",
         dir = gen.haskell_tools_nvim,
+        dependencies = { "nvim_lspconfig" },
         version = "^3", -- Recommended
         ft = { "hs", "haskell", "lhaskell", "cabal", "cabalproject" },
+    },
+    {
+        "mfussenegger/nvim-jdtls",
+        dir = gen.jdtls,
+        name = "jdtls",
+        ft = { "java" },
+        module = "jdtls",
+        dependencies = { "nvim_lspconfig" },
+        config = function()
+            require('jdtls').start_or_attach({
+                cmd = { 'jdtls' },
+                root_dir = vim.fs.dirname(vim.fs.find({ 'gradlew', '.git', 'mvnw' }, { upward = true })[1]),
+            })
+        end
     },
     {
         "Vigemus/iron.nvim",
         dir = gen.iron_nvim,
         name = "iron",
         module = "iron",
+        dependencies = { "nvim_lspconfig" },
         cmd = { "IronRepl", "IronRestart", "IronFocus", "IronHide" },
         keys = {
             { "<leader>Rr", function() vim.cmd.IronRepl() end, desc = "Iron Repl", },

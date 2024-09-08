@@ -103,8 +103,8 @@ nixos-remote)
 	nix build "$script_dir#nixos.$profile.config.system.build.toplevel" "$@"
 	result=$(realpath ./result)
 	nix copy --to "ssh://root@$profile" "$result"
-	ssh "root@$host" "nix-env -p /nix/var/nix/profiles/system --set $result"
-	ssh "root@$host" "$result/bin/switch-to-configuration switch"
+	ssh "root@$profile" "nix-env -p /nix/var/nix/profiles/system --set $result"
+	ssh "root@$profile" "$result/bin/switch-to-configuration switch"
 	;;
 nixos-install)
 	mount /dev/nvme0n1p7 /mnt

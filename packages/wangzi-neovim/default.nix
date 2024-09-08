@@ -150,6 +150,7 @@ stdenvNoCC.mkDerivation {
         none_ls = "${none-ls-nvim}",
         clangd_extensions_nvim = "${clangd_extensions-nvim}",
         haskell_tools_nvim = "${haskell-tools-nvim}",
+        jdtls = "${nvim-jdtls}",
         iron_nvim = "${iron-nvim}",
         lsp_format_nvim = "${lsp-format-nvim}",
         refactoring_nvim = "${refactoring-nvim}",
@@ -384,7 +385,8 @@ stdenvNoCC.mkDerivation {
       export LUA_PATH="$out/lua/?.lua;$out/lua/?/init.lua;${lazy-nvim}/lua/?.lua;${lazy-nvim}/lua/?/init.lua;;"
       HOME=. ${pkgs.unstable.neovim-unwrapped}/bin/nvim -u $out/init.lua "+Lazy! install" --headless +qa
       makeWrapper ${pkgs.unstable.neovim-unwrapped}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
-          --set LUA_PATH "$LUA_PATH"
+          --set LUA_PATH "$LUA_PATH" \
+          --prefix PATH : ${luarocks}
       ln -s ${pkgs.tree-sitter}/bin/tree-sitter $out/bin/tree-sitter
       cp $out/bin/wnvim $out/bin/wangzi-neovim
       cp $out/bin/wnvim $out/bin/nvim

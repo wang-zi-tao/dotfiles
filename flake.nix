@@ -164,6 +164,7 @@
           inherit (pkgs) lib unstable nur;
           outputs = self;
         } // inputs // self;
+        packages = packages pkgs pkgs;
         homeConfigurations = builtins.mapAttrs (
           name: value:
           home-manager.lib.homeManagerConfiguration {
