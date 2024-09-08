@@ -263,6 +263,9 @@ return {
         name = "notify_nvim",
         module = "notify",
         event = "VeryLazy",
+        setup = function()
+            vim.notify = require("notify")
+        end,
         config = function()
             require("notify").setup({
                 timeout = 2500,

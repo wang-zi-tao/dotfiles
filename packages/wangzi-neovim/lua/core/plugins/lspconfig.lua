@@ -60,9 +60,7 @@ local function on_attach(client, bufnr)
     -- keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
     -- keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 
-    if vim.fn.has("win32") == 0 then
-        vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-    end
+    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 end
 
 local function get_capabilities()
@@ -123,6 +121,7 @@ local function config()
         "vala_ls",
         "wgsl_analyzer",
         "clangd",
+        "csharp_ls",
     }
     for _, lsp in ipairs(servers) do
         setup_lsp(lsp)

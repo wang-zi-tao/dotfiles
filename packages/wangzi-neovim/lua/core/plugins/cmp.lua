@@ -98,6 +98,10 @@ local function config()
             comparators = {
                 compare.exact,
                 compare.score,
+                compare.recently_used,
+                require("clangd_extensions.cmp_scores"),
+                compare.kind,
+                compare.length,
                 -- comparators.inherent_import_inscope,
                 comparators.inscope_inherent_import,
                 comparators.sort_by_label_but_underscore_last,

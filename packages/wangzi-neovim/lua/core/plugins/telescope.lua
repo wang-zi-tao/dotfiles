@@ -156,7 +156,10 @@ return {
         config = config,
         init = function()
             require("which-key").register({
-                f = { name = "Telescope" },
+                f = {
+                    name = "Telescope",
+                    m = { name = "In Module" },
+                },
             }, { prefix = "<leader>" })
         end,
         keys = {
@@ -188,6 +191,13 @@ return {
                     vim.cmd("Telescope fd search_dirs=" .. (global.pwd or "."))
                 end,
                 desc = "Files",
+            },
+            {
+                "<leader>fF",
+                function()
+                    vim.cmd("Telescope frecency")
+                end,
+                desc = "frecency",
             },
             {
                 "<leader>fr",
@@ -254,7 +264,7 @@ return {
                 desc = "GitBranches",
             },
             {
-                "<leader>fm",
+                "<leader>fM",
                 function()
                     telescope().marks()
                 end,
@@ -340,6 +350,22 @@ return {
                     vim.cmd.Telescope("ast_grep")
                 end,
                 desc = "AST grep",
+            },
+            {
+                "<leader>fmf",
+                function()
+                    local module_dir = require("core.utils").module_dir()
+                    vim.cmd("Telescope fd search_dirs=" .. module_dir)
+                end,
+                desc = "Files",
+            },
+            {
+                "<leader>fmw",
+                function()
+                    local module_dir = require("core.utils").module_dir()
+                    vim.cmd("Telescope live_grep search_dirs=" .. module_dir)
+                end,
+                desc = "Files",
             },
         },
         dependencies = {
