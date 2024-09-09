@@ -65,38 +65,6 @@ vim.api.nvim_create_user_command("Cd", function(opts)
     end)
 end, { nargs = "?", complete = "dir" })
 
-vim.api.nvim_create_user_command("Msbuild", function(opts)
-    utils.argOrCachedInput(opts.args, "target", "target", "", "", function(target)
-        if target == "" then
-            require("toggleterm").exec("msbuild ../debug/WPSOffice.sln -m:32")
-        else
-            require("toggleterm").exec("msbuild ../debug/WPSOffice.sln -m:32 -t:" .. target)
-        end
-    end)
-end, { nargs = "?" })
-
-vim.api.nvim_create_user_command("KrepoBuild", function(opts)
-    utils.argOrCachedInput(opts.args, "target", "target", "", "", function(target)
-        if target == "" then
-            require("toggleterm").exec("krepo build --no-redirect --verbose -t wps/" .. target)
-        else
-            require("toggleterm").exec("krepo build --no-redirect --verbose/")
-        end
-    end)
-end, { nargs = "?" })
-vim.api.nvim_create_user_command("KrepoCr", function(opts)
-    require("plenary.job"):new({ command = "krepo", args = { "cr" } }):start()
-end, { nargs = 0 })
-vim.api.nvim_create_user_command("KrepoPush", function(opts)
-    require("plenary.job"):new({ command = "krepo", args = { "push" } }):start()
-end, { nargs = 0 })
-vim.api.nvim_create_user_command("KrepoSync", function(opts)
-    require("plenary.job"):new({
-        command = "krepo",
-        args = { "sync", "--with-sdk", "--stash" },
-    }):start()
-end, { nargs = 0 })
-
 return {
     ClearTerm = ClearTerm,
     OpenInVS = OpenInVS,
