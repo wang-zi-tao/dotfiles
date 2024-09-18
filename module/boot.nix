@@ -12,6 +12,7 @@
         supportedFilesystems = [
           "f2fs"
           "ext4"
+          "nfs"
         ];
         availableKernelModules = [
           "xhci_pci"
@@ -20,7 +21,7 @@
           "bcache"
           "nvme"
         ];
-        kernelModules = [ ];
+        kernelModules = [ "nfs" ];
       };
       # extraModulePackages = with config.boot.kernelPackages; (lib.optional config.virtualisation.virtualbox.host.enable virtualbox);
       kernelParams = [ "quite" ];
@@ -59,12 +60,13 @@
       enableRootSlice = true;
       enableSystemSlice = true;
     };
+    environment.systemPackages = with pkgs; [ nfs-utils ];
     services.earlyoom = {
       enable = true;
       enableNotifications = true;
       extraArgs = [
         "-g"
-        "--prefer '(^|/)(java|chromium|nvim|clang|clang\+\+|cargo|rustc|ghc|rust-analyzer|.haskell-language-server-.*)$'"
+        "--prefer '(^|/)(chromium|nvim|clang|clang\+\+|cargo|rustc|ghc|rust-analyzer|.haskell-language-server-.*)$'"
       ];
     };
     systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {

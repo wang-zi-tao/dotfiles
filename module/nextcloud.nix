@@ -10,6 +10,7 @@ let
 in
 {
   config = lib.mkIf nodeConfig.NextCloudServer.enable {
+    environment.systemPackages = [ config.services.nextcloud.occ ];
     services.nextcloud = {
       enable = true;
       package = pkgs.nextcloud28;

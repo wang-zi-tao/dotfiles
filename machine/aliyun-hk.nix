@@ -54,6 +54,25 @@ nixpkgs.lib.nixosSystem {
           device = "/dev/vda1";
           fsType = "ext4";
         };
+        services.rpcbind.enable = true;
+        fileSystems."/mnt/aliyun_nas" = {
+          device = "ap-7iqjj7l7ks.12a71948580-udx69.cn-hongkong.nas.aliyuncs.com:/";
+          fsType = "nfs";
+          options = [
+            "x-systemd.automount"
+            "noauto"
+            "vers=3"
+            "nolock"
+            "proto=tcp"
+            "rsize=1048576"
+            "wsize=1048576"
+            "hard"
+            "timeo=600"
+            "retrans=2"
+            "noresvport"
+          ];
+        };
+        services.nextcloud.datadir = "/mnt/aliyun_nas/nextcloud";
         swapDevices = [
           {
             device = "/swapfile";
