@@ -13,5 +13,5 @@ in
 nix-on-droid.lib.nixOnDroidConfiguration {
   modules = [ ../mobile.nix ];
   extraSpecialArgs = inputs;
-  inherit pkgs system;
+  inherit pkgs;
 }
