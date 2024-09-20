@@ -171,12 +171,13 @@ with builtins;
       Restart = "always";
       ExecStart =
         let
+          xpra-base-command = "${pkgs.xpra}/bin/xpra shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+6000)),auth=sys --no-daemon";
           script = pkgs.writeShellScriptBin "xpra-shadow" ''
             #!${pkgs.busybox}/bin/sh
             if command -v nvidia-smi; then
-              ${pkgs.xpra-html5}/bin/xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+6000)) --video-encoders=nvenc
+              ${xpra-base-command} --video-encoders=nvenc
             else
-              ${pkgs.xpra-html5}/bin/xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+6000))
+              ${xpra-base-command}
             fi
           '';
         in
@@ -187,12 +188,16 @@ with builtins;
     systemd.user.services.xpra-server = makeService {
       ExecStart =
         let
+          startup-command = pkgs.writeScriptBin "xpra-start.sh" ''
+            #!${pkgs.stdenv.shell}
+            ${pkgs.alacritty}/bin/alacritty -e alacritty -e tmux attach -t dev
+          '';
+          xpra-base-command = ''${pkgs.xpra}/bin/xpra start :$((${"\$" + "{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+7000)),auth=sys --exec-wrapper="vglrun" --no-daemon --start=${startup-command}'';
           script = pkgs.writeShellScriptBin "xpra-server" ''
-            #!${pkgs.busybox}/bin/sh
             if command -v nvidia-smi ; then 
-              ${pkgs.xpra-html5}/bin/xpra-html5-start :$((${"\$" + "{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+7000)) --video-encoders=nvenc
+              ${xpra-base-command} --video-encoders=nvenc
             else 
-              ${pkgs.xpra-html5}/bin/xpra-html5-start :$((${"\$" + "{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+7000))
+              ${xpra-base-command}
             fi
           '';
         in

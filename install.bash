@@ -43,7 +43,7 @@ system="${system%\"}"
 system="${system#\"}"
 case $command in
 deploy)
-	nix run "$script_dir#deploy-rs" -- -d -c "$@"
+	nix run "$script_dir#deploy-rs" -- -d --skip-checks -c "$@"
 	;;
 nix-lang-check) nix run 'nixpkgs#statix' check . ;;
 nix-lang-fix) nix run 'nixpkgs#statix' fix . ;;
@@ -102,9 +102,9 @@ nixos-remote)
 	shift
 	nix build "$script_dir#nixos.$profile.config.system.build.toplevel" "$@"
 	result=$(realpath ./result)
-	nix copy --to "ssh://root@$profile" "$result"
-	ssh "root@$profile" "nix-env -p /nix/var/nix/profiles/system --set $result"
-	ssh "root@$profile" "$result/bin/switch-to-configuration switch"
+	nix copy --to "ssh://root@$profile.wg" "$result"
+	ssh "root@$profile.wg" "nix-env -p /nix/var/nix/profiles/system --set $result"
+	ssh "root@$profile.wg" "$result/bin/switch-to-configuration switch"
 	;;
 nixos-install)
 	mount /dev/nvme0n1p7 /mnt
@@ -129,7 +129,7 @@ system)
 	;;
 compile-all)
 	nix build "$script_dir#all.x86_64-linux" --option binary-caches "" "$@"
-	nix run "$script_dir#deploy-rs" -- -d --fast-connection true -c
+	nix run "$script_dir#deploy-rs" -- -d --fast-connection true -c --skip-checks
 	;;
 update)
 	nix flake update

@@ -2,8 +2,7 @@
   stdenv,
   fetchgit,
   lib,
-  makeWrapper,
-  xpra,
+  python3,
 }:
 stdenv.mkDerivation rec {
   pname = "xpra-html5";
@@ -14,15 +13,11 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-6hAnwC/6fvw/PsNxmg2+1mn75jnFGuX2jLKM9ZbRW1g=";
   };
   installPhase = ''
-    mkdir -p $out/bin
-    cp . $out -r
-    makeWrapper ${xpra}/bin/xpra $out/bin/xpra-html5-start \
-        --add-flags "--html=$out start"
-    makeWrapper ${xpra}/bin/xpra $out/bin/xpra-html5-shadow \
-        --add-flags "--html=$out shadow"
+    mkdir $out
+    python ./setup.py install / $out/install $out/config
   '';
-  nativeBuildInputs = [ ];
-  buildInputs = [ makeWrapper ];
+  nativeBuildInputs = [ python3 ];
+  buildInputs = [ ];
   meta = with lib; {
     description = "";
     license = licenses.mpl20;

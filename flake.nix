@@ -204,7 +204,7 @@
       deploy.nodes =
         builtins.mapAttrs
           (host: config: {
-            hostname = "${host}";
+            hostname = "${host}.wg";
             autoRollback = config.magicRollback;
             magicRollback = config.magicRollback;
             confirmTimeout = 600;

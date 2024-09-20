@@ -79,14 +79,12 @@ nixpkgs.lib.nixosSystem {
             size = 1024 * 2;
           }
         ];
-        systemd.services = {
-          create-swapfile = {
-            serviceConfig.Type = "oneshot";
-            wantedBy = [ "swap-swapfile.swap" ];
-            script = ''
-              ${pkgs.coreutils}/bin/truncate -s 0 /swapfile
-            '';
-          };
+        systemd.services.create-swapfile = {
+          serviceConfig.Type = "oneshot";
+          wantedBy = [ "swap-swapfile.swap" ];
+          script = ''
+            ${pkgs.coreutils}/bin/truncate -s 0 /swapfile
+          '';
         };
         networking = {
           dhcpcd.enable = true;

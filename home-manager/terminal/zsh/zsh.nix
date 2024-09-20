@@ -142,7 +142,9 @@
         if [[ -e /run/secrets/shell/${config.home.username} ]];then
           source /run/secrets/shell/${config.home.username}
         fi
-        nohup atuin login -u wangzi -p 03hat0zw0oEH7nipcKB6JqLpxptl7DdV -k $(cat /run/secrets-for-users/atuin-key) > /dev/null 2> /dev/null
+        if [[ -e /run/secrets-for-users/atuin-key ]];then
+            nohup atuin login -u wangzi -p 03hat0zw0oEH7nipcKB6JqLpxptl7DdV -k $(cat /run/secrets-for-users/atuin-key) > /dev/null 2> /dev/null
+        fi
       '';
   };
   programs.nushell =
@@ -175,7 +177,9 @@
         $env.config = $current
       '';
     };
-  home.file.".config/atuin/config.toml".source = ./atuin.toml;
+  home.file.".config/atuin/config.toml".text = builtins.readFile ./atuin.toml + ''
+    key_path = "/run/secrets-for-users/atuin-key"
+  '';
   programs.atuin = {
     enable = true;
     enableZshIntegration = true;

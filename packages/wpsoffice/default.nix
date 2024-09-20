@@ -58,7 +58,7 @@ stdenv.mkDerivation rec {
   pname = "wpsoffice";
   version = "11.1.0.11711";
   src = fetchurl {
-    url = "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2019/11711/wps-office_11.1.0.11711_amd64.deb";
+    url = "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/17885/wps-office_12.1.0.17885_amd64.deb?t=1726553572&k=756141317e686bfbdcc18572e1f35448";
     sha256 = "sha256-JHSTZZnOZoTpj8zF4C5PmjTkftEdxbeaqweY3ITiJto=";
   };
   unpackCmd = "dpkg -x $src .";
@@ -151,13 +151,12 @@ stdenv.mkDerivation rec {
     nss
     curl
     pango
-    nixpkgs-old.qt4
+    # nixpkgs-old.qt4
     libsForQt5.qt5.qtbase
     sqlite
     unixODBC
     zlib
     cups.lib
-    libcxxabi
     libcxx
   ];
   libPath = with xorg; lib.makeLibraryPath (buildInputs ++ [ ]);

@@ -85,6 +85,10 @@ with builtins;
                   type = bool;
                   default = false;
                 };
+                XpraProxy.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
                 CodeServer.enable = mkOption {
                   type = bool;
                   default = false;
@@ -168,6 +172,7 @@ with builtins;
     ./nfs.nix
     ./prometheus.nix
     ./rustdesk.nix
+    ./xpra.nix
   ];
   config = {
     boot.isContainer = nodeConfig.inContainer;
@@ -387,6 +392,7 @@ with builtins;
           webssh.enable = true;
           OnedevServer.enable = true;
           RustDeskServer.enable = true;
+          XpraProxy.enable = true;
           atuin.enable = true;
           inVM = true;
         };
