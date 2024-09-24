@@ -1,9 +1,4 @@
-{
-  pkgs,
-  config,
-  lib,
-  ...
-}:
+{ pkgs, config, lib, ... }:
 with builtins;
 with lib;
 with lib.types;
@@ -12,34 +7,33 @@ let
   hostname = config.networking.hostName;
   networkCluster = config.cluster.network.edges;
   network = networkCluster.${hostname};
+  nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
+  networkConfig = config.cluster.network.edges.${config.cluster.nodeName}.config;
   networkGraph = pkgs.graphType {
-    nodeOption =
-      { nodeName, nodeConfig, ... }:
-      {
-        hostname = mkOption {
-          type = str;
-          default = nodeName;
-        };
-        publicIp = mkOption {
-          type = nullOr str;
-          default = null;
-        };
-        localIp = mkOption {
-          type = nullOr str;
-          default = null;
-        };
-        ips = mkOption {
-          type = listOf str;
-          default = [ ];
-        };
-        doh.enable = mkOption {
-          type = bool;
-          default = false;
-        };
+    nodeOption = { nodeName, nodeConfig, ... }: {
+      hostname = mkOption {
+        type = str;
+        default = nodeName;
       };
+      publicIp = mkOption {
+        type = nullOr str;
+        default = null;
+      };
+      localIp = mkOption {
+        type = nullOr str;
+        default = null;
+      };
+      ips = mkOption {
+        type = listOf str;
+        default = [ ];
+      };
+      doh.enable = mkOption {
+        type = bool;
+        default = false;
+      };
+    };
   };
-in
-{
+in {
   options = {
     cluster.network = mkOption {
       inherit (networkGraph) type;
@@ -48,10 +42,7 @@ in
   };
   config = lib.mkMerge [
     (lib.mkIf network.config.doh.enable {
-      networking.nameservers = [
-        "127.0.0.1"
-        "::1"
-      ];
+      networking.nameservers = [ "127.0.0.1" "::1" ];
       services.dnscrypt-proxy2 = {
         enable = true;
         settings = {
@@ -63,7 +54,8 @@ in
               "https://download.dnscrypt.info/resolvers-list/v3/public-resolvers.md"
             ];
             cache_file = "/var/lib/dnscrypt-proxy2/public-resolvers.md";
-            minisign_key = "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3";
+            minisign_key =
+              "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3";
           };
         };
       };
@@ -72,11 +64,7 @@ in
       };
     })
     {
-      networking.nameservers = [
-        "240C::6666"
-        "8.8.8.8"
-        "9.9.9.9"
-      ];
+      networking.nameservers = [ "240C::6666" "8.8.8.8" "9.9.9.9" ];
       cluster.network = networkGraph.function config.cluster.network;
       networking = {
         firewall = {
@@ -102,37 +90,18 @@ in
           #     ip46tables -D nixos-fw -j trap-scan
           # '';
         };
-        hosts =
-          listToAttrs (
-            concatLists (
-              mapAttrsToList (
-                nodeName: node:
-                let
-                  inherit (networkCluster.${nodeName}.config) publicIp;
-                  inherit (networkCluster.${nodeName}.config) localIp;
-                in
-                if (publicIp != null) then
-                  [
-                    {
-                      name = publicIp;
-                      value = [ nodeName ];
-                    }
-                  ]
-                else if (localIp != null) then
-                  [
-                    {
-                      name = localIp;
-                      value = [ nodeName ];
-                    }
-                  ]
-                else
-                  [ ]
-              ) network.peers
-            )
-          )
-          // {
-            "192.30.255.113" = [ "github.com" ];
-          };
+        hosts = listToAttrs (concatLists (mapAttrsToList (nodeName: node:
+          let
+            inherit (networkCluster.${nodeName}.config) publicIp;
+            inherit (networkCluster.${nodeName}.config) localIp;
+          in if (publicIp != null) then [{
+            name = publicIp;
+            value = [ nodeName ];
+          }] else if (localIp != null) then [{
+            name = localIp;
+            value = [ nodeName ];
+          }] else
+            [ ]) network.peers)) // { };
       };
       boot.kernel.sysctl = {
         "net.ipv4.ip_forward" = 1;
@@ -147,7 +116,20 @@ in
           http_port 89
           default_sni ${toString network.config.publicIp}
         '';
+        virtualHosts = {
+          "https://${builtins.toString networkConfig.publicIp}" = {
+            extraConfig = ''
+              log {
+              	# output stderr
+              	level DEBUG
+              	format console
+              }
+            '';
+          };
+        };
       };
+      networking.firewall.allowedTCPPorts = [ 80 443 ];
+      environment.systemPackages = with pkgs; [ nss ];
     }
   ];
 }

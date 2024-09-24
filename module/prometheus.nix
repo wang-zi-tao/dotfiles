@@ -1533,7 +1533,7 @@ in
       enable = true;
       settings = {
         server = {
-          root_url = "%(protocol)s://%(domain)s:%(http_port)s/";
+          root_url = "%(protocol)s://%(domain)s:%(http_port)s/prometheus";
           http_addr = "0.0.0.0";
           http_port = 9002;
           domain = "grafana.wangzicloud.cn";
@@ -1544,9 +1544,12 @@ in
     services.caddy = lib.optionalAttrs nodeConfig.prometheus.server {
       enable = true;
       virtualHosts = {
-        "https://${builtins.toString networkConfig.publicIp}:9003" = {
+        "https://${builtins.toString networkConfig.publicIp}" = {
           extraConfig = ''
-            reverse_proxy http://localhost:9002
+            route /prometheus/* {
+                uri strip_prefix /prometheus
+                reverse_proxy http://localhost:9002
+            }
           '';
         };
       };

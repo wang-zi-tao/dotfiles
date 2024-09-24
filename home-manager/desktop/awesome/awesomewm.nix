@@ -225,5 +225,6 @@ with builtins;
       ExecStart = "${pkgs.rustdesk}/bin/rustdesk";
       Restart = "always";
     });
+    home.packages = with pkgs;[ virtualgl ];
   };
 }

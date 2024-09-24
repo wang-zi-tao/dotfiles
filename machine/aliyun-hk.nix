@@ -56,7 +56,7 @@ nixpkgs.lib.nixosSystem {
         };
         services.rpcbind.enable = true;
         fileSystems."/mnt/aliyun_nas" = {
-          device = "ap-7iqjj7l7ks.12a71948580-udx69.cn-hongkong.nas.aliyuncs.com:/";
+          device = "12a71948580-yts86.cn-hongkong.nas.aliyuncs.com:/";
           fsType = "nfs";
           options = [
             "x-systemd.automount"

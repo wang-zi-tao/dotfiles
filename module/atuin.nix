@@ -21,16 +21,15 @@ in
       services.caddy = {
         enable = true;
         virtualHosts = {
-          "https://${builtins.toString networkConfig.publicIp}:9006" = {
+          "https://${builtins.toString networkConfig.publicIp}" = {
             extraConfig = ''
-              respond / 404
-              respond /favicon.ico 404
-              reverse_proxy http://localhost:9005
+              route /atuin/* {
+                reverse_proxy http://localhost:9005
+              }
             '';
           };
         };
       };
-      networking.firewall.allowedTCPPorts = [ 9006 ];
     })
     (lib.mkIf sops-enable {
       sops.secrets."atuin-key" = {

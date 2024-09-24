@@ -129,6 +129,10 @@ with builtins;
                   type = bool;
                   default = false;
                 };
+                cockpitServer.enable = mkOption {
+                  type = bool;
+                  default = false;
+                };
                 atuin.enable = mkOption {
                   type = bool;
                   default = false;
@@ -192,7 +196,7 @@ with builtins;
             publicIp = "139.9.235.87";
           };
           aliyun-hk.config = {
-            publicIp = "47.243.22.114";
+            publicIp = "47.83.14.140";
           };
           aliyun-ecs.config = {
             publicIp = "116.62.23.116";
@@ -246,6 +250,7 @@ with builtins;
             publicKey = "kY4n/K6zHjRNq/5f1yId2156zyfO/cVAwQddasPqjE8=";
             iptables.enable = true;
             gatewayServer = true;
+            nat = "ens5";
           };
           aliyun-ecs.config = {
             index = 3;
@@ -394,6 +399,7 @@ with builtins;
           RustDeskServer.enable = true;
           XpraProxy.enable = true;
           atuin.enable = true;
+          cockpitServer.enable = true;
           inVM = true;
         };
         aliyun-ecs = {

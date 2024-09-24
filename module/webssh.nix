@@ -26,6 +26,14 @@ with builtins;
     services.caddy = {
       enable = true;
       virtualHosts = {
+        "https://${builtins.toString networkConfig.publicIp}" = {
+          extraConfig = ''
+            route /webssh/* {
+                uri strip_prefix /webssh
+                reverse_proxy http://localhost:64535
+            }
+          '';
+        };
         "https://${builtins.toString networkConfig.publicIp}:64536" = {
           extraConfig = ''
             @hostname {
