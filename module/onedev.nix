@@ -21,15 +21,13 @@ in {
         "https://${builtins.toString networkConfig.publicIp}" = {
           extraConfig = ''
             route /onedev/* {
-                rewrite * {path}
+                uri strip_prefix /onedev
                 reverse_proxy http://localhost:6610
             }
           '';
         };
         "https://${builtins.toString networkConfig.publicIp}:6613" = {
           extraConfig = ''
-            # respond / 404
-            # respond /favicon.ico 404
             reverse_proxy http://localhost:6610
           '';
         };

@@ -39,6 +39,11 @@ in with builtins; {
         lxc.lxcfs.enable = false;
         libvirtd = {
           enable = true;
+          package = pkgs.libvirt.overrideAttrs (oldAttrs: {
+            postInstall = oldAttrs.postInstall + ''
+              sed -i 's|name>|name>\n  <dns enable="no"/>|' $out/var/lib/libvirt/qemu/networks/default.xml
+            '';
+          });
           # qemu.ovmf.enable = true;
           # qemu.ovmf.packages = [ pkgs.OVMFFull ];
           # qemu.swtpm.enable = true;
@@ -81,9 +86,6 @@ in with builtins; {
       };
       environment.etc."qemu/vhost-user".source =
         "${pkgs.qemu}/share/qemu/vhost-user";
-      environment.etc."libvirt/qemu/networks/host-bridge.xml".text = ''
-        <dns enable="no"/>
-      '';
       programs.virt-manager.enable = true;
       environment.etc."libvirt/libvirtd.conf".source =
         "${pkgs.qemu}/share/qemu/vhost-user";
@@ -150,30 +152,22 @@ in with builtins; {
       };
     })
     (lib.mkIf nodeConfig.NextCloudServer.enable {
-      services.cockpit = {
-        enable = true;
-        port = 9090;
-        openFirewall = true;
-        settings = {
-          WebService = {
-            AllowUnencrypted = true;
-            UrlRoot = "/cockpit/";
-          };
-        };
+      virtualisation.oci-containers.containers.virtlyst = {
+        image = "dantti/virtlyst";
+        volumes = [ "virtlyst:/root" "/root/.ssh:/root/.ssh" ];
+        ports = [ "9090:80" ];
       };
       services.caddy = lib.optionalAttrs nodeConfig.NextCloudServer.enable {
         enable = true;
         virtualHosts = {
-          "https://${builtins.toString networkConfig.publicIp}" = {
+          "https://${builtins.toString networkConfig.publicIp}:9093" = {
             extraConfig = ''
-              route /cockpit/* {
-                rewrite * {path}
-                reverse_proxy http://localhost:9090
-              }
+              reverse_proxy http://localhost:9090
             '';
           };
         };
       };
+      networking.firewall.allowedTCPPorts = [ 9093 ];
     })
   ];
 }

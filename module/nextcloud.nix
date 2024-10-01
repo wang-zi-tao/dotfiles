@@ -1,9 +1,14 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 let
   nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
-  networkConfig =
-    config.cluster.network.edges.${config.cluster.nodeName}.config;
-in {
+  networkConfig = config.cluster.network.edges.${config.cluster.nodeName}.config;
+in
+{
   config = lib.mkIf nodeConfig.NextCloudServer.enable {
     environment.systemPackages = [ config.services.nextcloud.occ ];
     services.nextcloud = {
@@ -14,12 +19,10 @@ in {
       appstoreEnable = true;
       enableImagemagick = true;
       config.adminuser = "wang-zi-tao";
-      config.adminpassFile =
-        config.sops.secrets."nextcloud/admin_password".path;
+      config.adminpassFile = config.sops.secrets."nextcloud/admin_password".path;
       autoUpdateApps.enable = true;
       https = true;
       settings = {
-        "loglevel" = 0;
         "overwritewebroot" = "/nextcloud";
       };
     };
@@ -42,6 +45,6 @@ in {
       };
     };
     networking.firewall.allowedUDPPorts = [ 443 ];
-    networking.firewall.allowedTCPPorts = [ 80 443 ];
+    networking.firewall.allowedTCPPorts = [ 443 ];
   };
 }

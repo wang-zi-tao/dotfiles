@@ -19,7 +19,7 @@
             pulseaudio = true;
           };
           displayManager.autoLogin = {
-            enable = true;
+            enable = false;
             user = "wangzi";
           };
           xkb.options = "ctrl:nocaps";
