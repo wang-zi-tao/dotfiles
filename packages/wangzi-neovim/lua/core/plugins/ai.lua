@@ -56,9 +56,9 @@ return {
         cmd = { "Gen" },
         config = config,
         init = function()
-            require("which-key").register({
-                a = { name = "AI ollama" },
-            }, { prefix = "<leader>" })
+            require("which-key").add({
+                { "<leader>a", group = "AI ollama" },
+            })
         end,
         keys = {
             { "<leader>a",  [[<cmd>Gen<CR>]],      mode = { "n", "v" }, desc = "AI" },

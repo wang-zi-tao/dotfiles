@@ -79,9 +79,9 @@ return {
         end,
         cmd = { "ToggleTerm" },
         init = function()
-            require("which-key").register({
-                t = { name = "TrailBlazer / Terminal" },
-            }, { prefix = "<leader>" })
+            require("which-key").add({
+                { "<leader>t", group = "TrailBlazer / Terminal" },
+            })
         end,
         module = "toggleterm",
         keys = {

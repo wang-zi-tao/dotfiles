@@ -10,9 +10,9 @@ return {
             require("hop").setup({})
         end,
         init = function()
-            require("which-key").register({
-                T = { name = "Hop" },
-            }, { prefix = "<leader>" })
+            require("which-key").add({
+                { "<leader>T", group = "Hop" },
+            })
         end,
         keys = {
             {

@@ -94,7 +94,10 @@ return {
         lazy = true,
         config = config,
         init = function()
-            require("which-key").register({ p = { name = "Perf", l = { name = "Load" } } }, { prefix = "<leader>" })
+            require("which-key").add({
+                { "<leader>p",  group = "Perf" },
+                { "<leader>pl", group = "Perf Load" },
+            })
         end,
         keys = {
             { "<leader>plf", ":PerfLoadFlat<CR>",                desc = "load flat" },

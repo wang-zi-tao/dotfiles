@@ -155,12 +155,10 @@ return {
         lazy = true,
         config = config,
         init = function()
-            require("which-key").register({
-                f = {
-                    name = "Telescope",
-                    m = { name = "In Module" },
-                },
-            }, { prefix = "<leader>" })
+            require("which-key").add({
+                { "<leader>f",  group = "Telescope" },
+                { "<leader>fm", group = "Telescope In Module" },
+            })
         end,
         keys = {
             {

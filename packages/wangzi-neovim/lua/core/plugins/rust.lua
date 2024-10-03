@@ -193,9 +193,9 @@ return {
         lazy = true,
         -- enabled = false,
         init = function()
-            require("which-key").register({
-                r = { name = "Rust" },
-            }, { prefix = "<leader>" })
+            require("which-key").add({
+                { "<leader>r", group = "Rust" },
+            })
         end,
         keys = {
             {

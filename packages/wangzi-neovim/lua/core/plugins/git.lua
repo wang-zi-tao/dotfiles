@@ -43,12 +43,12 @@ return {
         config = gitsigns_config,
         event = "VeryLazy",
         init = function()
-            require("which-key").register({
-                h = { name = "Hunk" },
-                b = { name = "Buffer" },
-                s = { name = "Select / Swap" },
-                g = { name = "Git" },
-            }, { prefix = "<leader>" })
+            require("which-key").add({
+                { "<leader>h", group = "Hunk" },
+                { "<leader>b", group = "Buffer" },
+                { "<leader>s", group = "Select / Swap" },
+                { "<leader>g", group = "Git" },
+            })
         end,
         keys = {
             { "<leader>hs", "<cmd>Gitsigns stage_hunk<CR>",                mode = { "n", "v" }, desc = "Stage" },

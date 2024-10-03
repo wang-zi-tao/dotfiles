@@ -116,6 +116,11 @@ in
     vala-language-server
     cmake-language-server
     java-language-server
+    
+    "/nixfs/flake/str/nixpkgs#vscode-langservers-extracted/bin/vscode-css-language-server"
+    "/nixfs/flake/str/nixpkgs#vscode-langservers-extracted/bin/vscode-eslint-language-server"
+    "/nixfs/flake/str/nixpkgs#vscode-langservers-extracted/bin/vscode-html-language-server"
+    "/nixfs/flake/str/nixpkgs#vscode-langservers-extracted/bin/vscode-json-language-server"
     "/nixfs/flake/str/nixpkgs#jdt-language-server/bin/jdtls"
     "haskellPackages.haskell-debug-adapter"
     "haskellPackages.haskell-language-server"

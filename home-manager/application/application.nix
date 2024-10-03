@@ -42,7 +42,6 @@
     beekeeper-studio
     peek
     remmina
-    obsidian
     "/nixfs/flake/str/nixpkgs#geogebra/bin/geogebra"
     gcolor3
     gpick
@@ -75,6 +74,7 @@
       libsForQt5.qt5.qtbase
       harfbuzz
       gvfs
+      obsidian
     ]
     ++ [
 

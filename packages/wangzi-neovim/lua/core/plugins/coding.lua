@@ -224,9 +224,9 @@
         },
         module = "neotest",
         init = function()
-            require("which-key").register({
-                L = { name = "Neotest" },
-            }, { prefix = "<leader>" })
+            require("which-key").add({
+                { "<leader>L", group = "Neotest" },
+            })
         end,
         config = function()
             require("neotest").setup({

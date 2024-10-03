@@ -109,7 +109,9 @@ local function config()
         -- "rust_analyzer",
         "gopls",
         "html",
-        "tsserver",
+        "ts_ls",
+        "jsonls",
+        "eslint",
         -- 'jsonls',
         "volar",
         -- "tailwindcss",
@@ -122,6 +124,7 @@ local function config()
         "wgsl_analyzer",
         "clangd",
         "csharp_ls",
+        "cssls",
     }
     for _, lsp in ipairs(servers) do
         setup_lsp(lsp)
@@ -158,10 +161,10 @@ return {
         event = { "BufRead", "VeryLazy" },
         config = config,
         init = function()
-            require("which-key").register({
-                l = { name = "LSP" },
-                c = { name = "CMake / Cargo" },
-            }, { prefix = "<leader>" })
+            require("which-key").add({
+                { "<leader>l", group = "LSP" },
+                { "<leader>c", group = "CMake / Cargo" },
+            })
         end,
         keys = {
             {

@@ -9,7 +9,10 @@ return {
         lazy = true,
         event = "VeryLazy",
         config = function()
-            require("which-key").setup({})
+            require("which-key").setup({
+                notify = false,
+                preset = "modern",
+            })
         end,
     },
     {
