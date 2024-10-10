@@ -1,5 +1,5 @@
 local lualine = require("lualine")
-local noice = require("noice")
+-- local noice = require("noice")
 local colors = require("core.theme").colors
 local symbols = require("core.theme").symbols
 
@@ -122,64 +122,26 @@ local midle = {
         separator = { left = "", right = "" },
     },
 }
-local lsp_indexing = {
-    color = {
-        separator = { left = "", right = "" },
-        fg = colors.blue,
-        gui = "bold",
-    },
-    function()
-        local Lsp = vim.lsp.status()[1]
 
-        if Lsp then
-            local msg = Lsp.message or ""
-            local percentage = Lsp.percentage or 0
-            local title = Lsp.title or ""
-            local spinners = {
-                "",
-                "",
-                "",
-            }
-
-            local success_icon = {
-                "",
-                "",
-                "",
-            }
-
-            local ms = vim.loop.hrtime() / 1000000
-            local frame = math.floor(ms / 120) % #spinners
-
-            if percentage >= 70 then
-                return string.format(" %%<%s %s %s (%s%%%%) ", success_icon[frame + 1], title, msg, percentage)
-            end
-
-            return string.format(" %%<%s %s %s (%s%%%%) ", spinners[frame + 1], title, msg, percentage)
-        end
-
-        return ""
-    end,
-}
-
-local message = {
-    noice.api.status.message.get_hl,
-    cond = noice.api.status.message.has,
-}
-local command = {
-    noice.api.status.command.get,
-    cond = noice.api.status.command.has,
-    color = { fg = colors.grey_fg2 },
-}
-local noice_mode = {
-    noice.api.status.mode.get,
-    cond = noice.api.status.mode.has,
-    color = { fg = colors.grey_fg2 },
-}
-local search = {
-    noice.api.status.search.get,
-    cond = noice.api.status.search.has,
-    color = { fg = colors.grey_fg2 },
-}
+-- local message = {
+--     noice.api.status.message.get_hl,
+--     cond = noice.api.status.message.has,
+-- }
+-- local command = {
+--     noice.api.status.command.get,
+--     cond = noice.api.status.command.has,
+--     color = { fg = colors.grey_fg2 },
+-- }
+-- local noice_mode = {
+--     noice.api.status.mode.get,
+--     cond = noice.api.status.mode.has,
+--     color = { fg = colors.grey_fg2 },
+-- }
+-- local search = {
+--     noice.api.status.search.get,
+--     cond = noice.api.status.search.has,
+--     color = { fg = colors.grey_fg2 },
+-- }
 local lsp_symbol = {
     ["rust-analyzer"] = "",
     clangd = " ",

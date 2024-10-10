@@ -168,6 +168,8 @@ in
     neovim-remote
     sccache
 
+    tracy
+
     (python3.withPackages (
       ps: with ps; [
         debugpy

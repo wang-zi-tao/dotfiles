@@ -1,12 +1,32 @@
-{ config, pkgs, lib, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   config = lib.mkIf (!config.cluster.nodeConfig.inContainer) {
     boot = {
       initrd = {
         # network.enable = true;
-        supportedFilesystems = [ "f2fs" "ext4" "nfs" ];
-        availableKernelModules =
-          [ "xhci_pci" "ahci" "rtsx_usb_sdmmc" "bcache" "nvme" ];
-        kernelModules = [ "nfs" "iptable_nat" "iptable_filter" "xt_nat" ];
+        supportedFilesystems = [
+          "f2fs"
+          "ext4"
+          "nfs"
+        ];
+        availableKernelModules = [
+          "xhci_pci"
+          "ahci"
+          "rtsx_usb_sdmmc"
+          "bcache"
+          "nvme"
+        ];
+        kernelModules = [
+          "nfs"
+          "iptable_nat"
+          "iptable_filter"
+          "xt_nat"
+        ];
 
       };
       # extraModulePackages = with config.boot.kernelPackages; (lib.optional config.virtualisation.virtualbox.host.enable virtualbox);
@@ -22,6 +42,8 @@
         "perf_event_paranoid" = 1;
       };
     };
+    services.logind.lidSwitch = "ignore";
+    services.upower.ignoreLid = true;
 
     services.lvm.boot.thin.enable = true;
     services.fstrim.interval = "daily";
@@ -40,7 +62,9 @@
     boot.extraSystemdUnitPaths = [ "/etc/systemd-mutable/system" ];
     systemd.oomd = {
       enable = true;
-      extraConfig = { DefaultMemoryPressureDurationSec = "15s"; };
+      extraConfig = {
+        DefaultMemoryPressureDurationSec = "15s";
+      };
       enableUserSlices = true;
       enableRootSlice = true;
       enableSystemSlice = true;
@@ -54,24 +78,27 @@
         "--prefer '(^|/)(chromium|nvim|clang|clang++|cargo|rustc|ghc|rust-analyzer|.haskell-language-server-.*)$'"
       ];
     };
-    systemd.services.run-secrets-scripts =
-      lib.mkIf (config.sops.defaultSopsFile != "/") {
-        wantedBy = [ "multi-user.target" ];
-        before = [ "multi-user.target" ];
-        path = with pkgs; [ busybox nix openssh ];
-        environment = {
-          inherit (config.environment.sessionVariables) NIX_PATH;
-        };
-        script = ''
-          if [[ -e /run/secrets/script ]]; then
-            /run/secrets/script
-          fi
-        '';
-        serviceConfig = {
-          Type = "oneshot";
-          # Restart = "always";
-          # RestartSec = "5s";
-        };
+    systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {
+      wantedBy = [ "multi-user.target" ];
+      before = [ "multi-user.target" ];
+      path = with pkgs; [
+        busybox
+        nix
+        openssh
+      ];
+      environment = {
+        inherit (config.environment.sessionVariables) NIX_PATH;
       };
+      script = ''
+        if [[ -e /run/secrets/script ]]; then
+          /run/secrets/script
+        fi
+      '';
+      serviceConfig = {
+        Type = "oneshot";
+        # Restart = "always";
+        # RestartSec = "5s";
+      };
+    };
   };
 }

@@ -17,7 +17,7 @@ local function config()
                 local Path = require("plenary.path")
                 local uri = params.lsp_params.textDocument.uri
                 local p = "file:///" .. params.cwd .. "/"
-                local relative_path = (uri:sub(0, #p) == p) and uri:sub(#p+1) or uri
+                local relative_path = (uri:sub(0, #p) == p) and uri:sub(#p + 1) or uri
                 vim.notify(relative_path)
                 return {
                     "--platform=win32W",
@@ -62,13 +62,13 @@ local function config()
         -- Shell
         b.formatting.shfmt,
         -- git
-        b.code_actions.gitsigns.with({
-            config = {
-                filter_actions = function(title)
-                    return title:lower():match("blame") == nil
-                end,
-            },
-        }),
+        -- b.code_actions.gitsigns.with({
+        --     config = {
+        --         filter_actions = function(title)
+        --             return title:lower():match("blame") == nil
+        --         end,
+        --     },
+        -- }),
         -- nix
         b.formatting.nixfmt,
 

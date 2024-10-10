@@ -18,6 +18,9 @@
   enable-markdown-preview ? enable-all,
   enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux"),
 }:
+let
+  pkg = pkgs.master.neovim-unwrapped;
+in
 stdenvNoCC.mkDerivation {
   pname = "wangzi-neovim";
   version = "1.0.0";
@@ -34,7 +37,7 @@ stdenvNoCC.mkDerivation {
     unzip
   ];
   buildInputs = [
-    neovim-unwrapped
+    pkg
     neovim-remote
     gcc
     zlib
@@ -42,8 +45,8 @@ stdenvNoCC.mkDerivation {
   ];
 
   installPhase =
-    with pkgs.unstable;
-    with pkgs.unstable.vimPlugins;
+    with pkgs.master;
+    with pkgs.master.vimPlugins;
     ''
       mkdir -p $out/
       mkdir -p $out/bin
@@ -73,6 +76,7 @@ stdenvNoCC.mkDerivation {
             sha256 = "sha256-usyy1kST8hq/3j0sp7Tpf/1mld6RtcVABPo/ygeqzbU=";
           }
         }",
+        nix_develop_nvim = "${nix-develop-nvim}",
 
         -- theme
         onedark_nvim = "${onedark-nvim}",
@@ -189,11 +193,13 @@ stdenvNoCC.mkDerivation {
           }
         }",
         cmp_git = "${cmp-git}",
-        nvim_cmp_lsp_rs = "${pkgs.fetchgit {
+        nvim_cmp_lsp_rs = "${
+          pkgs.fetchgit {
             url = "https://github.com/zjp-CN/nvim-cmp-lsp-rs";
             rev = "d9ebeca9ea07ba2fd57f997b2d6a8bc7da51abed";
             sha256 = "sha256-NYbNj7vdhmJaz/H2Fm7eWZxrM4GFAw4hpYR3y38ye10=";
-        }}",
+          }
+        }",
 
         nvim_autopairs = "${nvim-autopairs}",
         dashboard_nvim = "${dashboard-nvim}",
@@ -313,6 +319,7 @@ stdenvNoCC.mkDerivation {
         FixCursorHold_nvim = "${FixCursorHold-nvim}",
         nvim_nio = "${nvim-nio}",
         nvim_ufo = "${nvim-ufo}",
+        fidget_nvim = "${fidget-nvim}",
 
         mason_nvim = "${mason-nvim}",
         dap = "${nvim-dap}",
@@ -383,8 +390,8 @@ stdenvNoCC.mkDerivation {
       })
       EOF
       export LUA_PATH="$out/lua/?.lua;$out/lua/?/init.lua;${lazy-nvim}/lua/?.lua;${lazy-nvim}/lua/?/init.lua;;"
-      HOME=. ${pkgs.unstable.neovim-unwrapped}/bin/nvim -u $out/init.lua "+Lazy! install" --headless +qa
-      makeWrapper ${pkgs.unstable.neovim-unwrapped}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
+      HOME=. ${pkg}/bin/nvim -u $out/init.lua "+Lazy! install" --headless +qa
+      makeWrapper ${pkg}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
           --set LUA_PATH "$LUA_PATH" \
           --prefix PATH : ${luarocks}
       ln -s ${pkgs.tree-sitter}/bin/tree-sitter $out/bin/tree-sitter

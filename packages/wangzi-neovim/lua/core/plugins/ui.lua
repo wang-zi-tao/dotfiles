@@ -95,7 +95,7 @@ return {
                         -- ["textDocument.signatureHelp"] = false,
                     },
                     progress = {
-                        enabled = true,
+                        enabled = false,
                         -- Lsp Progress is formatted using the builtins for lsp_progress. See config.format.builtin
                         -- See the section on formatting for more details on how to customize.
                         --- @type NoiceFormat|string
@@ -266,16 +266,15 @@ return {
         name = "notify_nvim",
         module = "notify",
         event = "VeryLazy",
-        setup = function()
-            vim.notify = require("notify")
-        end,
         config = function()
             require("notify").setup({
                 timeout = 2500,
                 max_width = 64,
                 max_height = 16,
-                stages = (1 == vim.fn.has("win32")) and "static" or nil,
+                stages = "static",
+                render = "compact",
             })
+            vim.notify = require("notify")
         end,
     },
     {
@@ -411,10 +410,39 @@ return {
         "nvim-lualine/lualine.nvim",
         dir = gen.lualine_nvim,
         name = "lualine_nvim",
-        dependencies = { "nvim_web_devicons", "trouble_nvim" },
+        dependencies = {
+            "nvim_web_devicons",
+            "trouble_nvim",
+        },
         config = function()
             require("core.plugins.lualine")
         end,
+    },
+    {
+        "j-hui/fidget.nvim",
+        dir = gen.fidget_nvim,
+        name = "fidget_nvim",
+        module = "fidget",
+        event = "VeryLazy",
+        config = function()
+            require("fidget").setup({
+                notification = {
+                    window = {
+                    }
+                }
+            })
+            vim.api.nvim_create_autocmd("LspProgress", {
+                pattern = "end",
+                callback = function(ev)
+                    local token = ev.data.params.token
+                    local client_id = ev.data.client_id
+                    local client = client_id and vim.lsp.get_client_by_id(client_id)
+                    if client and token then
+                        require("fidget").notification.remove(client.name, token)
+                    end
+                end,
+            })
+        end
     },
     {
         "akinsho/bufferline.nvim",

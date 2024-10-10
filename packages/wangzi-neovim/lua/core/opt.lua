@@ -67,6 +67,17 @@ end
 -- })
 
 vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+    pattern = { "*.*" },
+    callback = function()
+        opt.mouse = "a"
+        opt.number = true
+        opt.numberwidth = 2
+        opt.relativenumber = true
+        opt.signcolumn = "yes"
+    end,
+})
+
+vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
     pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "CMakeLists.txt", "*.h", "*.hpp", "*.pch", "*.def" },
     callback = function()
         opt.tabstop = 4

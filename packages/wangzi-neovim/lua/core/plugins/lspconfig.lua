@@ -60,7 +60,7 @@ local function on_attach(client, bufnr)
     -- keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
     -- keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 
-    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+    -- vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 end
 
 local function get_capabilities()
