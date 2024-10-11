@@ -245,6 +245,9 @@ return {
                 if msg:find("69_get_delim_multi", 1, true) then
                     return
                 end
+                if msg:find("Error in decoration provider vim_lsp_inlayhint.win", 1, true) then
+                    return
+                end
                 if level == "error" then
                     if msg:find("处理 CursorMoved 自动命令", 1, true) then
                         return
@@ -549,24 +552,24 @@ return {
             -- vim.cmd("ColorizerReloadAllBuffers")
         end,
     },
-    {
-        "m00qek/baleia.nvim",
-        dir = gen.baleia_nvim,
-        tag = "v1.2.0",
-        name = "baleia_nvim",
-        -- event = "VeryLazy",
-        cmd = "BaleiaColorize",
-        lazy = true,
-        module = "baleia",
-        config = function()
-            vim.cmd([[
-                command! BaleiaColorize call luaeval("require('baleia').setup { }").once(bufnr('%'))
-
-                autocmd BufWinEnter my-buffer call luaeval("require('baleia').setup { }").automatically(bufnr('%'))
-                autocmd BufWinEnter *.log call luaeval("require('baleia').setup { }").automatically(bufnr('%'))
-            ]])
-        end,
-    },
+    -- {
+    --     "m00qek/baleia.nvim",
+    --     dir = gen.baleia_nvim,
+    --     tag = "v1.2.0",
+    --     name = "baleia_nvim",
+    --     -- event = "VeryLazy",
+    --     cmd = "BaleiaColorize",
+    --     lazy = true,
+    --     module = "baleia",
+    --     config = function()
+    --         vim.cmd([[
+    --             command! BaleiaColorize call luaeval("require('baleia').setup { }").once(bufnr('%'))
+    --
+    --             autocmd BufWinEnter my-buffer call luaeval("require('baleia').setup { }").automatically(bufnr('%'))
+    --             autocmd BufWinEnter *.log call luaeval("require('baleia').setup { }").automatically(bufnr('%'))
+    --         ]])
+    --     end,
+    -- },
     {
         "stevearc/dressing.nvim",
         dir = gen.dressing_nvim,

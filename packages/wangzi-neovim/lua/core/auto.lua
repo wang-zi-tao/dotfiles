@@ -8,6 +8,12 @@ autocmd({ "BufNewFile", "BufRead" }, {
         vim.cmd([[setfiletype xml]])
     end,
 })
+autocmd({ "BufNewFile", "BufRead" }, {
+    pattern = { "*.ets" },
+    callback = function()
+        vim.cmd([[setfiletype typescript]])
+    end,
+})
 autocmd("FileType", {
     pattern = { "*.cpp", "*.h", "*.txt" },
     callback = function()

@@ -453,6 +453,18 @@ return {
                 for _, workspace in pairs(workspaces) do
                     local path = path_lib:new(workspace.path)
                     path:mkdir({ parents = true, exists_ok = true })
+
+                    vim.api.nvim_create_user_command("CdObsidian_" .. workspace.name, function()
+                        vim.cmd.cd(workspace.path)
+                    end, {})
+                    vim.api.nvim_create_user_command("FdObsidian_" .. workspace.name, function()
+                        require("trailblazer").new_trail_mark()
+                        vim.cmd("Telescope live_grep search_dirs=" .. workspace.path)
+                    end, {})
+                    vim.api.nvim_create_user_command("RgObsidian_" .. workspace.name, function()
+                        require("trailblazer").new_trail_mark()
+                        vim.cmd("Telescope fd search_dirs=" .. workspace.path)
+                    end, {})
                 end
                 require("obsidian").setup({ workspaces = workspaces })
             end)
