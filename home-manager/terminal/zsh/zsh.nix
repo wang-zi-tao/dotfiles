@@ -157,11 +157,19 @@
     in
     {
       enable = true;
-      configFile.text = ''
+      configFile.text = with pkgs.unstable; ''
         use ${scripts}/custom-completions/git/git-completions.nu *
         use ${scripts}/custom-completions/make/make-completions.nu *
         use ${scripts}/custom-completions/cargo/cargo-completions.nu *
         use ${scripts}/custom-completions/nix/nix-completions.nu *
+
+        plugin add ${nushellPlugins.units}/bin/nu_plugin_units
+        plugin add ${nushellPlugins.polars}/bin/nu_plugin_polars
+        plugin add ${nushellPlugins.query}/bin/nu_plugin_query
+        plugin add ${nushellPlugins.net}/bin/nu_plugin_net
+        plugin add ${nushellPlugins.highlight}/bin/nu_plugin_highlight
+        plugin add ${nushellPlugins.gstat}/bin/nu_plugin_gstat
+        plugin add ${nushellPlugins.formats}/bin/nu_plugin_formats
 
         def --env get-env [name] { $env | get $name }
         def --env set-env [name, value] { load-env { $name: $value } }

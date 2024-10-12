@@ -42,7 +42,7 @@ M.colors = {
     lightbg2 = "#262a32",
     pmenu_bg = "#A3BE8C",
     folder_bg = "#61afef",
-    ui_main = "#51afef",
+    ui_main = "#82aaff",
 
     bg = '#202328',
     fg = '#bbc2cf',

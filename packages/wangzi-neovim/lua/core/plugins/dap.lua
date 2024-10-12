@@ -82,7 +82,7 @@ local function config()
     dap.adapters.cppdbg = {
         id = 'cppdbg',
         type = 'executable',
-        command = (gen.core or '') .. '/bin/OpenDebugAD7',
+        command = gen.OpenDebugAD7 or 'OpenDebugAD7',
         options = {
             detached = false
         }
