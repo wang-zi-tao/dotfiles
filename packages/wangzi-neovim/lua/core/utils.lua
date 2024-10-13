@@ -137,4 +137,10 @@ function M.module_dir()
     return M.project_dir()
 end
 
+function M.add_mark()
+    require("trailblazer").new_trail_mark()
+    require("harpoon"):list():add()
+    vim.cmd [[Arrow toggle_current_line_for_buffer]]
+end
+
 return M

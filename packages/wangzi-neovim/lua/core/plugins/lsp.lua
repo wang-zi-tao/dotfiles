@@ -17,6 +17,9 @@ local function setup_lspsaga()
                 quit = "q",
             },
         },
+        symbol_in_winbar = {
+            enable = false,
+        },
         finder = {
             --percentage
             max_height = 1.0,
@@ -151,7 +154,7 @@ return {
             {
                 "gD",
                 function()
-                    require("trailblazer").new_trail_mark()
+                    require("core.utils").add_mark()
                     vim.cmd([[Lspsaga goto_definition]])
                 end,
                 mode = "n",
@@ -163,7 +166,7 @@ return {
             {
                 "gh",
                 function()
-                    require("trailblazer").new_trail_mark()
+                    require("core.utils").add_mark()
                     vim.cmd([[Lspsaga finder]])
                 end,
                 mode = "n",

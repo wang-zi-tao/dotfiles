@@ -20,8 +20,8 @@ local function config()
             end,
         },
         window = {
-            -- completion = cmp.config.window.bordered(),
-            -- documentation = cmp.config.window.bordered(),
+            completion = cmp.config.window.bordered(),
+            documentation = cmp.config.window.bordered(),
         },
         formatting = {
             format = function(entry, vim_item)
@@ -267,7 +267,7 @@ return {
             dir = gen.cmp_tabnine,
             name = "cmp_tabnine",
             build = tabnine_build,
-            -- module = "cmp_tabnine",
+            module = "cmp_tabnine",
             disable = gen.cmp_tabnine ~= false,
             lazy = true,
             config = function()

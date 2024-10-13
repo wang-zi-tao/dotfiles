@@ -1,9 +1,11 @@
-local lualine = require("lualine")
+local lualine           = require("lualine")
+local lualine_highlight = require("lualine.highlight")
 -- local noice = require("noice")
-local colors = require("core.theme").colors
-local symbols = require("core.theme").symbols
+local colors            = require("core.theme").colors
+local symbols           = require("core.theme").symbols
+local utils             = require("core.utils")
 
-local conditions = {
+local conditions        = {
     buffer_not_empty = function()
         return vim.fn.empty(vim.fn.expand("%:t")) ~= 1
     end,
@@ -17,7 +19,7 @@ local conditions = {
     end,
 }
 
-local mode = {
+local mode              = {
     -- mode component
     function()
         return "󰕷 "
@@ -26,16 +28,20 @@ local mode = {
     -- color = function()
     --     return { fg = mode_color[vim.fn.mode()] }
     -- end,
+    on_click = function()
+        vim.cmd [[WhichKey]]
+    end,
 }
 
-local filesize = {
+local filesize          = {
     -- filesize component
     "filesize",
     icon = "",
     cond = conditions.buffer_not_empty,
     color = { fg = "#ffffff", gui = "bold" },
 }
-local filetype = {
+
+local filetype          = {
     "filetype",
     colored = true,             -- Displays filetype icon in color if set to true
     icon_only = true,           -- Display only an icon for filetype
@@ -45,7 +51,21 @@ local filetype = {
     -- Icon string ^ in table is ignored in filetype component
 }
 
-local filename = {
+local full_filename     = {
+    "filename",
+    symbols = {
+        modified = "", -- Text to show when the file is modified.
+        readonly = "[-]", -- Text to show when the file is non-modifiable or readonly.
+        unnamed = "[No Name]", -- Text to show for unnamed buffers.
+        newfile = " ", -- Text to show for newly created file before first write
+    },
+    path = 1,
+    padding = { left = 0, right = 1 },
+    cond = conditions.buffer_not_empty,
+    color = { fg = colors.white, gui = "bold" },
+}
+
+local filename          = {
     "filename",
     symbols = {
         modified = "", -- Text to show when the file is modified.
@@ -59,7 +79,7 @@ local filename = {
     color = { fg = colors.fg, gui = "bold" },
 }
 
-local branch = {
+local branch            = {
     "b:gitsigns_head",
     icon = "",
     color = {
@@ -233,14 +253,38 @@ local windows = {
     },
 }
 
+local Buffer = require('lualine.components.buffers.buffer')
+local origin_apply_mode = Buffer.apply_mode
+function Buffer:apply_mode(name)
+    if self.options.mode == 5 then
+        local str = string.format(
+            '%s %s%s%s',
+            self.alternate_file_icon,
+            self.icon,
+            name,
+            self.modified_icon
+        )
+        local prefix = lualine_highlight.component_format_highlight({
+            name = "LualineBufferPrefix" }) .. "▌"
+        return prefix .. str
+    end
+    return origin_apply_mode(self, name)
+end
+
+local origin_get_props = Buffer.get_props
+function Buffer:get_props()
+    self.diagnostics = ""
+    return origin_get_props(self)
+end
+
 local buffers = {
     "buffers",
-    mdoe = 0,
+    mode = 5,
     use_mode_colors = true,
     buffers_color = {
         -- Same values as the general color option can be used here.
-        active = "lualine_c_normal",     -- Color for active buffer.
-        inactive = "lualine_c_inactive", -- Color for inactive buffer.
+        active = "LualineBufferActive",     -- Color for active buffer.
+        inactive = "LualineBufferInactive", -- Color for inactive buffer.
     },
     symbols = {
         modified = "● ", -- Text to show when the buffer is modified
@@ -272,9 +316,11 @@ local tabs = {
     end,
 }
 
-local function window_number()
-    return " " .. vim.api.nvim_win_get_number(0)
-end
+local window_number = {
+    function()
+        return " " .. vim.api.nvim_win_get_number(0)
+    end
+}
 
 local dap_state = {
     function()
@@ -302,7 +348,7 @@ local trouble_symbols = trouble.statusline({
     groups = {},
     title = false,
     filter = { range = true },
-    format = "{kind_icon}{symbol.name:Normal}",
+    format = "❱{kind_icon}{symbol.name:Normal}",
     -- The following line is needed to fix the background color
     -- Set it to the lualine section you want to use
     hl_group = "lualine_c_normal",
@@ -312,9 +358,21 @@ local trouble_lsp_symbol = {
     cond = trouble_symbols.has,
 }
 
+local tabline_split_left = {
+    function()
+        return " "
+    end
+}
+
+local split_left = {
+    function()
+        return ""
+    end
+}
+
 local split_right = {
     function()
-        return symbols.lualine_split_right
+        return ""
     end
 }
 local dr_lsp = {
@@ -322,10 +380,61 @@ local dr_lsp = {
     color = { fg = colors.blue },
 }
 
+local quit = {
+    function()
+        return symbols.close
+    end,
+    on_click = function()
+        vim.cmd [[quitall]]
+    end
+}
+
+local close_buffer = {
+    function()
+        return symbols.close
+    end,
+    on_click = function()
+        vim.cmd [[quit]]
+    end
+}
+
+local arrow = {
+    function()
+        local statusline = require('arrow.statusline')
+        return statusline.text_for_statusline_with_icons(0)
+    end,
+}
+
+local pwd = {
+    function()
+        return utils.project_dir()
+    end,
+    on_click = function()
+        vim.cmd [[let @+ = expand('%:p')]]
+    end
+}
+
+local function components_add_option(components, option)
+    local r = {}
+    for k, v in pairs(components) do
+        r[k] = vim.tbl_extend("keep", components[k], option)
+    end
+    return r
+end
+
+local function line_add_option(line, left_option, right_option)
+    return {
+        lualine_a = components_add_option(line.lualine_a, left_option),
+        lualine_b = components_add_option(line.lualine_b, left_option),
+        lualine_c = components_add_option(line.lualine_c, left_option),
+        lualine_x = components_add_option(line.lualine_x, right_option),
+        lualine_y = components_add_option(line.lualine_y, right_option),
+        lualine_z = components_add_option(line.lualine_z, right_option),
+    }
+end
+
 lualine.setup({
     options = {
-        -- component_separators = '',
-        -- section_separators = '',
         section_separators = { left = "", right = "" },
         component_separators = { left = "", right = "" },
         -- component_separators = { left = '', right = '' },
@@ -342,6 +451,7 @@ lualine.setup({
             "neo-tree",
             "trouble",
             "qf",
+            "array",
         },
         refresh = {
             statusline = 1000,
@@ -354,13 +464,8 @@ lualine.setup({
         lualine_b = { filetype, filename },
         lualine_c = {
             diff,
-            lsp_count,
-            dr_lsp,
         },
         lualine_x = {
-            "searchcount",
-            trouble_lsp_symbol,
-            "selectioncount",
             -- location,
             -- progress,
             -- filesize,
@@ -368,8 +473,8 @@ lualine.setup({
             split_right,
             diagnostics,
         },
-        lualine_y = { lsp },
-        lualine_z = { encoding, file_format, },
+        lualine_y = { lsp, location, progress, },
+        lualine_z = { filesize, encoding, file_format, },
     },
     inactive_sections = {
         -- these are to remove the defaults
@@ -377,13 +482,56 @@ lualine.setup({
         lualine_b = { filetype, filename },
         lualine_c = {
             diff,
-            lsp_count,
         },
         lualine_x = {
             diagnostics,
         },
-        lualine_y = { lsp },
-        lualine_z = { encoding, file_format, },
+        lualine_y = { lsp, location, progress, },
+        lualine_z = { filesize, encoding, file_format, },
+    },
+    winbar = line_add_option({
+        lualine_a = {
+        },
+        lualine_b = {
+        },
+        lualine_c = {
+            trouble_lsp_symbol,
+        },
+        lualine_x = {
+            lsp_count,
+            { "searchcount" },
+            { "selectioncount" },
+        },
+        lualine_y = {
+            vim.tbl_extend("keep", filetype, { colored = false }),
+            vim.tbl_extend("keep", filename, { color = { fg = "#ffffff" } }),
+            arrow,
+        },
+        lualine_z = {
+            window_number,
+            close_buffer,
+        },
+    }, {
+        separator = { left = '', right = '' }
+    }, {
+        separator = { left = '', right = '' }
+    }),
+    inactive_winbar = {
+        lualine_a = {
+        },
+        lualine_b = {
+        },
+        lualine_c = {
+        },
+        lualine_y = {
+            vim.tbl_extend("keep", filetype, { colored = false }),
+            vim.tbl_extend("keep", filename, {}),
+            arrow,
+        },
+        lualine_z = {
+            window_number,
+            close_buffer,
+        },
     },
     extensions = {
         "quickfix",
@@ -395,28 +543,35 @@ lualine.setup({
         "nvim-dap-ui",
         "lazy",
     },
-    tabline = {
-        -- lualine_a = {
-        --     branch_bufferline,
-        --     dap_state_bufferline,
-        -- },
-        -- lualine_b = {
-        --     -- windows,
-        -- },
-        -- lualine_c = {
-        --     buffers,
-        -- },
-        -- lualine_x = {
-        --     diff,
-        -- },
-        -- lualine_y = {
-        --     -- tabs,
-        --     diagnostics, lsp,
-        -- },
-        -- lualine_z = {
-        --     mode,
-        -- },
-    },
-    -- winbar = { },
-    -- inactive_winbar = {},
+    tabline = line_add_option({
+        lualine_a = {
+            mode,
+            branch_bufferline,
+        },
+        lualine_b = {
+            pwd,
+            tabline_split_left,
+            full_filename,
+            -- windows,
+        },
+        lualine_c = {
+            -- buffers,
+        },
+        lualine_x = {
+            dap_state_bufferline,
+            diff,
+        },
+        lualine_y = {
+            -- tabs,
+            diagnostics, lsp,
+        },
+        lualine_z = {
+            mode,
+            close_buffer,
+        },
+    }, {
+        separator = { left = '', right = ' ' }
+    }, {
+        separator = { left = ' ', right = '' }
+    }),
 })

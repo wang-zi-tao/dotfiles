@@ -278,7 +278,7 @@ return {
         {
             "<leader>tt",
             function()
-                require("trailblazer").new_trail_mark()
+                require("core.utils").add_mark()
             end,
             desc = "New Mark",
         },

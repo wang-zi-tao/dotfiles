@@ -115,6 +115,10 @@ return {
                     h.RainbowGreen = { fg = c.green }
                     h.RainbowViolet = { fg = c.purple }
                     h.RainbowCyan = { fg = c.cyan }
+
+                    h.LualineBufferPrefix = { fg = c.blue }
+                    h.LualineBufferInactive = { fg = c.grey }
+                    h.LualineBufferActive = { fg = c.blue }
                 end,
                 cache = true,
                 plugins = {

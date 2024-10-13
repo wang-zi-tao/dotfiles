@@ -451,6 +451,7 @@ return {
         dependencies = { "nvim_web_devicons", },
         module = "bufferline",
         lazy = true,
+        enabled = false,
         event = "BufReadPost",
         config = function()
             require("core.plugins.bufferline")

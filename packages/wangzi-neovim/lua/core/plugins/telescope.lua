@@ -171,7 +171,7 @@ return {
             {
                 "<leader>fw",
                 function()
-                    require("trailblazer").new_trail_mark()
+                    require("core.utils").add_mark()
                     vim.cmd("Telescope live_grep search_dirs=" .. (global.pwd or "."))
                 end,
                 desc = "Grep",
@@ -221,7 +221,7 @@ return {
             {
                 "<leader>fi",
                 function()
-                    require("trailblazer").new_trail_mark()
+                    require("core.utils").add_mark()
                     telescope().lsp_references()
                 end,
                 desc = "LSP Reference",
@@ -292,7 +292,7 @@ return {
             {
                 "<leader>fr",
                 function()
-                    require("trailblazer").new_trail_mark()
+                    require("core.utils").add_mark()
                     telescope().lsp_references()
                 end,
                 desc = "lsp incomint calls",
@@ -307,7 +307,7 @@ return {
             {
                 "<leader>fI",
                 function()
-                    require("trailblazer").new_trail_mark()
+                    require("core.utils").add_mark()
                     require("telescope.builtin").lsp_implementations()
                 end,
                 desc = "LSP Implementation",
@@ -315,7 +315,7 @@ return {
             {
                 "<leader>ft",
                 function()
-                    require("trailblazer").new_trail_mark()
+                    require("core.utils").add_mark()
                     require("telescope.builtin").lsp_definitions()
                 end,
                 desc = "LSP Define",

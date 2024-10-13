@@ -60,7 +60,6 @@ M.symbols = {
     hint = " ",
 
     ui_split_left = "",
-    lualine_split_right = "",
     git_branch = "",
 
     close = "󰖭",

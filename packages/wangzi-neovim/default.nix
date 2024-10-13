@@ -120,7 +120,7 @@ let
     cmp_nvim_lsp = cmp-nvim-lsp;
     cmp_buffer = cmp-buffer;
     cmp_path = cmp-path;
-    cmp_tabnine = if enable-tabnine then "cmp-tabnine" else "false";
+    cmp_tabnine = if enable-tabnine then cmp-tabnine else false;
     cmp_spell = cmp-spell;
     cmp_cmdline = cmp-cmdline;
     cmp_cmdline_history = cmp-cmdline-history;
@@ -169,12 +169,6 @@ let
     which_key = which-key-nvim;
     markdown_preview =
       if enable-markdown-preview then "markdown-preview-nvim" else "false";
-    marks = marks-nvim;
-    trailblazer = pkgs.fetchgit {
-      url = "https://github.com/LeonHeidelbach/trailblazer.nvim";
-      rev = "674bb6254a376a234d0d243366224122fc064eab";
-      sha256 = "sha256-DWlacXJUzuHbyLLbO13zGV2dFPZrt+oZvFyg5gGlFGM=";
-    };
     auto_save = pkgs.fetchgit {
       url = "https://github.com/Pocco81/auto-save.nvim";
       rev = "979b6c82f60cfa80f4cf437d77446d0ded0addf0";
@@ -182,8 +176,18 @@ let
     };
 
     # keymap
-    navigator = Navigator-nvim;
     flash_nvim = flash-nvim;
+
+    # navigator
+    navigator = Navigator-nvim;
+    harpoon2 = harpoon2;
+    hop_nvim = hop-nvim;
+    arrow_nvim = arrow-nvim;
+    trailblazer = pkgs.fetchgit {
+      url = "https://github.com/LeonHeidelbach/trailblazer.nvim";
+      rev = "674bb6254a376a234d0d243366224122fc064eab";
+      sha256 = "sha256-DWlacXJUzuHbyLLbO13zGV2dFPZrt+oZvFyg5gGlFGM=";
+    };
 
     # buffer UI
     scrollbar = nvim-scrollbar;
@@ -238,6 +242,7 @@ let
     nvim_ufo = nvim-ufo;
     fidget_nvim = fidget-nvim;
 
+    # debug
     mason_nvim = mason-nvim;
     dap = nvim-dap;
     dap_ui = nvim-dap-ui;
@@ -255,6 +260,7 @@ let
       "${vscode-cpptools}/extension/debugAdapters/bin/OpenDebugAD7";
     nio = nvim-nio;
 
+    # terminal
     fterm = FTerm-nvim;
     toggleterm_nvim = toggleterm-nvim;
     mini = mini-nvim;
@@ -281,7 +287,6 @@ let
       rev = "b138718bf4289b429dc81cadaf80ace8221c647b";
       sha256 = "sha256-7xEyXOGVG8AVRpO4QopfyDfMyKExUDuuf7SCoSd+SiU=";
     };
-    hop_nvim = hop-nvim;
     distant = pkgs.fetchgit {
       url = "https://github.com/chipsenkbeil/distant.nvim";
       rev = "887fc16bdae59bd1865e0776b427ca521987f7fe";
@@ -297,9 +302,16 @@ in stdenvNoCC.mkDerivation {
   nativeBuildInputs = [ autoPatchelfHook makeWrapper unzip ];
   buildInputs = [ pkg neovim-remote gcc zlib lttng-ust_2_12 ];
 
-  VARS = lib.strings.concatStrings (lib.mapAttrsToList (name: value: ''
-    ${name} = "${builtins.toString value}",
-  '') vars);
+  VARS = lib.strings.concatStrings (lib.mapAttrsToList (name: value:
+    let
+      ty = builtins.typeOf value;
+      valueString = if ty == "string" || ty == "set" then
+        ''"'' + (builtins.toString value) + ''"''
+      else
+        builtins.toString value;
+    in ''
+      ${name} = ${valueString},
+    '') vars);
 
   installPhase = ''
     mkdir -p $out/
