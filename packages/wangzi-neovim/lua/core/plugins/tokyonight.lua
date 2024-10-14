@@ -127,6 +127,7 @@ return {
                     rainbow = true,
                     telescope = true,
                     dap = false,
+                    diffview = false,
                 },
             })
         end

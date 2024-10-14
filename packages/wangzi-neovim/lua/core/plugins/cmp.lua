@@ -20,8 +20,15 @@ local function config()
             end,
         },
         window = {
-            completion = cmp.config.window.bordered(),
-            documentation = cmp.config.window.bordered(),
+            completion = { -- rounded border; thin-style scrollbar
+                border = 'rounded',
+                scrollbar = '║',
+            },
+            documentation = { -- no border; native-style scrollbar
+                border = "rounded",
+                scrollbar = '',
+                -- other options
+            },
         },
         formatting = {
             format = function(entry, vim_item)
@@ -51,6 +58,8 @@ local function config()
             end,
         },
         mapping = cmp.mapping.preset.insert({
+            ["<PageUp>"] = cmp.mapping.scroll_docs(-4),
+            ["<PageDown>"] = cmp.mapping.scroll_docs(4),
             ["<C-b>"] = cmp.mapping.scroll_docs(-4),
             ["<C-f>"] = cmp.mapping.scroll_docs(4),
             ["<C-u>"] = cmp.mapping.scroll_docs(-4),
