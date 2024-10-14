@@ -546,7 +546,6 @@ lualine.setup({
     tabline = line_add_option({
         lualine_a = {
             mode,
-            branch_bufferline,
         },
         lualine_b = {
             pwd,
@@ -560,13 +559,13 @@ lualine.setup({
         lualine_x = {
             dap_state_bufferline,
             diff,
+            branch_bufferline,
         },
         lualine_y = {
             -- tabs,
             diagnostics, lsp,
         },
         lualine_z = {
-            mode,
             close_buffer,
         },
     }, {
