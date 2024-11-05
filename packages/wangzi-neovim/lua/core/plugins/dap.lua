@@ -70,7 +70,7 @@ local function config()
             request = "launch",
             MIMode = "gdb",
             miDebuggerServerAddress = function()
-                ip_cache = vim.fn.input("ip address to attach: ", ip_cache, "")
+                ip_cache = vim.fn.input("ip address to attach: ", ip_cache)
                 return ip_cache
             end,
             cwd = "${workspaceFolder}",

@@ -47,7 +47,8 @@ local function config()
                 "-o",
                 tostring(wps.path:joinpath("../debug/WPSOffice/office6/", module .. ".exe"))
             },
-            skip_validation = true
+            skip_validation = true,
+            detach = true,
         }):start()
     end
 
@@ -75,7 +76,7 @@ local function config()
     end, {})
 
     vim.api.nvim_create_user_command("Msbuild", function(opts)
-        utils.argOrCachedInput(opts.args, "target", "target", "", "", function(target)
+        utils.argOrCachedInput(opts.args, "target", "target", "", nil, function(target)
             if target == "" then
                 require("toggleterm").exec("msbuild ../debug/WPSOffice.sln -m:32")
             else
@@ -85,7 +86,7 @@ local function config()
     end, { nargs = "?" })
 
     vim.api.nvim_create_user_command("KrepoBuild", function(opts)
-        utils.argOrCachedInput(opts.args, "target", "target", "", "", function(target)
+        utils.argOrCachedInput(opts.args, "target", "target", "", nil, function(target)
             if target == "" then
                 require("toggleterm").exec("krepo build --no-redirect --verbose -t wps/" .. target)
             else

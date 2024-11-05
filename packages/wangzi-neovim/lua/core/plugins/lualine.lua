@@ -557,11 +557,11 @@ lualine.setup({
             -- buffers,
         },
         lualine_x = {
+        },
+        lualine_y = {
             dap_state_bufferline,
             diff,
             branch_bufferline,
-        },
-        lualine_y = {
             -- tabs,
             diagnostics, lsp,
         },

@@ -133,6 +133,7 @@ local function config()
         "live_grep_args",
         "notify",
         "noice",
+        "smart_open",
     }
     for _, ext in ipairs(extensions) do
         if not pcall(telescope.load_extension, ext) then
@@ -439,6 +440,14 @@ return {
                 dir = gen.telescope_sg,
                 name = "telescope_sg",
                 module = "telescope._extensions.ast_grep",
+                lazy = true,
+            },
+            {
+                "danielfalk/smart-open.nvim",
+                dir = gen.telescope_smart_open,
+                name = "telescope_smart_open",
+                module = "telescope._extensions.smart_open",
+                dependencies = { "sqlite" },
                 lazy = true,
             },
         },

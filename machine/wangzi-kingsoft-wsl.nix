@@ -4,6 +4,7 @@
   home-manager,
   sops-nix,
   nixos-wsl,
+  nixfs,
   ...
 }@inputs:
 let
@@ -18,6 +19,7 @@ nixpkgs.lib.nixosSystem {
     sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
     nixos-wsl.nixosModules.default
+    nixfs.nixosModules.nixfs
     (
       {
         pkgs,

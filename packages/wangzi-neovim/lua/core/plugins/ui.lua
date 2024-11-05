@@ -343,7 +343,7 @@ return {
                     },
                 },
                 right = {
-                    { ft = "codecompanion", title = "Code Companion Chat", size = {} },
+                    { ft = "codecompanion", title = "Code Companion Chat", size = { width = 0.25 } },
                     { ft = "sagaoutline",   title = "Outline",             size = {} },
                     {
                         ft = "markdown",
