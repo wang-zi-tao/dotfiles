@@ -7,6 +7,7 @@
 {
   imports = [
     ../terminal/terminal.nix
+    ../develop/develop.nix
     ../develop/cpp.nix
     ../platform/wsl.nix
   ];

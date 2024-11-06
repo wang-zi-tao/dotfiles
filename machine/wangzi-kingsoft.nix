@@ -56,6 +56,7 @@ nixpkgs.lib.nixosSystem {
           "ntfs"
           "f2fs"
         ];
+        boot.kernelPackages = pkgs.unstable.linuxKernel.packages.linux_6_1;
         boot.loader.efi.canTouchEfiVariables = true;
         boot.loader.efi.efiSysMountPoint = "/boot/efi";
         boot.initrd.availableKernelModules = [
@@ -92,6 +93,7 @@ nixpkgs.lib.nixosSystem {
         fileSystems."/" = {
           device = "/dev/pool/NixOS";
           fsType = "ext4";
+          noCheck = true;
         };
         # fileSystems."/" = {
         # device = "/dev/disk/by-uuid/d8a33441-258d-4698-a388-dc82bfaefda1";
@@ -240,15 +242,20 @@ nixpkgs.lib.nixosSystem {
             to = 5916;
           }
         ];
-        vm = {
-          guest-reserved = 1600;
-          host-reserved = 1600;
-          guest-reserved-percent = 0.2;
-        };
         services.nixfs.enable = true;
         services.ollama = {
           enable = true;
         };
+        services.neo4j = {
+            enable=true;
+            http.enable = true;
+            http.listenAddress = ":7474";
+            https.enable = false;
+            shell.enable=true;
+            bolt.tlsLevel = "DISABLED";
+        };
+        # networking.firewall.allowedUDPPorts = [ 7474 ];
+
       }
     )
   ];

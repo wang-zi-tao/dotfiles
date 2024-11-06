@@ -92,9 +92,7 @@ local function config()
     vim.notify("none_ls init")
     null_ls.setup({
         sources = sources,
-        debug = true,
-        on_attach = function(client)
-        end,
+        debug = false,
     })
 end
 return {

@@ -48,7 +48,12 @@ end
 
 function M.cachedinput(key, prompt, default, completion, callback)
     local function ui_input()
-        local value = vim.fn.input(prompt, default, completion)
+        local value
+        if completion == nil then
+            value = vim.fn.input(prompt, default)
+        else
+            value = vim.fn.input(prompt, default, completion)
+        end
         database.tables.caches:insert({
             project = M.project_dir(),
             key = key,

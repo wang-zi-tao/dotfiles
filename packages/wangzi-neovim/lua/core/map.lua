@@ -82,6 +82,7 @@ map("n", "<C-up>", "<cmd>res +1<CR>")
 map("n", "<C-down>", "<cmd>res -1<CR>")
 map("n", "<C-left>", "<cmd>vertical resize-1<CR>")
 map("n", "<C-right>", "<cmd>vertical resize+1<CR>")
+map("n", "<A-v>", "<C-v>")
 
 map("i", "<C-h>", "<Left>")
 map("i", "<C-e>", "<End>")

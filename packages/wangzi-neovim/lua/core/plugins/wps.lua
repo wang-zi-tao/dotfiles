@@ -1,11 +1,13 @@
 -- @class Wps
-local wps = { path = nil, loaded = false }
+local wps = { path = nil, qt_path = nil, ohos_qt_path = nil, loaded = false }
 
 local function config()
     local utils = require("core.utils")
     local Path = require("plenary.path")
     local Job = require("plenary.job")
     wps.path = Path:new(vim.fn.finddir('Coding/..', vim.fn.expand('%:p:h') .. ';'))
+    wps.qt_path = wps.path:joinpath("../3rdparty/qt5/source/qtbase/")
+    wps.ohos_qt_path = wps.path:joinpath("../3rdparty/qt5/source/qtbase/")
 
     vim.api.nvim_create_user_command("CdWps", function()
         vim.cmd.cd(tostring(wps.path))
@@ -13,6 +15,16 @@ local function config()
 
     vim.api.nvim_create_user_command("CdQt", function()
         vim.cmd.cd(tostring(wps.path:joinpath("../3rdparty/qt5/source/qtbase/")))
+    end, {})
+
+    vim.api.nvim_create_user_command("RgQt", function()
+        require("trailblazer").new_trail_mark()
+        vim.cmd("Telescope live_grep search_dirs=" .. tostring(wps.qt_path))
+    end, {})
+
+    vim.api.nvim_create_user_command("RgQtOhos", function()
+        require("trailblazer").new_trail_mark()
+        vim.cmd("Telescope live_grep search_dirs=" .. tostring(wps.ohos_qt_path))
     end, {})
 
     vim.api.nvim_create_user_command("CdDebug", function()
@@ -35,7 +47,8 @@ local function config()
                 "-o",
                 tostring(wps.path:joinpath("../debug/WPSOffice/office6/", module .. ".exe"))
             },
-            skip_validation = true
+            skip_validation = true,
+            detach = true,
         }):start()
     end
 
@@ -63,7 +76,7 @@ local function config()
     end, {})
 
     vim.api.nvim_create_user_command("Msbuild", function(opts)
-        utils.argOrCachedInput(opts.args, "target", "target", "", "", function(target)
+        utils.argOrCachedInput(opts.args, "target", "target", "", nil, function(target)
             if target == "" then
                 require("toggleterm").exec("msbuild ../debug/WPSOffice.sln -m:32")
             else
@@ -73,7 +86,7 @@ local function config()
     end, { nargs = "?" })
 
     vim.api.nvim_create_user_command("KrepoBuild", function(opts)
-        utils.argOrCachedInput(opts.args, "target", "target", "", "", function(target)
+        utils.argOrCachedInput(opts.args, "target", "target", "", nil, function(target)
             if target == "" then
                 require("toggleterm").exec("krepo build --no-redirect --verbose -t wps/" .. target)
             else
@@ -81,17 +94,30 @@ local function config()
             end
         end)
     end, { nargs = "?" })
+
     vim.api.nvim_create_user_command("KrepoCr", function(opts)
-        require("plenary.job"):new({ command = "krepo", args = { "cr" } }):start()
+        Job:new({ command = "krepo", args = { "cr" } }):start()
     end, { nargs = 0 })
+
     vim.api.nvim_create_user_command("KrepoPush", function(opts)
-        require("plenary.job"):new({ command = "krepo", args = { "push" } }):start()
+        Job:new({ command = "krepo", args = { "push" } }):start()
     end, { nargs = 0 })
+
     vim.api.nvim_create_user_command("KrepoSync", function(opts)
-        require("plenary.job"):new({
+        Job:new({
             command = "krepo",
             args = { "sync", "--with-sdk", "--stash" },
         }):start()
+    end, { nargs = 0 })
+
+    vim.api.nvim_create_user_command("KrepoSync", function(opts)
+        Job:new({
+            command = "../debug/WPSOffice/auth_plugins/version_common_cn.bat",
+        }):start()
+    end, { nargs = 0 })
+
+    vim.api.nvim_create_user_command("NotesTree", function(opts)
+        vim.cmd [[neotree dir=C:\Users\wps\Documents\Obsidian-work]]
     end, { nargs = 0 })
 end
 

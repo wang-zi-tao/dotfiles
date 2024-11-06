@@ -97,6 +97,14 @@ nixos)
 	sudo nix-env -p /nix/var/nix/profiles/system --set "$(readlink ./result)"
 	sudo ./result/bin/switch-to-configuration switch
 	;;
+nixos-wsl)
+    set -xe
+	profile=$1
+	shift
+	nix build "$script_dir#nixos.$profile.config.system.build.toplevel" "$@"
+	sudo nix-env -p /nix/var/nix/profiles/system --set "$(readlink ./result)"
+	sudo bash ./result/activate
+	;;
 nixos-remote)
 	profile=$1
 	shift
