@@ -174,9 +174,9 @@ with builtins;
           script = pkgs.writeShellScriptBin "xpra-shadow" ''
             #!${pkgs.busybox}/bin/sh
             if command -v nvidia-smi; then
-              ${pkgs.xpra-html5}/bin/xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+6000)) --video-encoders=nvenc
+              ${pkgs.xpra-html5}/bin/xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+6000)),auth=sys --video-encoders=nvenc
             else
-              ${pkgs.xpra-html5}/bin/xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+6000))
+              ${pkgs.xpra-html5}/bin/xpra-html5-shadow $DISPLAY --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+6000)),auth=sys
             fi
           '';
         in
@@ -185,15 +185,16 @@ with builtins;
         '';
     };
     systemd.user.services.xpra-server = makeService {
+      Restart = "always";
       ExecStart =
         let
           script = pkgs.writeShellScriptBin "xpra-server" ''
             #!${pkgs.busybox}/bin/sh
+            extract_args=(:$((${"\$" + "{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+7000)),auth=sys --no-daemon)
             if command -v nvidia-smi ; then 
-              ${pkgs.xpra-html5}/bin/xpra-html5-start :$((${"\$" + "{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+7000)) --video-encoders=nvenc
-            else 
-              ${pkgs.xpra-html5}/bin/xpra-html5-start :$((${"\$" + "{DISPLAY:1}"}+1000)) --bind-ws=0.0.0.0:$((${"\$" + "{DISPLAY:1}"}+7000))
+              extract_args+=('--video-encoders=nvenc')
             fi
+            exec ${pkgs.xpra-html5}/bin/xpra-html5-start "$extract_args[@]"
           '';
         in
         ''
