@@ -340,7 +340,7 @@ in stdenvNoCC.mkDerivation {
     HOME=. ${pkg}/bin/nvim -u $out/init.lua "+Lazy! install" --headless +qa
     makeWrapper ${pkg}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
         --set LUA_PATH "$LUA_PATH" \
-        --prefix PATH : ${luarocks}
+        --prefix PATH : ${luarocks}:${sqlite.out}/lib
 
     ln -s ${pkgs.tree-sitter}/bin/tree-sitter $out/bin/tree-sitter
     cp $out/bin/wnvim $out/bin/wangzi-neovim

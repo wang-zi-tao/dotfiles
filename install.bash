@@ -21,7 +21,9 @@ fi
 
 script_dir=$(realpath "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)")
 sudo() {
-	if command -v sudo &>/dev/null; then
+	if [[ $USER == root ]]; then
+		"$@"
+	elif  command -v sudo &>/dev/null; then
 		command sudo "$@"
 	else
 		"$@"

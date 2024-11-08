@@ -30,6 +30,7 @@ nixpkgs.lib.nixosSystem {
       {
         wsl.enable = true;
         wsl.defaultUser = "wangzi";
+        wsl.nativeSystemd = true;
         imports = [ ../module/cluster.nix ];
         cluster.network.nodes."${hostname}" = { };
         cluster.nodes."${hostname}" = {

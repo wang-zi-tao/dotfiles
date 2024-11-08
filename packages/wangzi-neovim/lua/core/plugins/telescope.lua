@@ -92,10 +92,6 @@ local function config()
                 -- the default case_mode is "smart_case"
             },
             project = {
-                base_dirs = {
-                    { "~/Code",      max_depth = 1 },
-                    { "~/workspace", max_depth = 4 },
-                },
                 hidden_files = true, -- default: false
                 theme = "dropdown",
                 order_by = "asc",
@@ -103,14 +99,12 @@ local function config()
             },
             frecency = {
                 -- db_root = vim.fn.stdpath("cache").."/telescope_frecency.sqlite",
+                workspace = "CWD",
+                path_display = { "shorten" },
                 show_scores = false,
                 show_unindexed = true,
                 ignore_patterns = { "*.git/*", "*/tmp/*" },
                 disable_devicons = false,
-                workspaces = {
-                    ["workspaces"] = "~/workspace",
-                    ["codes"] = "~/Code",
-                },
             },
             ast_grep = {
                 command = {
@@ -127,7 +121,7 @@ local function config()
         "ui-select",
         "dap",
         "file_browser",
-        "fzf",
+        -- "fzf",
         "frecency",
         "project",
         "live_grep_args",
