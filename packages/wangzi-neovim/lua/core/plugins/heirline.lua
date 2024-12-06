@@ -22,7 +22,7 @@
 
     local function close_buffer()
         return {
-            provider = symbols.close,
+            provider = " " .. symbols.close .. " ",
             on_click = {
                 callback = function()
                     vim.cmd [[quit]]
@@ -58,6 +58,31 @@
         end
     end
 
+    local function mode_hl(self)
+        return {
+            bg = self:mode_color(),
+            fg = "white",
+        }
+    end
+
+    local function bg2_hl(self)
+        return {
+            bg = "fg_gutter",
+        }
+    end
+
+    local function set_hl_mode(opts)
+        opts.hl = mode_hl
+        opts.surround = { color = mode_color }
+        return opts
+    end
+
+    local function set_hl_bg2(opts)
+        opts.hl = bg2_hl
+        opts.surround = { color = "fg_gutter" }
+        return opts
+    end
+
     local colors = vim.tbl_extend(
         "force",
         tokyonight_colors,
@@ -66,7 +91,7 @@
             fg = "#ffffff",
             vim_mode = tokyonight_colors.blue,
             vim_mode_sep = tokyonight_colors.blue,
-            bg2 = "#282c34",
+            bg2 = tokyonight_colors.fg_gutter,
         }
     )
 
@@ -77,10 +102,10 @@
     local mode_colors = {
         n = "blue",
         i = "green",
-        v = "purple",
-        V = "purple",
+        v = "red",
+        V = "red",
         ["\22"] = "cyan",
-        c = "orange",
+        c = "blue",
         s = "yellow",
         S = "yellow",
         ["\19"] = "purple",
@@ -98,10 +123,17 @@
         end),
     })
 
-    local update_on_mode_change = {
-        "ModeChanged",
-        pattern = "*:*",
-    }
+    local Align = { provider = "%=" }
+    local Space = { provider = " " }
+
+    local function WindowNumber()
+        return {
+            provider = function()
+                return vim.api.nvim_win_get_number(0)
+            end,
+        }
+    end
+
     local function MacroRec()
         return {
             condition = function()
@@ -140,7 +172,7 @@
                     return {
                         bg = opts.bg or self:mode_color(),
                         fg = opts.fg or "white",
-                        force = true
+                        -- force = true
                     }
                 end,
             },
@@ -170,7 +202,7 @@
         return {
             provider = "󰕷 ",
             hl = function(self)
-                return { bg = self:mode_color(), bold = true, force = true }
+                return { bg = self:mode_color(), bold = true, }
             end,
         }
     end
@@ -182,32 +214,43 @@
             update = "DirChanged",
         }
     end
-    local function file_info()
-        return components.file_info({
-            filename = {},
-            filetype = false,
-        })
+    local function file_info(opts)
+        opts = opts or {}
+        opts.filename = {}
+        opts.filetype = false
+        return components.file_info(opts)
     end
     local StatusLine = {
         surround({
-            ViMode(),
-        }, { separator = { "", separator2[2] } }),
-        file_info(),
-        components.git_diff(),
+            surround({
+                Space,
+                ViMode(),
+                WindowNumber(),
+                Space,
+            }, { separator = { "", separator2[2] } }),
+            Space,
+            file_info(set_hl_bg2({})),
+            components.git_diff(set_hl_bg2({})),
+        }, { separator = { "", separator2[2] }, bg = "bg2" }),
         components.fill(),
         {
             components.cmd_info(),
             MacroRec(),
         },
         components.fill(),
-        {
-            components.lsp(),
-            components.diagnostics(),
+        components.lsp(),
+        surround({
+            Space,
+            components.diagnostics(set_hl_bg2({})),
             surround({
-                components.file_encoding(),
-                components.nav({ scrollbar = false }),
+                components.nav({
+                    scrollbar = false,
+                    hl = mode_hl,
+                    surround = { color = mode_color }
+                }),
+                Space,
             }, { separator = { separator2[1], "" } })
-        },
+        }, { separator = { separator2[1], "" }, bg = "bg2" }),
         static = {
             mode_colors = mode_colors,
             mode_color = mode_color,
@@ -215,42 +258,59 @@
     }
     local WinBar = {
         init = function(self) self.bufnr = vim.api.nvim_get_current_buf() end,
+        Space,
         -- components.breadcrumbs(),
         trouble(),
         components.fill(),
         components.cmd_info(),
         surround({
-            file_info(),
-            ViMode(),
-            close_buffer(),
-        }, { separator = { separator3[1], "" } }),
+            file_info(set_hl_bg2({})),
+            surround({
+                Space,
+                WindowNumber(),
+                Space,
+                ViMode(),
+                close_buffer(),
+                Space,
+            }, { separator = { separator3[1], "" } }),
+        }, { separator = { separator3[1], "" }, bg = "bg2" }),
         static = {
             mode_colors = mode_colors,
             mode_color = mode_color,
         },
     }
     local TabLine = {
-        {
+        surround({
             surround({
-                components.neotree(),
+                Space,
+                ViMode(),
+                components.neotree({ fg = "white" }),
+                Space,
             }, { separator = { "", separator1[2] } }),
             pwd(),
             { provider = separator1_empty[2] },
-            file_info(),
-        },
+            file_info(set_hl_bg2({})),
+        }, { separator = { "", separator1[2] }, bg = "bg2" }),
         components.fill(),
         tabline_buffers(),
         components.fill(),
         components.virtual_env(),
-        {
-            components.git_diff(),
-            components.diagnostics(),
-            components.git_branch(),
-            surround({
-                    quit(),
-                },
-                { separator = { separator1[1], "" } }),
-        },
+        components.file_encoding(),
+        surround({
+                Space,
+                components.git_diff(set_hl_bg2({})),
+                Space,
+                components.diagnostics(set_hl_bg2({})),
+                Space,
+                components.git_branch(set_hl_bg2({})),
+                surround({
+                        Space,
+                        quit(),
+                        Space,
+                    },
+                    { separator = { separator1[1], "" } }),
+            },
+            { separator = { separator1[1], "" }, bg = "bg2" }),
         static = {
             mode_colors = mode_colors,
             mode_color = mode_color,

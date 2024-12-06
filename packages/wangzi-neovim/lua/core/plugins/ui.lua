@@ -237,7 +237,7 @@ return {
 
             local notify = vim.notify
             vim.notify = function(msg, level, opt, ...)
-                if type(msg) == "string" then 
+                if type(msg) == "string" then
                     if msg:find("warning: multiple different client offset_encodings", 1, true) then
                         return
                     end
@@ -412,18 +412,19 @@ return {
     --         require("core.plugins.statusline")
     --     end,
     -- },
-    -- {
-    --     "nvim-lualine/lualine.nvim",
-    --     dir = gen.lualine_nvim,
-    --     name = "lualine_nvim",
-    --     dependencies = {
-    --         "nvim_web_devicons",
-    --         "trouble_nvim",
-    --     },
-    --     config = function()
-    --         require("core.plugins.lualine")
-    --     end,
-    -- },
+    {
+        "nvim-lualine/lualine.nvim",
+        dir = gen.lualine_nvim,
+        name = "lualine_nvim",
+        enabled = false,
+        dependencies = {
+            "nvim_web_devicons",
+            "trouble_nvim",
+        },
+        config = function()
+            require("core.plugins.lualine")
+        end,
+    },
     {
         "j-hui/fidget.nvim",
         dir = gen.fidget_nvim,
