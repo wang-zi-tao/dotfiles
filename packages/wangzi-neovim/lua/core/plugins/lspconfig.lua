@@ -167,9 +167,9 @@ local function config()
             local plugins = require("lazy").plugins()
             for _, plugin in ipairs(plugins) do
                 local dir = plugin.dir
-                table.insert(library, dir)
-                table.insert(runtime_path, join(dir, 'lua', '?.lua'))
-                table.insert(runtime_path, join(dir, 'lua', '?', 'init.lua'))
+                -- table.insert(library, dir)
+                -- table.insert(runtime_path, join(dir, 'lua', '?.lua'))
+                -- table.insert(runtime_path, join(dir, 'lua', '?', 'init.lua'))
             end
 
             local nvim_settings = {
@@ -295,17 +295,17 @@ return {
         },
         config = function()
             require("mason").setup({
-                registries = {
-                    "lua:mason-registry.index",
-                },
-                providers = {
-                    "mason.providers.registry-api",
-                    "mason.providers.client",
-                },
-
-                github = {
-                    download_url_template = "https://github.com/%s/releases/download/%s/%s",
-                },
+                -- registries = {
+                --     "lua:mason-registry.index",
+                -- },
+                -- providers = {
+                --     "mason.providers.registry-api",
+                --     "mason.providers.client",
+                -- },
+                --
+                -- github = {
+                --     download_url_template = "https://github.com/%s/releases/download/%s/%s",
+                -- },
 
                 pip = {
                     upgrade_pip = true,

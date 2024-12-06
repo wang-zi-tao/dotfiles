@@ -235,6 +235,7 @@ let
     virtual_types_nvim = virtual-types-nvim;
     alpha_nvim = alpha-nvim;
     lualine_nvim = lualine-nvim;
+    heirline = heirline-nvim;
     bufferline_nvim = bufferline-nvim;
     notify_nvim = nvim-notify;
     FixCursorHold_nvim = FixCursorHold-nvim;

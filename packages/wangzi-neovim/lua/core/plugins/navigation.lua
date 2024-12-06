@@ -162,7 +162,7 @@ return {
         keys = {
             { "<leader>wh", ":FocusSplitLeft<CR>",          silent = true, desc = "Split left" },
             { "<leader>wk", ":FocusSplitUp<CR>",            silent = true, desc = "Split up" },
-            { "<leader>wl", ":FocusSplitRight<CR>",         silent = true, desc = "Split right" },
+            -- { "<leader>wl", ":FocusSplitRight<CR>",         silent = true, desc = "Split right" },
             { "<leader>wj", ":FocusSplitDown<CR>",          silent = true, desc = "Split down" },
             { "<leader>wt", ":FocusSplitDown cmd term<CR>", silent = true, desc = "Terminal" },
         },
