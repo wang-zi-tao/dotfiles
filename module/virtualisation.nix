@@ -1,10 +1,16 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   cfg = config.vm;
   nodeConfig = config.cluster.nodes."${config.cluster.nodeName}";
-  networkConfig =
-    config.cluster.network.edges.${config.cluster.nodeName}.config;
-in with builtins; {
+  networkConfig = config.cluster.network.edges.${config.cluster.nodeName}.config;
+in
+with builtins;
+{
   options = with lib; {
     vm.guest-reserved = mkOption {
       type = types.int;
@@ -21,9 +27,16 @@ in with builtins; {
   };
   config = lib.mkMerge [
     (lib.mkIf nodeConfig.virtualisation.enable {
-      boot.initrd.kernelModules = [ "vfio_pci" "vfio" "vfio_iommu_type1" ];
-      boot.kernelParams =
-        [ "intel_iommu=on" "amd_iommu=on" "elevator=deadline" ];
+      boot.initrd.kernelModules = [
+        "vfio_pci"
+        "vfio"
+        "vfio_iommu_type1"
+      ];
+      boot.kernelParams = [
+        "intel_iommu=on"
+        "amd_iommu=on"
+        "elevator=deadline"
+      ];
       boot.extraModprobeConfig = ''
         softdep nouveau       pre: vfio-pci
         softdep snd_hda_intel pre: vfio-pci
@@ -40,9 +53,11 @@ in with builtins; {
         libvirtd = {
           enable = true;
           package = pkgs.libvirt.overrideAttrs (oldAttrs: {
-            postInstall = oldAttrs.postInstall + ''
-              sed -i 's|name>|name>\n  <dns enable="no"/>|' $out/var/lib/libvirt/qemu/networks/default.xml
-            '';
+            postInstall =
+              oldAttrs.postInstall
+              + ''
+                sed -i 's|name>|name>\n  <dns enable="no"/>|' $out/var/lib/libvirt/qemu/networks/default.xml
+              '';
           });
           # qemu.ovmf.enable = true;
           # qemu.ovmf.packages = [ pkgs.OVMFFull ];
@@ -58,6 +73,7 @@ in with builtins; {
             listen_addr = "0.0.0.0"
             auth_tcp = "none"
           '';
+          qemu.vhostUserPackages = [ pkgs.virtiofsd ];
         };
         kvmgt.enable = true;
         waydroid.enable = false;
@@ -72,23 +88,19 @@ in with builtins; {
       systemd.services.balloond = {
         enable = true;
         wantedBy = [ "libvirtd.service" ];
-        environment = { RUST_LOG = "info"; };
+        environment = {
+          RUST_LOG = "info";
+        };
         serviceConfig = {
           Type = "simple";
           Restart = "always";
           RestartSec = "5s";
-          ExecStart = "${pkgs.balloond}/bin/balloond -r ${
-              toString cfg.guest-reserved
-            } -R ${toString cfg.host-reserved} -p ${
-              toString cfg.guest-reserved-percent
-            } -d 1 -h 4";
+          ExecStart = "${pkgs.balloond}/bin/balloond -r ${toString cfg.guest-reserved} -R ${toString cfg.host-reserved} -p ${toString cfg.guest-reserved-percent} -d 1 -h 4";
         };
       };
-      environment.etc."qemu/vhost-user".source =
-        "${pkgs.qemu}/share/qemu/vhost-user";
+      environment.etc."qemu/vhost-user".source = "${pkgs.qemu}/share/qemu/vhost-user";
       programs.virt-manager.enable = true;
-      environment.etc."libvirt/libvirtd.conf".source =
-        "${pkgs.qemu}/share/qemu/vhost-user";
+      environment.etc."libvirt/libvirtd.conf".source = "${pkgs.qemu}/share/qemu/vhost-user";
       environment.systemPackages = with pkgs; [
         looking-glass-client
         virtiofsd
@@ -99,9 +111,62 @@ in with builtins; {
         rdesktop
       ];
       systemd.services.libvirtd = with pkgs; {
-        path = [ virtiofsd swtpm-tpm2 virglrenderer ];
+        path = [
+          virtiofsd
+          swtpm-tpm2
+          virglrenderer
+        ];
         environment.LD_LIBRARY_PATH = "${virglrenderer}/lib";
-        unitConfig = { After = [ "kea-dhcp4-server.service" ]; };
+        unitConfig = {
+          After = [ "kea-dhcp4-server.service" ];
+        };
+      };
+
+      virtualisation.libvirt.swtpm.enable = true;
+      virtualisation.libvirt.connections."qemu:///session" = {
+        networks = [
+          {
+            definition = lib.network.getXML {
+              name = "default";
+              uuid = "1af25fd8-af0b-11ef-8569-efcee4ef42f5";
+              dns.enable = "no";
+              forward = {
+                mode = "nat";
+                nat = {
+                  port = {
+                    start = 1024;
+                    end = 65535;
+                  };
+                };
+              };
+              bridge = {
+                name = "virbr0";
+              };
+              mac = {
+                address = "52:54:00:02:77:4b";
+              };
+              ip = {
+                address = "192.168.32.1";
+                netmask = "255.255.255.0";
+                dhcp = {
+                  range = {
+                    start = "192.168.32.2";
+                    end = "192.168.32.254";
+                  };
+                };
+              };
+            };
+            active = true;
+          }
+        ];
+        pools = lib.pool.getXML {
+          name = "home";
+          uuid = "f0e397de-af0a-11ef-ba8a-37c366f1c2cf";
+          type = "dir";
+          target = {
+            path = "/home/wangzi/vm/";
+          };
+        };
       };
 
       networking.firewall.trustedInterfaces = [ "virbr0" ];
@@ -154,7 +219,10 @@ in with builtins; {
     (lib.mkIf nodeConfig.NextCloudServer.enable {
       virtualisation.oci-containers.containers.virtlyst = {
         image = "dantti/virtlyst";
-        volumes = [ "virtlyst:/root" "/root/.ssh:/root/.ssh" ];
+        volumes = [
+          "virtlyst:/root"
+          "/root/.ssh:/root/.ssh"
+        ];
         ports = [ "9090:80" ];
       };
       services.caddy = lib.optionalAttrs nodeConfig.NextCloudServer.enable {

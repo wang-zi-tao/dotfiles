@@ -157,13 +157,14 @@
     in
     {
       enable = true;
+      package = pkgs.unstable.nushell;
       configFile.text = with pkgs.unstable; ''
         use ${scripts}/custom-completions/git/git-completions.nu *
         use ${scripts}/custom-completions/make/make-completions.nu *
         use ${scripts}/custom-completions/cargo/cargo-completions.nu *
         use ${scripts}/custom-completions/nix/nix-completions.nu *
 
-        plugin add ${nushellPlugins.units}/bin/nu_plugin_units
+        # plugin add ${nushellPlugins.units}/bin/nu_plugin_units
         plugin add ${nushellPlugins.polars}/bin/nu_plugin_polars
         plugin add ${nushellPlugins.query}/bin/nu_plugin_query
         plugin add ${nushellPlugins.net}/bin/nu_plugin_net
@@ -185,9 +186,11 @@
         $env.config = $current
       '';
     };
-  home.file.".config/atuin/config.toml".text = builtins.readFile ./atuin.toml + ''
-    key_path = "/run/secrets-for-users/atuin-key"
-  '';
+  home.file.".config/atuin/config.toml".text =
+    builtins.readFile ./atuin.toml
+    + ''
+      key_path = "/run/secrets-for-users/atuin-key"
+    '';
   programs.atuin = {
     enable = true;
     enableZshIntegration = true;

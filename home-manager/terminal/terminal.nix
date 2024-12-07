@@ -76,6 +76,7 @@
       nmap
       gitui
       lazygit
+      github-copilot-cli
     ];
     home.packages =
       with pkgs;

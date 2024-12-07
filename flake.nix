@@ -33,6 +33,10 @@
     };
     eza.url = "github:eza-community/eza";
     nixfs.url = "github:illustris/nixfs";
+    NixVirt = {
+      url = "https://flakehub.com/f/AshleyYakeley/NixVirt/*.tar.gz";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
   outputs =
     inputs@{
@@ -51,6 +55,7 @@
       eza,
       master,
       nixfs,
+      NixVirt,
       ...
     }:
     let

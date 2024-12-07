@@ -72,6 +72,12 @@ let
       rev = "b1230ce2993b2be38a1e22606750d05a94307380";
       sha256 = "sha256-z03a2au40RIcpDUTRSWlWAbo1E+MgEgVaobFWV8hIaI=";
     };
+    copilot_vim = copilot-vim;
+    codecompanion = pkgs.fetchgit {
+      url = "https://github.com/olimorris/codecompanion.nvim";
+      rev = "331d95cd86627e2ed998a2ca012d6fed01080486";
+      sha256 = "sha256-njyu7a8SH2Yd+gOZgjY7la6DeYZBru5vLGXd8wN5uQY=";
+    };
 
     # LSP
     nvim_lspconfig = nvim-lspconfig;
@@ -150,6 +156,7 @@ let
     telescope_frecency_nvim = telescope-frecency-nvim;
     telescope_file_browser_nvim = telescope-file-browser-nvim;
     telescope_sg = telescope-sg;
+    telescope_smart_open = smart-open-nvim;
 
     libsqlite = "${sqlite.out}/lib/libsqlite3.so";
     sqlite = pkgs.fetchgit {
