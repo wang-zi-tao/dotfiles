@@ -99,12 +99,12 @@ local function config()
             },
             settings = opts.settings,
             cmd = opts.cmd,
+            on_init = opts.on_init,
         })
     end
 
     -- lspservers with default config
     local servers = {
-        "lua_ls",
         "vimls",
         "pyright",
         "jedi_language_server",
@@ -132,6 +132,70 @@ local function config()
         setup_lsp(lsp)
     end
     require("core.plugins.cpp").clangd_config(on_attach, nil)
+
+    setup_lsp("lua_ls", {
+        settings = {
+            Lua = {
+                telemetry = {
+                    enable = false
+                },
+            },
+        },
+        on_init = function(client)
+            local join = vim.fs.joinpath
+            local path = client.workspace_folders[1].name
+
+            -- Don't do anything if there is project local config
+            if vim.uv.fs_stat(join(path, '.luarc.json'))
+                or vim.uv.fs_stat(join(path, '.luarc.jsonc'))
+            then
+                vim.notify("load .luarc.json " .. join(path, '.luarc.json'), "info")
+                return
+            end
+
+            local library = {
+                -- Make the server aware of Neovim runtime files
+                vim.env.VIMRUNTIME,
+                vim.fn.stdpath('config'),
+            }
+
+            -- Apply neovim specific settings
+            local runtime_path = vim.split(package.path, ';')
+            table.insert(runtime_path, join('lua', '?.lua'))
+            table.insert(runtime_path, join('lua', '?', 'init.lua'))
+
+            local plugins = require("lazy").plugins()
+            for _, plugin in ipairs(plugins) do
+                local dir = plugin.dir
+                -- table.insert(library, dir)
+                -- table.insert(runtime_path, join(dir, 'lua', '?.lua'))
+                -- table.insert(runtime_path, join(dir, 'lua', '?', 'init.lua'))
+            end
+
+            local nvim_settings = {
+                runtime = {
+                    -- Tell the language server which version of Lua you're using
+                    version = 'LuaJIT',
+                    path = runtime_path
+                },
+                diagnostics = {
+                    -- Get the language server to recognize the `vim` global
+                    globals = { 'vim', 'gen', 'global' }
+                },
+                workspace = {
+                    checkThirdParty = false,
+                    library = library,
+                },
+            }
+
+            client.config.settings.Lua = vim.tbl_deep_extend(
+                'force',
+                client.config.settings.Lua,
+                nvim_settings
+            )
+            vim.notify(client.config.settings.Lua)
+        end,
+    })
     setup_lsp("java_language_server", {
         cmd = { "java-language-server" }
     })
@@ -231,17 +295,17 @@ return {
         },
         config = function()
             require("mason").setup({
-                registries = {
-                    "lua:mason-registry.index",
-                },
-                providers = {
-                    "mason.providers.registry-api",
-                    "mason.providers.client",
-                },
-
-                github = {
-                    download_url_template = "https://github.com/%s/releases/download/%s/%s",
-                },
+                -- registries = {
+                --     "lua:mason-registry.index",
+                -- },
+                -- providers = {
+                --     "mason.providers.registry-api",
+                --     "mason.providers.client",
+                -- },
+                --
+                -- github = {
+                --     download_url_template = "https://github.com/%s/releases/download/%s/%s",
+                -- },
 
                 pip = {
                     upgrade_pip = true,

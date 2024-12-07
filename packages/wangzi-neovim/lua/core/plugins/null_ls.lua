@@ -45,7 +45,7 @@ local function config()
                 }
             end,
         }),
-        -- b.formatting.clang_format,
+        b.formatting.clang_format,
         -- Python
         b.formatting.yapf,
         b.diagnostics.pylint,

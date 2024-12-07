@@ -119,6 +119,8 @@ return {
                     h.LualineBufferPrefix = { fg = c.blue }
                     h.LualineBufferInactive = { fg = c.grey }
                     h.LualineBufferActive = { fg = c.blue }
+
+                    h.HeirlineBg2 = { bg = c.grey }
                 end,
                 cache = true,
                 plugins = {

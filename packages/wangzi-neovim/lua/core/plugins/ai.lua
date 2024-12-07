@@ -56,6 +56,7 @@ local function config_codecompanion()
             end,
         },
     })
+    require("telescope").load_extension("codecompanion")
 end
 
 local function config_chatgpt()

@@ -89,7 +89,7 @@
                 autosave_only_in_session = false, -- Always autosaves session. If true, only autosaves after a session is active.
             })
 
-            local save_time = 3600 * 1000;
+            local save_time = 3 * 3600 * 1000;
             local function save()
                 vim.cmd [[SessionManager save_current_session]]
                 vim.defer_fn(save, save_time)

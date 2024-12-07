@@ -242,6 +242,7 @@ let
     virtual_types_nvim = virtual-types-nvim;
     alpha_nvim = alpha-nvim;
     lualine_nvim = lualine-nvim;
+    heirline = heirline-nvim;
     bufferline_nvim = bufferline-nvim;
     notify_nvim = nvim-notify;
     FixCursorHold_nvim = FixCursorHold-nvim;
@@ -347,7 +348,7 @@ in stdenvNoCC.mkDerivation {
     HOME=. ${pkg}/bin/nvim -u $out/init.lua "+Lazy! install" --headless +qa
     makeWrapper ${pkg}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
         --set LUA_PATH "$LUA_PATH" \
-        --prefix PATH : ${luarocks}
+        --prefix PATH : ${luarocks}:${sqlite.out}/lib
 
     ln -s ${pkgs.tree-sitter}/bin/tree-sitter $out/bin/tree-sitter
     cp $out/bin/wnvim $out/bin/wangzi-neovim

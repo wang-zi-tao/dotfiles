@@ -20,8 +20,10 @@ wk.add({
     { "<leader>w",     group = "Window / Workspace" },
     { "<leader>ws",    "<cmd>sp<CR>",                                                   desc = "Split" },
     { "<leader>wv",    "<cmd>vs<CR>",                                                   desc = "Split Vertical" },
-    { "<Tab>",         "<C-i>",                                                         desc = "Next Position" },
-    { "<C-Tab>",       "<C-o>",                                                         desc = "Previous Position" },
+    { "]B",            "<cmd>bn<CR>",                                                   desc = "Next Buffer" },
+    { "[B",            "<cmd>bp<CR>",                                                   desc = "Pervious Buffer" },
+    { "<Tab>",         "<cmd>bn<CR>",                                                   desc = "Next Position" },
+    { "<S-Tab>",       "<cmd>bp<CR>",                                                   desc = "Previous Position" },
     {
         "<leader>z",
         function()

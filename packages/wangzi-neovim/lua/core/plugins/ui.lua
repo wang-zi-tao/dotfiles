@@ -1,6 +1,7 @@
 return {
     -- require("core.plugins.onedark"),
     require("core.plugins.tokyonight"),
+    require("core.plugins.heirline"),
     {
         "folke/which-key.nvim",
         dir = gen.which_key,
@@ -236,17 +237,19 @@ return {
 
             local notify = vim.notify
             vim.notify = function(msg, level, opt, ...)
-                if msg:find("warning: multiple different client offset_encodings", 1, true) then
-                    return
-                end
-                if msg:find("query: invalid node type at position ", 1, true) then
-                    return
-                end
-                if msg:find("69_get_delim_multi", 1, true) then
-                    return
-                end
-                if msg:find("Error in decoration provider vim_lsp_inlayhint.win", 1, true) then
-                    return
+                if type(msg) == "string" then
+                    if msg:find("warning: multiple different client offset_encodings", 1, true) then
+                        return
+                    end
+                    if msg:find("query: invalid node type at position ", 1, true) then
+                        return
+                    end
+                    if msg:find("69_get_delim_multi", 1, true) then
+                        return
+                    end
+                    if msg:find("Error in decoration provider vim_lsp_inlayhint.win", 1, true) then
+                        return
+                    end
                 end
                 if level == "error" then
                     if msg:find("处理 CursorMoved 自动命令", 1, true) then
@@ -413,6 +416,7 @@ return {
         "nvim-lualine/lualine.nvim",
         dir = gen.lualine_nvim,
         name = "lualine_nvim",
+        enabled = false,
         dependencies = {
             "nvim_web_devicons",
             "trouble_nvim",

@@ -130,6 +130,16 @@ M.module_dir_names = {
     "Cargo.toml",
 }
 
+function M.get_buffer_path(bufnr)
+    local bufname = vim.fn.bufname(bufnr)
+    local absolute_buffer_path = vim.fn.fnamemodify(bufname, ":p")
+    return absolute_buffer_path
+end
+
+function M.get_current_buffer_path()
+    return vim.fn.expand("%:p")
+end
+
 function M.module_dir()
     local current = vim.fn.expand('%:p:h')
     for k, v in ipairs(M.module_dir_names) do
@@ -146,6 +156,7 @@ function M.add_mark()
     require("trailblazer").new_trail_mark()
     require("harpoon"):list():add()
     vim.cmd [[Arrow toggle_current_line_for_buffer]]
+    require("arrow.persist").save(M.get_current_buffer_path())
 end
 
 return M
