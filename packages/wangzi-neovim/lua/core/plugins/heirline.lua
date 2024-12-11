@@ -6,7 +6,51 @@
     local symbols             = require("core.theme").symbols
     local components          = heirline_components.component
 
-    local tokyonight_colors   = require("tokyonight.colors").setup()
+    local tokyonight_colors   = require("tokyonight.colors").setup({ style = "moon" })
+
+
+    local separator1 = { '', '' }
+    local separator1_empty = { '', '' }
+    local separator2 = { "", "" }
+    local separator3 = { '', '' }
+    local separator4_right = { '', '' }
+    local separator4_right_empty = { '', '' }
+    local mode_colors = {
+        n = "ui_main",
+        i = "magenta",
+        v = "red",
+        V = "red",
+        ["\22"] = "cyan",
+        c = "blue",
+        s = "yellow",
+        S = "yellow",
+        ["\19"] = "ui_main", -- telescope
+        R = "orange",
+        r = "orange",
+        ["!"] = "red",
+        t = "green1",
+
+    }
+
+    local lsp_symbol = {
+        ["rust-analyzer"] = "",
+        clangd = " ",
+        pyright = "",
+        rnix = " ",
+        lua_ls = "",
+        ["GitHub Copilot"] = "",
+    }
+
+    vim.api.nvim_create_autocmd("ModeChanged", {
+        pattern = "*:*",
+        callback = vim.schedule_wrap(function()
+            vim.cmd("redrawstatus")
+            vim.cmd("redrawtabline")
+        end),
+    })
+
+    local Align = { provider = "%=" }
+    local Space = { provider = " " }
 
     local function quit()
         return {
@@ -22,7 +66,7 @@
 
     local function close_buffer()
         return {
-            provider = " " .. symbols.close .. " ",
+            provider = symbols.close,
             on_click = {
                 callback = function()
                     vim.cmd [[quit]]
@@ -33,21 +77,149 @@
     end
 
     local function tabline_buffers()
-        return components.tabline_buffers({
+        local buf_utils = require("heirline-components.buffer")
+
+        local TablineBufnr = {
+            provider = function(self)
+                return tostring(self.bufnr .. ". ")
+            end,
             hl = function(self)
-                local tab_type = self.tab_type
-
-                if self._show_picker and self.tab_type ~= "buffer_active" then
-                    tab_type = "buffer_visible"
+                if self.is_active then
+                    return { fg = "white", bold = true }
+                else
+                    return "Comment"
                 end
-
-                if tab_type == "buffer_active" then
-                    return { fg = "blue", bold = true }
+            end,
+        }
+        local TablineFileName = {
+            provider = function(self)
+                local filename = self.filename
+                filename = filename == "" and "[No Name]" or vim.fn.fnamemodify(filename, ":t")
+                return filename
+            end,
+            hl = function(self)
+                if self.is_active then
+                    return { fg = "white", bold = true }
                 else
                     return { fg = "white", }
                 end
             end,
+        }
+        local FileIcon = {
+            init = function(self)
+                local filename = self.filename
+                local extension = vim.fn.fnamemodify(filename, ":e")
+                self.icon, self.icon_color = require("nvim-web-devicons").get_icon_color(filename, extension,
+                    { default = true })
+            end,
+            provider = function(self)
+                return self.icon and (self.icon .. " ")
+            end,
+            hl = function(self)
+                if self.is_active then
+                    return { fg = "white" }
+                else
+                    return { fg = self.icon_color }
+                end
+            end
+        }
+        local TablineFileFlags = {
+            {
+                condition = function(self)
+                    return vim.api.nvim_get_option_value("modified", { buf = self.bufnr })
+                end,
+                provider = "",
+                hl = { fg = "orange" },
+            },
+            {
+                condition = function(self)
+                    return not vim.api.nvim_get_option_value("modifiable", { buf = self.bufnr })
+                        or vim.api.nvim_get_option_value("readonly", { buf = self.bufnr })
+                end,
+                provider = function(self)
+                    if vim.api.nvim_get_option_value("buftype", { buf = self.bufnr }) == "terminal" then
+                        return ""
+                    else
+                        return ""
+                    end
+                end,
+                hl = { fg = "orange" },
+            },
+        }
+        local TablineFileNameBlock = {
+            init = function(self)
+                self.filename = vim.api.nvim_buf_get_name(self.bufnr)
+            end,
+            hl = function(self)
+                if self.is_active then
+                    return { bg = self:mode_color() }
+                else
+                    return { bg = "fg_gutter" }
+                end
+            end,
+            on_click = {
+                callback = function(_, minwid, _, button)
+                    if (button == "m") then -- close on mouse middle click
+                        vim.schedule(function()
+                            vim.api.nvim_buf_delete(minwid, { force = false })
+                        end)
+                    else
+                        vim.api.nvim_win_set_buf(0, minwid)
+                    end
+                end,
+                minwid = function(self)
+                    return self.bufnr
+                end,
+                name = "heirline_tabline_buffer_callback",
+            },
+            -- TablineBufnr,
+            FileIcon, -- turns out the version defined in #crash-course-part-ii-filename-and-friends can be reutilized as is here!
+            TablineFileName,
+            TablineFileFlags,
+        }
+
+        local TablineCloseButton = {
+            { provider = " " },
+            {
+                provider = symbols.close,
+                hl = { fg = "white", },
+                on_click = {
+                    callback = function(_, minwid)
+                        vim.schedule(function()
+                            vim.api.nvim_buf_delete(minwid, { force = false })
+                            vim.cmd.redrawtabline()
+                        end)
+                    end,
+                    minwid = function(self)
+                        return self.bufnr
+                    end,
+                    name = "heirline_tabline_close_buffer_callback",
+                },
+            },
+        }
+
+        local TablineBufferBlock = utils.surround(separator4_right, function(self)
+            if self.is_active then
+                return self:mode_color()
+            else
+                return "fg_gutter"
+            end
+        end, {
+            TablineFileNameBlock,
+            TablineCloseButton,
         })
+
+        local BufferLine = utils.make_buflist(
+            TablineBufferBlock,
+            { provider = "", hl = "Comment" },
+            { provider = "", hl = "Comment" }
+        )
+
+        return {
+            flexible = -4,
+            BufferLine
+        }
+        -- return components.tabline_buffers()
     end
 
     local function mode_color(self)
@@ -78,15 +250,17 @@
     end
 
     local function set_hl_bg2(opts)
-        opts.hl = bg2_hl
+        opts.hl = opts.hl or {}
+        opts.hl.bg = opts.hl.bg or "fg_gutter"
         opts.surround = { color = "fg_gutter" }
         return opts
     end
 
     local colors = vim.tbl_extend(
         "force",
-        tokyonight_colors,
         heirline_components.hl.get_colors(),
+        require("core.theme").colors,
+        tokyonight_colors,
         {
             fg = "#ffffff",
             vim_mode = tokyonight_colors.blue,
@@ -94,37 +268,6 @@
             bg2 = tokyonight_colors.fg_gutter,
         }
     )
-
-    local separator1 = { ' ', ' ' }
-    local separator1_empty = { '', ' ' }
-    local separator2 = { "", "" }
-    local separator3 = { '', '' }
-    local mode_colors = {
-        n = "blue",
-        i = "green",
-        v = "red",
-        V = "red",
-        ["\22"] = "cyan",
-        c = "blue",
-        s = "yellow",
-        S = "yellow",
-        ["\19"] = "purple",
-        R = "orange",
-        r = "orange",
-        ["!"] = "red",
-        t = "orange",
-
-    }
-
-    vim.api.nvim_create_autocmd("ModeChanged", {
-        pattern = "*:*",
-        callback = vim.schedule_wrap(function()
-            vim.cmd("redrawstatus")
-        end),
-    })
-
-    local Align = { provider = "%=" }
-    local Space = { provider = " " }
 
     local function WindowNumber()
         return {
@@ -153,6 +296,7 @@
             }
         }
     end
+
     local function separator(char, opts)
         return {
             provider = char,
@@ -163,8 +307,10 @@
             end,
         }
     end
+
     local function surround(children, opts)
         return {
+            flexible = opts.flexible,
             separator(opts.separator[1], opts),
             {
                 children,
@@ -180,7 +326,7 @@
         }
     end
 
-    local function trouble()
+    local function Trouble()
         local trouble = require("trouble")
         local trouble_symbols = trouble.statusline({
             mode = "lsp_document_symbols",
@@ -206,29 +352,81 @@
             end,
         }
     end
+
     local function pwd()
         return {
             provider = function()
                 return vim.fn.getcwd()
             end,
             update = "DirChanged",
+            on_click = {
+                name = "copy_pwd",
+                callback = function()
+                    vim.cmd [[let @+ = getcwd()]]
+                end
+            },
         }
     end
+
     local function file_info(opts)
         opts = opts or {}
         opts.filename = {}
         opts.filetype = false
+        opts.hl = opts.hl or {}
+        opts.hl.fg = "white"
+        opts.on_click = {
+            name = "copy_file_path",
+            callback = function()
+                vim.cmd [[let @+ = expand("%:p")]]
+            end,
+        }
         return components.file_info(opts)
     end
+
+    local function file_relative_path(opts)
+        opts          = opts or {}
+        opts.provider = function()
+            return vim.fn.expand("%:~:.")
+        end
+        opts.on_click = {
+            name     = "copy_relative_file_path",
+            callback = function()
+                vim.cmd [[let @+ = expand("%:~:.")]]
+            end,
+        }
+        opts.update   = "BufEnter"
+        return opts
+    end
+
+    local function Lsp(opts)
+        opts = opts or {}
+        return vim.tbl_deep_extend('keep', opts, {
+            condition = conditions.lsp_attached,
+            update = { 'LspAttach', 'LspDetach' },
+            provider = function()
+                local icons = {}
+                for i, server in pairs(vim.lsp.get_clients({ bufnr = 0 })) do
+                    if server.name ~= "null-ls" then
+                        table.insert(icons, lsp_symbol[server.name] or server.name)
+                    end
+                end
+                return " [" .. table.concat(icons, " ") .. "]"
+            end,
+            hl = { fg = "green1", bold = true },
+            on_click = {
+                name = "heirline_lsp",
+                callback = function() vim.schedule(vim.cmd.LspInfo) end,
+            },
+        })
+    end
+
+
     local StatusLine = {
         surround({
             surround({
                 Space,
-                ViMode(),
                 WindowNumber(),
-                Space,
             }, { separator = { "", separator2[2] } }),
-            Space,
             file_info(set_hl_bg2({})),
             components.git_diff(set_hl_bg2({})),
         }, { separator = { "", separator2[2] }, bg = "bg2" }),
@@ -238,16 +436,11 @@
             MacroRec(),
         },
         components.fill(),
-        components.lsp(),
+        Lsp(),
         surround({
-            Space,
             components.diagnostics(set_hl_bg2({})),
             surround({
-                components.nav({
-                    scrollbar = false,
-                    hl = mode_hl,
-                    surround = { color = mode_color }
-                }),
+                components.nav(set_hl_mode { scrollbar = false, }),
                 Space,
             }, { separator = { separator2[1], "" } })
         }, { separator = { separator2[1], "" }, bg = "bg2" }),
@@ -258,22 +451,26 @@
     }
     local WinBar = {
         init = function(self) self.bufnr = vim.api.nvim_get_current_buf() end,
-        Space,
-        -- components.breadcrumbs(),
-        trouble(),
+        {
+            flexible = -4,
+            Space,
+            -- components.breadcrumbs(),
+            Trouble(),
+        },
         components.fill(),
-        components.cmd_info(),
+        {
+            components.cmd_info(),
+        },
         surround({
             file_info(set_hl_bg2({})),
             surround({
                 Space,
                 WindowNumber(),
                 Space,
-                ViMode(),
                 close_buffer(),
                 Space,
-            }, { separator = { separator3[1], "" } }),
-        }, { separator = { separator3[1], "" }, bg = "bg2" }),
+            }, { separator = { separator2[1], "" } }),
+        }, { separator = { separator2[1], "" }, bg = "bg2" }),
         static = {
             mode_colors = mode_colors,
             mode_color = mode_color,
@@ -284,39 +481,41 @@
             surround({
                 Space,
                 ViMode(),
-                components.neotree({ fg = "white" }),
-                Space,
-            }, { separator = { "", separator1[2] } }),
+            }, { separator = { "", separator4_right[2] } }),
             pwd(),
-            { provider = separator1_empty[2] },
-            file_info(set_hl_bg2({})),
-        }, { separator = { "", separator1[2] }, bg = "bg2" }),
+            Space,
+            { provider = separator4_right_empty[2] },
+            Space,
+            file_relative_path(set_hl_bg2({})),
+            components.file_info(set_hl_bg2({ file_name = false, })),
+        }, { separator = { "", separator4_right[2] }, bg = "bg2", }),
         components.fill(),
         tabline_buffers(),
         components.fill(),
-        components.virtual_env(),
-        components.file_encoding(),
+        {
+            components.virtual_env(),
+            components.file_encoding({ hl = { fg = "gray" } }),
+        },
+        Space,
         surround({
-                Space,
-                components.git_diff(set_hl_bg2({})),
                 Space,
                 components.diagnostics(set_hl_bg2({})),
                 Space,
-                components.git_branch(set_hl_bg2({})),
+                components.git_branch(set_hl_bg2({ hl = { fg = "orange" } })),
+                components.git_diff(set_hl_bg2({})),
                 surround({
-                        Space,
                         quit(),
-                        Space,
                     },
-                    { separator = { separator1[1], "" } }),
+                    { separator = { separator4_right[1], "" }, }),
             },
-            { separator = { separator1[1], "" }, bg = "bg2" }),
+            { separator = { separator4_right[1], "" }, bg = "bg2" }),
         static = {
             mode_colors = mode_colors,
             mode_color = mode_color,
         },
     }
     local StatusColumn = {
+        components.foldcolumn(),
         components.signcolumn(),
         components.numbercolumn(),
     }
@@ -324,7 +523,19 @@
         return not require("heirline-components.buffer").is_valid(args.buf) or
             conditions.buffer_matches({
                 buftype = { "terminal", "prompt", "nofile", "help", "quickfix" },
-                filetype = { "NvimTree", "neo%-tree", "dashboard", "Outline", "aerial", "trouble", "codecompanion", "sagaoutline", "Trouble", "qf" },
+                filetype = {
+                    "NvimTree",
+                    "neo%-tree",
+                    "dashboard",
+                    "Outline",
+                    "aerial",
+                    "trouble",
+                    "codecompanion",
+                    "sagaoutline",
+                    "Trouble",
+                    "qf",
+                    "toggleterm"
+                },
             }, args.buf)
     end
     heirline_components.init.subscribe_to_events()

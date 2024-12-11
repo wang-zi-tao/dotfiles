@@ -16,7 +16,6 @@ wk.add({
     { "<leader>ga",    ":!git add .<CR>",                                               desc = "Git Add" },
     { "<leader>gc",    ":terminal git commit<CR>",                                      desc = "Git Commit" },
     { "<leader>gp",    ":!git push<CR>",                                                desc = "Git Push" },
-    { "<leader>q",     "<cmd>close<CR>",                                                desc = "close" },
     { "<leader>w",     group = "Window / Workspace" },
     { "<leader>ws",    "<cmd>sp<CR>",                                                   desc = "Split" },
     { "<leader>wv",    "<cmd>vs<CR>",                                                   desc = "Split Vertical" },

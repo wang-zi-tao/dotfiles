@@ -127,6 +127,7 @@ local function config()
         "wgsl_analyzer",
         "csharp_ls",
         "cssls",
+        "codeqlls",
     }
     for _, lsp in ipairs(servers) do
         setup_lsp(lsp)

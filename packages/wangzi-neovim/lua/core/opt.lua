@@ -56,6 +56,9 @@ opt.autoindent = true
 
 opt.splitkeep = "screen"
 opt.endofline = false
+opt.showtabline = 2
+opt.linebreak = true
+opt.breakat = [[\ \ ;:,!?]]
 
 if vim.env.BOMB or 1 == vim.fn.has("win32") then
     o.bomb = true
