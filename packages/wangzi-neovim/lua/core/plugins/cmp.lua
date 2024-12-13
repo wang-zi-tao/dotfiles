@@ -70,7 +70,7 @@ local function config()
             ["<C-e>"] = cmp.mapping.abort(),
             ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
             ["<Tab>"] = cmp.mapping(function(fallback)
-                pcall(function()
+                ret, succ = pcall(function()
                     if cmp.visible() then
                         cmp.select_next_item()
                     elseif luasnip.expand_or_jumpable() then
@@ -81,6 +81,11 @@ local function config()
                         fallback()
                     end
                 end)
+                if not succ then
+                    if cmp.visible() then
+                        cmp.select_next_item()
+                    end
+                end
             end, { "i", "s" }),
             ["<S-Tab>"] = cmp.mapping(function(fallback)
                 pcapll(function()

@@ -70,10 +70,14 @@ return {
                     h.NeoTreeGitUnstaged = { bg = c.bg_dark, fg = c.red }
                     h.NeoTreeGitUntracked = { bg = c.bg_dark, fg = c.red }
                     h.ScrollbarSearch = { fg = c.yellow }
-                    h.DiagnosticVirtualTextWarn = { fg = c.orange }
+                    h.DiagnosticVirtualTextWarn = { fg = c.yellow }
                     h.DiagnosticVirtualTextInfo = { fg = c.blue }
                     h.DiagnosticVirtualTextHint = { fg = c.green }
                     h.DiagnosticVirtualTextError = { fg = c.red }
+                    h.DiagnosticWarn = { fg = c.yellow }
+                    h.DiagnosticInfo = { fg = c.blue }
+                    h.DiagnosticHint = { fg = c.green }
+                    h.DiagnosticError = { fg = c.red }
                     h.DapUIPlayPauseNC = { bg = c.bg_dark, fg = c.green }
                     h.DapUIStopNC = { bg = c.bg_dark, fg = "#f70067" }
                     h.DapUIRestartNC = { bg = c.bg_dark, fg = c.green }

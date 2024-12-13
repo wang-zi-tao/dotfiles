@@ -59,9 +59,7 @@ local function on_attach(client, bufnr)
     -- keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
     -- keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 
-    if vim.fn.has("win32") == 0 then
-        vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-    end
+    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 end
 
 local function get_capabilities()
@@ -90,6 +88,8 @@ local function config()
     require("core.plugins.lsp_handlers")
     local num_of_job = require("core.utils").num_of_core()
 
+    local lsp_list = {}
+
     local function setup_lsp(lsp_name, opts)
         local opts = opts or {}
         lspconfig[lsp_name].setup({
@@ -101,6 +101,7 @@ local function config()
             cmd = opts.cmd,
             on_init = opts.on_init,
         })
+        table.insert(lsp_list, lsp_name)
     end
 
     -- lspservers with default config
@@ -231,6 +232,16 @@ local function config()
             },
         },
     })
+
+    if vim.fn.has("win32") == 1 then
+        require("mason")
+        require("mason-lspconfig").setup({
+            ensure_installed = {
+                ensure_installed = lsp_list,
+                automatic_installation = true,
+            }
+        })
+    end
 end
 
 return {
@@ -276,12 +287,13 @@ return {
             "lsp_signature_nvim",
         }
     },
-    {
+    vim.fn.has('win32') and {
         "williamboman/mason.nvim",
         dir = gen.mason_nvim,
         name = "mason_nvim",
         cmd = { "Mason", "MasonUpdate", "MasonInstall", "MasonUninstall", "MasonUninstallAll", "MasonLog" },
         lazy = 0 == vim.fn.has("win32"),
+        module = "mason",
         dependencies = {
             "nvim_lspconfig",
             "jay-babu/mason-nvim-dap.nvim",
@@ -292,22 +304,15 @@ return {
                 dependencies = {
                     "none_ls",
                 },
+            },
+            {
+                "williamboman/mason-lspconfig.nvim",
+                name = "mason_lspconfig",
+                module = "mason-lspconfig",
             }
         },
         config = function()
             require("mason").setup({
-                -- registries = {
-                --     "lua:mason-registry.index",
-                -- },
-                -- providers = {
-                --     "mason.providers.registry-api",
-                --     "mason.providers.client",
-                -- },
-                --
-                -- github = {
-                --     download_url_template = "https://github.com/%s/releases/download/%s/%s",
-                -- },
-
                 pip = {
                     upgrade_pip = true,
                     install_args = {},
@@ -321,5 +326,5 @@ return {
                 },
             })
         end,
-    },
+    } or {},
 }

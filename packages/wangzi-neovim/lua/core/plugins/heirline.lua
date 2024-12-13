@@ -452,10 +452,9 @@
     local WinBar = {
         init = function(self) self.bufnr = vim.api.nvim_get_current_buf() end,
         {
-            flexible = -4,
             Space,
-            -- components.breadcrumbs(),
-            Trouble(),
+            components.breadcrumbs(),
+            -- Trouble(),
         },
         components.fill(),
         {

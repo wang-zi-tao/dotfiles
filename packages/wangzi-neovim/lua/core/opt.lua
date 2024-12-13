@@ -188,7 +188,7 @@ endfunc
 require("core.theme").define_sign()
 
 vim.diagnostic.config({
-    virtual_text = true,
+    virtual_text = false,
     signs = true,
     update_in_insert = true,
     underline = true,

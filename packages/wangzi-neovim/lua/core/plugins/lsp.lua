@@ -90,8 +90,12 @@ local function lsp_signature_on_attach(bufnr)
         doc_lines = 0,
         floating_window = true,
         fix_pos = true,
-        hint_enable = true,
-        hint_prefix = symbols.hint,
+        hint_enable = false,
+        hint_prefix = {
+            above = "↙ ", -- when the hint is on the line above the current line
+            current = "← ", -- when the hint is on the same line
+            below = "↖ " -- when the hint is on the line below the current line
+        },
         hint_scheme = "String",
         hi_parameter = "Search",
         max_height = 22,
@@ -466,8 +470,87 @@ return {
                         vim.cmd("Telescope fd search_dirs=" .. workspace.path)
                     end, {})
                 end
-                require("obsidian").setup({ workspaces = workspaces })
+                require("obsidian").setup({
+                    workspaces = workspaces,
+                    completion = {
+                        nvim_cmp = true,
+                    }
+                })
             end)
         end,
     },
+    {
+        "rachartier/tiny-inline-diagnostic.nvim",
+        name = "tiny_inline_diagnostic",
+        dir = gen.tiny_inline_diagnostic,
+        event = 'LspAttach',
+        priority = 1000, -- needs to be loaded in first
+        config = function()
+            require('tiny-inline-diagnostic').setup({
+                preset  = "modern", -- Can be: "modern", "classic", "minimal", "powerline", ghost", "simple", "nonerdfont", "amongus"
+                options = {
+                    show_source                  = true,
+                    multiple_diag_under_cursor   = true,
+                    multilines                   = true,
+                    show_all_diags_on_cursorline = true,
+                    throttle                     = 0,
+                    enable_on_insert             = true,
+                },
+            })
+        end
+    },
+    {
+        'stevearc/aerial.nvim',
+        name = "aerial_nvim",
+        dir = gen.aerial_nvim,
+        -- Optional dependencies
+        event = "LspAttach",
+        module = "aerial",
+        dependencies = {
+            "nvim_treesitter",
+            "nvim_web_devicons"
+        },
+        config = function()
+            require("aerial").setup({
+                layout = {
+                    min_width = 40,
+                },
+                default_direction = "float",
+                backends = {
+                    "lsp",
+                    "treesitter",
+                    "markdown",
+                    "asciidoc",
+                    "man"
+                },
+                autojump = true,
+                manage_folds = true,
+
+                nav = {
+                    autojump = true,
+                    preview = true,
+
+                    keymaps = {
+                        ["<ESC>"] = "actions.close",
+                    }
+                },
+            })
+        end,
+        keys = {
+            {
+                "<leader>wa",
+                function()
+                    vim.cmd.AerialToggle("float")
+                end,
+                desc = "Aerial Outline"
+            },
+            {
+                "<leader>wA",
+                function()
+                    vim.cmd.AerialNavToggle()
+                end,
+                desc = "Aerial Outline"
+            },
+        }
+    }
 }
