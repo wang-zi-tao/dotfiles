@@ -59,7 +59,9 @@ local function on_attach(client, bufnr)
     -- keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
     -- keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 
-    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+    if vim.fn.has("win32") == 0 then
+        vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+    end
 end
 
 local function get_capabilities()
@@ -169,7 +171,7 @@ local function config()
             local plugins = require("lazy").plugins()
             for _, plugin in ipairs(plugins) do
                 local dir = plugin.dir
-                -- table.insert(library, dir)
+                table.insert(library, dir)
                 -- table.insert(runtime_path, join(dir, 'lua', '?.lua'))
                 -- table.insert(runtime_path, join(dir, 'lua', '?', 'init.lua'))
             end
@@ -263,11 +265,40 @@ return {
         end,
         keys = {
             {
-                "<leader>lf",
+                "gq",
                 function()
                     vim.lsp.buf.format()
                 end,
                 desc = "Format",
+                mode = { "n", "v" }
+            },
+            {
+                "<leader>lf",
+                function()
+                    local hunks = require("gitsigns").get_hunks()
+                    local format = require("conform").format
+                    for i = #hunks, 1, -1 do
+                        local hunk = hunks[i]
+                        if hunk ~= nil and hunk.type ~= "delete" then
+                            local start = hunk.added.start
+                            local last = start + hunk.added.count
+                            -- nvim_buf_get_lines uses zero-based indexing -> subtract from last
+                            local last_hunk_line = vim.api.nvim_buf_get_lines(0, last - 2, last - 1, true)[1]
+                            local range = { start = { start, 0 }, ["end"] = { last - 1, last_hunk_line:len() } }
+                            vim.lsp.buf.format({ range = range })
+                        end
+                    end
+                end,
+                desc = "Format hunks",
+                mode = { "n", "v" }
+            },
+            {
+                "<leader>lF",
+                function()
+                    vim.lsp.buf.format()
+                end,
+                desc = "Format buffer",
+                mode = { "n", "v" }
             },
             {
                 "K",
@@ -327,4 +358,17 @@ return {
             })
         end,
     } or {},
+    {
+        "folke/lazydev.nvim",
+        name = "lazydev",
+        dir = gen.lazydev,
+        ft = "lua", -- only load on lua files
+        opts = {
+            library = {
+                -- See the configuration section for more details
+                -- Load luvit types when the `vim.uv` word is found
+                { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+            },
+        },
+    },
 }

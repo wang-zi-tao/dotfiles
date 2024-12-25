@@ -17,7 +17,7 @@
     local separator4_right_empty = { '', '' }
     local mode_colors = {
         n = "ui_main",
-        i = "magenta",
+        i = "green",
         v = "red",
         V = "red",
         ["\22"] = "cyan",
@@ -128,8 +128,37 @@
                 condition = function(self)
                     return vim.api.nvim_get_option_value("modified", { buf = self.bufnr })
                 end,
-                provider = "",
-                hl = { fg = "orange" },
+                provider = "󰆓",
+                hl = { fg = "green" },
+            },
+            {
+                condition = function(self)
+                    local status_dict = vim.b[self.bufnr].gitsigns_status_dict
+                    if not status_dict then
+                        return false
+                    end
+
+                    local has_changes = status_dict.added ~= 0 or status_dict.removed ~= 0 or
+                        status_dict.changed ~= 0
+                    return has_changes
+                end,
+                provider = "",
+                hl = function(self)
+                    if self.is_active then
+                        return { fg = "white" }
+                    else
+                        return { fg = "blue" }
+                    end
+                end
+            },
+            {
+                update = { "DiagnosticChanged", "BufEnter" },
+                condition = function(self)
+                    local errors = #vim.diagnostic.get(self.bufnr, { severity = vim.diagnostic.severity.ERROR })
+                    return errors > 0
+                end,
+                hl = { fg = "red" },
+                provider = symbols.error,
             },
             {
                 condition = function(self)
@@ -175,11 +204,11 @@
             -- TablineBufnr,
             FileIcon, -- turns out the version defined in #crash-course-part-ii-filename-and-friends can be reutilized as is here!
             TablineFileName,
+            { provider = " " },
             TablineFileFlags,
         }
 
         local TablineCloseButton = {
-            { provider = " " },
             {
                 provider = symbols.close,
                 hl = { fg = "white", },
@@ -356,7 +385,13 @@
     local function pwd()
         return {
             provider = function()
-                return vim.fn.getcwd()
+                local icon = "  "
+                local cwd = vim.fn.getcwd(0)
+                cwd = vim.fn.fnamemodify(cwd, ":~")
+                if not conditions.width_percent_below(#cwd, 0.25) then
+                    cwd = vim.fn.pathshorten(cwd)
+                end
+                return icon .. cwd
             end,
             update = "DirChanged",
             on_click = {
@@ -384,18 +419,18 @@
     end
 
     local function file_relative_path(opts)
-        opts          = opts or {}
-        opts.provider = function()
-            return vim.fn.expand("%:~:.")
-        end
-        opts.on_click = {
-            name     = "copy_relative_file_path",
-            callback = function()
-                vim.cmd [[let @+ = expand("%:~:.")]]
+        return vim.tbl_deep_extend("keep", opts or {}, {
+            provider = function()
+                return vim.fn.expand("%:~:.")
             end,
-        }
-        opts.update   = "BufEnter"
-        return opts
+            on_click = {
+                name     = "copy_relative_file_path",
+                callback = function()
+                    vim.cmd [[let @+ = expand("%:~:.")]]
+                end,
+            },
+            update   = "BufEnter"
+        })
     end
 
     local function Lsp(opts)
@@ -420,6 +455,91 @@
         })
     end
 
+    local DAPMessages = {
+        condition = function()
+            local session = require("dap").session()
+            return session ~= nil
+        end,
+        provider = function()
+            return " " .. require("dap").status() .. " "
+        end,
+        hl = "Debug",
+        {
+            provider = "󰆹",
+            on_click = {
+                callback = function()
+                    require("dap").step_into()
+                end,
+                name = "heirline_dap_step_into",
+            },
+        },
+        { provider = " " },
+        {
+            provider = "󰆸",
+            on_click = {
+                callback = function()
+                    require("dap").step_out()
+                end,
+                name = "heirline_dap_step_out",
+            },
+        },
+        { provider = " " },
+        {
+            provider = "",
+            on_click = {
+                callback = function()
+                    require("dap").step_over()
+                end,
+                name = "heirline_dap_step_over",
+            },
+        },
+        { provider = " " },
+        {
+            provider = "",
+            on_click = {
+                callback = function()
+                    require("dap").run_last()
+                end,
+                name = "heirline_dap_run_last",
+            },
+        },
+        { provider = " " },
+        {
+            provider = "",
+            on_click = {
+                callback = function()
+                    require("dap").terminate()
+                    require("dapui").close({})
+                end,
+                name = "heirline_dap_close",
+            },
+        },
+        { provider = " " },
+        -- icons:       ﰇ  
+    }
+
+    local function FileSize(opts)
+        return vim.tbl_deep_extend("keep", opts or {}, {
+            provider = function()
+                -- stackoverflow, compute human readable file size
+                local suffix = { 'b', 'k', 'M', 'G', 'T', 'P', 'E' }
+                local fsize = vim.fn.getfsize(vim.api.nvim_buf_get_name(0))
+                fsize = (fsize < 0 and 0) or fsize
+                if fsize < 1024 then
+                    return fsize .. suffix[1]
+                end
+                local i = math.floor((math.log(fsize) / math.log(1024)))
+                return string.format("%.2g%s", fsize / math.pow(1024, i), suffix[i + 1])
+            end
+        })
+    end
+
+    local FileEncoding = {
+        provider = function()
+            local enc = (vim.bo.fenc ~= '' and vim.bo.fenc) or vim.o.enc -- :h 'enc'
+            return enc:upper()
+        end
+    }
 
     local StatusLine = {
         surround({
@@ -481,6 +601,7 @@
                 Space,
                 ViMode(),
             }, { separator = { "", separator4_right[2] } }),
+            DAPMessages,
             pwd(),
             Space,
             { provider = separator4_right_empty[2] },
@@ -493,6 +614,7 @@
         components.fill(),
         {
             components.virtual_env(),
+            FileSize({ hl = { fg = "gray" } }),
             components.file_encoding({ hl = { fg = "gray" } }),
         },
         Space,

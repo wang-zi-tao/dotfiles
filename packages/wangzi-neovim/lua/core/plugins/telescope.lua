@@ -128,6 +128,7 @@ local function config()
         "notify",
         "noice",
         "smart_open",
+        "hbac",
     }
     for _, ext in ipairs(extensions) do
         if not pcall(telescope.load_extension, ext) then
