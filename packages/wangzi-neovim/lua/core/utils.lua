@@ -159,4 +159,31 @@ function M.add_mark()
     require("arrow.persist").save(M.get_current_buffer_path())
 end
 
+function M.get_changed_ranges()
+    local ranges = {}
+    local hunks = require("gitsigns").get_hunks()
+    for i = #hunks, 1, -1 do
+        local hunk = hunks[i]
+        if hunk ~= nil and hunk.type ~= "delete" then
+            local start = hunk.added.start
+            local last = start + hunk.added.count
+            -- nvim_buf_get_lines uses zero-based indexing -> subtract from last
+            local last_hunk_line = vim.api.nvim_buf_get_lines(0, last - 2, last - 1, true)[1]
+            local range = { start = { start, 0 }, ["end"] = { last - 1, last_hunk_line:len() } }
+            table.insert(ranges, range)
+        end
+    end
+    return ranges
+end
+
+function M.get_selection()
+    if vim.fn.mode() ~= "v" then
+        return ""
+    end
+
+    return table.concat(vim.fn.getregion(
+        vim.fn.getpos("."), vim.fn.getpos("v"), { mode = vim.fn.mode() }
+    ), '\n')
+end
+
 return M

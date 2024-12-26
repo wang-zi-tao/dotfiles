@@ -10,7 +10,7 @@ local function config()
     wps.ohos_qt_path = wps.path:joinpath("../3rdparty/qt5/source/qtbase/")
 
     local coding_dir = wps.path:joinpath("Coding/")
-    if coding_dir.exist() then
+    if coding_dir:exists() then
         require("cmake-tools").select_cwd(tostring(coding_dir))
     end
 
