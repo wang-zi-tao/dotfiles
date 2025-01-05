@@ -243,6 +243,11 @@ let
     alpha_nvim = alpha-nvim;
     lualine_nvim = lualine-nvim;
     heirline = heirline-nvim;
+    heirline_components = pkgs.fetchgit {
+      url = "https://github.com/Zeioth/heirline-components.nvim";
+      rev = "1ca5d501134d5c85b9e43dd0504447a1dceb90fa";
+      sha256 = "sha256-cCT6n/dASx5+/mKOVCEoEn4+w6h12dMqJMjaiat0vq4=";
+    };
     bufferline_nvim = bufferline-nvim;
     notify_nvim = nvim-notify;
     FixCursorHold_nvim = FixCursorHold-nvim;

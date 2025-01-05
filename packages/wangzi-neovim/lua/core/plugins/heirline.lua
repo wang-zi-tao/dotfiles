@@ -180,20 +180,23 @@
         }
     end
 
-    local function trouble()
-        local trouble = require("trouble")
-        local trouble_symbols = trouble.statusline({
-            mode = "lsp_document_symbols",
-            groups = {},
-            title = false,
-            filter = { range = true },
-            format = "❱{kind_icon}{symbol.name:Normal}",
-            -- The following line is needed to fix the background color
-            -- Set it to the lualine section you want to use
-            -- hl_group = "lualine_c_normal",
-        })
+    local function Trouble()
         return {
-            provider = trouble_symbols.get,
+            provider = function()
+                local trouble = require("trouble")
+                local trouble_symbols = trouble.statusline({
+                    mode = "lsp_document_symbols",
+                    groups = {},
+                    title = false,
+                    filter = { range = true },
+                    format = "❱{kind_icon}{symbol.name:Normal}",
+                    -- The following line is needed to fix the background color
+                    -- Set it to the lualine section you want to use
+                    -- hl_group = "lualine_c_normal",
+                })
+                value, success = pcall(trouble_symbols.get)
+                return value or ""
+            end,
             condition = conditions.is_active,
         }
     end
@@ -259,8 +262,8 @@
     local WinBar = {
         init = function(self) self.bufnr = vim.api.nvim_get_current_buf() end,
         Space,
-        -- components.breadcrumbs(),
-        trouble(),
+        components.breadcrumbs(),
+        -- Trouble(),
         components.fill(),
         components.cmd_info(),
         surround({
@@ -343,15 +346,17 @@ end
 return {
     {
         "rebelot/heirline.nvim",
+        dir = gen.heirline,
         name = "heirline",
         package = "heirline",
         event = "VeryLazy",
-        dependencies = "heirline-components",
+        dependencies = "heirline_components",
         config = config
     },
     {
         "Zeioth/heirline-components.nvim",
-        name = "heirline-components",
+        dir = gen.heirline_components,
+        name = "heirline_components",
         package = "heirline-components.all",
         lazy = true
     }
