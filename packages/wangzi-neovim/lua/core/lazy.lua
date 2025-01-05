@@ -35,6 +35,7 @@ require("lazy").setup({
     require("core.plugins.cpp"),
     require("core.plugins.null_ls"),
     require("core.plugins.fold"),
+    require("core.plugins.codeql"),
 
     require("core.plugins.wps"),
 

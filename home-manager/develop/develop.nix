@@ -78,6 +78,7 @@ in
     cpulimit
     ctop
     sqlite
+    codeql
 
     bison
 

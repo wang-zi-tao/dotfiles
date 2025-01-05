@@ -158,6 +158,17 @@ local function config()
             end,
         },
     }
+
+    dap.configurations.lua = {
+        {
+            type = 'nlua',
+            request = 'attach',
+            name = "Attach to running Neovim instance",
+        }
+    }
+    dap.adapters.nlua = function(callback, config)
+        callback({ type = 'server', host = config.host or "127.0.0.1", port = config.port or 8086 })
+    end
 end
 
 return {
@@ -537,6 +548,21 @@ return {
                         require("persistent-breakpoints.api").clear_all_breakpoints()
                     end,
                     desc = "Clear BreakPoint",
+                },
+            },
+        },
+        {
+            "jbyuki/one-small-step-for-vimkind",
+            name = "one_small_step_for_vimkind",
+            dir = gen.one_small_step_for_vimkind,
+            module = "osv",
+            keys = {
+                {
+                    "<leader>dv",
+                    function()
+                        require("osv").launch({ port = 8086 })
+                    end,
+                    desc = "debug this neovim"
                 },
             },
         },

@@ -261,5 +261,14 @@
         dir = gen.nix_develop_nvim,
         name = "nix_develop_nvim",
         event = "VeryLazy",
-    }
+    },
+    {
+        "LunarVim/bigfile.nvim",
+        name = "bigfile",
+        dir = gen.bigfile,
+        config = function()
+            require("bigfile").setup({
+            })
+        end,
+    },
 }
