@@ -65,7 +65,24 @@ vim.api.nvim_create_user_command("Cd", function(opts)
     end)
 end, { nargs = "?", complete = "dir" })
 
+local function WatchFile(path)
+    utils.watch_file(path, function(err, fname, status)
+        vim.notify("File: " .. fname .. " Status: " .. status)
+        vim.notify(fname, "info", { title = status })
+    end)
+end
+
+vim.api.nvim_create_user_command("WatchFileThis", function(opts)
+    local file = vim.fn.expand("%")
+    WatchFile(file)
+end, { nargs = 0 })
+
+vim.api.nvim_create_user_command("WatchFile", function(opts)
+    WatchFile(opts.args[1])
+end, { nargs = 1, complete = "file" })
+
 return {
     ClearTerm = ClearTerm,
     OpenInVS = OpenInVS,
+    WatchFile = WatchFile,
 }

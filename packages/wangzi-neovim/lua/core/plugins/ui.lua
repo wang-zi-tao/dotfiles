@@ -251,45 +251,6 @@ return {
                 stages = "static",
                 render = "compact",
             })
-            vim.notify = function(msg, level, opt, ...)
-                local usefidget = false
-                if type(msg) == "string" then
-                    if msg:find("warning: multiple different client offset_encodings", 1, true) then
-                        usefidget = true
-                    end
-                    if msg:find("query: invalid node type at position ", 1, true) then
-                        usefidget = true
-                    end
-                    if msg:find("69_get_delim_multi", 1, true) then
-                        usefidget = true
-                    end
-                    if msg:find("Error in decoration provider vim_lsp_inlayhint.win", 1, true) then
-                        usefidget = true
-                    end
-                    if msg:find("Invalid node type", 1, true) then
-                        usefidget = true
-                    end
-                    if msg:find("Query error at", 1, true) then
-                        usefidget = true
-                    end
-                    if msg:find("处理 CursorMoved 自动命令", 1, true) then
-                        usefidget = true
-                    end
-                    if msg:find("自动命令", 1, true) then
-                        usefidget = true
-                    end
-                end
-                if level == "error" then
-                    opt = opt or {}
-                    opt.timeout = 1000
-                end
-
-                if usefidget then
-                    require("fidget").notify(msg, level, opt, ...)
-                else
-                    require("notify")(msg, level, opt, ...)
-                end
-            end
         end,
     },
     {

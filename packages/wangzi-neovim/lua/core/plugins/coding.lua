@@ -15,8 +15,7 @@
         dir = gen.comment_nvim,
         name = "comment_nvim",
         module = "nvim_comment",
-        keys = { "gcc", "gc" },
-        lazy = true,
+        event = "BufEnter",
         config = function()
             require('Comment').setup({
                 ---Add a space b/w comment and the line

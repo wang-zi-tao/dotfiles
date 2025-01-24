@@ -189,7 +189,7 @@ local function config()
             -- "open_current",  -- netrw disabled, opening a directory opens within the
             -- window like netrw would, regardless of window.position
             -- "disabled",    -- netrw left alone, neo-tree does not handle opening dirs
-            use_libuv_file_watcher = true, -- This will use the OS level file watchers to detect changes
+            use_libuv_file_watcher = vim.fn.has("win32") == 0, -- This will use the OS level file watchers to detect changes
             -- instead of relying on nvim autocmd events.
             window = {
                 mappings = {

@@ -81,6 +81,10 @@ local function get_capabilities()
             "additionalTextEdits",
         },
     }
+    capabilities.textDocument.foldingRange = {
+        dynamicRegistration = false,
+        lineFoldingOnly = true
+    }
 end
 
 local function config()
@@ -276,8 +280,10 @@ return {
                 "<leader>lf",
                 function()
                     local hunks = require("gitsigns").get_hunks()
-                    for range in require("core.utils").get_changed_ranges() do
-                        vim.lsp.buf.format({ range = range })
+                    if hunks == nil then
+                        for range in require("core.utils").get_changed_ranges() do
+                            vim.lsp.buf.format({ range = range })
+                        end
                     end
                 end,
                 desc = "Format hunks",
@@ -314,7 +320,7 @@ return {
         dir = gen.mason_nvim,
         name = "mason_nvim",
         cmd = { "Mason", "MasonUpdate", "MasonInstall", "MasonUninstall", "MasonUninstallAll", "MasonLog" },
-        lazy = 0 == vim.fn.has("win32"),
+        -- lazy = 0 == vim.fn.has("win32"),
         module = "mason",
         dependencies = {
             "nvim_lspconfig",

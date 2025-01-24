@@ -73,9 +73,9 @@ M.symbols = {
     },
 
     git = {
-        added = " ",
-        modified = " ",
-        removed = " ",
+        added = "+",
+        modified = "~",
+        removed = "-",
         deleted = "✖ ",
         renamed = " ",
         untracked = "",
@@ -157,6 +157,9 @@ function M.setup()
         "DapStopped",
         { text = "", texthl = "DapStoppedIcon", linehl = "DapStopped", numhl = "DapStopped" }
     )
+    vim.fn.sign_define("GitAdd", { text = M.symbols.git.added, texthl = "GitSignsAdd" })
+    vim.fn.sign_define("GitChange", { text = M.symbols.git.modified, texthl = "GitSignsChange" })
+    vim.fn.sign_define("GitDelete", { text = M.symbols.git.removed, texthl = "GitSignsDelete" })
 end
 
 return M

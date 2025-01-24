@@ -87,6 +87,12 @@ function M.cachedinput(key, prompt, default, completion, callback)
     end
 end
 
+---@param arg string[]
+---@param key string
+---@param prompt string
+---@param default string
+---@param completion string
+---@param callback fun(value: string)
 function M.argOrCachedInput(arg, key, prompt, default, completion, callback)
     if #arg > 0 then
         database.tables.caches:insert({
@@ -162,6 +168,9 @@ end
 function M.get_changed_ranges()
     local ranges = {}
     local hunks = require("gitsigns").get_hunks()
+    if hunks == nil then
+        return ranges
+    end
     for i = #hunks, 1, -1 do
         local hunk = hunks[i]
         if hunk ~= nil and hunk.type ~= "delete" then
@@ -184,6 +193,28 @@ function M.get_selection()
     return table.concat(vim.fn.getregion(
         vim.fn.getpos("."), vim.fn.getpos("v"), { mode = vim.fn.mode() }
     ), '\n')
+end
+
+---@param file string
+---@param callback fun(err: string, fname: string, status: string)
+function M.watch_file(file, callback)
+    local w = vim.uv.new_fs_event()
+    local do_watch_file
+    local function on_change(err, fname, status)
+        -- Do work...
+        vim.api.nvim_command('checktime')
+        -- Debounce: stop/start.
+        w:stop()
+        do_watch_file(fname)
+        callback(err, fname, status)
+    end
+    do_watch_file = function(fname)
+        local fullpath = vim.api.nvim_call_function(
+            'fnamemodify', { fname, ':p' })
+        w:start(fullpath, {}, vim.schedule_wrap(on_change))
+    end
+
+    do_watch_file(file)
 end
 
 return M

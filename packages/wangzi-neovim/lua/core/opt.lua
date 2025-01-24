@@ -24,9 +24,6 @@ opt.cmdheight = 1
 opt.cul = true
 opt.expandtab = true
 opt.fillchars = { eob = " " }
-opt.foldenable = false
-opt.foldmethod = "indent"
-opt.foldnestmax = 4
 opt.hidden = true
 opt.ignorecase = true
 opt.lazyredraw = true
@@ -59,6 +56,10 @@ opt.endofline = false
 opt.showtabline = 2
 opt.linebreak = true
 opt.breakat = [[\ \ ;:,!?]]
+
+vim.o.foldlevel = 99
+vim.o.foldlevelstart = 99
+opt.foldenable = true
 
 if vim.env.BOMB or 1 == vim.fn.has("win32") then
     o.bomb = true
@@ -213,5 +214,13 @@ if vim.has("win32") == 1 then
     require("plenary.job"):new({
         command = "wmic",
         args = { "where", "ProcessId=" .. pid, "call", "setpriority", "AboveNormal" }
+    }):start()
+    require("plenary.job"):new({
+        command = "wmic",
+        args = { "where", "Name like '%%nvim.exe%%'", "call", "setpriority", "AboveNormal" }
+    }):start()
+    require("plenary.job"):new({
+        command = "wmic",
+        args = { "where", "Name like '%%WindowsTerminal.exe%%'", "call", "setpriority", "AboveNormal" }
     }):start()
 end

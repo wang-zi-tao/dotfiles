@@ -15,23 +15,6 @@
     local separator3 = { '', '' }
     local separator4_right = { '', '' }
     local separator4_right_empty = { '', '' }
-    local mode_colors = {
-        n = "ui_main",
-        i = "green",
-        v = "red",
-        V = "red",
-        ["\22"] = "cyan",
-        c = "blue",
-        s = "yellow",
-        S = "yellow",
-        ["\19"] = "ui_main", -- telescope
-        R = "orange",
-        r = "orange",
-        ["!"] = "red",
-        t = "green1",
-
-    }
-
     local lsp_symbol = {
         ["rust-analyzer"] = "",
         clangd = " ",
@@ -48,6 +31,75 @@
             vim.cmd("redrawtabline")
         end),
     })
+
+    local colors = vim.tbl_extend(
+        "force",
+        heirline_components.hl.get_colors(),
+        require("core.theme").colors,
+        tokyonight_colors,
+        {
+            fg = "#ffffff",
+            vim_mode = tokyonight_colors.blue,
+            vim_mode_sep = tokyonight_colors.blue,
+            bg2 = tokyonight_colors.fg_gutter,
+        }
+    )
+
+    local fg_gutter = colors.fg_gutter
+    local bg2 = colors.fg_gutter
+    local ui_main = colors.ui_main
+
+    local mode_colors = {
+        n = ui_main,
+        i = "green",
+        v = "red",
+        V = "red",
+        ["\22"] = "cyan",
+        c = "blue",
+        s = "yellow",
+        S = "yellow",
+        ["\19"] = ui_main, -- telescope
+        R = "orange",
+        r = "orange",
+        ["!"] = "red",
+        t = "green1",
+
+    }
+
+
+    local function mode_color(self)
+        if conditions.is_active() then
+            return self.mode_colors[vim.fn.mode():sub(1, 1)]
+        else
+            return fg_gutter
+        end
+    end
+
+    local function mode_hl(self)
+        return {
+            bg = self:mode_color(),
+            fg = "white",
+        }
+    end
+
+    local function bg2_hl(self)
+        return {
+            bg = fg_gutter,
+        }
+    end
+
+    local function set_hl_mode(opts)
+        opts.hl = mode_hl
+        opts.surround = { color = mode_color }
+        return opts
+    end
+
+    local function set_hl_bg2(opts)
+        opts.hl = opts.hl or {}
+        opts.hl.bg = opts.hl.bg or fg_gutter
+        opts.surround = { color = fg_gutter }
+        return opts
+    end
 
     local Align = { provider = "%=" }
     local Space = { provider = " " }
@@ -183,7 +235,7 @@
                 if self.is_active then
                     return { bg = self:mode_color() }
                 else
-                    return { bg = "fg_gutter" }
+                    return { bg = fg_gutter }
                 end
             end,
             on_click = {
@@ -231,7 +283,7 @@
             if self.is_active then
                 return self:mode_color()
             else
-                return "fg_gutter"
+                return fg_gutter
             end
         end, {
             TablineFileNameBlock,
@@ -250,53 +302,6 @@
         }
         -- return components.tabline_buffers()
     end
-
-    local function mode_color(self)
-        if conditions.is_active() then
-            return self.mode_colors[vim.fn.mode():sub(1, 1)]
-        else
-            return "fg_gutter"
-        end
-    end
-
-    local function mode_hl(self)
-        return {
-            bg = self:mode_color(),
-            fg = "white",
-        }
-    end
-
-    local function bg2_hl(self)
-        return {
-            bg = "fg_gutter",
-        }
-    end
-
-    local function set_hl_mode(opts)
-        opts.hl = mode_hl
-        opts.surround = { color = mode_color }
-        return opts
-    end
-
-    local function set_hl_bg2(opts)
-        opts.hl = opts.hl or {}
-        opts.hl.bg = opts.hl.bg or "fg_gutter"
-        opts.surround = { color = "fg_gutter" }
-        return opts
-    end
-
-    local colors = vim.tbl_extend(
-        "force",
-        heirline_components.hl.get_colors(),
-        require("core.theme").colors,
-        tokyonight_colors,
-        {
-            fg = "#ffffff",
-            vim_mode = tokyonight_colors.blue,
-            vim_mode_sep = tokyonight_colors.blue,
-            bg2 = tokyonight_colors.fg_gutter,
-        }
-    )
 
     local function WindowNumber()
         return {
@@ -380,6 +385,39 @@
                 return { bg = self:mode_color(), bold = true, }
             end,
         }
+    end
+
+    local function git_diff(opts)
+        return vim.tbl_deep_extend("keep", opts or {}, {
+            condition = conditions.is_git_repo,
+            init = function(self)
+                self.status_dict = vim.b.gitsigns_status_dict
+
+                self.has_changes = self.status_dict.added ~= 0 or self.status_dict.removed ~= 0 or
+                    self.status_dict.changed ~= 0
+            end,
+            {
+                provider = function(self)
+                    local count = self.status_dict.added or 0
+                    return count > 0 and (symbols.git.added .. count)
+                end,
+                hl = { fg = "green" },
+            },
+            {
+                provider = function(self)
+                    local count = self.status_dict.changed or 0
+                    return count > 0 and (symbols.git.modified .. count)
+                end,
+                hl = { fg = "blue" },
+            },
+            {
+                provider = function(self)
+                    local count = self.status_dict.removed or 0
+                    return count > 0 and (symbols.git.removed .. count)
+                end,
+                hl = { fg = "red" },
+            },
+        })
     end
 
     local function pwd()
@@ -541,6 +579,12 @@
         end
     }
 
+    local function Nav(opts)
+        local component = components.nav(opts)
+        table.insert(component[2].update, "ModeChanged")
+        return component
+    end
+
     local StatusLine = {
         surround({
             surround({
@@ -548,8 +592,8 @@
                 WindowNumber(),
             }, { separator = { "", separator2[2] } }),
             file_info(set_hl_bg2({})),
-            components.git_diff(set_hl_bg2({})),
-        }, { separator = { "", separator2[2] }, bg = "bg2" }),
+            git_diff(set_hl_bg2({})),
+        }, { separator = { "", separator2[2] }, bg = bg2 }),
         components.fill(),
         {
             components.cmd_info(),
@@ -560,10 +604,10 @@
         surround({
             components.diagnostics(set_hl_bg2({})),
             surround({
-                components.nav(set_hl_mode { scrollbar = false, }),
+                Nav(set_hl_mode { scrollbar = false, }),
                 Space,
             }, { separator = { separator2[1], "" } })
-        }, { separator = { separator2[1], "" }, bg = "bg2" }),
+        }, { separator = { separator2[1], "" }, bg = bg2 }),
         static = {
             mode_colors = mode_colors,
             mode_color = mode_color,
@@ -589,7 +633,7 @@
                 close_buffer(),
                 Space,
             }, { separator = { separator2[1], "" } }),
-        }, { separator = { separator2[1], "" }, bg = "bg2" }),
+        }, { separator = { separator2[1], "" }, bg = bg2 }),
         static = {
             mode_colors = mode_colors,
             mode_color = mode_color,
@@ -608,7 +652,7 @@
             Space,
             file_relative_path(set_hl_bg2({})),
             components.file_info(set_hl_bg2({ file_name = false, })),
-        }, { separator = { "", separator4_right[2] }, bg = "bg2", }),
+        }, { separator = { "", separator4_right[2] }, bg = bg2, }),
         components.fill(),
         tabline_buffers(),
         components.fill(),
@@ -623,13 +667,13 @@
                 components.diagnostics(set_hl_bg2({})),
                 Space,
                 components.git_branch(set_hl_bg2({ hl = { fg = "orange" } })),
-                components.git_diff(set_hl_bg2({})),
+                git_diff(set_hl_bg2({})),
                 surround({
                         quit(),
                     },
                     { separator = { separator4_right[1], "" }, }),
             },
-            { separator = { separator4_right[1], "" }, bg = "bg2" }),
+            { separator = { separator4_right[1], "" }, bg = bg2 }),
         static = {
             mode_colors = mode_colors,
             mode_color = mode_color,
@@ -660,6 +704,7 @@
             }, args.buf)
     end
     heirline_components.init.subscribe_to_events()
+    heirline.load_colors(colors)
     require("heirline").setup({
         statusline = StatusLine,
         winbar = WinBar,
