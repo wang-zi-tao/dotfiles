@@ -1,23 +1,9 @@
-{
-  stdenvNoCC,
-  lib,
-  fetchFromGitHub,
-  pkgs,
-  makeWrapper,
-  vimPlugins,
-  neovim-unwrapped,
-  neovim-remote,
-  autoPatchelfHook,
-  zlib,
-  lttng-ust_2_12,
-  gcc,
-  unzip,
-  fetchurl,
-  enable-all ? true,
-  enable-debuger ? enable-all && (pkgs.system == "x86_64-linux"),
-  enable-markdown-preview ? enable-all,
-  enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux"),
-}:
+{ stdenvNoCC, lib, fetchFromGitHub, pkgs, makeWrapper, vimPlugins
+, neovim-unwrapped, neovim-remote, autoPatchelfHook, zlib, lttng-ust_2_12, gcc
+, unzip, fetchurl, enable-all ? true
+, enable-debuger ? enable-all && (pkgs.system == "x86_64-linux")
+, enable-markdown-preview ? false
+, enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux"), }:
 with pkgs.master;
 with pkgs.master.vimPlugins;
 let
@@ -26,7 +12,8 @@ let
     name = "vscode-cpptools";
     version = "v1.20.5";
     src = fetchurl {
-      url = "https://github.com/microsoft/vscode-cpptools/releases/download/v1.20.5/cpptools-linux.vsix";
+      url =
+        "https://github.com/microsoft/vscode-cpptools/releases/download/v1.20.5/cpptools-linux.vsix";
       sha256 = "16dwik9yigc433gsbvqjnpa57wy72a7d6js7lgl9q0qnfnvw3d3a";
     };
     nativeBuildInputs = [ unzip ];
@@ -65,23 +52,11 @@ let
     indent_blankline_nvim = indent-blankline-nvim;
     nvim_colorizer_lua = nvim-colorizer-lua;
     baleia_nvim = baleia-nvim;
-    nvim_treesitter =
-      if enable-all then
-        nvim-treesitter.withAllGrammars
-      else
-        nvim-treesitter.withPlugins (
-          p: with p; [
-            nix
-            cpp
-            c
-            java
-            kotlin
-            rust
-            typescript
-            python
-            javascript
-          ]
-        );
+    nvim_treesitter = if enable-all then
+      nvim-treesitter.withAllGrammars
+    else
+      nvim-treesitter.withPlugins
+      (p: with p; [ nix cpp c java kotlin rust typescript python javascript ]);
     nvim_treesitter_textobjects = nvim-treesitter-textobjects;
 
     # git
@@ -208,7 +183,6 @@ let
     sqlite_lua = sqlite-lua;
 
     which_key = which-key-nvim;
-    markdown_preview = if enable-markdown-preview then "markdown-preview-nvim" else "false";
     auto_save = pkgs.fetchgit {
       url = "https://github.com/Pocco81/auto-save.nvim";
       rev = "979b6c82f60cfa80f4cf437d77446d0ded0addf0";
@@ -288,6 +262,10 @@ let
     nvim_ufo = nvim-ufo;
     fidget_nvim = fidget-nvim;
 
+    markdown_preview =
+      if enable-markdown-preview then "markdown-preview-nvim" else false;
+    render_markdown = render-markdown-nvim;
+
     # debug
     mason_nvim = mason-nvim;
     dap = nvim-dap;
@@ -298,9 +276,12 @@ let
       rev = "0dee5374c68950a89d2739f8d59be2350a8503c7";
       sha256 = "sha256-uHvxAfz2hYDRu6ST/PsqtJ/LQitdLNhnwg5aoFJqW88=";
     };
-    vscode_lldb =
-      if enable-debuger then "pkgs.unstable.vscode-extensions.vadimcn.vscode-lldb" else "false";
-    OpenDebugAD7 = "${vscode-cpptools}/extension/debugAdapters/bin/OpenDebugAD7";
+    vscode_lldb = if enable-debuger then
+      "pkgs.unstable.vscode-extensions.vadimcn.vscode-lldb"
+    else
+      "false";
+    OpenDebugAD7 =
+      "${vscode-cpptools}/extension/debugAdapters/bin/OpenDebugAD7";
     nio = nvim-nio;
     one_small_step_for_vimkind = pkgs.fetchgit {
       url = "https://github.com/jbyuki/one-small-step-for-vimkind";
@@ -341,42 +322,27 @@ let
       sha256 = "sha256-hHRHH4ycQkI1FQ6GhkbnXIxXnNAer4WxU5y1D7qZP0g=";
     };
   };
-in
-stdenvNoCC.mkDerivation {
+in stdenvNoCC.mkDerivation {
   pname = "wangzi-neovim";
   version = "1.0.0";
 
   src = ./.;
 
-  nativeBuildInputs = [
-    autoPatchelfHook
-    makeWrapper
-    unzip
-  ];
-  buildInputs = [
-    pkg
-    neovim-remote
-    gcc
-    zlib
-    lttng-ust_2_12
-  ];
+  nativeBuildInputs = [ autoPatchelfHook makeWrapper unzip ];
+  buildInputs = [ pkg neovim-remote gcc zlib lttng-ust_2_12 ];
 
-  VARS = lib.strings.concatStrings (
-    lib.mapAttrsToList (
-      name: value:
-      let
-        ty = builtins.typeOf value;
-        valueString =
-          if ty == "string" || ty == "set" then
-            ''"'' + (builtins.toString value) + ''"''
-          else
-            builtins.toString value;
-      in
-      ''
-        ${name} = ${valueString},
-      ''
-    ) vars
-  );
+  VARS = lib.strings.concatStrings (lib.mapAttrsToList (name: value:
+    let
+      ty = builtins.typeOf value;
+      valueString = if ty == "string" || ty == "set" then
+        ''"'' + (builtins.toString value) + ''"''
+      else if ty == "bool" then
+        if value then "true" else "false"
+      else
+        builtins.toString value;
+    in ''
+      ${name} = ${valueString},
+    '') vars);
 
   installPhase = ''
     mkdir -p $out/

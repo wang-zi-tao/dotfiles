@@ -56,7 +56,6 @@ nixpkgs.lib.nixosSystem {
           "ntfs"
           "f2fs"
         ];
-        boot.kernelPackages = pkgs.unstable.linuxKernel.packages.linux_6_1;
         boot.loader.efi.canTouchEfiVariables = true;
         boot.loader.efi.efiSysMountPoint = "/boot/efi";
         boot.initrd.availableKernelModules = [
@@ -130,24 +129,7 @@ nixpkgs.lib.nixosSystem {
         #   i915-GVTg_V5_4.uuid = [ "7ae0918a-834e-4942-ad9a-b399979595e3" ];
         # };
         hardware = {
-          opengl.driSupport32Bit = true;
-          opengl.enable = true;
-          opengl.extraPackages32 = with pkgs.pkgsi686Linux; [
-            libva
-            pkgs.driversi686Linux.mesa
-          ];
-          opengl.extraPackages = with pkgs; [
-            amdvlk
-            vaapiIntel
-            libvdpau-va-gl
-            vaapiVdpau
-          ];
-          opengl.setLdLibraryPath = true;
-          opengl.driSupport = true;
           bluetooth.enable = true;
-          pulseaudio = {
-            enable = true;
-          };
         };
         services.xserver = {
           modules = with pkgs.xorg; [
@@ -157,39 +139,6 @@ nixpkgs.lib.nixosSystem {
             xf86videovesa
           ];
           videoDrivers = [ "amdgpu" ];
-        };
-        services.samba = {
-          enable = true;
-          securityType = "user";
-          extraConfig = ''
-            workgroup = WORKGROUP
-            server string = 192.168.56.1
-            netbios name = wangzi-kingsoft
-            #use sendfile = yes
-            #max protocol = smb2
-            # note: localhost is the ipv6 localhost ::1
-            hosts allow = 192.168.122. 127.0.0.1 localhost
-            hosts deny = 0.0.0.0/0
-            guest account = wangzi
-            map to guest = bad user
-            follow symlinks = yes
-            wide links = yes
-            allow insecure wide links = yes
-
-          '';
-          shares = {
-            wangzi-home = {
-              path = "/home/wangzi";
-              browseable = "yes";
-              "read only" = "no";
-              "guest ok" = "yes";
-              "create mask" = "0644";
-              "directory mask" = "0755";
-              "follow symlinks" = "yes";
-              "wide links" = "yes";
-              "acl allow execute always" = "yes";
-            };
-          };
         };
         fileSystems."/export/home" = {
           device = "/home/wangzi";

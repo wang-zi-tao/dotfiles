@@ -108,7 +108,7 @@ with builtins;
     };
     systemd.user.services.gpaste = makeService {
       Type = "simple";
-      ExecStart = "${pkgs.gnome.gpaste}/bin/gpaste-client start";
+      ExecStart = "${pkgs.gpaste}/bin/gpaste-client start";
       Restart = "always";
     };
     systemd.user.services.ibus-daemin = makeService {

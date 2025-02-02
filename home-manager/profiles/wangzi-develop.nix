@@ -12,7 +12,7 @@
     ../develop/cpp.nix
     ../desktop/desktop.nix
   ];
-  home.stateVersion = "22.11";
+  home.stateVersion = "24.11";
   home.username = "wangzi";
   home.homeDirectory = "/home/wangzi";
   neovim.full = true;

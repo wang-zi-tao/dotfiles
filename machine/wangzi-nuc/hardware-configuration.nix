@@ -78,23 +78,9 @@
   hardware.enableAllFirmware = true;
 
   hardware = {
-    opengl.enable = true;
-    opengl.extraPackages32 = with pkgs.pkgsi686Linux; [
-      amdvlk
-      libva
-      mesa
-    ];
-    opengl.extraPackages = with pkgs; [
-      amdvlk
-      libva
-      mesa
-    ];
-    opengl.setLdLibraryPath = true;
-    opengl.driSupport = true;
-    opengl.driSupport32Bit = true;
-    bluetooth.enable = true;
-    pulseaudio = {
-      enable = true;
+    graphics = {
+      extraPackages32 = with pkgs.pkgsi686Linux; [ amdvlk mesa ];
+      extraPackages = with pkgs; [ amdvlk mesa ];
     };
   };
 

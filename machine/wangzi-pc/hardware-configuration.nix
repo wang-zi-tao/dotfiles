@@ -15,7 +15,6 @@
     };
     timeout = 1;
   };
-  boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_10;
   boot.initrd.availableKernelModules = [
     "xhci_pci"
     "ahci"
@@ -44,17 +43,7 @@
   hardware.enableAllFirmware = true;
 
   hardware = {
-    opengl.driSupport32Bit = true;
-    opengl.enable = true;
-    opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
-    opengl.extraPackages = with pkgs; [
-      vaapiIntel
-      libvdpau-va-gl
-      vaapiVdpau
-    ];
-    opengl.setLdLibraryPath = true;
-    opengl.driSupport = true;
-    # nvidia.open = true;
+    nvidia.open = true;
     nvidia.modesetting.enable = true;
     nvidia.prime = {
       sync.enable = true;
@@ -64,16 +53,8 @@
       intelBusId = "PCI:0:2:0";
     };
     bluetooth.enable = true;
-    pulseaudio = {
-      enable = true;
-    };
   };
   services.xserver = {
-    modules = with pkgs.xorg; [
-      xf86videointel
-      xf86inputlibinput
-      xf86videovesa
-    ];
     videoDrivers = [
       "nvidia"
       # "modesetting"

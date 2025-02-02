@@ -66,6 +66,23 @@ return {
         ft = "markdown",
         cmd = "MarkdownPreview",
         lazy = true,
-        disable = not gen.markdown_preview,
     } or {},
+    {
+        "MeanderingProgrammer/render-markdown.nvim",
+        dir = gen.render_markdown,
+        name = "render_markdown",
+        dependencies = { "nvim_treesitter", "nvim_web_devicons" },
+        module = "render-markdown",
+        cmd = "RenderMarkdown",
+        ft = { "markdown", "lsp_markdown", "vimwiki" },
+        setup = function()
+            vim.treesitter.language.register('markdown', 'vimwiki')
+        end,
+        config = function()
+            require('obsidian').get_client().opts.ui.enable = false
+            vim.api.nvim_buf_clear_namespace(0, vim.api.nvim_get_namespaces()['ObsidianUI'], 0, -1)
+
+            require('render-markdown').setup({})
+        end,
+    }
 }

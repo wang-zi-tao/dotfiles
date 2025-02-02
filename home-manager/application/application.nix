@@ -53,7 +53,7 @@
       seatd
       mesa
       udev
-      alsaLib
+      alsa-lib
       vulkan-loader
       xorg.libXcursor
       xorg.libXrandr
@@ -104,35 +104,35 @@
       # icalingua
       # nur.repos.linyinfeng.icalingua
 
-      gnome.file-roller
+      file-roller
       gedit
-      gnome.gnome-calculator
-      gnome.gnome-calendar
+      gnome-calculator
+      gnome-calendar
       # gnome.gnome-characters
-      gnome.gnome-clocks
+      gnome-clocks
       # gnome.gnome-contacts
       # gnome.gnome-font-viewer
       # gnome.gnome-logs
       # gnome.gnome-maps
       gthumb
-      gnome.gnome-music
-      gnome.gnome-screenshot
-      gnome.gnome-system-monitor
-      gnome.nautilus
+      gnome-music
+      gnome-screenshot
+      gnome-system-monitor
+      nautilus
       # gnome-connections
-      gnome.totem
+      totem
       # gnome.gnome-software
       # dolphin
 
       endeavour
       # google-chrome
-      gnome.gpaste
-      gnome.sushi
-      gnome.nautilus
-      gnome.seahorse
+      gpaste
+      sushi
+      nautilus
+      seahorse
 
       adwaita-qt
-      gnome.adwaita-icon-theme
+      adwaita-icon-theme
       libadwaita
 
       inotify-tools

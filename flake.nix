@@ -1,10 +1,10 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
-    nixpkgs-old.url = "github:nixos/nixpkgs/release-23.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs-old.url = "github:nixos/nixpkgs/release-24.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     master.url = "github:nixos/nixpkgs";
-    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";

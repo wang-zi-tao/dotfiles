@@ -109,6 +109,7 @@ local function config()
             { name = "zsh" },
             { name = "git" },
             { name = "crates" },
+            { name = 'render-markdown' },
         }, {
             { name = "buffer", keyword_length = 3 },
         }),
@@ -288,6 +289,7 @@ return {
             module = "cmp_tabnine",
             disable = gen.cmp_tabnine ~= false,
             lazy = true,
+            enabled = false,
             config = function()
                 require("cmp_tabnine").setup()
                 require("cmp_tabnine.config"):setup({

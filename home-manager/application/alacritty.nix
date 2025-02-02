@@ -71,7 +71,7 @@ in
     setting
     + ''
 
-      [shell]
+      [terminal.shell]
       program = "${pkgs.writeScript "tmuxinator-s-drop" "tmuxinator s  drop"}"
     '';
 }

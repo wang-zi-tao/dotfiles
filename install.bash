@@ -116,6 +116,17 @@ nixos-remote)
 	ssh "root@$profile.wg" "nix-env -p /nix/var/nix/profiles/system --set $result"
 	ssh "root@$profile.wg" "$result/bin/switch-to-configuration switch"
 	;;
+nixos-remote-to)
+	profile=$1
+	shift
+	ip=$1
+	shift
+	nix build "$script_dir#nixos.$profile.config.system.build.toplevel" "$@"
+	result=$(realpath ./result)
+	nix copy --to "ssh://root@$ip" "$result"
+	ssh "root@$ip" "nix-env -p /nix/var/nix/profiles/system --set $result"
+	ssh "root@$ip" "$result/bin/switch-to-configuration switch"
+	;;
 nixos-install)
 	mount /dev/nvme0n1p7 /mnt
 	mkdir /mnt/boot/efi

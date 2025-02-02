@@ -134,7 +134,7 @@ setmetatable(M, {
 
 return {
     {
-        dir = vim.fn.stdpath("config") .. "/lua/core/plugins",
+        dir = (gen.core or vim.fn.stdpath("config")) .. "/lua/core/plugins",
         name = "wps",
         event = "VeryLazy",
         config = config,

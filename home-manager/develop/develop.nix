@@ -131,7 +131,10 @@ in
     "luajitPackages.luacheck"
     "luajitPackages.luarocks"
     "nodePackages.pyright"
+
+    gpu-viewer
   ];
+
   home.packages = with pkgs; [
     graphviz
     curlie

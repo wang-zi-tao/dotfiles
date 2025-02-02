@@ -1,8 +1,9 @@
 { pkgs, ... }:
 {
-  home.packages = [ pkgs.picom ];
+  home.packages = [ pkgs.picom-pijulius ];
   services.picom = {
     enable = true;
+    package = pkgs.picom-pijulius;
     extraArgs = [
       "--dbus"
       "--experimental-backend"

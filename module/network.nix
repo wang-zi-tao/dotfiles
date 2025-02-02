@@ -101,7 +101,10 @@ in {
             name = localIp;
             value = [ nodeName ];
           }] else
-            [ ]) network.peers)) // { };
+            [ ]) network.peers)) 
+        // {
+            "127.0.0.1" = ["localhost.local" (hostname + ".local")];
+        };
       };
       boot.kernel.sysctl = {
         "net.ipv4.ip_forward" = 1;

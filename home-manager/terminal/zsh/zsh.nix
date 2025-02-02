@@ -255,7 +255,6 @@
       };
     };
   };
-  programs.zoxide.enableNushellIntegration = true;
   programs.direnv.enableNushellIntegration = true;
   programs.direnv.enableZshIntegration = true;
   programs.keychain.enableNushellIntegration = true;
@@ -274,6 +273,7 @@
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
+    enableNushellIntegration = true;
   };
   home.packages =
     with pkgs;

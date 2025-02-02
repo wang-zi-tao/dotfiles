@@ -126,7 +126,7 @@ with lib;
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
       noto-fonts
-      noto-fonts-cjk
+      noto-fonts-cjk-sans
       noto-fonts-emoji
       noto-fonts-extra
       source-han-sans

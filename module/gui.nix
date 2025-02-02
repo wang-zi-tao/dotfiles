@@ -16,11 +16,6 @@
           displayManager.xpra = {
             enable = false;
             bindTcp = "0.0.0.0:10000";
-            pulseaudio = true;
-          };
-          displayManager.autoLogin = {
-            enable = false;
-            user = "wangzi";
           };
           xkb.options = "ctrl:nocaps";
           modules = with pkgs.xorg; [
@@ -33,7 +28,13 @@
           ];
           extraConfig = "";
         };
-        displayManager.defaultSession = "none+awesome";
+        displayManager = {
+          defaultSession = "none+awesome";
+          autoLogin = {
+            enable = false;
+            user = "wangzi";
+          };
+        };
       };
       programs.sway = {
         enable = true;
@@ -62,7 +63,6 @@
             displayManager.xpra = {
               enable = true;
               bindTcp = "0.0.0.0:10000";
-              pulseaudio = true;
             };
             # modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
             # extraConfig = '' '';
@@ -118,7 +118,7 @@
           };
           packages = with pkgs; [
             noto-fonts
-            noto-fonts-cjk
+            noto-fonts-cjk-sans
             noto-fonts-emoji
             noto-fonts-extra
             source-han-sans
@@ -139,7 +139,6 @@
           ];
           fontDir.enable = true;
         };
-        sound.enable = true;
         xdg = {
           # autostart.enable = false;
           portal.enable = true;
@@ -152,7 +151,8 @@
         i18n.defaultLocale = "zh_CN.UTF-8";
         i18n.supportedLocales = [ "en_US.UTF-8/UTF-8" "zh_CN.UTF-8/UTF-8" ];
         i18n.inputMethod = {
-          enabled = "ibus";
+          enable = true;
+          type = "ibus";
           ibus = { engines = with pkgs.ibus-engines; [ libpinyin ]; };
           uim.toolbar = "qt4";
         };
@@ -181,7 +181,6 @@
           libjpeg
           xorg.libXv
           xorg.libXtst
-          opencl-info
           xorg.libxcb
           xorg.xcbutilkeysyms
           mesa.opencl
@@ -196,6 +195,8 @@
           pulseaudioFull
           qrcodegen
           cups
+
+          clinfo
         ];
       })
   ];

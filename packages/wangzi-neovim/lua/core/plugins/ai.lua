@@ -26,7 +26,7 @@ local function config_codecompanion()
                 local config = require("codecompanion.adapters").extend("openai_compatible", {
                     schema = {
                         model = {
-                            default = vim.env.OLLAMA_MODEL or "deepseek-coder:6.7b",
+                            default = vim.env.OLLAMA_MODEL or "deepseek-r1:1.5b",
                         },
                     },
                     env = {
@@ -38,7 +38,10 @@ local function config_codecompanion()
             end,
             openai = function()
                 local Path = require("plenary.path")
-                local key_path = Path:new(vim.loop.os_homedir()) / ".openapi.key"
+                local key_path = Path:new("/run/secrets/openapi/key")
+                if key_path:exists() == false then
+                    key_path = Path:new(vim.loop.os_homedir()) / ".openapi.key"
+                end
                 local api_key = key_path:read():match("^%s*(.-)%s*$")
                 local config = require("codecompanion.adapters").extend("openai_compatible", {
                     schema = {

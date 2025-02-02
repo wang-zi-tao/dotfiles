@@ -10,7 +10,7 @@
     # ../develop/cpp.nix
     # ../platform/wsl.nix
   ];
-  home.stateVersion = "22.11";
+  home.stateVersion = "24.11";
   home.username = "macos";
   home.homeDirectory = "/Users/macos";
   neovim.full = true;

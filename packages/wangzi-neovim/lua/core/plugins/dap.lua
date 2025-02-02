@@ -15,6 +15,12 @@ local function config()
         dapui.close()
     end
 
+    dap.adapters.gdb = {
+        type = "executable",
+        command = "gdb",
+        args = { "--interpreter=dap", "--eval-command", "set print pretty on" }
+    }
+
     dap.adapters.lldb = {
         type = "executable",
         command = "lldb-vscode", -- adjust as needed
@@ -36,7 +42,7 @@ local function config()
             -- stopOnEntry = true,
         },
         {
-            name = "Launch",
+            name = "lldb launch",
             type = "lldb",
             request = "launch",
             program = function()
@@ -47,7 +53,7 @@ local function config()
             -- stopOnEntry = true,
         },
         {
-            name = "attach",
+            name = "lldb attach",
             type = "lldb",
             request = "attach",
             processId = require("dap.utils").pick_process,
@@ -55,14 +61,27 @@ local function config()
             -- stopOnEntry = true,
         },
         {
-            name = "Launch file",
-            type = "cppdbg",
+            name = "gdb launch",
+            type = "gdb",
             request = "launch",
             program = function()
-                return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file", "file")
+                return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
             end,
             cwd = "${workspaceFolder}",
-            stopOnEntry = true,
+            stopAtBeginningOfMainSubprogram = false,
+        },
+        {
+            name = "gdb attach",
+            type = "gdb",
+            request = "attach",
+            program = function()
+                return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+            end,
+            pid = function()
+                local name = vim.fn.input('Executable name (filter): ')
+                return require("dap.utils").pick_process({ filter = name })
+            end,
+            cwd = '${workspaceFolder}'
         },
         {
             name = "Attach to gdbserver :1234",
@@ -77,6 +96,16 @@ local function config()
             program = function()
                 return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
             end,
+        },
+        {
+            name = "cppdbg launch",
+            type = "cppdbg",
+            request = "launch",
+            program = function()
+                return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file", "file")
+            end,
+            cwd = "${workspaceFolder}",
+            stopOnEntry = true,
         },
     }
     dap.adapters.cppdbg = {
