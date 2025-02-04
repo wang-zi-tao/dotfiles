@@ -209,7 +209,7 @@ vim.diagnostic.config({
 -- })
 --
 
-if vim.has("win32") == 1 then
+if vim.fn.has("win32") == 1 then
     local pid = vim.fn.getpid()
     require("plenary.job"):new({
         command = "wmic",

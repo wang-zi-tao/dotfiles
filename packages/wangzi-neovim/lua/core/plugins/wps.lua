@@ -126,22 +126,6 @@ local function config()
     end, { nargs = 0 })
 end
 
-local M = {}
-setmetatable(M, {
-    __index = function(o, k)
-        if not wps.loaded then
-            vim.cmd.Lazy("load", "wps")
-            wps.loaded = true
-        end
-        return wps[k]
-    end
-})
-
-return {
-    {
-        dir = (gen.core or vim.fn.stdpath("config")) .. "/lua/core/plugins",
-        name = "wps",
-        event = "VeryLazy",
-        config = config,
-    }
+local M = {
+    setup = config,
 }

@@ -37,8 +37,6 @@ require("lazy").setup({
     require("core.plugins.fold"),
     require("core.plugins.codeql"),
 
-    require("core.plugins.wps"),
-
     {
         "nvim-lua/plenary.nvim",
         name = "plenary_nvim",

@@ -1,10 +1,18 @@
-pcall(require, "core.opt")
-pcall(require, "core.map")
-pcall(require, "core.env")
-pcall(require, "core.auto")
-pcall(require, "core.cmd")
-pcall(require, "core.theme")
-pcall(require, "core.database")
+local function load(module)
+    local success, error = pcall(require, module)
+    if not success then
+        require("notify")("Failed to load " .. module .. ": " .. error, vim.log.levels.ERROR)
+    end
+end
+
+load("core.opt")
+load("core.map")
+load("core.env")
+load("core.auto")
+load("core.cmd")
+load("core.theme")
+load("core.database")
+load("core.plugins.wps")
 
 local n = require("core.gen")
 if n.core ~= null then
