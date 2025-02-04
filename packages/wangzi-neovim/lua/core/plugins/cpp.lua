@@ -86,6 +86,7 @@ end
 
 return {
     clangd_config = clangd_config,
+    require("core.plugins.cmake"),
     {
         "p00f/clangd_extensions.nvim",
         dir = gen.clangd_extensions_nvim,
@@ -95,35 +96,6 @@ return {
         module = "clangd_extensions",
         lazy = true,
         config = function() end,
-    },
-    {
-        "Shatur/neovim-cmake",
-        dir = gen.cmake,
-        name = "cmake",
-        cmd = { "CMake" },
-        dependencies = "nvim_lspconfig",
-        ft = { "cpp", "c", "hpp", "h", "CMakeLists.txt", "cmake" },
-        lazy = true,
-        config = function()
-            require("core.plugins.cmake")
-        end,
-        keys = {
-            {
-                "<leader>cm",
-                function()
-                    vim.cmd(":CMake<CR>")
-                end,
-                desc = "CMake",
-            },
-            { "<leader>cc", ":CMake configure<CR>",         desc = "CMake configure" },
-            { "<leader>cC", ":CMake clean<CR>",             desc = "CMake clean" },
-            { "<leader>cr", ":CMake build_and_run<CR>",     desc = "CMake run" },
-            { "<leader>cd", ":CMake build_and_debug<CR>",   desc = "CMake debug" },
-            { "<leader>ct", ":CMake select_build_type<CR>", desc = "CMake build type" },
-            { "<leader>cs", ":CMake select_target<CR>",     desc = "CMake select target" },
-            { "<leader>cB", ":CMake build_all<CR>",         desc = "CMake build all" },
-            { "<leader>cb", ":CMake build<CR>",             desc = "CMake build" },
-        },
     },
     {
         dir = gen.xmake,

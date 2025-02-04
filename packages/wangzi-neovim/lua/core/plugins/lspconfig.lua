@@ -59,7 +59,9 @@ local function on_attach(client, bufnr)
     -- keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
     -- keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 
-    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+    if vim.fn.has("win32") == 0 then
+        vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+    end
 end
 
 local function get_capabilities()
@@ -78,6 +80,10 @@ local function get_capabilities()
             "detail",
             "additionalTextEdits",
         },
+    }
+    capabilities.textDocument.foldingRange = {
+        dynamicRegistration = false,
+        lineFoldingOnly = true
     }
 end
 
@@ -169,7 +175,7 @@ local function config()
             local plugins = require("lazy").plugins()
             for _, plugin in ipairs(plugins) do
                 local dir = plugin.dir
-                -- table.insert(library, dir)
+                table.insert(library, dir)
                 -- table.insert(runtime_path, join(dir, 'lua', '?.lua'))
                 -- table.insert(runtime_path, join(dir, 'lua', '?', 'init.lua'))
             end
@@ -263,11 +269,33 @@ return {
         end,
         keys = {
             {
-                "<leader>lf",
+                "gq",
                 function()
                     vim.lsp.buf.format()
                 end,
                 desc = "Format",
+                mode = { "n", "v" }
+            },
+            {
+                "<leader>lf",
+                function()
+                    local hunks = require("gitsigns").get_hunks()
+                    if hunks == nil then
+                        for range in require("core.utils").get_changed_ranges() do
+                            vim.lsp.buf.format({ range = range })
+                        end
+                    end
+                end,
+                desc = "Format hunks",
+                mode = { "n", "v" }
+            },
+            {
+                "<leader>lF",
+                function()
+                    vim.lsp.buf.format()
+                end,
+                desc = "Format buffer",
+                mode = { "n", "v" }
             },
             {
                 "K",
@@ -292,7 +320,7 @@ return {
         dir = gen.mason_nvim,
         name = "mason_nvim",
         cmd = { "Mason", "MasonUpdate", "MasonInstall", "MasonUninstall", "MasonUninstallAll", "MasonLog" },
-        lazy = 0 == vim.fn.has("win32"),
+        -- lazy = 0 == vim.fn.has("win32"),
         module = "mason",
         dependencies = {
             "nvim_lspconfig",
@@ -328,4 +356,17 @@ return {
             })
         end,
     } or {},
+    {
+        "folke/lazydev.nvim",
+        name = "lazydev",
+        dir = gen.lazydev,
+        ft = "lua", -- only load on lua files
+        opts = {
+            library = {
+                -- See the configuration section for more details
+                -- Load luvit types when the `vim.uv` word is found
+                { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+            },
+        },
+    },
 }

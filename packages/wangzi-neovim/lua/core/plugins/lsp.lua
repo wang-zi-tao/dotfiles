@@ -201,6 +201,7 @@ return {
         name = "lsp_format_nvim",
         module = "lsp-format",
         dependencies = { "nvim_lspconfig" },
+        event = "LspAttach",
         config = function()
             require("lsp-format").setup({
                 cpp = { exclude = { "astyle", "clang_format", "uncrustify", "clangd" } },

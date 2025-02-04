@@ -72,6 +72,7 @@ return {
                     opts = {},              -- global options for the cmdline. See section on views
                     ---@type table<string, CmdlineFormat>
                     format = {
+                        conceal = false,
                         -- conceal: (default=true) This will hide the text in the cmdline that matches the pattern.
                         -- view: (default is cmdline view)
                         -- opts: any options passed to the view
@@ -234,36 +235,6 @@ return {
                 format = {}, --- @see section on formatting
             })
             vim.opt.lazyredraw = true
-
-            local notify = vim.notify
-            vim.notify = function(msg, level, opt, ...)
-                if type(msg) == "string" then
-                    if msg:find("warning: multiple different client offset_encodings", 1, true) then
-                        return
-                    end
-                    if msg:find("query: invalid node type at position ", 1, true) then
-                        return
-                    end
-                    if msg:find("69_get_delim_multi", 1, true) then
-                        return
-                    end
-                    if msg:find("Error in decoration provider vim_lsp_inlayhint.win", 1, true) then
-                        return
-                    end
-                end
-                if level == "error" then
-                    if msg:find("处理 CursorMoved 自动命令", 1, true) then
-                        return
-                    end
-                    if msg:find("自动命令", 1, true) then
-                        return
-                    end
-                    opt = opt or {}
-                    opt.timeout = 1000
-                end
-
-                notify(msg, level, opt, ...)
-            end
         end,
     },
     {
@@ -280,7 +251,6 @@ return {
                 stages = "static",
                 render = "compact",
             })
-            vim.notify = require("notify")
         end,
     },
     {

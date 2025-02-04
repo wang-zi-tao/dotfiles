@@ -51,22 +51,44 @@ return {
             })
         end,
         keys = {
-            { "<leader>hs", "<cmd>Gitsigns stage_hunk<CR>",                mode = { "n", "v" }, desc = "Stage" },
-            { "<leader>hr", "<cmd>Gitsigns reset_hunk<CR>",                mode = { "n", "v" }, desc = "Reset" },
-            { "<leader>hp", "<cmd>Gitsigns preview_hunk<CR>",              mode = "n",          desc = "Preview" },
-            { "<leader>hu", "<cmd>Gitsigns undo_stage_hunk<CR>",           mode = "n",          desc = "Undo" },
-            { "<leader>bs", "<cmd>Gitsigns stage_buffer<CR>",              mode = "n",          desc = "Stage" },
-            { "<leader>br", "<cmd>Gitsigns reset_buffer<CR>",              mode = "n",          desc = "Reset" },
-            { "<leader>hb", "<cmd>Gitsigns reset_buffer<CR>",              mode = "n",          desc = "Reset" },
-            { "<leader>hB", "<cmd>Gitsigns toggle_current_line_blame<CR>", mode = "n",          desc = "Blame" },
-            { "<leader>hd", "<cmd>Gitsigns diffthis<CR>",                  mode = "n",          desc = "Diff This" },
-            { "<leader>hD", "<cmd>Gitsigns toggle_deleted<CR>",            mode = "n",          desc = "Delete" },
-            { "<leader>sh", "<cmd><C-U>Gitsigns select_hunk<CR>",          mode = "o",          desc = "Select Hunk" },
-            { "<leader>sh", "<cmd><C-U>Gitsigns select_hunk<CR>",          mode = "x",          desc = "Select Hunk" },
-            { "<leader>gb", "<cmd>Gitsigns blame_line<CR>",                mode = "n",          desc = "Blame line" },
-            { "<leader>gB", "<cmd>Gitsigns blame<CR>",                     mode = "n",          desc = "Blame line" },
-            { "[h",         "<cmd>Gitsigns prev_hunk<CR>",                 mode = "n",          desc = "Prev Hunk" },
-            { "]h",         "<cmd>Gitsigns next_hunk<CR>",                 mode = "n",          desc = "Next Hunk" },
+            { "<leader>hs", "<cmd>Gitsigns stage_hunk<CR>",      mode = { "n", "v" }, desc = "Stage" },
+            { "<leader>hr", "<cmd>Gitsigns reset_hunk<CR>",      mode = { "n", "v" }, desc = "Reset" },
+            { "<leader>hp", "<cmd>Gitsigns preview_hunk<CR>",    mode = "n",          desc = "Preview" },
+            { "<leader>hu", "<cmd>Gitsigns undo_stage_hunk<CR>", mode = "n",          desc = "Undo" },
+            { "<leader>bs", "<cmd>Gitsigns stage_buffer<CR>",    mode = "n",          desc = "Stage" },
+            { "<leader>br", "<cmd>Gitsigns reset_buffer<CR>",    mode = "n",          desc = "Reset" },
+            {
+                "<leader>hb",
+                function()
+                    require("gitsigns").blame_line({ full = true })
+                end,
+                mode = "n",
+                desc = "Blame line"
+            },
+            { "<leader>hB", "<cmd>Gitsigns toggle_current_line_blame<CR>", mode = "n", desc = "Blame" },
+            { "<leader>hd", "<cmd>Gitsigns diffthis<CR>",                  mode = "n", desc = "Diff This" },
+            { "<leader>hD", "<cmd>Gitsigns toggle_deleted<CR>",            mode = "n", desc = "Delete" },
+            { "<leader>sh", "<cmd><C-U>Gitsigns select_hunk<CR>",          mode = "o", desc = "Select Hunk" },
+            { "<leader>sh", "<cmd><C-U>Gitsigns select_hunk<CR>",          mode = "x", desc = "Select Hunk" },
+            { "<leader>gB", "<cmd>Gitsigns blame<CR>",                     mode = "n", desc = "Blame line" },
+            {
+                "[h",
+                function()
+                    require("gitsigns").nav_hunk("prev", { target = 'all', preview = true })
+                end,
+                mode = "n",
+                desc = "Prev Hunk"
+            },
+            {
+                "]h",
+                function()
+                    require("gitsigns").nav_hunk("next", { target = 'all', preview = true })
+                end,
+                mode = "n",
+                desc = "Next Hunk"
+            },
+            { "ih", ":<C-U>Gitsigns select_hunk<CR>", mode = { "o", "x" }, desc = "select hunk" },
+
         },
     },
     {
@@ -77,8 +99,12 @@ return {
         cmd = "Neogit",
         event = "VeryLazy",
         keys = {
-            { "<leader>gg", "<cmd>Neogit<CR>", "Neogit" },
-            { "<leader>G",  "<cmd>Neogit<CR>", "Neogit" },
+            { "<leader>gg", "<cmd>Neogit<CR>",                                  "Neogit" },
+            { "<leader>G",  "<cmd>Neogit<CR>",                                  "Neogit" },
+            { "<leader>gl", function() require "neogit".open({ "log" }) end,    desc = "Git Log" },
+            { "<leader>gP", function() require "neogit".open({ "pull" }) end,   desc = "Git Pull" },
+            { "<leader>gc", function() require "neogit".open({ "commit" }) end, desc = "Git Commit" },
+            { "<leader>gp", function() require "neogit".open({ "push" }) end,   desc = "Git Push" },
         },
         dependencies = {
             "plenary_nvim",

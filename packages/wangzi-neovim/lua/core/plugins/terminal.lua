@@ -115,10 +115,10 @@ return {
                 end,
                 desc = "rg",
             },
-            { "<leader>tf", ":ToggleTerm direction=float<CR>",      desc = "Terminal float" },
-            { "<leader>tb", ":ToggleTerm direction=tab<CR>",        desc = "Terminal tab" },
-            { "<leader>th", ":ToggleTerm direction=horizontal<CR>", desc = "Terminal horizontal" },
-            { "<leader>tv", ":ToggleTerm direction=vertical<CR>",   desc = "Terminal vertical" },
+            { "<leader>tf", "<cmd>ToggleTerm direction=float<CR>",      desc = "Terminal float" },
+            { "<leader>tb", "<cmd>ToggleTerm direction=tab<CR>",        desc = "Terminal tab" },
+            { "<leader>th", "<cmd>ToggleTerm direction=horizontal<CR>", desc = "Terminal horizontal" },
+            { "<leader>tv", "<cmd>ToggleTerm direction=vertical<CR>",   desc = "Terminal vertical" },
             {
                 "<leader>t1",
                 function()

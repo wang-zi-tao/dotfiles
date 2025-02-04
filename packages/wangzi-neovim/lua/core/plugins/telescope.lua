@@ -11,6 +11,7 @@ local function config()
                 "--line-number",
                 "--column",
                 "--smart-case",
+                "--no-ignore",
             },
             prompt_prefix = "❱ ",
             selection_caret = "  ",
@@ -128,6 +129,7 @@ local function config()
         "notify",
         "noice",
         "smart_open",
+        "hbac",
     }
     for _, ext in ipairs(extensions) do
         if not pcall(telescope.load_extension, ext) then
@@ -167,22 +169,36 @@ return {
                 "<leader>fw",
                 function()
                     require("core.utils").add_mark()
-                    vim.cmd("Telescope live_grep search_dirs=" .. (global.pwd or "."))
+                    require("telescope.builtin").live_grep({
+                        search_dirs = { global.pwd or "." },
+                        default_text = require("core.utils").get_selection(),
+                    })
                 end,
+                mode = { "n", "v" },
                 desc = "Grep",
             },
             {
                 "<leader>fW",
                 function()
-                    require("telescope.builtin").live_grep({ grep_open_files = true })
+                    require("core.utils").add_mark()
+                    require("telescope.builtin").live_grep({
+                        grep_open_files = true,
+                        default_text = require("core.utils").get_selection(),
+                    })
                 end,
+                mode = { "n", "v" },
                 desc = "Grep Buffers",
             },
             {
                 "<leader>ff",
                 function()
-                    vim.cmd("Telescope fd search_dirs=" .. (global.pwd or "."))
+                    require("core.utils").add_mark()
+                    require("telescope.builtin").fd({
+                        search_dirs = { global.pwd or "." },
+                        default_text = require("core.utils").get_selection(),
+                    })
                 end,
+                mode = { "n", "v" },
                 desc = "Files",
             },
             {

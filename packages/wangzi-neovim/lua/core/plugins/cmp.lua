@@ -70,7 +70,7 @@ local function config()
             ["<C-e>"] = cmp.mapping.abort(),
             ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
             ["<Tab>"] = cmp.mapping(function(fallback)
-                ret, succ = pcall(function()
+                local succ, ret = pcall(function()
                     if cmp.visible() then
                         cmp.select_next_item()
                     elseif luasnip.expand_or_jumpable() then
@@ -82,9 +82,7 @@ local function config()
                     end
                 end)
                 if not succ then
-                    if cmp.visible() then
-                        cmp.select_next_item()
-                    end
+                    vim.notify("cmp error", "ERROR")
                 end
             end, { "i", "s" }),
             ["<S-Tab>"] = cmp.mapping(function(fallback)

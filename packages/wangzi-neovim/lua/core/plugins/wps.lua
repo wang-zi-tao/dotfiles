@@ -9,6 +9,11 @@ local function config()
     wps.qt_path = wps.path:joinpath("../3rdparty/qt5/source/qtbase/")
     wps.ohos_qt_path = wps.path:joinpath("../3rdparty/qt5/source/qtbase/")
 
+    local coding_dir = wps.path:joinpath("Coding/")
+    if coding_dir:exists() then
+        require("cmake-tools").select_cwd(tostring(coding_dir))
+    end
+
     vim.api.nvim_create_user_command("CdWps", function()
         vim.cmd.cd(tostring(wps.path))
     end, {})
@@ -88,9 +93,9 @@ local function config()
     vim.api.nvim_create_user_command("KrepoBuild", function(opts)
         utils.argOrCachedInput(opts.args, "target", "target", "", nil, function(target)
             if target == "" then
-                require("toggleterm").exec("krepo build --no-redirect --verbose -t wps/" .. target)
+                require("toggleterm").exec("krepo build --no-redirect --verbose")
             else
-                require("toggleterm").exec("krepo build --no-redirect --verbose/")
+                require("toggleterm").exec("krepo build --no-redirect --verbose -t wps/" .. target)
             end
         end)
     end, { nargs = "?" })

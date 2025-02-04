@@ -87,6 +87,12 @@ function M.cachedinput(key, prompt, default, completion, callback)
     end
 end
 
+---@param arg string[]
+---@param key string
+---@param prompt string
+---@param default string
+---@param completion string
+---@param callback fun(value: string)
 function M.argOrCachedInput(arg, key, prompt, default, completion, callback)
     if #arg > 0 then
         database.tables.caches:insert({
@@ -157,6 +163,58 @@ function M.add_mark()
     require("harpoon"):list():add()
     vim.cmd [[Arrow toggle_current_line_for_buffer]]
     require("arrow.persist").save(M.get_current_buffer_path())
+end
+
+function M.get_changed_ranges()
+    local ranges = {}
+    local hunks = require("gitsigns").get_hunks()
+    if hunks == nil then
+        return ranges
+    end
+    for i = #hunks, 1, -1 do
+        local hunk = hunks[i]
+        if hunk ~= nil and hunk.type ~= "delete" then
+            local start = hunk.added.start
+            local last = start + hunk.added.count
+            -- nvim_buf_get_lines uses zero-based indexing -> subtract from last
+            local last_hunk_line = vim.api.nvim_buf_get_lines(0, last - 2, last - 1, true)[1]
+            local range = { start = { start, 0 }, ["end"] = { last - 1, last_hunk_line:len() } }
+            table.insert(ranges, range)
+        end
+    end
+    return ranges
+end
+
+function M.get_selection()
+    if vim.fn.mode() ~= "v" then
+        return ""
+    end
+
+    return table.concat(vim.fn.getregion(
+        vim.fn.getpos("."), vim.fn.getpos("v"), { mode = vim.fn.mode() }
+    ), '\n')
+end
+
+---@param file string
+---@param callback fun(err: string, fname: string, status: string)
+function M.watch_file(file, callback)
+    local w = vim.uv.new_fs_event()
+    local do_watch_file
+    local function on_change(err, fname, status)
+        -- Do work...
+        vim.api.nvim_command('checktime')
+        -- Debounce: stop/start.
+        w:stop()
+        do_watch_file(fname)
+        callback(err, fname, status)
+    end
+    do_watch_file = function(fname)
+        local fullpath = vim.api.nvim_call_function(
+            'fnamemodify', { fname, ':p' })
+        w:start(fullpath, {}, vim.schedule_wrap(on_change))
+    end
+
+    do_watch_file(file)
 end
 
 return M
