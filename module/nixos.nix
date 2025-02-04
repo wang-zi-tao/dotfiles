@@ -1,12 +1,26 @@
-{ config, pkgs, lib, nixpkgs, nixpkgs-unstable, nur, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  nixpkgs,
+  nixpkgs-unstable,
+  nur,
+  ...
+}:
 let
   hostName = config.networking.hostName;
   nodeConfig = config.cluster.nodes.${hostName};
-in {
-  options = with lib;
-    with lib.types; {
+in
+{
+  options =
+    with lib;
+    with lib.types;
+    {
       lazyPackage = mkOption {
-        type = listOf (oneOf [ package str ]);
+        type = listOf (oneOf [
+          package
+          str
+        ]);
         default = [ ];
       };
       neovim.pkg = mkOption {
@@ -56,22 +70,37 @@ in {
         optimise.automatic = true;
 
         distributedBuilds = true;
-        buildMachines = builtins.concatLists (lib.mapAttrsToList (host: node:
-          lib.optional (node.buildNode.enable && host != hostName) {
-            hostName = "${host}";
-            system = "x86_64-linux";
-            systems = [ "x86_64-linux" "aarch64-linux" ];
-            sshUser = "root";
-            protocol = "ssh";
-            maxJobs = 8;
-            supportedFeatures =
-              [ "nixos-test" "benchmark" "big-parallel" "kvm" ];
-            mandatoryFeatures = [ ];
-            sshKey = "/home/wangzi/.ssh/id_rsa";
-          }) config.cluster.nodes);
+        buildMachines = builtins.concatLists (
+          lib.mapAttrsToList (
+            host: node:
+            lib.optional (node.buildNode.enable && host != hostName) {
+              hostName = "${host}";
+              system = "x86_64-linux";
+              systems = [
+                "x86_64-linux"
+                "aarch64-linux"
+              ];
+              sshUser = "root";
+              protocol = "ssh";
+              maxJobs = 8;
+              supportedFeatures = [
+                "nixos-test"
+                "benchmark"
+                "big-parallel"
+                "kvm"
+              ];
+              mandatoryFeatures = [ ];
+              sshKey = "/home/wangzi/.ssh/id_rsa";
+            }
+          ) config.cluster.nodes
+        );
       };
 
-      nix.settings.trusted-users = [ "root" "@wheel" "nix-ssh" ];
+      nix.settings.trusted-users = [
+        "root"
+        "@wheel"
+        "nix-ssh"
+      ];
       users.groups.nix-ssh = { };
       users.users.nix-ssh = {
         description = "Nix SSH store user";
@@ -80,22 +109,20 @@ in {
         useDefaultShell = true;
       };
 
-      networking.proxy.noProxy =
-        "mirrors.tuna.tsinghua.edu.cn,mirrors.ustc.edu.cn,127.0.0.1,localhost";
+      networking.proxy.noProxy = "mirrors.tuna.tsinghua.edu.cn,mirrors.ustc.edu.cn,127.0.0.1,localhost";
 
       # environment.memoryAllocator.provider = "jemalloc";
       time.timeZone = "Asia/Shanghai";
-      nix.nixPath =
-        (lib.mapAttrsToList (name: value: "${name}=${value}") pkgs.flake-inputs)
-        ++ [ "nixpkgs=${nixpkgs}" ];
-      nix.registry = (builtins.mapAttrs (name: value: { flake = nixpkgs; })
-        pkgs.flake-inputs) // {
-          n.flake = nixpkgs;
-          nixpkgs.flake = nixpkgs;
-          u.flake = nixpkgs-unstable;
-          unstable.flake = nixpkgs-unstable;
-          nur.flake = nur;
-        };
+      nix.nixPath = (lib.mapAttrsToList (name: value: "${name}=${value}") pkgs.flake-inputs) ++ [
+        "nixpkgs=${nixpkgs}"
+      ];
+      nix.registry = (builtins.mapAttrs (name: value: { flake = nixpkgs; }) pkgs.flake-inputs) // {
+        n.flake = nixpkgs;
+        nixpkgs.flake = nixpkgs;
+        u.flake = nixpkgs-unstable;
+        unstable.flake = nixpkgs-unstable;
+        nur.flake = nur;
+      };
       system.autoUpgrade = {
         enable = false;
         flake = "github:wang-zi-tao/dotfiles";
@@ -105,37 +132,50 @@ in {
       system.stateVersion = "22.11";
       programs.nix-ld.enable = true;
 
-      environment.systemPackages = with pkgs;
-        [ config.neovim.pkg nix ] ++ (builtins.map (pkg:
+      environment.systemPackages =
+        with pkgs;
+        [
+          config.neovim.pkg
+          nix
+        ]
+        ++ (builtins.map (
+          pkg:
           if (builtins.typeOf pkg == "string") then
             if (lib.strings.hasPrefix "/" pkg) then
-              pkgs.writeShellScriptBin
-              (lib.lists.last (lib.strings.splitString "/" pkg))
-              "exec ${pkg} $@"
+              pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "/" pkg)) "exec ${pkg} $@"
             else
-              pkgs.writeShellScriptBin
-              (lib.lists.last (lib.strings.splitString "." pkg))
-              ''nix run nixpkgs#"${pkg}" -- $@''
+              pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "." pkg)) ''nix run nixpkgs#"${pkg}" -- $@''
           else
             let
-              name =
-                if (builtins.hasAttr "pname" pkg) then pkg.pname else pkg.name;
-            in pkgs.writeShellScriptBin name
-            ''nix run nixpkgs#"${name}" -- $@'') config.lazyPackage);
+              name = if (builtins.hasAttr "pname" pkg) then pkg.pname else pkg.name;
+            in
+            pkgs.writeShellScriptBin name ''nix run nixpkgs#"${name}" -- $@''
+        ) config.lazyPackage);
 
       services.nixfs.enable = true;
     }
     (lib.mkIf nodeConfig.guiClient.enable {
       hardware = {
+        opengl.enable = true;
         enableRedistributableFirmware = true;
         enableAllFirmware = true;
         graphics = {
           enable = true;
           enable32Bit = true;
           extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
-          extraPackages = with pkgs; [ vaapiIntel libvdpau-va-gl vaapiVdpau ];
+          extraPackages = with pkgs; [
+            vaapiIntel
+            libvdpau-va-gl
+            vaapiVdpau
+          ];
         };
         bluetooth.enable = true;
+        nvidia = {
+          open = true;
+          modesetting.enable = true;
+          nvidiaSettings = true;
+          forceFullCompositionPipeline = true;
+        };
       };
       services.xserver = {
         verbose = 7;

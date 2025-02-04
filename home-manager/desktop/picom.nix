@@ -52,7 +52,6 @@
     };
     settings = {
       inactive-dim = 0.0;
-      refresh-rate = 0;
       detect-client-opacity = true;
       detect-rounded-corners = true;
       blur = {

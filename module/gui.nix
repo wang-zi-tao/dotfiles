@@ -1,8 +1,13 @@
-{ config, pkgs, lib, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   config = lib.mkMerge [
     (lib.mkIf config.cluster.nodeConfig.guiClient.enable {
-      programs.ssh.askPassword =
-        "${pkgs.gnome.seahorse}/libexec/seahorse/ssh-askpass";
+      programs.ssh.askPassword = "${pkgs.gnome.seahorse}/libexec/seahorse/ssh-askpass";
       services = {
         xserver = {
           enable = true;
@@ -40,7 +45,11 @@
         enable = true;
         wrapperFeatures.gtk = true;
         wrapperFeatures.base = true;
-        extraOptions = [ "--verbose" "--debug" "--unsupported-gpu" ];
+        extraOptions = [
+          "--verbose"
+          "--debug"
+          "--unsupported-gpu"
+        ];
       };
       networking.firewall.allowedTCPPortRanges = [
         {
@@ -53,8 +62,9 @@
         }
       ]; # xpra
     })
-    (lib.mkIf (config.cluster.nodeConfig.guiServer.enable
-      && !config.cluster.nodeConfig.guiClient.enable) {
+    (lib.mkIf
+      (config.cluster.nodeConfig.guiServer.enable && !config.cluster.nodeConfig.guiClient.enable)
+      {
         networking.firewall.allowedTCPPorts = [ 10000 ];
         services = {
           xserver = {
@@ -88,14 +98,12 @@
             --socket-dirs=/run/xpra \
             --bind-tcp=0.0.0.0:10000 \
             --auth=pam \
-            --xvfb="xdummy ${
-              builtins.concatStringsSep " "
-              config.services.xserver.displayManager.xserverArgs
-            }" \
+            --xvfb="xdummy ${builtins.concatStringsSep " " config.services.xserver.displayManager.xserverArgs}" \
         '';
-      })
-    (lib.mkIf (config.cluster.nodeConfig.guiServer.enable
-      || config.cluster.nodeConfig.guiClient.enable) {
+      }
+    )
+    (lib.mkIf (config.cluster.nodeConfig.guiServer.enable || config.cluster.nodeConfig.guiClient.enable)
+      {
         services.xrdp.enable = true;
         services.xrdp.defaultWindowManager = "${pkgs.awesome}/bin/awesome";
         networking.firewall.allowedTCPPorts = [ 3389 ];
@@ -110,7 +118,9 @@
           ip=0.0.0.0
           port=5900
         '';
-        gtk = { iconCache.enable = true; };
+        gtk = {
+          iconCache.enable = true;
+        };
         fonts = {
           fontconfig = {
             enable = true;
@@ -149,11 +159,16 @@
           };
         };
         i18n.defaultLocale = "zh_CN.UTF-8";
-        i18n.supportedLocales = [ "en_US.UTF-8/UTF-8" "zh_CN.UTF-8/UTF-8" ];
+        i18n.supportedLocales = [
+          "en_US.UTF-8/UTF-8"
+          "zh_CN.UTF-8/UTF-8"
+        ];
         i18n.inputMethod = {
           enable = true;
           type = "ibus";
-          ibus = { engines = with pkgs.ibus-engines; [ libpinyin ]; };
+          ibus = {
+            engines = with pkgs.ibus-engines; [ libpinyin ];
+          };
           uim.toolbar = "qt4";
         };
         services = {
@@ -164,12 +179,16 @@
           flatpak.enable = true;
         };
         environment.variables = {
-          GI_TYPELIB_PATH =
-            "${pkgs.playerctl}/lib/girepository-1.0:${pkgs.upower}/lib/girepository-1.0\${GI_TYPELIB_PATH:+:$GI_TYPELIB_PATH}";
+          GI_TYPELIB_PATH = "${pkgs.playerctl}/lib/girepository-1.0:${pkgs.upower}/lib/girepository-1.0\${GI_TYPELIB_PATH:+:$GI_TYPELIB_PATH}";
         };
         programs.dconf.enable = true;
         programs.gpaste.enable = true;
-        lazyPackage = with pkgs; [ virtualgl turbovnc xwayland weston ];
+        lazyPackage = with pkgs; [
+          virtualgl
+          turbovnc
+          xwayland
+          weston
+        ];
         environment.systemPackages = with pkgs; [
           appimage-run
           glxinfo
@@ -198,6 +217,9 @@
 
           clinfo
         ];
-      })
+
+        programs.appimage.binfmt = true;
+      }
+    )
   ];
 }
