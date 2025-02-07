@@ -196,6 +196,7 @@ return {
                     require("telescope.builtin").fd({
                         search_dirs = { global.pwd or "." },
                         default_text = require("core.utils").get_selection(),
+                        no_ignore = true,
                     })
                 end,
                 mode = { "n", "v" },
@@ -364,16 +365,25 @@ return {
                 "<leader>fmf",
                 function()
                     local module_dir = require("core.utils").module_dir()
-                    vim.cmd("Telescope fd search_dirs=" .. module_dir)
+                    require("telescope.builtin").fd({
+                        search_dirs = module_dir,
+                        default_text = require("core.utils").get_selection(),
+                        no_ignore = true,
+                    })
                 end,
+                mode = {"n","v"},
                 desc = "Files",
             },
             {
                 "<leader>fmw",
                 function()
                     local module_dir = require("core.utils").module_dir()
-                    vim.cmd("Telescope live_grep search_dirs=" .. module_dir)
+                    require("telescope.builtin").live_grep({
+                        search_dirs = module_dir,
+                        default_text = require("core.utils").get_selection(),
+                    })
                 end,
+                mode = { "n", "v" },
                 desc = "Files",
             },
         },

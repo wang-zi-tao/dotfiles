@@ -55,7 +55,8 @@ local function config_codecompanion()
             },
         },
         opts = {
-            send_code = false,
+            language = "Chinese",
+            send_code = true,
         },
         strategies = {
             chat = {
