@@ -231,6 +231,7 @@ with builtins;
           "https://${builtins.toString networkConfig.publicIp}:9093" = {
             extraConfig = ''
               reverse_proxy http://localhost:9090
+              tls internal
             '';
           };
         };

@@ -113,8 +113,6 @@ in {
       services.caddy = lib.optionalAttrs (network.config.publicIp != null) {
         globalConfig = ''
           servers {
-            protocol {
-            }
           }
           http_port 89
           default_sni ${toString network.config.publicIp}
@@ -127,6 +125,7 @@ in {
               	level DEBUG
               	format console
               }
+              tls internal
             '';
           };
         };

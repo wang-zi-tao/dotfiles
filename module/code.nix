@@ -28,6 +28,7 @@ with builtins;
       virtualHosts = {
         "https://${builtins.toString networkConfig.publicIp}:43243" = {
           extraConfig = ''
+            tls internal
             @folder {
               query folder=*
             }

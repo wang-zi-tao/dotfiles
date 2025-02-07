@@ -6,7 +6,7 @@
     package = pkgs.picom-pijulius;
     extraArgs = [
       "--dbus"
-      "--experimental-backend"
+      # "--experimental-backend"
     ];
     activeOpacity = 1.0;
     backend = "glx";

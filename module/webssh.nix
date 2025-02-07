@@ -36,6 +36,7 @@ with builtins;
         };
         "https://${builtins.toString networkConfig.publicIp}:64536" = {
           extraConfig = ''
+            tls internal
             @hostname {
               query hostname=*
               query username=*

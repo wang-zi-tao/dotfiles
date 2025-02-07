@@ -89,7 +89,6 @@ local function config()
         b.formatting.yamlfmt,
         b.formatting.rustywind,
     }
-    vim.notify("none_ls init")
     null_ls.setup({
         sources = sources,
         debug = false,

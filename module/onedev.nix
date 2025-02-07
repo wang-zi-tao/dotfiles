@@ -28,6 +28,7 @@ in {
         };
         "https://${builtins.toString networkConfig.publicIp}:6613" = {
           extraConfig = ''
+            tls internal
             reverse_proxy http://localhost:6610
           '';
         };

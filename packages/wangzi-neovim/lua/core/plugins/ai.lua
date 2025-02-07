@@ -22,6 +22,32 @@ local function config_codecompanion()
         end
     end
 
+    local function api_adapter(name)
+        return function()
+            local Path = require("plenary.path")
+
+            local key_path = Path:new("/run/secrets/ai")
+            if not key_path:exists() then
+                key_path = Path:new(vim.loop.os_homedir()) / ".ai.key"
+            end
+
+            local json = vim.json.decode(key_path:read())
+            local config = json[name]
+            local api_key = config.key
+            local url = config.url
+            local model = config.model
+
+            return require("codecompanion.adapters").extend("openai_compatible", {
+                schema = { model = { default = model, }, },
+                env = {
+                    url = url,
+                    api_key = api_key,
+                    chat_url = "/v1/chat/completions",
+                },
+            })
+        end
+    end
+
     require("codecompanion").setup({
         display = {
             diff = {
@@ -42,41 +68,12 @@ local function config_codecompanion()
         adapters = {
             ollama = ollama_adapter(vim.env.OLLAMA_MODEL or "deepseek-r1:1.5b"),
             ollama_deepseek_r1 = ollama_adapter("deepseek-r1:1.5b"),
-            ollama_deepseek_coder = ollama_adapter("deepseek-coder:6.7b"),
-            openai = function()
-                local Path = require("plenary.path")
-                local key_path = Path:new("/run/secrets/openai/key")
-                if key_path:exists() == false then
-                    key_path = Path:new(vim.loop.os_homedir()) / ".openapi.key"
-                end
-                local api_key = key_path:read():match("^%s*(.-)%s*$")
-                local config = require("codecompanion.adapters").extend("openai_compatible", {
-                    schema = {
-                        model = {
-                            default = "gpt-4o",
-                        },
-                    },
-                    env = {
-                        url = "https://api.chatanywhere.tech",
-                        api_key = api_key,
-                        chat_url = "/v1/chat/completions",
-                    },
-                })
-                return config
-            end,
+            ollama_deepseek_coder = ollama_adapter("deepseek-coder-v2:16b"),
+            openai = api_adapter("openai"),
+            deepseek = api_adapter("deepseek"),
         },
     })
     require("telescope").load_extension("codecompanion")
-end
-
-local function config_chatgpt()
-    require("chatgpt").setup({
-        api_type_cmd = 'echo azure',
-        azure_api_base_cmd = 'echo https://api.chatanywhere.tech/',
-        api_key_cmd = 'cat %userprofile%/.openapi.key',
-        azure_api_engine_cmd = 'echo chat',
-        azure_api_version_cmd = 'echo 2023-05-15'
-    })
 end
 
 return {

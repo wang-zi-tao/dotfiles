@@ -90,6 +90,7 @@ in nixpkgs.lib.nixosSystem {
             "http://aliyun-hk.wg:11434" = {
               extraConfig = ''
                 reverse_proxy http://wangzi-pc.wg:11434
+                tls internal
               '';
             };
           };

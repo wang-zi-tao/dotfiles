@@ -11,6 +11,7 @@ in {
       virtualHosts = {
         "https://${builtins.toString networkConfig.publicIp}:7800" = {
           extraConfig = ''
+            tls internal
             handle_path /xpra/server/wangzi-nuc/* {
                 rewrite * {path}
                 reverse_proxy http://wangzi-nuc.wg:7000

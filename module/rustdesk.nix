@@ -15,6 +15,7 @@ in
       services.rustdesk-server = {
         enable = true;
         openFirewall = true;
+        signal.relayHosts = [ networkConfig.publicIp ];
       };
     })
   ];
