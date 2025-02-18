@@ -22,30 +22,28 @@ local function config_codecompanion()
         end
     end
 
-    local function api_adapter(name)
-        return function()
-            local Path = require("plenary.path")
+    local function get_api_config(name)
+        local Path = require("plenary.path")
 
-            local key_path = Path:new("/run/secrets/ai")
-            if not key_path:exists() then
-                key_path = Path:new(vim.loop.os_homedir()) / ".ai.key"
-            end
-
-            local json = vim.json.decode(key_path:read())
-            local config = json[name]
-            local api_key = config.key
-            local url = config.url
-            local model = config.model
-
-            return require("codecompanion.adapters").extend("openai_compatible", {
-                schema = { model = { default = model, }, },
-                env = {
-                    url = url,
-                    api_key = api_key,
-                    chat_url = "/v1/chat/completions",
-                },
-            })
+        local key_path = Path:new("/run/secrets/ai")
+        if not key_path:exists() then
+            key_path = Path:new(vim.loop.os_homedir()) / ".ai.json"
         end
+
+        local json = vim.json.decode(key_path:read())
+        local config = json[name]
+        local api_key = config.key
+        local url = config.url
+        local model = config.model
+
+        return {
+            schema = { model = { default = model, }, },
+            env = {
+                url = url,
+                api_key = api_key,
+                chat_url = "/v1/chat/completions",
+            },
+        }
     end
 
     require("codecompanion").setup({
@@ -70,8 +68,14 @@ local function config_codecompanion()
             ollama = ollama_adapter(vim.env.OLLAMA_MODEL or "deepseek-r1:1.5b"),
             ollama_deepseek_r1 = ollama_adapter("deepseek-r1:1.5b"),
             ollama_deepseek_coder = ollama_adapter("deepseek-coder-v2:16b"),
-            openai = api_adapter("openai"),
-            deepseek = api_adapter("deepseek"),
+            openai = function()
+                local config = get_api_config("openai")
+                return require("codecompanion.adapters").extend("openai_compatible", config)
+            end,
+            deepseek = function()
+                local config = get_api_config("deepseek")
+                return require("codecompanion.adapters").extend("deepseek", config)
+            end,
         },
     })
     require("telescope").load_extension("codecompanion")

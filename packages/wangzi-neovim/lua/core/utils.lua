@@ -159,6 +159,11 @@ function M.module_dir()
 end
 
 function M.add_mark()
+    local buftype = vim.api.nvim_buf_get_option(0, "ft")
+    if buftype == "alpha" then
+        return
+    end
+
     require("trailblazer").new_trail_mark()
     require("harpoon"):list():add()
     vim.cmd [[Arrow toggle_current_line_for_buffer]]
