@@ -55,6 +55,9 @@ local function setup_lspsaga()
             height = 0.9,
             width = 0.9,
         },
+        beacon = {
+            enable = false,
+        }
     })
     vim.api.nvim_create_autocmd({ "VimResized" }, {
         pattern = "lspsagaoutline",
@@ -158,7 +161,7 @@ return {
             {
                 "gD",
                 function()
-                    require("core.utils").add_mark()
+                    pcall(require("core.utils").add_mark)
                     vim.cmd([[Lspsaga goto_definition]])
                 end,
                 mode = "n",
@@ -170,7 +173,7 @@ return {
             {
                 "gh",
                 function()
-                    require("core.utils").add_mark()
+                    pcall(require("core.utils").add_mark)
                     vim.cmd([[Lspsaga finder]])
                 end,
                 mode = "n",
@@ -485,6 +488,7 @@ return {
         name = "tiny_inline_diagnostic",
         dir = gen.tiny_inline_diagnostic,
         event = 'LspAttach',
+        enabled = true,
         priority = 1000, -- needs to be loaded in first
         config = function()
             require('tiny-inline-diagnostic').setup({
@@ -494,8 +498,7 @@ return {
                     multiple_diag_under_cursor   = true,
                     multilines                   = true,
                     show_all_diags_on_cursorline = true,
-                    throttle                     = 0,
-                    enable_on_insert             = true,
+                    throttle                     = 100,
                 },
             })
         end

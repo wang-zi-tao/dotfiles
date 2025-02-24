@@ -7,7 +7,7 @@ local function config_codecompanion()
 
     local function ollama_adapter(model)
         return function()
-            local config = require("codecompanion.adapters").extend("openai_compatible", {
+            local config = require("codecompanion.adapters").extend("ollama", {
                 schema = {
                     model = {
                         default = model,

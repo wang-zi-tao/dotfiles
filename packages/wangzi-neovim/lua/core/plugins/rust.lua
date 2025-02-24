@@ -182,12 +182,12 @@ return {
         version = "^4", -- Recommended
         dependencies = {
             "nvim_lspconfig",
-            {
-                "jubnzv/virtual-types.nvim",
-                dir = gen.virtual_types_nvim,
-                name = "virtual_types_nvim",
-                module = "virtualtypes",
-            },
+            -- {
+            --     "jubnzv/virtual-types.nvim",
+            --     dir = gen.virtual_types_nvim,
+            --     name = "virtual_types_nvim",
+            --     module = "virtualtypes",
+            -- },
         },
         cmd = { "RustLsp" },
         lazy = true,

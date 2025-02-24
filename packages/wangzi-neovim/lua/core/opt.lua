@@ -191,9 +191,9 @@ require("core.theme").define_sign()
 vim.diagnostic.config({
     virtual_text = false,
     signs = true,
-    update_in_insert = true,
+    update_in_insert = false,
     underline = true,
-    severity_sort = false,
+    severity_sort = true,
     float = {
         border = "rounded",
         source = "always",

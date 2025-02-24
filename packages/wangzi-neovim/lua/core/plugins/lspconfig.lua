@@ -3,9 +3,9 @@ local function on_attach(client, bufnr)
     require("lsp-format").on_attach(client, bufnr)
     require("core.plugins.lsp").lsp_signature_on_attach(bufnr)
 
-    if client.supports_method("textDocument/codeLens") then
-        require("virtualtypes").on_attach(client, bufnr)
-    end
+    -- if client.supports_method("textDocument/codeLens") then
+    --     require("virtualtypes").on_attach(client, bufnr)
+    -- end
 
     local function map(mod, key, exec, opt)
         opt = opt or { noremap = true, silent = false }
@@ -33,7 +33,6 @@ local function on_attach(client, bufnr)
         set_loclist = "<leader>lq",
         formatting = "<leader>lf",
     }
-    -- map("n", m.declaration, "<cmd>lua vim.lsp.buf.declaration()<CR>")
     -- map("n", m.definition, "<cmd>lua vim.lsp.buf.definition()<CR>")
     -- map("n", "K", "<cmd>Lspsaga hover_doc<CR>")
     -- map("n", m.implementation, "<cmd>lua vim.lsp.buf.implementation()<CR>")

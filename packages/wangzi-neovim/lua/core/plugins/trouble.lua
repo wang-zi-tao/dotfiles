@@ -59,7 +59,7 @@ return {
     lazy = true,
     config = config,
     cmd = "Trouble",
-    module = "trouble",
+    module = { "trouble", "trouble.sources.telescope" },
     keys = {
         {
             "<leader>wr",

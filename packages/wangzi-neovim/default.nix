@@ -251,7 +251,7 @@ let
       sha256 = "sha256-Zqos5LwjDzVQDpxKpWJVeZjmQ2+tKtub0f4wm6LFPOs=";
     };
     ts_autotag = nvim-ts-autotag;
-    virtual_types_nvim = virtual-types-nvim;
+    # virtual_types_nvim = virtual-types-nvim;
     alpha_nvim = alpha-nvim;
     lualine_nvim = lualine-nvim;
     heirline = heirline-nvim;

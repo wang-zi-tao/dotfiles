@@ -36,10 +36,10 @@ in
       nix = {
         settings.substituters = [
           "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
-          "https://cache.nixos.org/"
           "https://nix-community.cachix.org"
           "https://nixpkgs-wayland.cachix.org"
           "https://mirrors.ustc.edu.cn/nix-channels/store"
+          "https://cache.nixos.org/"
           # "root@aliyun-hk:64022"
         ];
         settings.trusted-substituters = [

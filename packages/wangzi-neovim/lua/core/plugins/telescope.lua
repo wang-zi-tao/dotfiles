@@ -1,5 +1,6 @@
 local function config()
     local telescope = require("telescope")
+    local add_to_trouble = require("trouble.sources.telescope").add
     local open_with_trouble = require("trouble.sources.telescope").open
     telescope.setup({
         defaults = {
@@ -168,7 +169,7 @@ return {
             {
                 "<leader>fw",
                 function()
-                    require("core.utils").add_mark()
+                    pcall(require("core.utils").add_mark)
                     require("telescope.builtin").live_grep({
                         search_dirs = { global.pwd or "." },
                         default_text = require("core.utils").get_selection(),
@@ -180,7 +181,7 @@ return {
             {
                 "<leader>fW",
                 function()
-                    require("core.utils").add_mark()
+                    pcall(require("core.utils").add_mark)
                     require("telescope.builtin").live_grep({
                         grep_open_files = true,
                         default_text = require("core.utils").get_selection(),
@@ -192,7 +193,7 @@ return {
             {
                 "<leader>ff",
                 function()
-                    require("core.utils").add_mark()
+                    pcall(require("core.utils").add_mark)
                     require("telescope.builtin").fd({
                         search_dirs = { global.pwd or "." },
                         default_text = require("core.utils").get_selection(),
@@ -232,7 +233,7 @@ return {
             {
                 "<leader>fi",
                 function()
-                    require("core.utils").add_mark()
+                    pcall(require("core.utils").add_mark)
                     telescope().lsp_references()
                 end,
                 desc = "LSP Reference",
@@ -303,7 +304,7 @@ return {
             {
                 "<leader>fr",
                 function()
-                    require("core.utils").add_mark()
+                    pcall(require("core.utils").add_mark)
                     telescope().lsp_references()
                 end,
                 desc = "lsp incomint calls",
@@ -318,7 +319,7 @@ return {
             {
                 "<leader>fI",
                 function()
-                    require("core.utils").add_mark()
+                    pcall(require("core.utils").add_mark)
                     require("telescope.builtin").lsp_implementations()
                 end,
                 desc = "LSP Implementation",
@@ -326,7 +327,7 @@ return {
             {
                 "<leader>ft",
                 function()
-                    require("core.utils").add_mark()
+                    pcall(require("core.utils").add_mark)
                     require("telescope.builtin").lsp_definitions()
                 end,
                 desc = "LSP Define",
