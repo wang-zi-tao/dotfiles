@@ -1,5 +1,5 @@
 -- @class Wps
-local wps = { path = nil, qt_path = nil, ohos_qt_path = nil, loaded = false }
+local wps = { path = nil, qt_path = nil, ohos_qt_path = nil, loaded = false, bundles = {} }
 
 local function config()
     local utils = require("core.utils")
@@ -50,7 +50,7 @@ local function config()
             args = {
                 -- "-WF", tostring(wps.path:joinpath("../windbg.debugtarget")),
                 "-o",
-                tostring(wps.path:joinpath("../debug/WPSOffice/office6/", module .. ".exe"))
+                tostring(wps.path:joinpath("../debug/wps_build/WPSOffice/office6/", module .. ".exe"))
             },
             skip_validation = true,
             detach = true,
@@ -83,9 +83,11 @@ local function config()
     vim.api.nvim_create_user_command("Msbuild", function(opts)
         utils.argOrCachedInput(opts.args, "target", "target", "", nil, function(target)
             if target == "" then
-                require("toggleterm").exec("msbuild ../debug/WPSOffice.sln -m:32")
+                require("toggleterm").exec("msbuild " ..
+                    wps.path .. "/../debug/wps_build/WPSOffice.sln -m:32")
             else
-                require("toggleterm").exec("msbuild ../debug/WPSOffice.sln -m:32 -t:" .. target)
+                require("toggleterm").exec("msbuild " ..
+                    wps.path .. "/../debug/wps_build/WPSOffice.sln -m:32 -t:" .. target)
             end
         end)
     end, { nargs = "?" })
@@ -93,31 +95,31 @@ local function config()
     vim.api.nvim_create_user_command("KrepoBuild", function(opts)
         utils.argOrCachedInput(opts.args, "target", "target", "", nil, function(target)
             if target == "" then
-                require("toggleterm").exec("krepo build --no-redirect --verbose")
+                require("toggleterm").exec("cd " .. wps.path .. "/../debug ; krepo-ng build")
             else
-                require("toggleterm").exec("krepo build --no-redirect --verbose -t wps/" .. target)
+                require("toggleterm").exec("cd " .. wps.path .. "/../debug ; krepo-ng build wps/" .. target)
             end
         end)
     end, { nargs = "?" })
 
     vim.api.nvim_create_user_command("KrepoCr", function(opts)
-        Job:new({ command = "krepo", args = { "cr" } }):start()
+        Job:new({ command = "krepo-ng", args = { "cr" } }):start()
     end, { nargs = 0 })
 
     vim.api.nvim_create_user_command("KrepoPush", function(opts)
-        Job:new({ command = "krepo", args = { "push" } }):start()
+        Job:new({ command = "krepo-ng", args = { "push" } }):start()
     end, { nargs = 0 })
 
     vim.api.nvim_create_user_command("KrepoSync", function(opts)
         Job:new({
-            command = "krepo",
-            args = { "sync", "--with-sdk", "--stash" },
+            command = "krepo-ng",
+            args = { "sync", "--stash" },
         }):start()
     end, { nargs = 0 })
 
-    vim.api.nvim_create_user_command("KrepoSync", function(opts)
+    vim.api.nvim_create_user_command("KrepoAuth", function(opts)
         Job:new({
-            command = "../debug/WPSOffice/auth_plugins/version_common_cn.bat",
+            command = wps.path .. "/../debug/wps_build/WPSOffice/auth_plugins/version_common_cn.bat",
         }):start()
     end, { nargs = 0 })
 
@@ -127,5 +129,6 @@ local function config()
 end
 
 local M = {
+    wps = wps,
     setup = config,
 }

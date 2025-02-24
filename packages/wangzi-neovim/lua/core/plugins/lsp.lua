@@ -181,15 +181,15 @@ return {
             },
             -- { "K", "<cmd>Lspsaga hover_doc<CR>", mode = "n", desc = "Hover" },
 
-            { "<leader>la", "<cmd>Lspsaga code_action<CR>",          desc = "CodeActions" },
-            { "<leader>lr", "<cmd>Lspsaga rename<CR>",               desc = "Rename" },
+            { "<leader>la", "<cmd>Lspsaga code_action<CR>", desc = "CodeActions" },
+            { "<leader>lr", "<cmd>Lspsaga rename<CR>",      desc = "Rename" },
             -- { "<leader>ld", "<cmd>Lspsaga peek_definition<CR>",      desc = "PreviewDefinition" },
             -- { "<leader>lD", "<cmd>Lspsaga peek_type_definition<CR>", desc = "PreviewDefinition" },
             -- { "<leader>lo", "<cmd>Lspsaga outline<CR>",              desc = "Outline" },
             -- { "<leader>lc", "<cmd>Lspsaga incoming_calls<CR>",       desc = "Incoming call" },
             -- { "<leader>lC", "<cmd>Lspsaga outgoing_calls<CR>",       desc = "Outgoing call" },
             -- { "<leader>lt", "<cmd>Lspsaga term_toggle<CR>",          desc = "Terminal" },
-            { "<leader>lh", "<cmd>Lspsaga finder<CR>",               desc = "finder" },
+            { "<leader>lh", "<cmd>Lspsaga finder<CR>",      desc = "finder" },
         },
     },
     {

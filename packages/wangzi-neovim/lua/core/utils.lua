@@ -2,6 +2,13 @@ local database = require("core.database")
 
 local M = {}
 
+M.try = function(f)
+    local ok, err = pcall(f)
+    if not ok then
+        require("notify")(err, vim.log.levels.ERROR)
+    end
+end
+
 M.hide_statusline = function()
     local hidden = {
         "help",
@@ -164,10 +171,10 @@ function M.add_mark()
         return
     end
 
-    require("trailblazer").new_trail_mark()
-    require("harpoon"):list():add()
-    vim.cmd [[Arrow toggle_current_line_for_buffer]]
-    require("arrow.persist").save(M.get_current_buffer_path())
+    M.try(function() require("trailblazer").new_trail_mark() end)
+    M.try(function() require("harpoon"):list():add() end)
+    M.try(function() vim.cmd [[Arrow toggle_current_line_for_buffer]] end)
+    M.try(function() require("arrow.persist").save(M.get_current_buffer_path()) end)
 end
 
 function M.get_changed_ranges()

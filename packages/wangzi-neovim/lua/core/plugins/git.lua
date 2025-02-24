@@ -99,8 +99,8 @@ return {
         cmd = "Neogit",
         event = "VeryLazy",
         keys = {
-            { "<leader>gg", "<cmd>Neogit<CR>",                                  "Neogit" },
-            { "<leader>G",  "<cmd>Neogit<CR>",                                  "Neogit" },
+            { "<leader>gg", "<cmd>Neogit cwd=%:p:h<CR>",                        "Neogit" },
+            { "<leader>G",  "<cmd>Neogit cwd=%:p:h<CR>",                        "Neogit" },
             { "<leader>gl", function() require "neogit".open({ "log" }) end,    desc = "Git Log" },
             { "<leader>gP", function() require "neogit".open({ "pull" }) end,   desc = "Git Pull" },
             { "<leader>gc", function() require "neogit".open({ "commit" }) end, desc = "Git Commit" },
@@ -122,6 +122,7 @@ return {
                     item = { symbols.checkbox_false, symbols.checkbox_true },
                     section = { symbols.checkbox_false, symbols.checkbox_true },
                 },
+                graph_style = "unicode",
             }
         end
     }
