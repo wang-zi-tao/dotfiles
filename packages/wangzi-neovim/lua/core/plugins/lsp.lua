@@ -482,7 +482,7 @@ return {
         name = "tiny_inline_diagnostic",
         dir = gen.tiny_inline_diagnostic,
         event = 'LspAttach',
-        enabled = true,
+        enabled = false,
         priority = 1000, -- needs to be loaded in first
         config = function()
             require('tiny-inline-diagnostic').setup({

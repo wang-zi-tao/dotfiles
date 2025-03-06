@@ -189,8 +189,10 @@ endfunc
 require("core.theme").define_sign()
 
 vim.diagnostic.config({
-    virtual_text = false,
-    signs = true,
+    virtual_text = {
+        source = "if_many",
+        prefix = "",
+    },
     update_in_insert = false,
     underline = true,
     severity_sort = true,

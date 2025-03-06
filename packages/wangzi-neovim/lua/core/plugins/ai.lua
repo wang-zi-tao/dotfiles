@@ -54,11 +54,11 @@ local function config_codecompanion()
         },
         opts = {
             language = "Chinese",
-            send_code = true,
+            send_code = false,
         },
         strategies = {
             chat = {
-                adapter = "openai",
+                adapter = "deepseek",
             },
             inline = {
                 adapter = "copilot",

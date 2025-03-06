@@ -220,8 +220,12 @@ return {
             {
                 "<leader>fo",
                 function()
-                    telescope().lsp_dynamic_workspace_symbols()
+                    pcall(require("core.utils").add_mark)
+                    require("telescope.builtin").lsp_dynamic_workspace_symbols({
+                        default_text = require("core.utils").get_selection(),
+                    })
                 end,
+                mode = { "n", "v" },
                 desc = "WorkspaceSymbols",
             },
             {
@@ -365,6 +369,7 @@ return {
             {
                 "<leader>fmf",
                 function()
+                    pcall(require("core.utils").add_mark)
                     local module_dir = require("core.utils").module_dir()
                     require("telescope.builtin").fd({
                         search_dirs = module_dir,
@@ -372,12 +377,13 @@ return {
                         no_ignore = true,
                     })
                 end,
-                mode = {"n","v"},
+                mode = { "n", "v" },
                 desc = "Files",
             },
             {
                 "<leader>fmw",
                 function()
+                    pcall(require("core.utils").add_mark)
                     local module_dir = require("core.utils").module_dir()
                     require("telescope.builtin").live_grep({
                         search_dirs = module_dir,

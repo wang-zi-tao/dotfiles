@@ -1,5 +1,6 @@
 local function config()
     if 1 == vim.fn.has("win32") then
+        require('nvim-treesitter.install').compilers = { "clang" }
         require("nvim-treesitter.install").prefer_git = false
     end
 
@@ -78,7 +79,7 @@ return {
     name = "nvim_treesitter",
     event = { "BufNewFile", "BufReadPost" },
     lazy = true,
-    enabled = false,
+    enabled = true,
     dependencies = {
         "nvim_web_devicons",
         {
