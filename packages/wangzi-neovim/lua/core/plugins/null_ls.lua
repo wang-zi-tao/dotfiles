@@ -18,7 +18,6 @@ local function config()
                 local uri = params.lsp_params.textDocument.uri
                 local p = "file:///" .. params.cwd .. "/"
                 local relative_path = (uri:sub(0, #p) == p) and uri:sub(#p + 1) or uri
-                vim.notify(relative_path)
                 return {
                     "--platform=win32W",
                     "--std=c++17",

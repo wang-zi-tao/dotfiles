@@ -41,11 +41,16 @@ wk.add({
     {
         "K",
         function()
+            local dap = require("dap")
+            if dap.status() ~= "" then
+                require("dapui").eval(nil, { enter = true })
+            end
+
             local filename = vim.fn.expand("%:t")
             if filename == "Cargo.toml" then
                 require("crates").show_popup()
             else
-                vim.cmd [[Lspsaga hover_doc]]
+                vim.lsp.buf.hover()
             end
         end,
         desc = "hover"

@@ -372,7 +372,7 @@ return {
                     pcall(require("core.utils").add_mark)
                     local module_dir = require("core.utils").module_dir()
                     require("telescope.builtin").fd({
-                        search_dirs = module_dir,
+                        search_dirs = { require("core.utils").module_dir() },
                         default_text = require("core.utils").get_selection(),
                         no_ignore = true,
                     })
@@ -384,9 +384,8 @@ return {
                 "<leader>fmw",
                 function()
                     pcall(require("core.utils").add_mark)
-                    local module_dir = require("core.utils").module_dir()
                     require("telescope.builtin").live_grep({
-                        search_dirs = module_dir,
+                        search_dirs = { require("core.utils").module_dir() },
                         default_text = require("core.utils").get_selection(),
                     })
                 end,

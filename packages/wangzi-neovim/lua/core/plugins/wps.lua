@@ -6,8 +6,8 @@ local function config()
     local Path = require("plenary.path")
     local Job = require("plenary.job")
     wps.path = Path:new(vim.fn.finddir('Coding/..', vim.fn.expand('%:p:h') .. ';'))
-    wps.qt_path = wps.path:joinpath("../3rdparty/qt5/source/qtbase/")
-    wps.ohos_qt_path = wps.path:joinpath("../3rdparty/qt5/source/qtbase/")
+    wps.qt_path = wps.path:joinpath("../debug/3rd_build/qt5/source/qtbase/")
+    wps.ohos_qt_path = wps.path:joinpath("../debug_ohos/3rd_build/qt5/source/qtbase/")
 
     local coding_dir = wps.path:joinpath("Coding/")
     if coding_dir:exists() then
@@ -19,7 +19,7 @@ local function config()
     end, {})
 
     vim.api.nvim_create_user_command("CdQt", function()
-        vim.cmd.cd(tostring(wps.path:joinpath("../3rdparty/qt5/source/qtbase/")))
+        vim.cmd.cd(tostring(wps.qt_path))
     end, {})
 
     vim.api.nvim_create_user_command("RgQt", function()
@@ -127,6 +127,8 @@ local function config()
         vim.cmd [[neotree dir=C:\Users\wps\Documents\Obsidian-work]]
     end, { nargs = 0 })
 end
+
+config()
 
 local M = {
     wps = wps,

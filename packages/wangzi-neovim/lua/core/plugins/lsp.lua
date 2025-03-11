@@ -62,7 +62,6 @@ local function setup_lspsaga()
     vim.api.nvim_create_autocmd({ "VimResized" }, {
         pattern = "lspsagaoutline",
         callback = function(args)
-            vim.notify("resize")
             local alltabpages = vim.api.nvim_list_tabpages()
             local window = nil
             for _, tabpage in ipairs(alltabpages) do
