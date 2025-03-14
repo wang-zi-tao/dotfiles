@@ -130,13 +130,21 @@ local function config()
     local ip_cache = "localhost:1234"
 
     local get_program = function()
-        path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
-        return path_cache
+        -- path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
+        -- return path_cache
+        return util.pick_file({
+            no_ignore = true,
+            prompt = "Path to executable: ",
+        })
     end
 
     local get_coredmp = function()
-        codedump_cache = vim.fn.input("Path to coredump: ", codedump_cache, "file")
-        return codedump_cache
+        -- codedump_cache = vim.fn.input("Path to coredump: ", codedump_cache, "file")
+        -- return codedump_cache
+        return util.pick_file({
+            no_ignore = true,
+            prompt = "Path to coredump: ",
+        })
     end
 
     dap.configurations.cpp = {

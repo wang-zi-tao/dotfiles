@@ -207,6 +207,29 @@ function M.get_selection()
     ), '\n')
 end
 
+---@param key string
+function M.pick_file(opt)
+    local actions = require "telescope.actions"
+    local action_state = require "telescope.actions.state"
+    local co = coroutine.running()
+
+    vim.schedule(function()
+        require("telescope").extensions.file_browser.file_browser(vim.tbl_deep_extend("keep", opt, {
+            prompt = "executable file",
+            attach_mappings = function(prompt_bufnr, map)
+                actions.select_default:replace(function()
+                    actions.close(prompt_bufnr)
+                    local selection = action_state.get_selected_entry()
+                    coroutine.resume(co, selection)
+                end)
+                return true
+            end
+        }))
+    end)
+
+    return coroutine.yield()
+end
+
 ---@param file string
 ---@param callback fun(err: string, fname: string, status: string)
 function M.watch_file(file, callback)

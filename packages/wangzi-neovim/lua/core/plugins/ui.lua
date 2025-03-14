@@ -2,6 +2,7 @@ return {
     -- require("core.plugins.onedark"),
     require("core.plugins.tokyonight"),
     require("core.plugins.heirline"),
+    require("core.plugins.snacks"),
     {
         "folke/which-key.nvim",
         dir = gen.which_key,
@@ -257,7 +258,7 @@ return {
         "kyazdani42/nvim-web-devicons",
         dir = gen.nvim_web_devicons,
         name = "nvim_web_devicons",
-        lazy = true,
+        lazy = false,
         config = function()
             require("core.plugins.icons")
         end,
@@ -368,6 +369,7 @@ return {
         "goolord/alpha-nvim",
         dir = gen.alpha_nvim,
         name = "alpha_nvim",
+        enabled = false,
         config = function()
             require("core.plugins.alpha")
             require("core.theme").setup()
