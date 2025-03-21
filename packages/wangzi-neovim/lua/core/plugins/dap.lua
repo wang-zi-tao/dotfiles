@@ -125,8 +125,6 @@ local function config()
         },
     }
 
-    local path_cache = vim.fn.getcwd() .. "/"
-    local codedump_cache = vim.fn.getcwd() .. "/"
     local ip_cache = "localhost:1234"
 
     local get_program = function()
@@ -147,47 +145,87 @@ local function config()
         })
     end
 
+    local vsdbg_config = {
+        type = "cppvsdbg",
+        clientID = 'vscode',
+        clientName = 'Visual Studio Code',
+        externalTerminal = true,
+        columnsStartAt1 = true,
+        linesStartAt1 = true,
+        locale = "zh-CN",
+        pathFormat = "path",
+        externalConsole = false,
+        cwd = "${workspaceFolder}",
+        visualizerFile = vsdbg_find_natvis,
+        symbolSearchPath = "srv*;srv*http://localhost:8001",
+        initCommands = ".childdbg 1",
+        showDisplayString = true,
+        stopAtEntry = false,
+        logging = {
+            moduleLoad = true,
+        },
+        -- symbolSearchPath = "srv*;srv*http://localhost:8001;srv*https://msdl.microsoft.com/download/symbols",
+    }
+
+    local lldb_config = {
+        type = "lldb",
+        program = get_program,
+        cwd = "${workspaceFolder}",
+        initCommands = "settings set target.process.follow-fork-mode child",
+    }
+
+    local gdb_config = {
+        type = "gdb",
+        cwd = "${workspaceFolder}",
+        stopAtBeginningOfMainSubprogram = false,
+        setupCommands = {
+            {
+                description = "Enable pretty-printing for gdb",
+                text = "-enable-pretty-printing",
+                ignoreFailures = true,
+            },
+            {
+                -- https://sourceware.org/gdb/onlinedocs/gdb/Forks.html
+                description = "Fork follows Child process",
+                text = "set follow-fork-mode child",
+                ignoreFailures = true
+            },
+            {
+                -- https://sourceware.org/gdb/onlinedocs/gdb/Forks.html
+                description = "Fork will keep the other process attached to debugger",
+                text = "set detach-on-fork off",
+                ignoreFailures = true
+            }
+        },
+    }
+
     dap.configurations.cpp = {
-        {
+        vim.tbl_deep_extend("force", lldb_config, {
             name = "cargo run",
-            type = "lldb",
             request = "launch",
             program = get_program,
             cwd = "${workspaceFolder}",
-            -- stopOnEntry = true,
-        },
-        {
+        }),
+        vim.tbl_deep_extend("force", lldb_config, {
             name = "lldb launch",
-            type = "lldb",
             request = "launch",
             program = get_program,
-            cwd = "${workspaceFolder}",
-            -- stopOnEntry = true,
-        },
-        {
+        }),
+        vim.tbl_deep_extend("force", lldb_config, {
             name = "lldb attach",
-            type = "lldb",
-            request = "attach",
             processId = require("dap.utils").pick_process,
-            cwd = "${workspaceFolder}",
             -- stopOnEntry = true,
-        },
-        {
+        }),
+        vim.tbl_deep_extend("force", gdb_config, {
             name = "gdb launch",
-            type = "gdb",
             request = "launch",
             program = get_program,
-            cwd = "${workspaceFolder}",
-            stopAtBeginningOfMainSubprogram = false,
-        },
-        {
+        }),
+        vim.tbl_deep_extend("force", gdb_config, {
             name = "gdb attach",
-            type = "gdb",
-            request = "attach",
             program = get_program,
             processId = require("dap.utils").pick_process,
-            cwd = '${workspaceFolder}'
-        },
+        }),
         {
             name = "Attach to gdbserver :1234",
             type = "cppdbg",
@@ -208,58 +246,22 @@ local function config()
             cwd = "${workspaceFolder}",
             stopOnEntry = true,
         },
-        {
+        vim.tbl_deep_extend("force", vsdbg_config, {
             name = "vsdbg launch",
-            type = "cppvsdbg",
             request = "launch",
-            clientID = 'vscode',
-            clientName = 'Visual Studio Code',
-            externalTerminal = true,
-            columnsStartAt1 = true,
-            linesStartAt1 = true,
-            locale = "en",
-            pathFormat = "path",
-            externalConsole = true,
             program = get_program,
-            cwd = "${workspaceFolder}",
-            stopOnEntry = true,
-            visualizerFile = vsdbg_find_natvis,
-        },
-        {
+        }),
+        vim.tbl_deep_extend("force", vsdbg_config, {
             name = "vsdbg coredump",
-            type = "cppvsdbg",
             request = "launch",
-            clientID = 'vscode',
-            clientName = 'Visual Studio Code',
-            externalTerminal = true,
-            columnsStartAt1 = true,
-            linesStartAt1 = true,
-            locale = "en",
-            pathFormat = "path",
-            externalConsole = true,
             program = get_program,
             dumpPath = get_coredmp,
-            cwd = "${workspaceFolder}",
-            stopOnEntry = true,
-            visualizerFile = vsdbg_find_natvis,
-        },
-        {
+        }),
+        vim.tbl_deep_extend("force", vsdbg_config, {
             name = "vsdbg attach",
-            type = "cppvsdbg",
             request = "attach",
-            clientID = 'vscode',
-            clientName = 'Visual Studio Code',
-            externalTerminal = true,
-            columnsStartAt1 = true,
-            linesStartAt1 = true,
-            locale = "en",
-            pathFormat = "path",
-            externalConsole = true,
             processId = require("dap.utils").pick_process,
-            cwd = "${workspaceFolder}",
-            stopOnEntry = true,
-            visualizerFile = vsdbg_find_natvis,
-        },
+        }),
     }
     dap.adapters.cppdbg = {
         id = 'cppdbg',

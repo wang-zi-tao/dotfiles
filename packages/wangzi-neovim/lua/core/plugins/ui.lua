@@ -614,5 +614,61 @@ return {
         name = "nvim_nio",
         lazy = true,
         module = "nio",
-    }
+    },
+    {
+        "rmagatti/goto-preview",
+        dir = gen.goto_preview,
+        name = "goto_preview",
+        event = "LspAttach",
+        module = "goto-preview",
+        config = function()
+            require('goto-preview').setup {
+                resizing_mappings = false,
+                vim_ui_input = false,
+                post_open_hook = function(buff, win)
+                    local close = function()
+                        if vim.api.nvim_win_is_valid(win) then
+                            vim.api.nvim_win_close(win, true)
+                        end
+                    end
+                    vim.keymap.set('n', '<Esc>', close, { buffer = buff })
+                    vim.keymap.set('n', 'q', close, { buffer = buff })
+                end,
+            }
+        end,
+        keys = {
+            {
+                "gd",
+                function()
+                    require('goto-preview').goto_preview_definition()
+                end,
+                mode = "n",
+                desc = "preview definition",
+            },
+            {
+                "gt",
+                function()
+                    require('goto-preview').goto_preview_type_definition()
+                end,
+                mode = "n",
+                desc = "preview type definition",
+            },
+            {
+                "gr",
+                function()
+                    require('goto-preview').goto_preview_references()
+                end,
+                mode = "n",
+                desc = "preview references",
+            },
+        },
+        dependencies = {
+            {
+                "rmagatti/logger.nvim",
+                name = "logger_nvim",
+                dir = gen.logger_nvim,
+                module = "logger",
+            }
+        },
+    },
 }

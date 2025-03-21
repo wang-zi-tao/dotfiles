@@ -274,6 +274,32 @@ return {
                 mode = { "n", "v" }
             },
             {
+                "gD",
+                function()
+                    pcall(require("core.utils").add_mark)
+                    require("telescope.builtin").lsp_definitions()
+                end,
+                mode = "n",
+                desc = "Goto Definition",
+            },
+            {
+                "gT",
+                function()
+                    pcall(require("core.utils").add_mark)
+                    require("telescope.builtin").lsp_type_definitions()
+                end,
+                mode = "n",
+                desc = "Goto Type Definition",
+            },
+            {
+                "gR",
+                function()
+                    vim.lsp.buf.rename()
+                end,
+                mode = "n",
+                desc = "Rename",
+            },
+            {
                 "<leader>lf",
                 function()
                     local hunks = require("gitsigns").get_hunks()

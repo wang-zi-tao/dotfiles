@@ -1,0 +1,99 @@
+[33mWARNING[0m:  [18-03-2025 20:47:51] chroma_server_nofile is not supported on Windows. chroma_server_nofile will not be set.
+[36mDEBUG[0m:    [18-03-2025 20:47:51] Starting component System
+[36mDEBUG[0m:    [18-03-2025 20:47:51] Starting component OpenTelemetryClient
+[36mDEBUG[0m:    [18-03-2025 20:47:51] Starting component SqliteDB
+[36mDEBUG[0m:    [18-03-2025 20:47:51] Starting component SimpleQuotaEnforcer
+[36mDEBUG[0m:    [18-03-2025 20:47:51] Starting component Posthog
+[36mDEBUG[0m:    [18-03-2025 20:47:51] Starting component SimpleRateLimitEnforcer
+[36mDEBUG[0m:    [18-03-2025 20:47:51] Starting component LocalSegmentManager
+[36mDEBUG[0m:    [18-03-2025 20:47:51] Starting component LocalExecutor
+[36mDEBUG[0m:    [18-03-2025 20:47:51] Starting component SegmentAPI
+[36mDEBUG[0m:    [18-03-2025 20:47:51] Starting component SimpleAsyncRateLimitEnforcer
+[32mINFO[0m:     [18-03-2025 20:47:51] Started server process [[36m39896[0m]
+[32mINFO[0m:     [18-03-2025 20:47:51] Waiting for application startup.
+[32mINFO[0m:     [18-03-2025 20:47:51] Application startup complete.
+[32mINFO[0m:     [18-03-2025 20:47:51] Uvicorn running on [1mhttp://localhost:61101[0m (Press CTRL+C to quit)
+[32mINFO[0m:     [18-03-2025 20:47:52] 127.0.0.1:61103 - "GET /api/v1/heartbeat HTTP/1.1" 200
+[32mINFO[0m:     [18-03-2025 20:47:52] ::1:61108 - "GET /api/v2/auth/identity HTTP/1.1" 200
+[32mINFO[0m:     [18-03-2025 20:47:52] ::1:61108 - "GET /api/v2/tenants/default_tenant HTTP/1.1" 200
+[32mINFO[0m:     [18-03-2025 20:47:52] ::1:61108 - "GET /api/v2/tenants/default_tenant/databases/default_database?tenant=default_tenant HTTP/1.1" 200
+[32mINFO[0m:     [18-03-2025 20:47:59] ::1:61112 - "GET /api/v2/tenants/default_tenant/databases/default_database/collections/3eb931f4c4959165d268708a267d156747e491b09953c0d43998bb8ca2dfd4e HTTP/1.1" 400
+[33mWARNING[0m:  [19-03-2025 11:51:03] chroma_server_nofile is not supported on Windows. chroma_server_nofile will not be set.
+[36mDEBUG[0m:    [19-03-2025 11:51:03] Starting component System
+[36mDEBUG[0m:    [19-03-2025 11:51:03] Starting component OpenTelemetryClient
+[36mDEBUG[0m:    [19-03-2025 11:51:03] Starting component SqliteDB
+[36mDEBUG[0m:    [19-03-2025 11:51:03] Starting component SimpleQuotaEnforcer
+[36mDEBUG[0m:    [19-03-2025 11:51:03] Starting component Posthog
+[36mDEBUG[0m:    [19-03-2025 11:51:03] Starting component SimpleRateLimitEnforcer
+[36mDEBUG[0m:    [19-03-2025 11:51:03] Starting component LocalSegmentManager
+[36mDEBUG[0m:    [19-03-2025 11:51:03] Starting component LocalExecutor
+[36mDEBUG[0m:    [19-03-2025 11:51:03] Starting component SegmentAPI
+[36mDEBUG[0m:    [19-03-2025 11:51:03] Starting component SimpleAsyncRateLimitEnforcer
+[32mINFO[0m:     [19-03-2025 11:51:03] Started server process [[36m66096[0m]
+[32mINFO[0m:     [19-03-2025 11:51:03] Waiting for application startup.
+[32mINFO[0m:     [19-03-2025 11:51:03] Application startup complete.
+[32mINFO[0m:     [19-03-2025 11:51:03] Uvicorn running on [1mhttp://localhost:54043[0m (Press CTRL+C to quit)
+[32mINFO[0m:     [19-03-2025 11:51:03] ::1:54045 - "GET /api/v1/heartbeat HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:03] ::1:54051 - "GET /api/v2/auth/identity HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:03] ::1:54051 - "GET /api/v2/tenants/default_tenant HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:03] ::1:54051 - "GET /api/v2/tenants/default_tenant/databases/default_database?tenant=default_tenant HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:09] ::1:54053 - "GET /api/v2/tenants/default_tenant/databases/default_database/collections/3eb931f4c4959165d268708a267d156747e491b09953c0d43998bb8ca2dfd4e HTTP/1.1" 400
+[33mWARNING[0m:  [19-03-2025 11:51:14] chroma_server_nofile is not supported on Windows. chroma_server_nofile will not be set.
+[36mDEBUG[0m:    [19-03-2025 11:51:14] Starting component System
+[36mDEBUG[0m:    [19-03-2025 11:51:14] Starting component OpenTelemetryClient
+[36mDEBUG[0m:    [19-03-2025 11:51:14] Starting component SqliteDB
+[36mDEBUG[0m:    [19-03-2025 11:51:14] Starting component SimpleQuotaEnforcer
+[36mDEBUG[0m:    [19-03-2025 11:51:14] Starting component Posthog
+[36mDEBUG[0m:    [19-03-2025 11:51:14] Starting component SimpleRateLimitEnforcer
+[36mDEBUG[0m:    [19-03-2025 11:51:14] Starting component LocalSegmentManager
+[36mDEBUG[0m:    [19-03-2025 11:51:14] Starting component LocalExecutor
+[36mDEBUG[0m:    [19-03-2025 11:51:14] Starting component SegmentAPI
+[36mDEBUG[0m:    [19-03-2025 11:51:14] Starting component SimpleAsyncRateLimitEnforcer
+[32mINFO[0m:     [19-03-2025 11:51:14] Started server process [[36m60704[0m]
+[32mINFO[0m:     [19-03-2025 11:51:14] Waiting for application startup.
+[32mINFO[0m:     [19-03-2025 11:51:14] Application startup complete.
+[32mINFO[0m:     [19-03-2025 11:51:14] Uvicorn running on [1mhttp://localhost:54058[0m (Press CTRL+C to quit)
+[32mINFO[0m:     [19-03-2025 11:51:14] ::1:54059 - "GET /api/v1/heartbeat HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:14] ::1:54065 - "GET /api/v2/auth/identity HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:14] ::1:54065 - "GET /api/v2/tenants/default_tenant HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:14] ::1:54065 - "GET /api/v2/tenants/default_tenant/databases/default_database?tenant=default_tenant HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:20] ::1:54068 - "GET /api/v2/tenants/default_tenant/databases/default_database/collections/3eb931f4c4959165d268708a267d156747e491b09953c0d43998bb8ca2dfd4e HTTP/1.1" 400
+[33mWARNING[0m:  [19-03-2025 11:51:24] chroma_server_nofile is not supported on Windows. chroma_server_nofile will not be set.
+[36mDEBUG[0m:    [19-03-2025 11:51:24] Starting component System
+[36mDEBUG[0m:    [19-03-2025 11:51:24] Starting component OpenTelemetryClient
+[36mDEBUG[0m:    [19-03-2025 11:51:24] Starting component SqliteDB
+[36mDEBUG[0m:    [19-03-2025 11:51:24] Starting component SimpleQuotaEnforcer
+[36mDEBUG[0m:    [19-03-2025 11:51:24] Starting component Posthog
+[36mDEBUG[0m:    [19-03-2025 11:51:24] Starting component SimpleRateLimitEnforcer
+[36mDEBUG[0m:    [19-03-2025 11:51:24] Starting component LocalSegmentManager
+[36mDEBUG[0m:    [19-03-2025 11:51:24] Starting component LocalExecutor
+[36mDEBUG[0m:    [19-03-2025 11:51:24] Starting component SegmentAPI
+[36mDEBUG[0m:    [19-03-2025 11:51:24] Starting component SimpleAsyncRateLimitEnforcer
+[32mINFO[0m:     [19-03-2025 11:51:24] Started server process [[36m12856[0m]
+[32mINFO[0m:     [19-03-2025 11:51:24] Waiting for application startup.
+[32mINFO[0m:     [19-03-2025 11:51:24] Application startup complete.
+[32mINFO[0m:     [19-03-2025 11:51:24] Uvicorn running on [1mhttp://localhost:54073[0m (Press CTRL+C to quit)
+[32mINFO[0m:     [19-03-2025 11:51:24] ::1:54074 - "GET /api/v1/heartbeat HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:25] ::1:54080 - "GET /api/v2/auth/identity HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:25] ::1:54080 - "GET /api/v2/tenants/default_tenant HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:25] ::1:54080 - "GET /api/v2/tenants/default_tenant/databases/default_database?tenant=default_tenant HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 11:51:31] ::1:54082 - "GET /api/v2/tenants/default_tenant/databases/default_database/collections/3eb931f4c4959165d268708a267d156747e491b09953c0d43998bb8ca2dfd4e HTTP/1.1" 400
+[33mWARNING[0m:  [19-03-2025 12:02:47] chroma_server_nofile is not supported on Windows. chroma_server_nofile will not be set.
+[36mDEBUG[0m:    [19-03-2025 12:02:48] Starting component System
+[36mDEBUG[0m:    [19-03-2025 12:02:48] Starting component OpenTelemetryClient
+[36mDEBUG[0m:    [19-03-2025 12:02:48] Starting component SqliteDB
+[36mDEBUG[0m:    [19-03-2025 12:02:48] Starting component SimpleQuotaEnforcer
+[36mDEBUG[0m:    [19-03-2025 12:02:48] Starting component Posthog
+[36mDEBUG[0m:    [19-03-2025 12:02:48] Starting component SimpleRateLimitEnforcer
+[36mDEBUG[0m:    [19-03-2025 12:02:48] Starting component LocalSegmentManager
+[36mDEBUG[0m:    [19-03-2025 12:02:48] Starting component LocalExecutor
+[36mDEBUG[0m:    [19-03-2025 12:02:48] Starting component SegmentAPI
+[36mDEBUG[0m:    [19-03-2025 12:02:48] Starting component SimpleAsyncRateLimitEnforcer
+[32mINFO[0m:     [19-03-2025 12:02:48] Started server process [[36m34292[0m]
+[32mINFO[0m:     [19-03-2025 12:02:48] Waiting for application startup.
+[32mINFO[0m:     [19-03-2025 12:02:48] Application startup complete.
+[32mINFO[0m:     [19-03-2025 12:02:48] Uvicorn running on [1mhttp://localhost:54675[0m (Press CTRL+C to quit)
+[32mINFO[0m:     [19-03-2025 12:02:48] 127.0.0.1:54677 - "GET /api/v1/heartbeat HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 12:02:48] ::1:54682 - "GET /api/v2/auth/identity HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 12:02:48] ::1:54682 - "GET /api/v2/tenants/default_tenant HTTP/1.1" 200
+[32mINFO[0m:     [19-03-2025 12:02:48] ::1:54682 - "GET /api/v2/tenants/default_tenant/databases/default_database?tenant=default_tenant HTTP/1.1" 200

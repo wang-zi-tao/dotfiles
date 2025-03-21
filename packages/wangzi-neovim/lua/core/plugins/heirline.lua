@@ -482,7 +482,7 @@
             provider = function()
                 local icons = {}
                 for i, server in pairs(vim.lsp.get_clients({ bufnr = 0 })) do
-                    if server.name ~= "null-ls" then
+                    if server.name ~= "null-ls" and server.name ~= "vectorcode-server" then
                         table.insert(icons, lsp_symbol[server.name] or server.name)
                     end
                 end
@@ -582,6 +582,15 @@
         end
     }
 
+    local function VectorCode(opts)
+        local lualine_component = require("vectorcode.integrations").lualine({})
+        return vim.tbl_deep_extend("keep", opts or {}, {
+            provider = lualine_component[1],
+            condition = lualine_component.condition,
+        })
+    end
+
+
     local function Nav(opts)
         local component = components.nav(opts)
         table.insert(component[2].update, "ModeChanged")
@@ -648,7 +657,6 @@
                 Space,
                 ViMode(),
             }, { separator = { "", separator4_right[2] } }),
-            DAPMessages,
             pwd(),
             Space,
             { provider = separator4_right_empty[2] },
@@ -656,10 +664,12 @@
             file_relative_path(set_hl_bg2({})),
             components.file_info(set_hl_bg2({ file_name = false, })),
         }, { separator = { "", separator4_right[2] }, bg = bg2, }),
+        DAPMessages,
         components.fill(),
         tabline_buffers(),
         components.fill(),
         {
+            VectorCode({ hl = { fg = "gray" } }),
             components.virtual_env(),
             FileSize({ hl = { fg = "gray" } }),
             components.file_encoding({ hl = { fg = "gray" } }),
@@ -688,7 +698,11 @@
         components.numbercolumn(),
     }
     local function is_disabled(args)
-        return not require("heirline-components.buffer").is_valid(args.buf) or
+        if not require("heirline-components.buffer").is_valid(args.buf)
+        then
+            return true
+        end
+        if
             conditions.buffer_matches({
                 buftype = { "terminal", "prompt", "nofile", "help", "quickfix" },
                 filetype = {
@@ -704,7 +718,10 @@
                     "qf",
                     "toggleterm"
                 },
-            }, args.buf)
+            }, args.buf) then
+            return true
+        end
+        return false
     end
     heirline_components.init.subscribe_to_events()
     heirline.load_colors(colors)

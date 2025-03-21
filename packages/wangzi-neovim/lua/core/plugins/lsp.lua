@@ -156,18 +156,6 @@ return {
                 mode = "n",
                 desc = "Diagnostic",
             },
-            { "gd", "<cmd>Lspsaga peek_definition<CR>",      mode = "n", desc = "Peek Definition" },
-            {
-                "gD",
-                function()
-                    pcall(require("core.utils").add_mark)
-                    vim.cmd([[Lspsaga goto_definition]])
-                end,
-                mode = "n",
-                desc = "Goto Definition",
-            },
-            { "gr", "<cmd>Lspsaga rename<CR>",               mode = "n", desc = "Rename" },
-            { "gt", "<cmd>Lspsaga peek_type_definition<CR>", mode = "n", desc = "Peek Type Definition" },
             { "gT", "<cmd>Lspsaga goto_type_definition<CR>", mode = "n", desc = "Goto Type Definition" },
             {
                 "gh",
