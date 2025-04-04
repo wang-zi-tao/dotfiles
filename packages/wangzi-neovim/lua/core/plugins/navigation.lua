@@ -160,11 +160,11 @@ return {
         end,
         event = "VeryLazy",
         keys = {
-            { "<leader>wh", ":FocusSplitLeft<CR>",          silent = true, desc = "Split left" },
-            { "<leader>wk", ":FocusSplitUp<CR>",            silent = true, desc = "Split up" },
-            -- { "<leader>wl", ":FocusSplitRight<CR>",         silent = true, desc = "Split right" },
-            { "<leader>wj", ":FocusSplitDown<CR>",          silent = true, desc = "Split down" },
-            { "<leader>wt", ":FocusSplitDown cmd term<CR>", silent = true, desc = "Terminal" },
+            { "<leader>wh", "<cmd>FocusSplitLeft<CR>",          silent = true, desc = "Split left" },
+            { "<leader>wk", "<cmd>FocusSplitUp<CR>",            silent = true, desc = "Split up" },
+            -- { "<leader>wl", "<cmd>FocusSplitRight<CR>",         silent = true, desc = "Split right" },
+            { "<leader>wj", "<cmd>FocusSplitDown<CR>",          silent = true, desc = "Split down" },
+            { "<leader>wt", "<cmd>FocusSplitDown cmd term<CR>", silent = true, desc = "Terminal" },
         },
     },
     {

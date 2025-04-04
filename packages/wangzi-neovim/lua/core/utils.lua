@@ -2,6 +2,13 @@ local database = require("core.database")
 
 local M = {}
 
+M.try = function(f)
+    local ok, err = pcall(f)
+    if not ok then
+        require("notify")(err, vim.log.levels.ERROR)
+    end
+end
+
 M.hide_statusline = function()
     local hidden = {
         "help",
@@ -159,10 +166,15 @@ function M.module_dir()
 end
 
 function M.add_mark()
-    require("trailblazer").new_trail_mark()
-    require("harpoon"):list():add()
-    vim.cmd [[Arrow toggle_current_line_for_buffer]]
-    require("arrow.persist").save(M.get_current_buffer_path())
+    local buftype = vim.api.nvim_buf_get_option(0, "ft")
+    if buftype == "alpha" then
+        return
+    end
+
+    M.try(function() require("trailblazer").new_trail_mark() end)
+    M.try(function() require("harpoon"):list():add() end)
+    M.try(function() vim.cmd [[Arrow toggle_current_line_for_buffer]] end)
+    M.try(function() require("arrow.persist").save(M.get_current_buffer_path()) end)
 end
 
 function M.get_changed_ranges()
@@ -193,6 +205,29 @@ function M.get_selection()
     return table.concat(vim.fn.getregion(
         vim.fn.getpos("."), vim.fn.getpos("v"), { mode = vim.fn.mode() }
     ), '\n')
+end
+
+---@param key string
+function M.pick_file(opt)
+    local actions = require "telescope.actions"
+    local action_state = require "telescope.actions.state"
+    local co = coroutine.running()
+
+    vim.schedule(function()
+        require("telescope").extensions.file_browser.file_browser(vim.tbl_deep_extend("keep", opt, {
+            prompt = "executable file",
+            attach_mappings = function(prompt_bufnr, map)
+                actions.select_default:replace(function()
+                    actions.close(prompt_bufnr)
+                    local selection = action_state.get_selected_entry()
+                    coroutine.resume(co, selection)
+                end)
+                return true
+            end
+        }))
+    end)
+
+    return coroutine.yield()
 end
 
 ---@param file string

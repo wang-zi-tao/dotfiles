@@ -153,16 +153,16 @@ return {
         {
             "<leader>cm",
             function()
-                vim.cmd(":CMake<CR>")
+                vim.cmd("<cmd>CMake<CR>")
             end,
             desc = "CMake",
         },
-        { "<leader>cc", ":CMakeGenerate<CR>",                                 desc = "CMake configure" },
-        { "<leader>cC", ":CMakeClean<CR>",                                    desc = "CMake clean" },
-        { "<leader>cr", ":CMakeRun<CR>",                                      desc = "CMake run" },
-        { "<leader>cd", ":CMakeDebug<CR>",                                    desc = "CMake debug" },
-        { "<leader>ct", ":CMakeRunTest<CR>",                                  desc = "ctest" },
-        { "<leader>cs", ":CMakeSettings<CR>",                                 desc = "CMake settings" },
+        { "<leader>cc", "<cmd>CMakeGenerate<CR>",                             desc = "CMake configure" },
+        { "<leader>cC", "<cmd>CMakeClean<CR>",                                desc = "CMake clean" },
+        { "<leader>cr", "<cmd>CMakeRun<CR>",                                  desc = "CMake run" },
+        { "<leader>cd", "<cmd>CMakeDebug<CR>",                                desc = "CMake debug" },
+        { "<leader>ct", "<cmd>CMakeRunTest<CR>",                              desc = "ctest" },
+        { "<leader>cs", "<cmd>CMakeSettings<CR>",                             desc = "CMake settings" },
         { "<leader>cb", "<cmd>CMakeBuild<CR>",                                desc = "CMake build" },
         { "<leader>cB", "<cmd>CMakeSelectBuildTarget<CR><cmd>CMakeBuild<CR>", desc = "CMake build target" },
     },

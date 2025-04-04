@@ -65,7 +65,7 @@
     {
         "Shatur/neovim-session-manager",
         dir = gen.session_manager,
-
+        name = "neovim-session-manager",
         lazy = true,
         cmd = { "SessionManager" },
         module = "session_manager",

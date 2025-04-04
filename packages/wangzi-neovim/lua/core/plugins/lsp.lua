@@ -62,7 +62,6 @@ local function setup_lspsaga()
     vim.api.nvim_create_autocmd({ "VimResized" }, {
         pattern = "lspsagaoutline",
         callback = function(args)
-            vim.notify("resize")
             local alltabpages = vim.api.nvim_list_tabpages()
             local window = nil
             for _, tabpage in ipairs(alltabpages) do
@@ -157,18 +156,6 @@ return {
                 mode = "n",
                 desc = "Diagnostic",
             },
-            { "gd", "<cmd>Lspsaga peek_definition<CR>",      mode = "n", desc = "Peek Definition" },
-            {
-                "gD",
-                function()
-                    pcall(require("core.utils").add_mark)
-                    vim.cmd([[Lspsaga goto_definition]])
-                end,
-                mode = "n",
-                desc = "Goto Definition",
-            },
-            { "gr", "<cmd>Lspsaga rename<CR>",               mode = "n", desc = "Rename" },
-            { "gt", "<cmd>Lspsaga peek_type_definition<CR>", mode = "n", desc = "Peek Type Definition" },
             { "gT", "<cmd>Lspsaga goto_type_definition<CR>", mode = "n", desc = "Goto Type Definition" },
             {
                 "gh",
@@ -180,22 +167,16 @@ return {
                 desc = "LSP Finder",
             },
             -- { "K", "<cmd>Lspsaga hover_doc<CR>", mode = "n", desc = "Hover" },
-            {
-                "<A-d>",
-                "<cmd>Lspsaga term_toggle<CR>",
-                mode = { "n", "t" },
-                desc = "Lspsaga Terminal",
-            },
 
-            { "<leader>la", "<cmd>Lspsaga code_action<CR>",          desc = "CodeActions" },
-            { "<leader>lr", "<cmd>Lspsaga rename<CR>",               desc = "Rename" },
-            { "<leader>ld", "<cmd>Lspsaga peek_definition<CR>",      desc = "PreviewDefinition" },
-            { "<leader>lD", "<cmd>Lspsaga peek_type_definition<CR>", desc = "PreviewDefinition" },
-            { "<leader>lo", "<cmd>Lspsaga outline<CR>",              desc = "Outline" },
-            { "<leader>lc", "<cmd>Lspsaga incoming_calls<CR>",       desc = "Incoming call" },
-            { "<leader>lC", "<cmd>Lspsaga outgoing_calls<CR>",       desc = "Outgoing call" },
-            { "<leader>lt", "<cmd>Lspsaga term_toggle<CR>",          desc = "Terminal" },
-            { "<leader>lh", "<cmd>Lspsaga finder<CR>",               desc = "finder" },
+            { "<leader>la", "<cmd>Lspsaga code_action<CR>", desc = "CodeActions" },
+            { "<leader>lr", "<cmd>Lspsaga rename<CR>",      desc = "Rename" },
+            -- { "<leader>ld", "<cmd>Lspsaga peek_definition<CR>",      desc = "PreviewDefinition" },
+            -- { "<leader>lD", "<cmd>Lspsaga peek_type_definition<CR>", desc = "PreviewDefinition" },
+            -- { "<leader>lo", "<cmd>Lspsaga outline<CR>",              desc = "Outline" },
+            -- { "<leader>lc", "<cmd>Lspsaga incoming_calls<CR>",       desc = "Incoming call" },
+            -- { "<leader>lC", "<cmd>Lspsaga outgoing_calls<CR>",       desc = "Outgoing call" },
+            -- { "<leader>lt", "<cmd>Lspsaga term_toggle<CR>",          desc = "Terminal" },
+            { "<leader>lh", "<cmd>Lspsaga finder<CR>",      desc = "finder" },
         },
     },
     {
@@ -488,7 +469,7 @@ return {
         name = "tiny_inline_diagnostic",
         dir = gen.tiny_inline_diagnostic,
         event = 'LspAttach',
-        enabled = true,
+        enabled = false,
         priority = 1000, -- needs to be loaded in first
         config = function()
             require('tiny-inline-diagnostic').setup({

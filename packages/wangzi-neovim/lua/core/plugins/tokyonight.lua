@@ -4,6 +4,7 @@ return {
         name = "tokyonight",
         dir = gen.tokyonight_nvim,
         module = "tokyonight",
+        lazy = false,
         priority = 90,
         config = function()
             require("tokyonight").setup({
@@ -136,6 +137,7 @@ return {
                     diffview = false,
                 },
             })
+            require("core.theme").setup()
         end
     }
 }

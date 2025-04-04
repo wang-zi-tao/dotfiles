@@ -156,7 +156,6 @@ local function config()
             if vim.uv.fs_stat(join(path, '.luarc.json'))
                 or vim.uv.fs_stat(join(path, '.luarc.jsonc'))
             then
-                vim.notify("load .luarc.json " .. join(path, '.luarc.json'), "info")
                 return
             end
 
@@ -200,7 +199,6 @@ local function config()
                 client.config.settings.Lua,
                 nvim_settings
             )
-            vim.notify(client.config.settings.Lua)
         end,
     })
     setup_lsp("java_language_server", {
@@ -276,6 +274,32 @@ return {
                 mode = { "n", "v" }
             },
             {
+                "gD",
+                function()
+                    pcall(require("core.utils").add_mark)
+                    require("telescope.builtin").lsp_definitions()
+                end,
+                mode = "n",
+                desc = "Goto Definition",
+            },
+            {
+                "gT",
+                function()
+                    pcall(require("core.utils").add_mark)
+                    require("telescope.builtin").lsp_type_definitions()
+                end,
+                mode = "n",
+                desc = "Goto Type Definition",
+            },
+            {
+                "gR",
+                function()
+                    vim.lsp.buf.rename()
+                end,
+                mode = "n",
+                desc = "Rename",
+            },
+            {
                 "<leader>lf",
                 function()
                     local hunks = require("gitsigns").get_hunks()
@@ -295,18 +319,6 @@ return {
                 end,
                 desc = "Format buffer",
                 mode = { "n", "v" }
-            },
-            {
-                "K",
-                function()
-                    if vim.fn.expand("%:t") == "Cargo.toml" then
-                        require("crates").show_popup()
-                    else
-                        vim.lsp.buf.hover()
-                    end
-                end,
-                mode = "n",
-                desc = "Hover",
             },
         },
         dependencies = {

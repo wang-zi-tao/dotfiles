@@ -1,6 +1,12 @@
 local function config()
     local dap = require("dap")
     local dapui = require("dapui")
+    local util = require("core.utils")
+    local rpc = require('dap.rpc')
+    local plenary = require("plenary")
+    local Job = require("plenary.job")
+    local scandir = require("plenary.scandir")
+    local Path = require("plenary.path")
 
     dap.listeners.before.attach.dapui_config = function()
         dapui.open()
@@ -26,63 +32,200 @@ local function config()
         command = "lldb-vscode", -- adjust as needed
         name = "lldb",
     }
-    local path_cache = vim.fn.getcwd() .. "/"
+
+    local home = vim.fn.expand("~")
+
+    local vscode_cpptoools_dir = home .. "/.vscode/extensions/ms-vscode.cpptools-1.23.6-win32-x64"
+
+    local vsdbg_js_adapter = [[
+        /* declare module vsda {
+	        export class signer {
+		        sign(arg: string): string;
+	        }
+	        export class validator {
+		        createNewMessage(arg: string): string;
+		        validate(arg: string): 'ok' | 'error';
+	        }
+        } */
+        const vsda_location = 'C:/Program Files/Microsoft VS Code/resources/app/node_modules/vsda/build/Release/vsda.node';
+        const a /* : typeof vsda */ = require(vsda_location);
+        const signer /* : vsda.signer */ = new a.signer();
+        process.argv.forEach((value, index, array) => {
+        if (index >= 1) {
+            const r = signer.sign(value);
+            console.log(r);
+        }
+        });
+    ]]
+
+    local function vsdbg_find_natvis()
+        local file = "C:/dotfiles-install/all.natvis"
+
+        if Path:new(file):exists() then
+            return file
+        end
+        return nul
+    end
+
+    local function vsdbg_send_payload(client, payload)
+        local msg = rpc.msg_with_content_length(vim.json.encode(payload))
+        client.write(msg)
+    end
+
+    local function vsdbg_RunHandshake(self, request_payload)
+        local job = Job:new({
+            command = "node",
+            args = { "-e", vsdbg_js_adapter, request_payload.arguments.value },
+            on_exit = function(job, code)
+                if code ~= 0 then
+                    vim.schedule(function()
+                        vim.notify('error while signing handshake', vim.log.levels.ERROR)
+                    end)
+                    return
+                end
+
+                local signature = string.gsub(job:result()[1], '\n', '')
+                local response = {
+                    type = "response",
+                    seq = 0,
+                    command = "handshake",
+                    request_seq = request_payload.seq,
+                    success = true,
+                    body = {
+                        signature = signature
+                    }
+                }
+                vsdbg_send_payload(self.client, response)
+            end,
+            enable_recording = true,
+        })
+        job:sync()
+    end
+
+
+    dap.adapters.cppvsdbg = {
+        id = 'cppvsdbg',
+        type = 'executable',
+        command = vscode_cpptoools_dir .. [[\debugAdapters\vsdbg\bin\vsdbg.exe]],
+        args = {
+            "--interpreter=vscode",
+            -- '--engineLogging=' .. vim.fn.stdpath("log") .. '/vsdbg.log',
+        },
+        options = {
+            externalTerminal = true,
+            -- logging = {
+            --   moduleLoad = false,
+            --   trace = true
+            -- }
+        },
+        runInTerminal = true,
+        reverse_request_handlers = {
+            handshake = vsdbg_RunHandshake,
+
+        },
+    }
+
     local ip_cache = "localhost:1234"
 
+    local get_program = function()
+        -- path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
+        -- return path_cache
+        return util.pick_file({
+            no_ignore = true,
+            prompt = "Path to executable: ",
+        })
+    end
+
+    local get_coredmp = function()
+        -- codedump_cache = vim.fn.input("Path to coredump: ", codedump_cache, "file")
+        -- return codedump_cache
+        return util.pick_file({
+            no_ignore = true,
+            prompt = "Path to coredump: ",
+        })
+    end
+
+    local vsdbg_config = {
+        type = "cppvsdbg",
+        clientID = 'vscode',
+        clientName = 'Visual Studio Code',
+        externalTerminal = true,
+        columnsStartAt1 = true,
+        linesStartAt1 = true,
+        locale = "zh-CN",
+        pathFormat = "path",
+        externalConsole = false,
+        cwd = "${workspaceFolder}",
+        visualizerFile = vsdbg_find_natvis,
+        symbolSearchPath = "srv*;srv*http://localhost:8001",
+        initCommands = ".childdbg 1",
+        showDisplayString = true,
+        stopAtEntry = false,
+        logging = {
+            moduleLoad = true,
+        },
+        -- symbolSearchPath = "srv*;srv*http://localhost:8001;srv*https://msdl.microsoft.com/download/symbols",
+    }
+
+    local lldb_config = {
+        type = "lldb",
+        program = get_program,
+        cwd = "${workspaceFolder}",
+        initCommands = "settings set target.process.follow-fork-mode child",
+    }
+
+    local gdb_config = {
+        type = "gdb",
+        cwd = "${workspaceFolder}",
+        stopAtBeginningOfMainSubprogram = false,
+        setupCommands = {
+            {
+                description = "Enable pretty-printing for gdb",
+                text = "-enable-pretty-printing",
+                ignoreFailures = true,
+            },
+            {
+                -- https://sourceware.org/gdb/onlinedocs/gdb/Forks.html
+                description = "Fork follows Child process",
+                text = "set follow-fork-mode child",
+                ignoreFailures = true
+            },
+            {
+                -- https://sourceware.org/gdb/onlinedocs/gdb/Forks.html
+                description = "Fork will keep the other process attached to debugger",
+                text = "set detach-on-fork off",
+                ignoreFailures = true
+            }
+        },
+    }
+
     dap.configurations.cpp = {
-        {
+        vim.tbl_deep_extend("force", lldb_config, {
             name = "cargo run",
-            type = "lldb",
             request = "launch",
-            program = function()
-                path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
-                return path_cache
-            end,
+            program = get_program,
             cwd = "${workspaceFolder}",
-            -- stopOnEntry = true,
-        },
-        {
+        }),
+        vim.tbl_deep_extend("force", lldb_config, {
             name = "lldb launch",
-            type = "lldb",
             request = "launch",
-            program = function()
-                path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
-                return path_cache
-            end,
-            cwd = "${workspaceFolder}",
-            -- stopOnEntry = true,
-        },
-        {
+            program = get_program,
+        }),
+        vim.tbl_deep_extend("force", lldb_config, {
             name = "lldb attach",
-            type = "lldb",
-            request = "attach",
             processId = require("dap.utils").pick_process,
-            cwd = "${workspaceFolder}",
             -- stopOnEntry = true,
-        },
-        {
+        }),
+        vim.tbl_deep_extend("force", gdb_config, {
             name = "gdb launch",
-            type = "gdb",
             request = "launch",
-            program = function()
-                return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-            end,
-            cwd = "${workspaceFolder}",
-            stopAtBeginningOfMainSubprogram = false,
-        },
-        {
+            program = get_program,
+        }),
+        vim.tbl_deep_extend("force", gdb_config, {
             name = "gdb attach",
-            type = "gdb",
-            request = "attach",
-            program = function()
-                return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-            end,
-            pid = function()
-                local name = vim.fn.input('Executable name (filter): ')
-                return require("dap.utils").pick_process({ filter = name })
-            end,
-            cwd = '${workspaceFolder}'
-        },
+            program = get_program,
+            processId = require("dap.utils").pick_process,
+        }),
         {
             name = "Attach to gdbserver :1234",
             type = "cppdbg",
@@ -93,20 +236,32 @@ local function config()
                 return ip_cache
             end,
             cwd = "${workspaceFolder}",
-            program = function()
-                return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
-            end,
+            program = get_program,
         },
         {
             name = "cppdbg launch",
             type = "cppdbg",
             request = "launch",
-            program = function()
-                return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file", "file")
-            end,
+            program = get_program,
             cwd = "${workspaceFolder}",
             stopOnEntry = true,
         },
+        vim.tbl_deep_extend("force", vsdbg_config, {
+            name = "vsdbg launch",
+            request = "launch",
+            program = get_program,
+        }),
+        vim.tbl_deep_extend("force", vsdbg_config, {
+            name = "vsdbg coredump",
+            request = "launch",
+            program = get_program,
+            dumpPath = get_coredmp,
+        }),
+        vim.tbl_deep_extend("force", vsdbg_config, {
+            name = "vsdbg attach",
+            request = "attach",
+            processId = require("dap.utils").pick_process,
+        }),
     }
     dap.adapters.cppdbg = {
         id = 'cppdbg',
@@ -143,7 +298,7 @@ local function config()
     dap.adapters.go = {
         type = "executable",
         command = "node",
-        args = { "/dev/golang/vscode-go/dist/debugAdapter.js" },
+        args = { home .. "/dev/golang/vscode-go/dist/debugAdapter.js" },
     }
     dap.configurations.go = {
         {
@@ -288,24 +443,16 @@ return {
             "<leader>dE",
             function()
                 local expr = vim.fn.input("Expr: ", "")
-                require("dapui").eval(expr)
+                require("dapui").eval(nil, { enter = true })
             end,
             desc = "Eval expr",
         },
         {
             "<leader>de",
             function()
-                require("dapui").eval()
+                require("dapui").eval(nil, { enter = true })
             end,
-            mode = "v",
-            desc = "Eval expr",
-        },
-        {
-            "<leader>de",
-            function()
-                require("dapui").eval()
-            end,
-            mode = "n",
+            mode = { "n", "v" },
             desc = "Eval expr",
         },
         {
@@ -370,6 +517,14 @@ return {
         {
             "<S-F5>",
             function()
+                require("dap").continue()
+            end,
+            mode = "n",
+            desc = "Continue",
+        },
+        {
+            "<S-F5>",
+            function()
                 require("dap").close()
             end,
             mode = "n",
@@ -378,15 +533,31 @@ return {
         {
             "\\-",
             function()
-                require("dap").step_over()
+                require("dap").step_into()
             end,
             mode = "n",
             desc = "Step over",
         },
         {
+            "<S-F11>",
+            function()
+                require("dap").step_out()
+            end,
+            mode = "n",
+            desc = "Step out",
+        },
+        {
+            "<A-F11>",
+            function()
+                require("dap").step_into({ steppingGranularity = "instruction" })
+            end,
+            mode = "n",
+            desc = "Step over instruction",
+        },
+        {
             "<F11>",
             function()
-                require("dap").step_over()
+                require("dap").step_into()
             end,
             mode = "n",
             desc = "Step over",
@@ -394,7 +565,7 @@ return {
         {
             "\\0",
             function()
-                require("dap").step_into()
+                require("dap").step_over()
             end,
             mode = "n",
             desc = "Step Into",
@@ -402,7 +573,7 @@ return {
         {
             "<F10>",
             function()
-                require("dap").step_into()
+                require("dap").step_over()
             end,
             mode = "n",
             desc = "Step into",
@@ -410,7 +581,7 @@ return {
         {
             "\\5",
             function()
-                require("dap").run()
+                require("dap").continue()
             end,
             mode = "n",
             desc = "Run",
@@ -418,7 +589,7 @@ return {
         {
             "<F5>",
             function()
-                require("dap").run()
+                require("dap").continue()
             end,
             mode = "n",
             desc = "Run",
@@ -525,7 +696,7 @@ return {
                     show_stop_reason = true,               -- show stop reason when stopped for exceptions
                     commented = true,                      -- prefix virtual text with comment string
                     only_first_definition = false,         -- only show virtual text at first definition (if there are multiple)
-                    all_references = false,                -- show virtual text on all all references of the variable (not only definitions)
+                    all_references = true,                 -- show virtual text on all all references of the variable (not only definitions)
                     filter_references_pattern = "<module", -- filter references (not definitions) pattern when all_references is activated (Lua gmatch pattern, default filters out Python modules)
                     -- experimental features:
                     virt_text_pos = "inline",              -- position of virtual text, see `:h nvim_buf_set_extmark()`
