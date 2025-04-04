@@ -89,9 +89,9 @@ in
     devtodo
     tokei
     ctags
-    "/nixfs/flake/str/nixpkgs#lldb/bin/lldb"
-    "/nixfs/flake/str/nixpkgs#lldb/bin/lldb-vscode"
-    "/nixfs/flake/str/nixpkgs#lldb/bin/lldb-server"
+    # "/nixfs/flake/str/nixpkgs#lldb/bin/lldb"
+    # "/nixfs/flake/str/nixpkgs#lldb/bin/lldb-vscode"
+    # "/nixfs/flake/str/nixpkgs#lldb_17/bin/lldb-server"
     rr
     "/nixfs/flake/str/nixpkgs#inferno/bin/inferno-flamegraph"
 
@@ -139,6 +139,8 @@ in
     graphviz
     curlie
     highlight
+
+    lldb_17
 
     pkg-config
     global
@@ -190,8 +192,8 @@ in
       [target.x86_64-unknown-linux-gnu]
       linker = "${pkgs.clang_14}/bin/clang"
       rustflags = ["-C", "link-arg=--ld-path=${pkgs.mold}/bin/mold", "-L", "${pkgs.glibc}/lib/"]
-      [build]
-      rustc-wrapper = "${pkgs.sccache}/bin/sccache"
+      # [build]
+      # rustc-wrapper = "${pkgs.sccache}/bin/sccache"
     '';
     ".gdbinit".text = ''
       set debuginfod enabled on

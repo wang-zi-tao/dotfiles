@@ -15,7 +15,7 @@
         uutils-coreutils
         pciutils
         xclip
-        extra-container
+        unstable.extra-container
       ]
       ++ (with pkgs.tmuxPlugins; [
         resurrect

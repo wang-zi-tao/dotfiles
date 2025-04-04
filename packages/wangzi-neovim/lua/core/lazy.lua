@@ -139,6 +139,9 @@ require("lazy").setup({
         -- increase downloads a lot.
         filter = true,
     },
+    rocks = {
+        enabled = false,
+    },
     checker = { enabled = vim.fn.has("win32") == 1 },
     performance = {
         cache = {

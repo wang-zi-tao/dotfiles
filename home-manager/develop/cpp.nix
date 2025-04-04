@@ -14,7 +14,7 @@
     gef
     "/nixfs/flake/str/nixpkgs#clang/bin/clang"
     "/nixfs/flake/str/nixpkgs#clang/bin/clang++"
-    "/nixfs/flake/str/nixpkgs#lldb/bin/lldb"
+    # "/nixfs/flake/str/nixpkgs#lldb/bin/lldb"
     "/nixfs/flake/str/nixpkgs#gdb/bin/gdb"
     "/nixfs/flake/str/nixpkgs#gdb/bin/gdbserver"
   ];
