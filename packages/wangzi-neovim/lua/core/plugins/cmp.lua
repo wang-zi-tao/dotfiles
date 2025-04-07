@@ -2,6 +2,26 @@ local function config()
     local cmp = require("cmp")
     local luasnip = require("luasnip")
     local compare = cmp.config.compare
+    local source_buffer_options = {
+        name = 'buffer',
+        keyword_length = 3,
+        option = {
+            get_bufnrs = function()
+                local bufs = {}
+                local current_buf = vim.api.nvim_get_current_buf()
+                for _, win in ipairs(vim.api.nvim_list_wins()) do
+                    local buf = vim.api.nvim_win_get_buf(win)
+                    local byte_size = vim.api.nvim_buf_get_offset(buf, vim.api.nvim_buf_line_count(buf))
+                    if byte_size > 1024 * 1024 and buf ~= current_buf then
+                        goto continue
+                    end
+                    bufs[buf] = true
+                    ::continue::
+                end
+                return vim.tbl_keys(bufs)
+            end
+        }
+    }
 
     local has_words_before = function()
         local line, col = unpack(vim.api.nvim_win_get_cursor(0))
@@ -106,18 +126,21 @@ local function config()
             { name = "git" },
             { name = "crates" },
             { name = 'render-markdown' },
+            { name = "cmp_ai" },
         }, {
-            { name = "buffer", keyword_length = 3 },
+            source_buffer_options,
         }),
         sorting = {
             comparators = {
                 compare.score,
                 compare.recently_used,
+                require("clangd_extensions.cmp_scores"),
+                require('cmp_ai.compare'),
+                require("cmp_buffer").compare_locality,
+                require("clangd_extensions.cmp_scores"),
                 compare.offset,
                 compare.exact,
                 compare.kind,
-                require("clangd_extensions.cmp_scores"),
-                -- comparators.inherent_import_inscope,
                 compare.length,
             }
         }
@@ -127,7 +150,7 @@ local function config()
     cmp.setup.filetype("gitcommit", {
         sources = cmp.config.sources({
             { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
-            { name = "buffer" },
+            source,
         }),
     })
 
@@ -135,7 +158,7 @@ local function config()
     cmp.setup.cmdline({ "/", "?" }, {
         mapping = cmp.mapping.preset.cmdline(),
         sources = {
-            { name = "buffer" },
+            source_buffer_options,
         },
     })
 

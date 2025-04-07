@@ -145,7 +145,7 @@ local function config_codecompanion()
                 },
             },
             inline = {
-                adapter = "copilot",
+                adapter = "deepseek",
             },
         },
         adapters = {
@@ -160,10 +160,60 @@ local function config_codecompanion()
                 local config = get_api_config("deepseek")
                 return require("codecompanion.adapters").extend("deepseek", config)
             end,
+            deepseek_v3 = function()
+                local config = get_api_config("deepseek-v3")
+                return require("codecompanion.adapters").extend("deepseek", config)
+            end,
         },
     })
     require("telescope").load_extension("codecompanion")
     codecompanion_fidget():init()
+end
+
+local function config_cmp_ai()
+    local cmp_ai = require('cmp_ai.config')
+
+    cmp_ai:setup({
+        max_lines = 1000,
+        provider = 'Ollama',
+        provider_options = {
+            -- model = 'qwen2.5-coder:7b-base-q6_K',
+            model = 'deepseek-r1:7b',
+            auto_unload = false, -- Set to true to automatically unload the model when
+            -- exiting nvim.
+            prompt = function(prefix, suffix)
+                -- local retrieval_results = require("vectorcode").query(prefix .. " " .. suffix, {
+                --     n_query = 5,
+                -- })
+                local file_context = ""
+                -- for _, source in pairs(retrieval_results) do
+                --     -- This works for qwen2.5-coder.
+                --     file_context = file_context
+                --         .. "<|file_sep|>"
+                --         .. source.path
+                --         .. "\n"
+                --         .. source.document
+                --         .. "\n"
+                -- end
+                return file_context
+                    .. "<|fim_prefix|>"
+                    .. prefix
+                    .. "<|fim_suffix|>"
+                    .. suffix
+                    .. "<|fim_middle|>"
+            end
+        },
+        notify = true,
+        notify_callback = function(msg)
+            vim.notify(msg)
+        end,
+        run_on_every_keystroke = true,
+        ignored_file_types = {
+            -- default is not to ignore
+            -- uncomment to ignore in lua:
+            -- lua = true
+        },
+    })
 end
 
 return {
@@ -200,6 +250,7 @@ return {
                 name = "vectorcode",
                 module = "vectorcode",
                 version = "*", -- optional, depending on whether you're on nightly or release
+                -- enabled = false,
                 dependencies = { "plenary_nvim" },
                 config = function()
                     local found_vectorcode_command = vim.fn.executable("vectorcode")
@@ -237,7 +288,7 @@ return {
                         exclude_this = true,
                         n_query = 5,
                         notify = true,
-                        timeout_ms = 5000,
+                        timeout_ms = 32000,
                         on_setup = {
                             update = false,
                         }
@@ -263,4 +314,15 @@ return {
             { "<leader>at", [[<cmd>CodeCompanionChat Toggle<CR>]], desc = "AI Chat" },
         },
     },
+    {
+        "tzachar/cmp-ai",
+        name = "cmp_ai",
+        dir = gen.cmp_ai,
+        module = "cmp_ai",
+        lazy = true,
+        dependencies = {
+            "plenary_nvim",
+        },
+        config = config_cmp_ai
+    }
 }
