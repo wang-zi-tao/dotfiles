@@ -47,8 +47,11 @@ wk.add({
             end
 
             local filename = vim.fn.expand("%:t")
+            local filetype = vim.bo.filetype
             if filename == "Cargo.toml" then
                 require("crates").show_popup()
+            elseif filetype == "rust" then
+                vim.cmd [[RustLsp hover actions]]
             else
                 vim.lsp.buf.hover()
             end

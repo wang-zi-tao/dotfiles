@@ -133,6 +133,7 @@ in
     "nodePackages.pyright"
 
     gpu-viewer
+    hotspot
   ];
 
   home.packages = with pkgs; [
@@ -174,7 +175,7 @@ in
     neovim-remote
     sccache
 
-    tracy
+    # unstable.tracy
 
     (python3.withPackages (
       ps: with ps; [
@@ -184,6 +185,7 @@ in
         # matplotlib
         # pip
         # setuptools
+        # vectorcode
       ]
     ))
   ];

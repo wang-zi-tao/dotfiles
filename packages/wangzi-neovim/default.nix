@@ -1,11 +1,8 @@
 {
   stdenvNoCC,
   lib,
-  fetchFromGitHub,
   pkgs,
   makeWrapper,
-  vimPlugins,
-  neovim-unwrapped,
   neovim-remote,
   autoPatchelfHook,
   zlib,
@@ -21,7 +18,7 @@
 with pkgs.master;
 with pkgs.master.vimPlugins;
 let
-  pkg = pkgs.master.neovim-unwrapped;
+  pkg = pkgs.unstable.neovim-unwrapped;
   vscode-cpptools = stdenvNoCC.mkDerivation {
     name = "vscode-cpptools";
     version = "v1.20.5";
@@ -54,6 +51,11 @@ let
     nix_develop_nvim = nix-develop-nvim;
     bigfile = bigfile-nvim;
     tiny_inline_diagnostic = tiny-inline-diagnostic-nvim;
+    logger_nvim = pkgs.fetchgit {
+      url = "https://github.com/rmagatti/logger.nvim";
+      rev = "63dd10c9b9a159fd6cfe08435d9606384ff103c5";
+      sha256 = "sha256-4xQFk7+3NWEx1XUZApy4Ldi2xdsna+HdkOmq9vWP3B0=";
+    };
 
     # theme
     onedark_nvim = onedark-nvim;
@@ -104,6 +106,11 @@ let
     # AI
     copilot_vim = copilot-vim;
     codecompanion = codecompanion-nvim;
+    vectorcode = pkgs.fetchgit {
+      url = "https://github.com/Davidyz/VectorCode";
+      rev = "810ad4188be9389578ff75b08dfd18c152141d82";
+      sha256 = "sha256-CznHsUYwqTWanRU548bAaFLaBm7YMwb5dwc9umPt/sk=";
+    };
 
     # LSP
     nvim_lspconfig = nvim-lspconfig;
@@ -167,11 +174,6 @@ let
     cmp_cmdline_history = cmp-cmdline-history;
     cmp_zsh = cmp-zsh;
     cmp_git = cmp-git;
-    nvim_cmp_lsp_rs = pkgs.fetchgit {
-      url = "https://github.com/zjp-CN/nvim-cmp-lsp-rs";
-      rev = "57f29333e6d2b655d5b0edb999b0006d49fde0ca";
-      sha256 = "sha256-kWprKcVpRwgur6vzKiAMu9GDzNeJ6Ic0BGWM2fCbfco=";
-    };
 
     nvim_autopairs = nvim-autopairs;
     dashboard_nvim = dashboard-nvim;
@@ -266,6 +268,11 @@ let
     nvim_nio = nvim-nio;
     nvim_ufo = nvim-ufo;
     fidget_nvim = fidget-nvim;
+    goto_preview = pkgs.fetchgit {
+      url = "https://github.com/rmagatti/goto-preview";
+      rev = "d1faf6ea992b5bcaaaf2c682e1aba3131a01143e";
+      sha256 = "sha256-WPY0lRkbCEdmnRaOOOCGJEl9a6/GtQqBBdcCy7arAuc=";
+    };
 
     markdown_preview = if enable-markdown-preview then "markdown-preview-nvim" else false;
     render_markdown = render-markdown-nvim;

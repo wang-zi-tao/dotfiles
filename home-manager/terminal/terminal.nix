@@ -28,7 +28,6 @@
       neovim.pkg = mkOption {
         type = package;
         default = pkgs.wangzi-neovim.override {
-          neovim-unwrapped = pkgs.unstable.neovim-unwrapped;
           enable-all = config.neovim.full;
         };
       };

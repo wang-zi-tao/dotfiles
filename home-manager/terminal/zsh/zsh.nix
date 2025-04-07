@@ -167,7 +167,7 @@
         # plugin add ${nushellPlugins.units}/bin/nu_plugin_units
         plugin add ${nushellPlugins.polars}/bin/nu_plugin_polars
         plugin add ${nushellPlugins.query}/bin/nu_plugin_query
-        plugin add ${nushellPlugins.net}/bin/nu_plugin_net
+        # plugin add ${nushellPlugins.net}/bin/nu_plugin_net
         plugin add ${nushellPlugins.highlight}/bin/nu_plugin_highlight
         plugin add ${nushellPlugins.gstat}/bin/nu_plugin_gstat
         plugin add ${nushellPlugins.formats}/bin/nu_plugin_formats

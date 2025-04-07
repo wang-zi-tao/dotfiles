@@ -157,7 +157,6 @@
             nixos-generators
             nix
             (pkgs.wangzi-neovim.override {
-              neovim-unwrapped = pkgs.unstable.neovim-unwrapped;
               enable-all = true;
             })
             pkgs.home-manager

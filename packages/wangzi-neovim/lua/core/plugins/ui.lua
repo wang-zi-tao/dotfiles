@@ -226,7 +226,8 @@ return {
                 ---@type NoicePresthrottle = 1000 / 30, -- how frequently does Noice need to check for ui updates? This has no effect when in blocking mode.
                 ---@type NoiceConfigViews
                 views = {
-                    mini = { enable = false }
+                    mini = { enable = false },
+                    cmdline_popup = { border = { style = "none" }, },
                 }, ---@see section on views
                 ---@type NoiceRouteConfig[]
                 routes = {}, --- @see section on routes
@@ -243,7 +244,6 @@ return {
         dir = gen.notify_nvim,
         name = "notify_nvim",
         module = "notify",
-        event = "VeryLazy",
         config = function()
             require("notify").setup({
                 timeout = 2500,
@@ -625,6 +625,7 @@ return {
             require('goto-preview').setup {
                 resizing_mappings = false,
                 vim_ui_input = false,
+                border = { "↖", "─", "╮", "│", "╯", "─", "╰", "│" },
                 post_open_hook = function(buff, win)
                     local close = function()
                         if vim.api.nvim_win_is_valid(win) then

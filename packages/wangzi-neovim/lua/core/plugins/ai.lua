@@ -202,6 +202,12 @@ return {
                 version = "*", -- optional, depending on whether you're on nightly or release
                 dependencies = { "plenary_nvim" },
                 config = function()
+                    local found_vectorcode_command = vim.fn.executable("vectorcode")
+                    if not found_vectorcode_command then
+                        vim.notify("VectorCode command not found. Please install VectorCode.", vim.log.levels.INFO)
+                        return
+                    end
+
                     vim.api.nvim_create_autocmd("LspAttach", {
                         callback = function()
                             local bufnr = vim.api.nvim_get_current_buf()
@@ -240,7 +246,8 @@ return {
             }
         },
         config = config_codecompanion,
-        event = "VeryLazy",
+        cmd = { "CodeCompanion", "CodeCompanionActions", "CodeCompanionChat" },
+        module = "codecompanion",
         keys = {
             {
                 "<leader>ac",
