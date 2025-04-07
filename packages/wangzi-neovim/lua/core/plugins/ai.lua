@@ -111,7 +111,10 @@ local function config_codecompanion()
         local model = config.model
 
         return {
-            schema = { model = { default = model, }, },
+            schema = {
+                schema = { default = 0.0, },
+                model = { default = model, },
+            },
             env = {
                 url = url,
                 api_key = api_key,
@@ -145,7 +148,7 @@ local function config_codecompanion()
                 },
             },
             inline = {
-                adapter = "deepseek",
+                adapter = "deepseek_v3",
             },
         },
         adapters = {

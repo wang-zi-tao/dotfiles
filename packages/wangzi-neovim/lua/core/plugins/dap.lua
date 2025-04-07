@@ -353,6 +353,32 @@ local function config()
     dap.adapters.nlua = function(callback, config)
         callback({ type = 'server', host = config.host or "127.0.0.1", port = config.port or 8086 })
     end
+
+    local js_dap_path = (gen.core or "./") .. "js-debug/src/dapDebugServer.js"
+    if vim.fn.has("win32") == 1 then
+        js_dap_path = (vim.env.DOTFILE_WINDOWS or "C:/dotfiles-windows/") .. "repo/js-debug/src/dapDebugServer.js"
+    end
+
+    dap.adapters["pwa-node"] = {
+        type = "server",
+        host = "localhost",
+        port = "${port}",
+        executable = {
+            command = "node",
+            args = { js_dap_path, "${port}" },
+        }
+    }
+
+    dap.configurations.javascript = {
+        {
+            type = "pwa-node",
+            request = "launch",
+            name = "Launch file",
+            program = "${file}",
+            cwd = "${workspaceFolder}",
+        },
+    }
+    dap.configurations.typescript = dap.configurations.javascript
 end
 
 return {
