@@ -126,7 +126,7 @@ local function config()
             { name = "git" },
             { name = "crates" },
             { name = 'render-markdown' },
-            { name = "cmp_ai" },
+            -- { name = "cmp_ai" },
         }, {
             source_buffer_options,
         }),

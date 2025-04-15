@@ -65,7 +65,11 @@ let
 
     # buffer
     indent_blankline_nvim = indent-blankline-nvim;
-    nvim_colorizer_lua = nvim-colorizer-lua;
+    nvim_colorizer_lua = pkgs.fetchgit {
+      url = "https://github.com/catgoose/nvim-colorizer.lua";
+      rev = "517df88cf2afb36652830df2c655df2da416a0ae";
+      sha256 = "";
+    };
     baleia_nvim = baleia-nvim;
     hbac = pkgs.fetchgit {
       url = "https://github.com/axkirillov/hbac.nvim";

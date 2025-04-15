@@ -207,6 +207,16 @@ function M.get_selection()
     ), '\n')
 end
 
+function M.cached_input_sync(key, prompt, default, completion)
+    local co = coroutine.running()
+    vim.schedule(function()
+        M.cachedinput(key, prompt, default, completion, function(value)
+            coroutine.resume(co, value)
+        end)
+    end)
+    return coroutine.yield()
+end
+
 ---@param key string
 function M.pick_file(opt)
     local actions = require "telescope.actions"

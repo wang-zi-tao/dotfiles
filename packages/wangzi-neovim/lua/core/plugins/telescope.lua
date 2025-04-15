@@ -129,6 +129,7 @@ local function config()
         "noice",
         "smart_open",
         "hbac",
+        "find_template",
     }
     for _, ext in ipairs(extensions) do
         if not pcall(telescope.load_extension, ext) then

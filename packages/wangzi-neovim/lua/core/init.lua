@@ -25,3 +25,19 @@ if n.core ~= null then
         })
     end
 end
+
+local function load_nvim_lua_file(dir)
+    local nvim_lua = dir .. "/.nvim.lua"
+    if vim.fn.filereadable(nvim_lua) == 1 then
+        dofile(nvim_lua)
+    end
+end
+
+vim.api.nvim_create_autocmd("DirChanged", {
+    pattern = "*",
+    callback = function()
+        load_nvim_lua_file(vim.fn.getcwd())
+    end,
+})
+
+load_nvim_lua_file(vim.fn.getcwd())

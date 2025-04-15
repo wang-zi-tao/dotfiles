@@ -74,7 +74,7 @@ return {
                 rg = Terminal:new({ cmd = "nu", hidden = true }),
             }
             for i = 0, 9 do
-                global.toggleterm_nvim[i] = Terminal:new({ cmd = "nu", hidden = true })
+                global.toggleterm_nvim[i] = Terminal:new({ display_name = "terminal " .. i, cmd = "nu", hidden = true })
             end
         end,
         cmd = { "ToggleTerm" },

@@ -145,6 +145,10 @@ local function config()
         })
     end
 
+    local get_args = function()
+        return util.cached()
+    end
+
     local vsdbg_config = {
         type = "cppvsdbg",
         clientID = 'vscode',
@@ -377,8 +381,29 @@ local function config()
             program = "${file}",
             cwd = "${workspaceFolder}",
         },
+        {
+            type = "pwa-node",
+            request = "launch",
+            name = "Deno Launch file",
+            program = "${file}",
+            cwd = "${workspaceFolder}",
+            runtimeExecutable = "deno",
+            attachSimplePort = 9229,
+            runtimeArgs = {
+                "run",
+                "--inspect-wait",
+                "--allow-all",
+            },
+        },
     }
     dap.configurations.typescript = dap.configurations.javascript
+    dap.tools = {
+        lldb_config = lldb_config,
+        gdb_config = gdb_config,
+        vsdbg_config = vsdbg_config,
+        get_coredmp = get_coredmp,
+        get_program = get_program,
+    }
 end
 
 return {

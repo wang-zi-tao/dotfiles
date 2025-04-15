@@ -22,6 +22,7 @@
         rnix = " ",
         lua_ls = "",
         ["GitHub Copilot"] = "",
+        vectorcode_server = "",
     }
 
     vim.api.nvim_create_autocmd("ModeChanged", {
