@@ -1,12 +1,14 @@
 ﻿local function config()
-    local heirline            = require "heirline"
-    local heirline_components = require "heirline-components.all"
-    local conditions          = require("heirline.conditions")
-    local utils               = require("heirline.utils")
-    local symbols             = require("core.theme").symbols
-    local components          = heirline_components.component
+    local heirline                 = require "heirline"
+    local heirline_components      = require "heirline-components.all"
+    local conditions               = require("heirline.conditions")
+    local utils                    = require("heirline.utils")
+    local symbols                  = require("core.theme").symbols
+    local components               = heirline_components.component
 
-    local tokyonight_colors   = require("tokyonight.colors").setup({ style = "moon" })
+    local tokyonight_colors        = require("tokyonight.colors").setup({ style = "moon" })
+
+    local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
 
 
     local separator1 = { '', '' }
@@ -584,11 +586,15 @@
     }
 
     local function VectorCode(opts)
-        local lualine_component = require("vectorcode.integrations").lualine({})
-        return vim.tbl_deep_extend("keep", opts or {}, {
-            provider = lualine_component[1],
-            condition = lualine_component.condition,
-        })
+        if found_vectorcode_command then
+            local lualine_component = require("vectorcode.integrations").lualine({})
+            return vim.tbl_deep_extend("keep", opts or {}, {
+                provider = lualine_component[1],
+                condition = lualine_component.condition,
+            })
+        else
+            return {}
+        end
     end
 
 
