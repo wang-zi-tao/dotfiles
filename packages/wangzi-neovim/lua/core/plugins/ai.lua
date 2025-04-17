@@ -147,7 +147,12 @@ local function config_codecompanion()
                     vectorcode = found_vectorcode_command and {
                         description = "Run VectorCode to retrieve the project context.",
                         callback = require("vectorcode.integrations").codecompanion.chat.make_tool(),
-                    }
+                    },
+                    mcp = {
+                    	-- calling it in a function would prevent mcphub from being loaded before it's needed
+                    	callback = function() return require("mcphub.extensions.codecompanion") end,
+                    	description = "Call tools and resources from the MCP Servers",
+                	}
                 },
             },
             inline = {
@@ -250,52 +255,6 @@ return {
             "dressing_nvim",
             "copilot_vim",
             "fidget_nvim",
-            {
-                "Davidyz/VectorCode",
-                dir = gen.vectorcode,
-                name = "vectorcode",
-                module = "vectorcode",
-                enabled = found_vectorcode_command,
-                version = "*", -- optional, depending on whether you're on nightly or release
-                -- enabled = false,
-                dependencies = { "plenary_nvim" },
-                config = function()
-                    vim.api.nvim_create_autocmd("LspAttach", {
-                        callback = function()
-                            local bufnr = vim.api.nvim_get_current_buf()
-                            local cacher = require("vectorcode.config").get_cacher_backend()
-                            cacher.async_check("config", function()
-                                cacher.register_buffer(
-                                    bufnr,
-                                    {
-                                        n_query = 10,
-                                    }
-                                )
-                            end, nil)
-                        end,
-                        desc = "Register buffer for VectorCode",
-                    })
-                    require("vectorcode").setup({
-                        async_opts = {
-                            debounce = 10,
-                            events = { "BufWritePost", "InsertEnter", "BufReadPost" },
-                            exclude_this = true,
-                            n_query = 5,
-                            notify = false,
-                            query_cb = require("vectorcode.utils").make_surrounding_lines_cb(-1),
-                            run_on_register = true,
-                        },
-                        async_backend = "lsp",
-                        exclude_this = true,
-                        n_query = 5,
-                        notify = true,
-                        timeout_ms = 32000,
-                        on_setup = {
-                            update = false,
-                        }
-                    })
-                end
-            }
         },
         config = config_codecompanion,
         cmd = { "CodeCompanion", "CodeCompanionActions", "CodeCompanionChat" },
@@ -325,5 +284,81 @@ return {
             "plenary_nvim",
         },
         config = config_cmp_ai
+    },
+    {
+        "Davidyz/VectorCode",
+        dir = gen.vectorcode,
+        name = "vectorcode",
+        module = "vectorcode",
+        enabled = found_vectorcode_command,
+        version = "*", -- optional, depending on whether you're on nightly or release
+        -- enabled = false,
+        dependencies = { "plenary_nvim" },
+        config = function()
+            vim.api.nvim_create_autocmd("LspAttach", {
+                callback = function()
+                    local bufnr = vim.api.nvim_get_current_buf()
+                    local cacher = require("vectorcode.config").get_cacher_backend()
+                    cacher.async_check("config", function()
+                        cacher.register_buffer(
+                            bufnr,
+                            {
+                                n_query = 10,
+                            }
+                        )
+                    end, nil)
+                end,
+                desc = "Register buffer for VectorCode",
+            })
+            require("vectorcode").setup({
+                async_opts = {
+                    debounce = 10,
+                    events = { "BufWritePost", "InsertEnter", "BufReadPost" },
+                    exclude_this = true,
+                    n_query = 5,
+                    notify = false,
+                    query_cb = require("vectorcode.utils").make_surrounding_lines_cb(-1),
+                    run_on_register = true,
+                },
+                async_backend = "lsp",
+                exclude_this = true,
+                n_query = 5,
+                notify = true,
+                timeout_ms = 32000,
+                on_setup = {
+                    update = false,
+                }
+            })
+        end
+    },
+    {
+    	"ravitemer/mcphub.nvim",
+    	name = "mcphub",
+    	dir = gen.mcphub,
+    	module = "mcphub",
+    	dependencies = { "plenary_nvim" },
+    	cmd = "MCPHub",
+    	build = vim.fn.has("win32") == 1 and "npm install -g mcp-hub@latest",
+    	config = function()
+    		local home = vim.loop.os_homedir()
+    		local Path = require("plenary.path")
+    		local mcpconfig = Path:new(home.."/.config/mcphub/servers.json")
+    		if not mcpconfig:exists() then
+    			local mcpconfig_dir = Path:new(home.."/.config/mcphub")
+    			mcpconfig_dir:mkdir({ parents = true })
+    			mcpconfig:write([[{"mcpServers":{}}]], "w")
+    		end
+
+      		require("mcphub").setup({
+ 				extensions = {
+        			codecompanion = {
+            			-- Show the mcp tool result in the chat buffer
+            			show_result_in_chat = true,
+            			make_vars = true, -- make chat #variables from MCP server resources
+            			make_slash_commands = true, -- make /slash_commands from MCP server prompts
+        			},
+    			}
+      		})
+    	end,
     }
 }
