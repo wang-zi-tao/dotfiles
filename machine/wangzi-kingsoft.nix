@@ -4,6 +4,7 @@
   home-manager,
   sops-nix,
   nixfs,
+  NixVirt,
   ...
 }@inputs:
 let
@@ -18,6 +19,7 @@ nixpkgs.lib.nixosSystem {
     sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
     nixfs.nixosModules.nixfs
+    NixVirt.nixosModules.default
     (
       {
         pkgs,
@@ -34,6 +36,7 @@ nixpkgs.lib.nixosSystem {
           "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
           "https://mirrors.ustc.edu.cn/nix-channels/store"
         ];
+        nix.buildMachines = pkgs.lib.mkForce [];
         cluster.network.nodes."${hostname}" = { };
         cluster.nodes."${hostname}" = {
           users.wangzi = ../home-manager/profiles/wangzi-develop.nix;

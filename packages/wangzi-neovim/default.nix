@@ -56,6 +56,11 @@ let
       rev = "63dd10c9b9a159fd6cfe08435d9606384ff103c5";
       sha256 = "sha256-4xQFk7+3NWEx1XUZApy4Ldi2xdsna+HdkOmq9vWP3B0=";
     };
+    template = pkgs.fetchgit {
+      url = "https://github.com/nvimdev/template.nvim";
+      rev = "59955db23613985e031d340756d5c01aebd583a3";
+      sha256 = "sha256-SsTqdOve0uAP9fApBSVIUj0JIOjneQD02CXbA0dRCWo=";
+    };
 
     # theme
     onedark_nvim = onedark-nvim;
@@ -68,7 +73,7 @@ let
     nvim_colorizer_lua = pkgs.fetchgit {
       url = "https://github.com/catgoose/nvim-colorizer.lua";
       rev = "517df88cf2afb36652830df2c655df2da416a0ae";
-      sha256 = "";
+      sha256 = "sha256-yOPUgqHe0WT437aX8kp0P/reNgjZUNNRG7hvDgaeXT0=";
     };
     baleia_nvim = baleia-nvim;
     hbac = pkgs.fetchgit {
@@ -178,6 +183,7 @@ let
     cmp_cmdline_history = cmp-cmdline-history;
     cmp_zsh = cmp-zsh;
     cmp_git = cmp-git;
+    cmp_ai = cmp-ai;
 
     nvim_autopairs = nvim-autopairs;
     dashboard_nvim = dashboard-nvim;
@@ -277,6 +283,7 @@ let
       rev = "d1faf6ea992b5bcaaaf2c682e1aba3131a01143e";
       sha256 = "sha256-WPY0lRkbCEdmnRaOOOCGJEl9a6/GtQqBBdcCy7arAuc=";
     };
+    snacks = snacks-nvim;
 
     markdown_preview = if enable-markdown-preview then "markdown-preview-nvim" else false;
     render_markdown = render-markdown-nvim;

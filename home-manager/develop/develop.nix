@@ -18,7 +18,6 @@ let
       rust-analyzer-preview
       rust-analysis
       miri-preview
-      rls-preview
     ]
   );
   python3-env = pkgs.python3.withPackages (

@@ -1,3 +1,5 @@
+local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
+
 local function codecompanion_fidget()
     local progress = require("fidget.progress")
 
@@ -138,10 +140,11 @@ local function config_codecompanion()
                 adapter = "deepseek",
                 slash_commands = {
                     -- add the vectorcode command here.
-                    codebase = require("vectorcode.integrations").codecompanion.chat.make_slash_command(),
+                    codebase = found_vectorcode_command and
+                        require("vectorcode.integrations").codecompanion.chat.make_slash_command(),
                 },
                 tools = {
-                    vectorcode = {
+                    vectorcode = found_vectorcode_command and {
                         description = "Run VectorCode to retrieve the project context.",
                         callback = require("vectorcode.integrations").codecompanion.chat.make_tool(),
                     }
@@ -252,16 +255,11 @@ return {
                 dir = gen.vectorcode,
                 name = "vectorcode",
                 module = "vectorcode",
+                enabled = found_vectorcode_command,
                 version = "*", -- optional, depending on whether you're on nightly or release
                 -- enabled = false,
                 dependencies = { "plenary_nvim" },
                 config = function()
-                    local found_vectorcode_command = vim.fn.executable("vectorcode")
-                    if not found_vectorcode_command then
-                        vim.notify("VectorCode command not found. Please install VectorCode.", vim.log.levels.INFO)
-                        return
-                    end
-
                     vim.api.nvim_create_autocmd("LspAttach", {
                         callback = function()
                             local bufnr = vim.api.nvim_get_current_buf()
