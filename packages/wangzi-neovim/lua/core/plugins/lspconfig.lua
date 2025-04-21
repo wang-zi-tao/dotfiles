@@ -256,7 +256,7 @@ return {
         name = "nvim_lspconfig",
         module = "lspconfig",
         lazy = true,
-        event = { "BufRead", "VeryLazy" },
+        event = { "LazyFile" },
         config = config,
         init = function()
             require("which-key").add({

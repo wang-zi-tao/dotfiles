@@ -750,7 +750,7 @@ return {
         dir = gen.heirline,
         name = "heirline",
         package = "heirline",
-        event = "VeryLazy",
+        event = "LazyFile",
         dependencies = "heirline_components",
         config = config
     },

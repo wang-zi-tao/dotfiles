@@ -1,6 +1,5 @@
 local function config()
     local cmp = require("cmp")
-    local luasnip = require("luasnip")
     local compare = cmp.config.compare
     local source_buffer_options = {
         name = 'buffer',
@@ -34,6 +33,7 @@ local function config()
     cmp.setup({
         snippet = {
             expand = function(args)
+    			local luasnip = require("luasnip")
                 luasnip.lsp_expand(args.body)
             end,
         },
@@ -88,6 +88,7 @@ local function config()
             ["<C-e>"] = cmp.mapping.abort(),
             ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
             ["<Tab>"] = cmp.mapping(function(fallback)
+    			local luasnip = require("luasnip")
                 local succ, ret = pcall(function()
                     if cmp.visible() then
                         cmp.select_next_item()
@@ -104,6 +105,7 @@ local function config()
                 end
             end, { "i", "s" }),
             ["<S-Tab>"] = cmp.mapping(function(fallback)
+    			local luasnip = require("luasnip")
                 pcapll(function()
                     if cmp.visible() then
                         cmp.select_prev_item()
@@ -137,7 +139,6 @@ local function config()
                 require("clangd_extensions.cmp_scores"),
                 require('cmp_ai.compare'),
                 require("cmp_buffer").compare_locality,
-                require("clangd_extensions.cmp_scores"),
                 compare.offset,
                 compare.exact,
                 compare.kind,
@@ -192,8 +193,8 @@ return {
     config = config,
     event = { "VeryLazy" },
     dependencies = {
-        "friendly_snippets",
-        "luasnip",
+        -- "friendly_snippets",
+        -- "luasnip",
         {
             "saadparwaiz1/cmp_luasnip",
             dir = gen.cmp_luasnip,
@@ -220,7 +221,7 @@ return {
             "hrsh7th/cmp-nvim-lsp",
             dir = gen.cmp_nvim_lsp,
             name = "cmp_nvim_lsp",
-            dependencies = "nvim_lspconfig",
+            -- dependencies = "nvim_lspconfig",
             module = "cmp_nvim_lsp",
             lazy = true,
             config = function()

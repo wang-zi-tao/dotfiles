@@ -339,6 +339,9 @@ return {
     	dependencies = { "plenary_nvim" },
     	cmd = "MCPHub",
     	build = vim.fn.has("win32") == 1 and "npm install -g mcp-hub@latest",
+    	keys = {
+    		{"<leader>am", "<cmd>MCPHub<CR>", desc = "MCPHub" },
+    	},
     	config = function()
     		local home = vim.loop.os_homedir()
     		local Path = require("plenary.path")

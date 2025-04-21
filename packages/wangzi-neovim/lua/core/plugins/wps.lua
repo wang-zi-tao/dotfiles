@@ -135,7 +135,7 @@ end
 
 config()
 
-local M = {
+return {
     wps = wps,
     setup = config,
 }

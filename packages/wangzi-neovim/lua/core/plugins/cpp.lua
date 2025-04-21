@@ -27,7 +27,7 @@ return {
         dir = gen.clangd_extensions_nvim,
         name = "clangd_extensions_nvim",
         ft = { "h", "cpp", "cc", "c" },
-        dependencies = "nvim_lspconfig",
+        -- dependencies = "nvim_lspconfig",
         module = "clangd_extensions",
         lazy = true,
         config = function() end,

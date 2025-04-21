@@ -271,4 +271,19 @@ function M.watch_file(file, callback)
     do_watch_file(file)
 end
 
+M.pwd = vim.fn.getcwd()
+
+vim.api.nvim_create_autocmd("DirChanged", {
+	pattern = "*",
+	callback = function()
+		M.pwd = vim.fn.getcwd()
+	end,
+})
+
+M.toggleterm_nvim = {}
+function M.toggle_term(number)
+    require("toggleterm")
+    M.toggleterm_nvim[number]:toggle()
+end
+
 return M

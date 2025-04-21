@@ -106,11 +106,11 @@ return {
             { "<leader>gc", function() require "neogit".open({ "commit" }) end, desc = "Git Commit" },
             { "<leader>gp", function() require "neogit".open({ "push" }) end,   desc = "Git Push" },
         },
-        dependencies = {
-            "plenary_nvim",
-            "diffview",
-            "telescope_nvim",
-        },
+        -- dependencies = {
+        --     "plenary_nvim",
+        --     "diffview",
+        --     "telescope_nvim",
+        -- },
         config = function()
             local neogit = require('neogit')
             local symbols = require("core.theme").symbols

@@ -89,8 +89,8 @@ return {
                     h.DapUIStepOutNC = { bg = c.bg_dark, fg = c.cyan }
                     h.DapBreakpoint = { fg = c.red }
                     h.DapLogPoint = { fg = c.orange }
-                    h.DapStopped = { bg = c.bg }
-                    h.DapStoppedIcon = { fg = c.cyan }
+                    h.DapStopped = { bg = c.bg_visual }
+                    h.DapStoppedIcon = { fg = c.orange }
                     h.BufferLineBufferSelected = { bg = c.bg_dark, fg = "#ffffff" }
                     h.BufferLineDuplicate = { bg = "#131820", fg = c.grey }
                     h.BufferLineDuplicateVisible = { bg = c.bg_dark, fg = c.grey }

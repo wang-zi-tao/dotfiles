@@ -8,6 +8,7 @@ end
 M.fg_bg = function(group, fgcol, bgcol)
     cmd("hi " .. group .. " guifg=" .. fgcol .. " guibg=" .. bgcol)
 end
+
 M.colors = {
     darker_black = "#1b1f27",
     black = "#1e222a",  --  nvim bg
@@ -155,7 +156,7 @@ function M.setup()
     vim.fn.sign_define("DapLogPoint", { text = "", texthl = "DapLogPoint", numhl = "DapLogPoint" })
     vim.fn.sign_define(
         "DapStopped",
-        { text = "", texthl = "DapStoppedIcon", linehl = "DapStopped", numhl = "DapStopped" }
+        { text = "", texthl = "DapStoppedIcon", linehl = "DapStopped", numhl = "DapStopped" }
     )
     vim.fn.sign_define("GitAdd", { text = M.symbols.git.added, texthl = "GitSignsAdd" })
     vim.fn.sign_define("GitChange", { text = M.symbols.git.modified, texthl = "GitSignsChange" })
