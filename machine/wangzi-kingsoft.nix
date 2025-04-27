@@ -111,6 +111,14 @@ nixpkgs.lib.nixosSystem {
           device = "/dev/disk/by-uuid/8EC5-6DAA";
           fsType = "vfat";
         };
+        fileSystems."/wps" = {
+          device = "/dev/mapper/pool-buildLinux";
+          fsType = "ext4";
+        };
+        fileSystems."/mnt/linuxData" = {
+          device = "/dev/vg1/linuxData";
+          fsType = "ext4";
+        };
         # fileSystems."/mnt/vm" = {
         #   device = "/dev/disk/by-uuid/42a82751-3f31-4ef7-abe5-5a610df9f146";
         #   fsType = "ext4";

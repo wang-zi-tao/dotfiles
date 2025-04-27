@@ -17,8 +17,15 @@ nix-darwin.lib.darwinSystem {
     (
       { pkgs, lib, ... }:
       {
+        system.stateVersion = 5;
         homebrew.enable = true;
-        hom-manager = {
+        users.users.macos = {
+          home = /Users/macos;
+        };
+        services.openssh = {
+          enable = true;
+        };
+        home-manager = {
           backupFileExtension = ".backup";
           useGlobalPkgs = true;
           useUserPackages = true;

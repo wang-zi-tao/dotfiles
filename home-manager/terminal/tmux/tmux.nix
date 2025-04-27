@@ -16,10 +16,10 @@
       with pkgs.tmuxPlugins;
       with pkgs.tmuxPlugins;
       [
-        {
-          plugin = resurrect;
-          extraConfig = "set -g @resurrect-strategy-nvim 'session'";
-        }
+        # {
+        #   plugin = resurrect;
+        #   extraConfig = "set -g @resurrect-strategy-nvim 'session'";
+        # }
         vim-tmux-navigator
         tmux-fzf
         fzf-tmux-url
@@ -56,19 +56,19 @@
             set -g @extrakto_open_tool 'xdg-open'
           '';
         }
-        {
-          plugin = continuum;
-          extraConfig = ''
-            set -g @continuum-save-interval '1'
-            set -g @continuum-boot 'on'
-            set -g @continuum-restore 'on'
-          '';
-        }
+        # {
+        #   plugin = continuum;
+        #   extraConfig = ''
+        #     set -g @continuum-save-interval '1'
+        #     set -g @continuum-boot 'on'
+        #     set -g @continuum-restore 'on'
+        #   '';
+        # }
         net-speed
         better-mouse-mode
         cpu
       ];
-    tmuxinator.enable = true;
+    # tmuxinator.enable = true;
   };
   home.packages = with pkgs; [
     xclip

@@ -26,7 +26,6 @@
     #   libcxx.dev
     # clang-analyzer
     # ccls
-    perf-tools
     gperftools
 
     unixtools.xxd

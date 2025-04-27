@@ -7,6 +7,8 @@
 {
   imports = [
     ../application/application.nix
+    ../application/firefox.nix
+    ../application/alacritty.nix
     ../develop/cpp.nix
     ../terminal/terminal.nix
     ../develop/develop.nix

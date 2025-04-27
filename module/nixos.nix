@@ -128,7 +128,7 @@ in
         randomizedDelaySec = "30min";
         dates = "12:00";
       };
-      system.stateVersion = "22.11";
+      system.stateVersion = "24.11";
       programs.nix-ld.enable = true;
 
       environment.systemPackages =

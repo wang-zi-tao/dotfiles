@@ -4,9 +4,7 @@
   pkgs,
   makeWrapper,
   neovim-remote,
-  autoPatchelfHook,
   zlib,
-  lttng-ust_2_12,
   gcc,
   unzip,
   fetchurl,
@@ -201,7 +199,11 @@ let
     telescope_sg = telescope-sg;
     telescope_smart_open = smart-open-nvim;
 
-    libsqlite = "${sqlite.out}/lib/libsqlite3.so";
+    libsqlite =
+      if pkgs.stdenv.isLinux then
+        "${sqlite.out}/lib/libsqlite3.so"
+      else
+        "${sqlite.out}/lib/libsqlite3.dylib";
     sqlite = pkgs.fetchgit {
       url = "https://github.com/kkharji/sqlite.lua";
       rev = "b487fcc8937b683942a1f7d9662fcf50ca5acd58";
@@ -332,7 +334,6 @@ stdenvNoCC.mkDerivation {
   src = ./.;
 
   nativeBuildInputs = [
-    autoPatchelfHook
     makeWrapper
     unzip
   ];
@@ -341,7 +342,6 @@ stdenvNoCC.mkDerivation {
     neovim-remote
     gcc
     zlib
-    lttng-ust_2_12
   ];
 
   VARS = lib.strings.concatStrings (
