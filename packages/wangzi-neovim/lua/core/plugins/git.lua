@@ -41,7 +41,7 @@ return {
         name = "gitsigns.nvim",
         module = "gitsigns",
         config = gitsigns_config,
-        event = "VeryLazy",
+        event = "LazyFile",
         init = function()
             require("which-key").add({
                 { "<leader>h", group = "Hunk" },

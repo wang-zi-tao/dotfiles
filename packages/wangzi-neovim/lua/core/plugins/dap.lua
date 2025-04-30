@@ -35,7 +35,7 @@ local function config()
 
     local home = vim.fn.expand("~")
 
-    local vscode_cpptoools_dir = home .. "/.vscode/extensions/ms-vscode.cpptools-1.23.6-win32-x64"
+    local vscode_cpptoools_dir = home .. "/.vscode/extensions/ms-vscode.cpptools-1.25.3-win32-x64"
 
     local vsdbg_js_adapter = [[
         /* declare module vsda {
@@ -435,6 +435,13 @@ return {
             desc = "Continue",
         },
         {
+            "<leader>dr",
+            function()
+                require("dap").continue()
+            end,
+            desc = "Continue",
+        },
+        {
             "<leader>dC",
             function()
                 require("dap").close()
@@ -756,10 +763,15 @@ return {
                     virt_text_win_col = nil,               -- position the virtual text at a fixed window column (starting from the first text column) ,
                     -- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
                     display_callback = function(variable, buf, stackframe, node, options)
+                        ---@type string
+                        local value = variable.value
+                        if #value > 64 then
+                            value = string.sub(value, 1, 64) .. "..."
+                        end
                         if options.virt_text_pos == "inline" then
-                            return " = " .. variable.value
+                            return " = " .. value
                         else
-                            return variable.name .. " = " .. variable.value
+                            return variable.name .. " = " .. value
                         end
                     end,
                 })

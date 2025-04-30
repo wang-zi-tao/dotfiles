@@ -135,7 +135,7 @@ let
     };
     navic = nvim-navic;
     navbuddy = nvim-navbuddy;
-    symbols_outline = symbols-outline-nvim;
+    # symbols_outline = symbols-outline-nvim;
     rustaceanvim = rustaceanvim;
     rust_tools = rust-tools-nvim;
     none_ls = none-ls-nvim;

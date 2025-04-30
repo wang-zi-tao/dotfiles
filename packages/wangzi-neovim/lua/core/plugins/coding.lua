@@ -259,7 +259,7 @@
         "figsoda/nix-develop.nvim",
         dir = gen.nix_develop_nvim,
         name = "nix_develop_nvim",
-        event = "VeryLazy",
+        event = "LspAttach",
     },
     {
         "LunarVim/bigfile.nvim",

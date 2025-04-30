@@ -29,6 +29,12 @@ end
 local function load_nvim_lua_file(dir)
     local nvim_lua = dir .. "/.nvim.lua"
     if vim.fn.filereadable(nvim_lua) == 1 then
+        vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+            pattern = nvim_lua,
+            callback = function()
+                dofile(nvim_lua)
+            end,
+        })
         dofile(nvim_lua)
     end
 end

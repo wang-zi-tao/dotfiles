@@ -24,7 +24,7 @@ local function config()
         symbol_blacklist = {},
         symbols = require("core.theme").symbols.lsp,
     }
-    require("symbols-outline").setup(opt)
+    -- require("symbols-outline").setup(opt)
     local colors = require("core.theme").colors
     local blue = colors.blue
     for k, v in pairs(opt.symbols) do

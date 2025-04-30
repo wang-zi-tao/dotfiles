@@ -277,7 +277,8 @@ return {
                 "gD",
                 function()
                     pcall(require("core.utils").add_mark)
-                    require("telescope.builtin").lsp_definitions()
+                    vim.lsp.buf.definition()
+                    -- require("telescope.builtin").lsp_definitions()
                 end,
                 mode = "n",
                 desc = "Goto Definition",

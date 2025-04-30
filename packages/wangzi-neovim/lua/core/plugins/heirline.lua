@@ -502,14 +502,25 @@
     local DAPMessages = {
         condition = function()
             local session = require("dap").session()
-            return session ~= nil
+            return session ~= nil and conditions.is_active()
         end,
         provider = function()
-            return " " .. require("dap").status() .. " "
+            return " "
         end,
         hl = "Debug",
         {
-            provider = "󰆹",
+            provider = " ",
+            hl = "DapUIRestartNC",
+            on_click = {
+                callback = function()
+                    require("dap").continue()
+                end,
+                name = "heirline_dap_continue",
+            },
+        },
+        {
+            provider = " 󰆹",
+            hl = "DapUIStepIntoNC",
             on_click = {
                 callback = function()
                     require("dap").step_into()
@@ -517,19 +528,9 @@
                 name = "heirline_dap_step_into",
             },
         },
-        { provider = " " },
         {
-            provider = "󰆸",
-            on_click = {
-                callback = function()
-                    require("dap").step_out()
-                end,
-                name = "heirline_dap_step_out",
-            },
-        },
-        { provider = " " },
-        {
-            provider = "",
+            provider = " ",
+            hl = "DapUIStepOverNC",
             on_click = {
                 callback = function()
                     require("dap").step_over()
@@ -537,9 +538,19 @@
                 name = "heirline_dap_step_over",
             },
         },
-        { provider = " " },
         {
-            provider = "",
+            provider = " 󰆸",
+            hl = "DapUIStepOutNC",
+            on_click = {
+                callback = function()
+                    require("dap").step_out()
+                end,
+                name = "heirline_dap_step_out",
+            },
+        },
+        {
+            provider = " ",
+            hl = "DapUIRestartNC",
             on_click = {
                 callback = function()
                     require("dap").run_last()
@@ -547,9 +558,9 @@
                 name = "heirline_dap_run_last",
             },
         },
-        { provider = " " },
         {
-            provider = "",
+            provider = " ",
+            hl = "DapUIStopNC",
             on_click = {
                 callback = function()
                     require("dap").terminate()
@@ -558,15 +569,29 @@
                 name = "heirline_dap_close",
             },
         },
-        { provider = " " },
-        -- icons:       ﰇ  
+        { 
+            flexible = 1,
+            {
+                provider = function()
+                    return " " .. require("dap").status() .. " "
+                end,
+                hl = "Debug",
+                on_click = {
+                    callback = function()
+                        require("dapui").toggle()
+                    end,
+                    name = "heirline_dapui",
+                },
+            }, 
+            { provider = "" },
+        }
     }
 
     local function FileSize(opts)
         return vim.tbl_deep_extend("keep", opts or {}, {
             provider = function()
                 -- stackoverflow, compute human readable file size
-                local suffix = { 'b', 'k', 'M', 'G', 'T', 'P', 'E' }
+                local suffix = { 'B', 'K', 'M', 'G', 'T', 'P', 'E' }
                 local fsize = vim.fn.getfsize(vim.api.nvim_buf_get_name(0))
                 fsize = (fsize < 0 and 0) or fsize
                 if fsize < 1024 then
@@ -613,6 +638,7 @@
             file_info(set_hl_bg2({})),
             git_diff(set_hl_bg2({})),
         }, { separator = { "", separator2[2] }, bg = bg2 }),
+        DAPMessages,
         components.fill(),
         {
             components.cmd_info(),
@@ -671,7 +697,6 @@
             file_relative_path(set_hl_bg2({})),
             components.file_info(set_hl_bg2({ file_name = false, })),
         }, { separator = { "", separator4_right[2] }, bg = bg2, }),
-        DAPMessages,
         components.fill(),
         tabline_buffers(),
         components.fill(),

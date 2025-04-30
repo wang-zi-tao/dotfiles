@@ -19,7 +19,7 @@ require("lazy").setup({
 
 	-- require("core.plugins.nvimtree"),
 	require("core.plugins.neotree"),
-	require("core.plugins.symbols_outline_pre"),
+	-- require("core.plugins.symbols_outline_pre"),
 	require("core.plugins.git"),
 	-- require("core.plugins.vgit"),
 	require("core.plugins.ai"),

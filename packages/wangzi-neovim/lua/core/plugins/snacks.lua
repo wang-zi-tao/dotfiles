@@ -21,6 +21,9 @@ local function config()
         bigfile = {
             enabled = true,
         },
+        explorer = {
+            enabled = true,
+        },
         dashboard = {
             enabled = true,
             preset = {
