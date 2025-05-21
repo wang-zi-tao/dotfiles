@@ -19,6 +19,7 @@ nix-darwin.lib.darwinSystem {
       {
         system.stateVersion = 5;
         homebrew.enable = true;
+        networking.hostName = hostname;
         users.users.macos = {
           home = /Users/macos;
         };
