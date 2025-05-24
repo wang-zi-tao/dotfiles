@@ -59,6 +59,7 @@ opt.breakat = [[\ \ ;:,!?]]
 
 vim.o.foldlevel = 99
 vim.o.foldlevelstart = 99
+vim.o.foldenable = true
 opt.foldenable = true
 
 opt.winborder = "rounded"

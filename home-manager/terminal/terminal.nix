@@ -76,7 +76,6 @@
       nmap
       gitui
       lazygit
-      github-copilot-cli
     ];
     home.packages =
       with pkgs;
@@ -133,6 +132,8 @@
         openssh
         perl
         dnsutils
+
+        github-copilot-cli
       ]
       ++ (lib.optionals (pkgs.system == "x86_64-linux") [
         nload

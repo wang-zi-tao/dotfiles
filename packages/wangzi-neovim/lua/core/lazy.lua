@@ -28,7 +28,7 @@ require("lazy").setup({
     require("core.plugins.navigation"),
     require("core.plugins.view"),
     require("core.plugins.trouble"),
-    require("core.plugins.trailblazer"),
+    -- require("core.plugins.trailblazer"),
     require("core.plugins.perf"),
     require("core.plugins.lsp"),
     require("core.plugins.rust"),

@@ -326,7 +326,7 @@ return {
             "lsp_signature_nvim",
         }
     },
-    vim.fn.has('win32') and {
+    vim.fn.has('win32') == 1 and {
         "williamboman/mason.nvim",
         dir = gen.mason_nvim,
         name = "mason_nvim",

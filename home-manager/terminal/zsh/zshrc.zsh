@@ -202,7 +202,14 @@ function nshell() {
 }
 
 function nix-dev() {
-    command nix-shell '<nixpkgs>' --attr "$1" --run 'eval "${unpackPhase:-unpackPhase} ; cd \$sourceRoot ; ${patchPhase:-patchPhase} ; ${configurePhase:-configurePhase} ; ${buildPhase:-buildPhase}"'
+    mkdir $1
+    cd $1
+    command nix-shell '<nixpkgs>' --attr "$1" --run '
+        eval "${unpackPhase:-unpackPhase} ; cd \$sourceRoot ; ${patchPhase:-patchPhase} ; ${configurePhase:-configurePhase} ; ${buildPhase:-buildPhase}"
+        if [ -e $sourceRoot/build/compile_commands.json ]; then
+            cp $sourceRoot/build/compile_commands.json .
+        fi
+    '
 }
 
 function nix-dev-bear() {

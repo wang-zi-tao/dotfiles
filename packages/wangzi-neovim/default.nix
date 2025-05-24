@@ -238,6 +238,7 @@ let
     diffview = diffview-nvim;
 
     # UI
+    snacks = snacks-nvim;
     noice_nvim = noice-nvim;
     nvim_window_picker = nvim-window-picker;
     nui_nvim = nui-nvim;

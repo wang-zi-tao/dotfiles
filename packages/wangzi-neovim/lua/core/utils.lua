@@ -171,7 +171,7 @@ function M.add_mark()
         return
     end
 
-    M.try(function() require("trailblazer").new_trail_mark() end)
+    -- M.try(function() require("trailblazer").new_trail_mark() end)
     M.try(function() require("harpoon"):list():add() end)
     M.try(function() vim.cmd [[Arrow toggle_current_line_for_buffer]] end)
     M.try(function() require("arrow.persist").save(M.get_current_buffer_path()) end)

@@ -127,13 +127,14 @@ local function config()
 
     local ip_cache = "localhost:1234"
 
+    local path_cache
     local get_program = function()
-        -- path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
-        -- return path_cache
-        return util.pick_file({
-            no_ignore = true,
-            prompt = "Path to executable: ",
-        })
+        path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
+        return path_cache
+        -- return util.pick_file({
+        --     no_ignore = true,
+        --     prompt = "Path to executable: ",
+        -- })
     end
 
     local get_coredmp = function()
@@ -184,12 +185,12 @@ local function config()
                 text = "-enable-pretty-printing",
                 ignoreFailures = true,
             },
-            {
-                -- https://sourceware.org/gdb/onlinedocs/gdb/Forks.html
-                description = "Fork follows Child process",
-                text = "set follow-fork-mode child",
-                ignoreFailures = true
-            },
+            -- {
+            --     -- https://sourceware.org/gdb/onlinedocs/gdb/Forks.html
+            --     description = "Fork follows Child process",
+            --     text = "set follow-fork-mode child",
+            --     ignoreFailures = true
+            -- },
             {
                 -- https://sourceware.org/gdb/onlinedocs/gdb/Forks.html
                 description = "Fork will keep the other process attached to debugger",

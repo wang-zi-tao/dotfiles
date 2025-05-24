@@ -23,12 +23,12 @@ local function config()
     end, {})
 
     vim.api.nvim_create_user_command("RgQt", function()
-        require("trailblazer").new_trail_mark()
+        -- require("trailblazer").new_trail_mark()
         vim.cmd("Telescope live_grep search_dirs=" .. tostring(wps.qt_path))
     end, {})
 
     vim.api.nvim_create_user_command("RgQtOhos", function()
-        require("trailblazer").new_trail_mark()
+        -- require("trailblazer").new_trail_mark()
         vim.cmd("Telescope live_grep search_dirs=" .. tostring(wps.ohos_qt_path))
     end, {})
 

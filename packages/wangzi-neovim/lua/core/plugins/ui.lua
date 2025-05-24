@@ -227,7 +227,7 @@ return {
                 ---@type NoiceConfigViews
                 views = {
                     mini = { enable = false },
-                    cmdline_popup = { border = { style = "none" }, },
+                    cmdline_popup = { border = { style = "rounded" }, },
                 }, ---@see section on views
                 ---@type NoiceRouteConfig[]
                 routes = {}, --- @see section on routes

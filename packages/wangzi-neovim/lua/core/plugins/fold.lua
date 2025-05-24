@@ -43,17 +43,27 @@ return {
             }
         },
         config = function()
+            vim.o.foldmethod = "manual"
             require("ufo").setup({
+                close_fold_kinds_for_ft = {
+                    default = { 'imports', 'comment' },
+                    json = { 'array' },
+                    c = { 'comment', 'region' }
+                },
                 fold_virt_text_handler = handler,
-                provider_selector = function(bufnr, filetype, buftype)
-                    return { 'treesitter', 'indent' }
-                end,
                 preview = {
                     mappings = {
                         switch = "<C-l>",
                     },
                 }
             })
-        end
+            vim.cmd.UfoDisableFold()
+        end,
+        keys = {
+            { "zR", function() require('ufo').openAllFolds() end,         desc = "Open All Folds" },
+            { "zM", function() require('ufo').closeAllFolds() end,        desc = "Close All Folds" },
+            { "zr", function() require('ufo').openFoldsExceptKinds() end, desc = "Open Folds Except Kinds" },
+            { "zm", function() require('ufo').closeFoldsWith() end,       desc = "Close Folds With" },
+        },
     },
 }

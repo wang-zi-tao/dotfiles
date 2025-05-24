@@ -582,6 +582,8 @@
         end
     }
 
+    local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
+
     local function VectorCode(opts)
         local lualine_component = require("vectorcode.integrations").lualine({})
         return vim.tbl_deep_extend("keep", opts or {}, {
@@ -669,7 +671,7 @@
         tabline_buffers(),
         components.fill(),
         {
-            VectorCode({ hl = { fg = "gray" } }),
+            found_vectorcode_command and VectorCode({ hl = { fg = "gray" } }),
             components.virtual_env(),
             FileSize({ hl = { fg = "gray" } }),
             components.file_encoding({ hl = { fg = "gray" } }),
