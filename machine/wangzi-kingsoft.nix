@@ -4,6 +4,7 @@
   home-manager,
   sops-nix,
   nixfs,
+  NixVirt,
   ...
 }@inputs:
 let
@@ -18,6 +19,7 @@ nixpkgs.lib.nixosSystem {
     sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
     nixfs.nixosModules.nixfs
+    NixVirt.nixosModules.default
     (
       {
         pkgs,
@@ -34,6 +36,7 @@ nixpkgs.lib.nixosSystem {
           "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
           "https://mirrors.ustc.edu.cn/nix-channels/store"
         ];
+        nix.buildMachines = pkgs.lib.mkForce [];
         cluster.network.nodes."${hostname}" = { };
         cluster.nodes."${hostname}" = {
           users.wangzi = ../home-manager/profiles/wangzi-develop.nix;
@@ -107,6 +110,14 @@ nixpkgs.lib.nixosSystem {
         fileSystems."/boot/efi" = {
           device = "/dev/disk/by-uuid/8EC5-6DAA";
           fsType = "vfat";
+        };
+        fileSystems."/wps" = {
+          device = "/dev/mapper/pool-buildLinux";
+          fsType = "ext4";
+        };
+        fileSystems."/mnt/linuxData" = {
+          device = "/dev/vg1/linuxData";
+          fsType = "ext4";
         };
         # fileSystems."/mnt/vm" = {
         #   device = "/dev/disk/by-uuid/42a82751-3f31-4ef7-abe5-5a610df9f146";
@@ -194,6 +205,7 @@ nixpkgs.lib.nixosSystem {
         services.nixfs.enable = true;
         services.ollama = {
           enable = true;
+          package = pkgs.unstable.ollama;
         };
         services.neo4j = {
             enable=true;

@@ -129,6 +129,7 @@ local function config()
         "noice",
         "smart_open",
         "hbac",
+        "find_template",
     }
     for _, ext in ipairs(extensions) do
         if not pcall(telescope.load_extension, ext) then
@@ -169,7 +170,7 @@ return {
                 function()
                     pcall(require("core.utils").add_mark)
                     require("telescope.builtin").live_grep({
-                        search_dirs = { global.pwd or "." },
+                        search_dirs = { require("core.utils").pwd or "." },
                         default_text = require("core.utils").get_selection(),
                     })
                 end,
@@ -193,7 +194,7 @@ return {
                 function()
                     pcall(require("core.utils").add_mark)
                     require("telescope.builtin").fd({
-                        search_dirs = { global.pwd or "." },
+                        search_dirs = { require("core.utils").pwd or "." },
                         default_text = require("core.utils").get_selection(),
                         no_ignore = true,
                     })

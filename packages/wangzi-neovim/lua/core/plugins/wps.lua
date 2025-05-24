@@ -2,11 +2,12 @@
 local wps = { path = nil, qt_path = nil, ohos_qt_path = nil, loaded = false, bundles = {} }
 
 local function config()
-    local utils = require("core.utils")
-    local Path = require("plenary.path")
-    local Job = require("plenary.job")
-    wps.path = Path:new(vim.fn.finddir('Coding/..', vim.fn.expand('%:p:h') .. ';'))
-    wps.qt_path = wps.path:joinpath("../debug/3rd_build/qt5/source/qtbase/")
+    local utils      = require("core.utils")
+    local Path       = require("plenary.path")
+    local Job        = require("plenary.job")
+    local Terminal   = require('toggleterm.terminal').Terminal
+    wps.path         = Path:new(vim.fn.finddir('Coding/..', vim.fn.expand('%:p:h') .. ';'))
+    wps.qt_path      = wps.path:joinpath("../debug/3rd_build/qt5/source/qtbase/")
     wps.ohos_qt_path = wps.path:joinpath("../debug_ohos/3rd_build/qt5/source/qtbase/")
 
     local coding_dir = wps.path:joinpath("Coding/")
@@ -80,6 +81,9 @@ local function config()
         }):start()
     end, {})
 
+    local krepo_terminal = Terminal:new({ display_name = "krepo-ng", hidden = true })
+
+
     vim.api.nvim_create_user_command("Msbuild", function(opts)
         utils.argOrCachedInput(opts.args, "target", "target", "", nil, function(target)
             if target == "" then
@@ -103,18 +107,19 @@ local function config()
     end, { nargs = "?" })
 
     vim.api.nvim_create_user_command("KrepoCr", function(opts)
-        Job:new({ command = "krepo-ng", args = { "cr" } }):start()
+        krepo_terminal:open()
+        krepo_terminal:send("krepo-ng cr")
     end, { nargs = 0 })
 
     vim.api.nvim_create_user_command("KrepoPush", function(opts)
+        krepo_terminal:open()
+        krepo_terminal:send("krepo-ng push")
         Job:new({ command = "krepo-ng", args = { "push" } }):start()
     end, { nargs = 0 })
 
     vim.api.nvim_create_user_command("KrepoSync", function(opts)
-        Job:new({
-            command = "krepo-ng",
-            args = { "sync", "--stash" },
-        }):start()
+        krepo_terminal:open()
+        krepo_terminal:send("krepo-ng sync --stash")
     end, { nargs = 0 })
 
     vim.api.nvim_create_user_command("KrepoAuth", function(opts)
@@ -130,7 +135,7 @@ end
 
 config()
 
-local M = {
+return {
     wps = wps,
     setup = config,
 }

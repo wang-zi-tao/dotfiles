@@ -188,7 +188,7 @@
     };
   home.file.".config/atuin/config.toml".text =
     builtins.readFile ./atuin.toml
-    + ''
+    + lib.optionalString pkgs.stdenv.isLinux ''
       key_path = "/run/secrets-for-users/atuin-key"
     '';
   programs.atuin = {

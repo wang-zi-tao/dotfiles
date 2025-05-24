@@ -7,9 +7,12 @@
 {
   imports = [
     ../application/application.nix
+    ../application/firefox.nix
+    ../application/alacritty.nix
     ../develop/cpp.nix
     ../terminal/terminal.nix
     ../develop/develop.nix
+    ../develop/vscode.nix
   ];
   home.stateVersion = "24.11";
   home.username = "wangzi";

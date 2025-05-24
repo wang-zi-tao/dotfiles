@@ -116,7 +116,7 @@ in
     vala-language-server
     cmake-language-server
     java-language-server
-    
+
     "/nixfs/flake/str/nixpkgs#vscode-langservers-extracted/bin/vscode-css-language-server"
     "/nixfs/flake/str/nixpkgs#vscode-langservers-extracted/bin/vscode-eslint-language-server"
     "/nixfs/flake/str/nixpkgs#vscode-langservers-extracted/bin/vscode-html-language-server"
@@ -189,13 +189,15 @@ in
     ))
   ];
   home.file = {
-    ".cargo/config.toml".text = ''
-      [target.x86_64-unknown-linux-gnu]
-      linker = "${pkgs.clang_14}/bin/clang"
-      rustflags = ["-C", "link-arg=--ld-path=${pkgs.mold}/bin/mold", "-L", "${pkgs.glibc}/lib/"]
-      # [build]
-      # rustc-wrapper = "${pkgs.sccache}/bin/sccache"
-    '';
+    ".cargo/config.toml" = lib.mkIf pkgs.stdenv.isLinux {
+      text = ''
+        [target.x86_64-unknown-linux-gnu]
+        linker = "${pkgs.clang_14}/bin/clang"
+        rustflags = ["-C", "link-arg=--ld-path=${pkgs.mold}/bin/mold", "-L", "${pkgs.glibc}/lib/"]
+        # [build]
+        # rustc-wrapper = "${pkgs.sccache}/bin/sccache"
+      '';
+    };
     ".gdbinit".text = ''
       set debuginfod enabled on
       define add-symbol-file-auto

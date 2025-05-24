@@ -61,7 +61,7 @@ vim.api.nvim_create_user_command("ProfileStop", function()
 end, {})
 vim.api.nvim_create_user_command("Cd", function(opts)
     utils.argOrCachedInput(opts.args, "Cd_dir", "dir: ", ".", "dir", function(path)
-        global.pwd = path
+        require("core.utils").pwd = path
     end)
 end, { nargs = "?", complete = "dir" })
 

@@ -58,9 +58,9 @@ local function on_attach(client, bufnr)
     -- keymap("n", "gT", "<cmd>Lspsaga goto_type_definition<CR>")
     -- keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>")
 
-    if vim.fn.has("win32") == 0 then
-        vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-    end
+    -- if vim.fn.has("win32") == 0 then
+    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+    -- end
 end
 
 local function get_capabilities()
@@ -256,7 +256,7 @@ return {
         name = "nvim_lspconfig",
         module = "lspconfig",
         lazy = true,
-        event = { "BufRead", "VeryLazy" },
+        event = { "LazyFile" },
         config = config,
         init = function()
             require("which-key").add({
@@ -277,7 +277,8 @@ return {
                 "gD",
                 function()
                     pcall(require("core.utils").add_mark)
-                    require("telescope.builtin").lsp_definitions()
+                    vim.lsp.buf.definition()
+                    -- require("telescope.builtin").lsp_definitions()
                 end,
                 mode = "n",
                 desc = "Goto Definition",
@@ -303,10 +304,12 @@ return {
                 "<leader>lf",
                 function()
                     local hunks = require("gitsigns").get_hunks()
-                    if hunks == nil then
+                    if hunks ~= nil then
                         for range in require("core.utils").get_changed_ranges() do
                             vim.lsp.buf.format({ range = range })
                         end
+                    else
+                        vim.lsp.buf.format({ range = range })
                     end
                 end,
                 desc = "Format hunks",

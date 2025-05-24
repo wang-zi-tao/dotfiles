@@ -2,21 +2,22 @@
   stdenvNoCC,
   lib,
   pkgs,
+  stdenv,
   makeWrapper,
   neovim-remote,
-  autoPatchelfHook,
   zlib,
-  lttng-ust_2_12,
   gcc,
   unzip,
   fetchurl,
+  fetchgit,
+  buildNpmPackage,
   enable-all ? true,
   enable-debuger ? enable-all && (pkgs.system == "x86_64-linux"),
   enable-markdown-preview ? false,
   enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux"),
 }:
-with pkgs.master;
-with pkgs.master.vimPlugins;
+with pkgs.unstable;
+with pkgs.unstable.vimPlugins;
 let
   pkg = pkgs.unstable.neovim-unwrapped;
   vscode-cpptools = stdenvNoCC.mkDerivation {
@@ -36,14 +37,27 @@ let
       chmod +x "$out/extension/debugAdapters/bin/OpenDebugAD7"
     '';
   };
+  mcp-hub = buildNpmPackage {
+    pname = "mcp-hub";
+    version = "3.2.0";
+    src = fetchgit {
+      url = "https://github.com/ravitemer/mcp-hub/";
+      rev = "f1abd40eff97cc33e2cdeb902bebef325928a959";
+      sha256 = "sha256-jZRyWXLwWajc1UQ/O/Er4rANXVPT2Mg/OXfOZIN8mQQ=";
+    };
+    inherit nodejs;
+
+    nativeBuildInputs = [ nodejs ];
+    npmDepsHash = "sha256-HngZpJdLApzHNQ36GaFlNG5/A+SCFjdPNShu3nf78NA=";
+  };
   vars = {
     packer = packer-nvim;
-    plenary_nvim = pkgs.vimPlugins.plenary-nvim;
+    plenary_nvim = plenary-nvim;
     impatient_nvim = impatient-nvim;
     promise_async = promise-async;
 
     # utils
-    profile_nvim = pkgs.fetchgit {
+    profile_nvim = fetchgit {
       url = "https://github.com/stevearc/profile.nvim";
       rev = "0ee32b7aba31d84b0ca76aaff2ffcb11f8f5449f";
       sha256 = "sha256-usyy1kST8hq/3j0sp7Tpf/1mld6RtcVABPo/ygeqzbU=";
@@ -51,10 +65,15 @@ let
     nix_develop_nvim = nix-develop-nvim;
     bigfile = bigfile-nvim;
     tiny_inline_diagnostic = tiny-inline-diagnostic-nvim;
-    logger_nvim = pkgs.fetchgit {
+    logger_nvim = fetchgit {
       url = "https://github.com/rmagatti/logger.nvim";
       rev = "63dd10c9b9a159fd6cfe08435d9606384ff103c5";
       sha256 = "sha256-4xQFk7+3NWEx1XUZApy4Ldi2xdsna+HdkOmq9vWP3B0=";
+    };
+    template = fetchgit {
+      url = "https://github.com/nvimdev/template.nvim";
+      rev = "59955db23613985e031d340756d5c01aebd583a3";
+      sha256 = "sha256-SsTqdOve0uAP9fApBSVIUj0JIOjneQD02CXbA0dRCWo=";
     };
 
     # theme
@@ -65,9 +84,13 @@ let
 
     # buffer
     indent_blankline_nvim = indent-blankline-nvim;
-    nvim_colorizer_lua = nvim-colorizer-lua;
+    nvim_colorizer_lua = fetchgit {
+      url = "https://github.com/catgoose/nvim-colorizer.lua";
+      rev = "517df88cf2afb36652830df2c655df2da416a0ae";
+      sha256 = "sha256-yOPUgqHe0WT437aX8kp0P/reNgjZUNNRG7hvDgaeXT0=";
+    };
     baleia_nvim = baleia-nvim;
-    hbac = pkgs.fetchgit {
+    hbac = fetchgit {
       url = "https://github.com/axkirillov/hbac.nvim";
       rev = "2c85485ea28e5e3754650829e0bca612960e1b73";
       sha256 = "sha256-A+C9N7xorS7DV0w8N5TjyD7OvWdxUQ4PJaKW3kwkQS0=";
@@ -96,7 +119,7 @@ let
 
     # git
     gitsigns_nvim = gitsigns-nvim;
-    vgit_nvim = pkgs.fetchgit {
+    vgit_nvim = fetchgit {
       url = "https://github.com/tanvirtin/vgit.nvim";
       rev = "47474d5edd46b55100daa9d4ce502c7d3d825bde";
       sha256 = "sha256-BmyKQL1Md976aUgPNVTmJ37nM5ofUFVFvlEi7QXvpWY=";
@@ -106,29 +129,35 @@ let
     # AI
     copilot_vim = copilot-vim;
     codecompanion = codecompanion-nvim;
-    vectorcode = pkgs.fetchgit {
+    vectorcode = fetchgit {
       url = "https://github.com/Davidyz/VectorCode";
       rev = "810ad4188be9389578ff75b08dfd18c152141d82";
       sha256 = "sha256-CznHsUYwqTWanRU548bAaFLaBm7YMwb5dwc9umPt/sk=";
     };
+    mcphub = fetchgit {
+      url = "https://github.com/ravitemer/mcphub.nvim";
+      rev = "9f3e1b80aab5cc24668117c2bd63ff701df774fb";
+      sha256 = "sha256-XOnlLgK67mOzAdm+Y+8oR6TY9q7EvUT7MQfk3fLKAqM=";
+    };
+    mcp_hub = mcp-hub;
 
     # LSP
     nvim_lspconfig = nvim-lspconfig;
     lsp_signature_nvim = lsp_signature-nvim;
     lspsaga = lspsaga-nvim;
-    symbol_usage = pkgs.fetchgit {
+    symbol_usage = fetchgit {
       url = "https://github.com/Wansmer/symbol-usage.nvim";
       rev = "0f9b3da014b7e41559b643e7461fcabb2a7dc83a";
       sha256 = "sha256-vNVrh8MV7KZoh2MtP+hAr6Uz20qMMMUcbua/W71lRn0=";
     };
-    dr_lsp = pkgs.fetchgit {
+    dr_lsp = fetchgit {
       url = "https://github.com/chrisgrieser/nvim-dr-lsp";
       rev = "162c915eaf61d40ca1b4eec079037f42e9fdefcf";
       sha256 = "sha256-c5cDqUHgT5QAEV4hXJMfiALZdzp46nrfcKiPmWWwHoQ=";
     };
     navic = nvim-navic;
     navbuddy = nvim-navbuddy;
-    symbols_outline = symbols-outline-nvim;
+    # symbols_outline = symbols-outline-nvim;
     rustaceanvim = rustaceanvim;
     rust_tools = rust-tools-nvim;
     none_ls = none-ls-nvim;
@@ -138,7 +167,7 @@ let
     iron_nvim = iron-nvim;
     lsp_format_nvim = lsp-format-nvim;
     refactoring_nvim = refactoring-nvim;
-    garbage_day = pkgs.fetchgit {
+    garbage_day = fetchgit {
       url = "https://github.com/Zeioth/garbage-day.nvim";
       rev = "750ef08ae6031ee3683014c5349144340c08ead6";
       sha256 = "sha256-XBt1EMbd3QTwfxHZcTVO1Rd0rocATrv8HMEBPxbs60w=";
@@ -146,7 +175,7 @@ let
     obsidian_nvim = obsidian-nvim;
     neotest = neotest;
     aerial_nvim = aerial-nvim;
-    codeql = pkgs.fetchgit {
+    codeql = fetchgit {
       url = "https://github.com/pwntester/codeql.nvim";
       rev = "772fca7306a6302acdf5098387d755d30bd5876a";
       sha256 = "sha256-qMHFIakhBJ1vohOgFvINRKNRlnRsm/ciQrVrvTI120Y=";
@@ -154,6 +183,7 @@ let
     mason_lspconfig = mason-lspconfig-nvim;
     lazydev = lazydev-nvim;
     cmake_tools = cmake-tools-nvim;
+    overseer = overseer-nvim;
 
     vim_matchup = vim-matchup;
     better_escape_nvim = better-escape-nvim;
@@ -174,6 +204,7 @@ let
     cmp_cmdline_history = cmp-cmdline-history;
     cmp_zsh = cmp-zsh;
     cmp_git = cmp-git;
+    cmp_ai = cmp-ai;
 
     nvim_autopairs = nvim-autopairs;
     dashboard_nvim = dashboard-nvim;
@@ -191,15 +222,16 @@ let
     telescope_sg = telescope-sg;
     telescope_smart_open = smart-open-nvim;
 
-    libsqlite = "${sqlite.out}/lib/libsqlite3.so";
-    sqlite = pkgs.fetchgit {
+    libsqlite =
+      if stdenv.isLinux then "${sqlite.out}/lib/libsqlite3.so" else "${sqlite.out}/lib/libsqlite3.dylib";
+    sqlite = fetchgit {
       url = "https://github.com/kkharji/sqlite.lua";
       rev = "b487fcc8937b683942a1f7d9662fcf50ca5acd58";
       sha256 = "sha256-K92mDGvrqo6nU2uWJjhd231hpSDXicwsuokgW21k7zE=";
     };
 
     # project
-    session_manager = pkgs.fetchgit {
+    session_manager = fetchgit {
       url = "https://github.com/Shatur/neovim-session-manager";
       rev = "270e235b014f0c37bf362eb1e8913d66bba33a2e";
       sha256 = "sha256-0CB7/hqj3zEZPQUOQoaETcNzFJcQyKt3k7hIXoArhZg=";
@@ -207,7 +239,7 @@ let
     sqlite_lua = sqlite-lua;
 
     which_key = which-key-nvim;
-    auto_save = pkgs.fetchgit {
+    auto_save = fetchgit {
       url = "https://github.com/Pocco81/auto-save.nvim";
       rev = "979b6c82f60cfa80f4cf437d77446d0ded0addf0";
       sha256 = "sha256-bWGil73YiCKZEaY7IuUOIU4Q7k7qCMjSeQ4I+cAVe44=";
@@ -221,7 +253,7 @@ let
     harpoon2 = harpoon2;
     hop_nvim = hop-nvim;
     arrow_nvim = arrow-nvim;
-    trailblazer = pkgs.fetchgit {
+    trailblazer = fetchgit {
       url = "https://github.com/LeonHeidelbach/trailblazer.nvim";
       rev = "674bb6254a376a234d0d243366224122fc064eab";
       sha256 = "sha256-DWlacXJUzuHbyLLbO13zGV2dFPZrt+oZvFyg5gGlFGM=";
@@ -248,7 +280,7 @@ let
     illuminate = vim-illuminate;
     pretty_fold = pretty-fold-nvim;
     pretty_fold_preview = fold-preview-nvim;
-    keymap_amend = pkgs.fetchgit {
+    keymap_amend = fetchgit {
       url = "https://github.com/anuvyklack/keymap-amend.nvim";
       rev = "41964a7230b6a787d3121bf8d2d06c08dabe9449";
       sha256 = "sha256-Zqos5LwjDzVQDpxKpWJVeZjmQ2+tKtub0f4wm6LFPOs=";
@@ -258,7 +290,7 @@ let
     alpha_nvim = alpha-nvim;
     lualine_nvim = lualine-nvim;
     heirline = heirline-nvim;
-    heirline_components = pkgs.fetchgit {
+    heirline_components = fetchgit {
       url = "https://github.com/Zeioth/heirline-components.nvim";
       rev = "935f29dabd86f2669e0b3c8dd283b2d3b1cfaee7";
       sha256 = "sha256-M2muEW4RFQxdaJjZaXMXosy0M7Zj4MlbITRpRWpinwo=";
@@ -269,7 +301,7 @@ let
     nvim_nio = nvim-nio;
     nvim_ufo = nvim-ufo;
     fidget_nvim = fidget-nvim;
-    goto_preview = pkgs.fetchgit {
+    goto_preview = fetchgit {
       url = "https://github.com/rmagatti/goto-preview";
       rev = "d1faf6ea992b5bcaaaf2c682e1aba3131a01143e";
       sha256 = "sha256-WPY0lRkbCEdmnRaOOOCGJEl9a6/GtQqBBdcCy7arAuc=";
@@ -283,13 +315,13 @@ let
     dap = nvim-dap;
     dap_ui = nvim-dap-ui;
     dap_virtual_text = nvim-dap-virtual-text;
-    persistent_breakpoints_nvim = pkgs.fetchgit {
+    persistent_breakpoints_nvim = fetchgit {
       url = "https://github.com/Weissle/persistent-breakpoints.nvim";
       rev = "4b199b1dcfd136cac8b0fa9c8dbbdeb81463f7a9";
       sha256 = "sha256-euwc9XD02g8W52Z8SzjSInLnatS3aGLY44Frvd+yDTc=";
     };
     vscode_lldb =
-      if enable-debuger then "pkgs.unstable.vscode-extensions.vadimcn.vscode-lldb" else "false";
+      if enable-debuger then pkgs.unstable.vscode-extensions.vadimcn.vscode-lldb else "false";
     OpenDebugAD7 = "${vscode-cpptools}/extension/debugAdapters/bin/OpenDebugAD7";
     nio = nvim-nio;
     one_small_step_for_vimkind = one-small-step-for-vimkind;
@@ -301,13 +333,13 @@ let
     firenvim = firenvim;
     dressing_nvim = dressing-nvim;
     trouble_nvim = trouble-nvim;
-    xmake = pkgs.fetchgit {
+    xmake = fetchgit {
       url = "https://github.com/Mythos-404/xmake.nvim";
       rev = "594dfe0c73f133848c917c0c848f6bb3f3400345";
       sha256 = "sha256-4PmuXIjeBV+DFhTUXuOvKrH41C+DKrf5GPmPWaFEX7w=";
     };
     crates_nvim = crates-nvim;
-    perfanno_nvim = pkgs.fetchgit {
+    perfanno_nvim = fetchgit {
       url = "https://github.com/t-troebst/perfanno.nvim";
       rev = "8640d6655f17a79af8de3153af2ce90c03f65e86";
       sha256 = "sha256-AfmmeLeUwYY9c3ISwt6/EHwCE4uhzKCvVoFwze7VJ4E=";
@@ -322,7 +354,6 @@ stdenvNoCC.mkDerivation {
   src = ./.;
 
   nativeBuildInputs = [
-    autoPatchelfHook
     makeWrapper
     unzip
   ];
@@ -331,7 +362,6 @@ stdenvNoCC.mkDerivation {
     neovim-remote
     gcc
     zlib
-    lttng-ust_2_12
   ];
 
   VARS = lib.strings.concatStrings (
@@ -380,7 +410,7 @@ stdenvNoCC.mkDerivation {
     HOME=. ${pkg}/bin/nvim -u $out/init.lua "+Lazy! install" --headless +qa
     makeWrapper ${pkg}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
         --set LUA_PATH "$LUA_PATH" \
-        --prefix PATH : ${luarocks}:${sqlite.out}/lib
+        --prefix LD_LIBRARY_PATH : ${luarocks}:${sqlite.out}/lib
 
     ln -s ${pkgs.tree-sitter}/bin/tree-sitter $out/bin/tree-sitter
     cp $out/bin/wnvim $out/bin/wangzi-neovim

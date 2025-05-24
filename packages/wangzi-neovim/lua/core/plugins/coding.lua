@@ -222,6 +222,9 @@
                     -- require("neotest-gtest"),
                     -- require("neotest-jest"),
                 },
+                consumers = {
+                    overseer = require("neotest.consumers.overseer"),
+                },
             })
         end,
         keys = {
@@ -259,7 +262,7 @@
         "figsoda/nix-develop.nvim",
         dir = gen.nix_develop_nvim,
         name = "nix_develop_nvim",
-        event = "VeryLazy",
+        event = "LspAttach",
     },
     {
         "LunarVim/bigfile.nvim",
@@ -292,4 +295,35 @@
             })
         end,
     },
+    {
+        "nvimdev/template.nvim",
+        name = "template",
+        dir = gen.template,
+        cmd = { 'Template', 'TemProject' },
+        module = "telescope._extensions.find_template",
+        config = function()
+            local function setup()
+                local Job = require("plenary.job")
+
+                local username_job = Job:new({ command = "git", args = { "config", "--get", "user.name" }, enable_recording = true })
+                    :sync()
+                local username = username_job[1] and vim.trim(username_job[1]) or ""
+
+                local email_job = Job:new({ command = "git", args = { "config", "--get", "user.email" }, enable_recording = true })
+                    :sync()
+                local email = email_job[1] and vim.trim(email_job[1]) or ""
+
+                require('template').setup({
+                    temp_dir = vim.fn.stdpath('config') .. "/skeleton",
+                    author = username,
+                    email = email,
+                })
+            end
+            setup()
+            -- vim.api.nvim_create_autocmd("DirChanged", {
+            --     pattern = "*",
+            --     callback = setup,
+            -- })
+        end
+    }
 }

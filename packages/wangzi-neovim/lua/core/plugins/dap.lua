@@ -35,7 +35,7 @@ local function config()
 
     local home = vim.fn.expand("~")
 
-    local vscode_cpptoools_dir = home .. "/.vscode/extensions/ms-vscode.cpptools-1.23.6-win32-x64"
+    local vscode_cpptoools_dir = home .. "/.vscode/extensions/ms-vscode.cpptools-1.25.3-win32-x64"
 
     local vsdbg_js_adapter = [[
         /* declare module vsda {
@@ -144,6 +144,31 @@ local function config()
             no_ignore = true,
             prompt = "Path to coredump: ",
         })
+    end
+
+    local find_config = function(name, language)
+        local configs = dap.configurations[language]
+        for _, config in ipairs(configs) do
+            if config.name == name then
+                return config
+            end
+        end
+        return nil
+    end
+
+    local remove_config = function(name, language)
+        local configs = dap.configurations[language]
+        for i, config in ipairs(configs) do
+            if config.name == name then
+                table.remove(configs, i)
+                return true
+            end
+        end
+        return false
+    end
+
+    local get_args = function()
+        return util.cached()
     end
 
     local vsdbg_config = {
@@ -354,6 +379,71 @@ local function config()
     dap.adapters.nlua = function(callback, config)
         callback({ type = 'server', host = config.host or "127.0.0.1", port = config.port or 8086 })
     end
+
+    local js_dap_path = (gen.core or "./") .. "js-debug/src/dapDebugServer.js"
+    if vim.fn.has("win32") == 1 then
+        js_dap_path = (vim.env.DOTFILE_WINDOWS or "C:/dotfiles-windows/") .. "repo/js-debug/src/dapDebugServer.js"
+    end
+
+    dap.adapters["pwa-node"] = {
+        type = "server",
+        host = "localhost",
+        port = "${port}",
+        executable = {
+            command = "node",
+            args = { js_dap_path, "${port}" },
+        }
+    }
+
+    dap.configurations.javascript = {
+        {
+            type = "pwa-node",
+            request = "launch",
+            name = "Launch file",
+            program = "${file}",
+            cwd = "${workspaceFolder}",
+        },
+        {
+            type = "pwa-node",
+            request = "launch",
+            name = "Deno Launch file",
+            program = "${file}",
+            cwd = "${workspaceFolder}",
+            runtimeExecutable = "deno",
+            attachSimplePort = 9229,
+            runtimeArgs = {
+                "run",
+                "--inspect-wait",
+                "--allow-all",
+            },
+        },
+    }
+    dap.configurations.typescript = dap.configurations.javascript
+
+    ---@class DapTools
+
+    dap.tools = {
+        lldb_config = lldb_config,
+        gdb_config = gdb_config,
+        vsdbg_config = vsdbg_config,
+        get_coredmp = get_coredmp,
+        get_program = get_program,
+        find_config = find_config,
+        remove_config = remove_config,
+        override_config = function(override_config_name, language, name)
+            local override_config = find_config(override_config_name, language)
+            remove_config(config.name, language)
+            local new_config = vim.tbl_deep_extend("force", override_config, config)
+
+            if override_config == nil then
+                vim.notify("No such debug config: " .. override_config_name, vim.log.levels.ERROR)
+                return
+            end
+
+            remove_config(config.name, language)
+            table.insert(dap.configurations[language], new_config)
+        end
+    }
 end
 
 return {
@@ -379,6 +469,13 @@ return {
         },
         {
             "<leader>dc",
+            function()
+                require("dap").continue()
+            end,
+            desc = "Continue",
+        },
+        {
+            "<leader>dr",
             function()
                 require("dap").continue()
             end,
@@ -706,10 +803,15 @@ return {
                     virt_text_win_col = nil,               -- position the virtual text at a fixed window column (starting from the first text column) ,
                     -- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
                     display_callback = function(variable, buf, stackframe, node, options)
+                        ---@type string
+                        local value = variable.value
+                        if #value > 64 then
+                            value = string.sub(value, 1, 64) .. "..."
+                        end
                         if options.virt_text_pos == "inline" then
-                            return " = " .. variable.value
+                            return " = " .. value
                         else
-                            return variable.name .. " = " .. variable.value
+                            return variable.name .. " = " .. value
                         end
                     end,
                 })

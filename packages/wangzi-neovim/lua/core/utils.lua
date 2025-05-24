@@ -207,21 +207,40 @@ function M.get_selection()
     ), '\n')
 end
 
+function M.cached_input_sync(key, prompt, default, completion)
+    local co = coroutine.running()
+    vim.schedule(function()
+        M.cachedinput(key, prompt, default, completion, function(value)
+            coroutine.resume(co, value)
+        end)
+    end)
+    return coroutine.yield()
+end
+
 ---@param key string
 function M.pick_file(opt)
     local actions = require "telescope.actions"
     local action_state = require "telescope.actions.state"
+    local Path = require("plenary.path")
     local co = coroutine.running()
 
     vim.schedule(function()
         require("telescope").extensions.file_browser.file_browser(vim.tbl_deep_extend("keep", opt, {
             prompt = "executable file",
+            use_fd = true,
+            no_ignore = true,
             attach_mappings = function(prompt_bufnr, map)
-                actions.select_default:replace(function()
+                local do_map = function()
                     actions.close(prompt_bufnr)
                     local selection = action_state.get_selected_entry()
-                    coroutine.resume(co, selection)
-                end)
+                    vim.print(selection)
+                    local path = Path:new(selection[1])
+                    if path:is_file() then
+                        coroutine.resume(co, tostring(path))
+                    end
+                end
+                map("n", "<Tab>", do_map)
+                map("i", "<Tab>", do_map)
                 return true
             end
         }))
@@ -250,6 +269,21 @@ function M.watch_file(file, callback)
     end
 
     do_watch_file(file)
+end
+
+M.pwd = vim.fn.getcwd()
+
+vim.api.nvim_create_autocmd("DirChanged", {
+	pattern = "*",
+	callback = function()
+		M.pwd = vim.fn.getcwd()
+	end,
+})
+
+M.toggleterm_nvim = {}
+function M.toggle_term(number)
+    require("toggleterm")
+    M.toggleterm_nvim[number]:toggle()
 end
 
 return M

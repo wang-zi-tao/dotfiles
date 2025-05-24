@@ -79,6 +79,14 @@ return {
                     h.DiagnosticInfo = { fg = c.blue }
                     h.DiagnosticHint = { fg = c.green }
                     h.DiagnosticError = { fg = c.red }
+                    h.DapUIPlayPause = { bg = c.bg_dark, fg = c.green }
+                    h.DapUIStop = { bg = c.bg_dark, fg = "#f70067" }
+                    h.DapUIRestart = { bg = c.bg_dark, fg = c.green }
+                    h.DapUIUnavailable = { bg = c.bg_dark, fg = "#424242" }
+                    h.DapUIStepOver = { bg = c.bg_dark, fg = c.cyan }
+                    h.DapUIStepInto = { bg = c.bg_dark, fg = c.cyan }
+                    h.DapUIStepBack = { bg = c.bg_dark, fg = c.cyan }
+                    h.DapUIStepOut = { bg = c.bg_dark, fg = c.cyan }
                     h.DapUIPlayPauseNC = { bg = c.bg_dark, fg = c.green }
                     h.DapUIStopNC = { bg = c.bg_dark, fg = "#f70067" }
                     h.DapUIRestartNC = { bg = c.bg_dark, fg = c.green }
@@ -89,8 +97,8 @@ return {
                     h.DapUIStepOutNC = { bg = c.bg_dark, fg = c.cyan }
                     h.DapBreakpoint = { fg = c.red }
                     h.DapLogPoint = { fg = c.orange }
-                    h.DapStopped = { bg = c.green, fg = c.black }
-                    h.DapStoppedIcon = { fg = c.cyan }
+                    h.DapStopped = { bg = c.bg_visual }
+                    h.DapStoppedIcon = { fg = c.orange }
                     h.BufferLineBufferSelected = { bg = c.bg_dark, fg = "#ffffff" }
                     h.BufferLineDuplicate = { bg = "#131820", fg = c.grey }
                     h.BufferLineDuplicateVisible = { bg = c.bg_dark, fg = c.grey }

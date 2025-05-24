@@ -18,6 +18,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+    nix-darwin = {
+      url = "github:nix-darwin/nix-darwin/nix-darwin-24.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nur.url = "github:nix-community/NUR";
     nixpkgs-wayland = {
       url = "github:nix-community/nixpkgs-wayland";
@@ -205,6 +209,9 @@
         name: value: (value (inputs // { inherit pkgs-template; }))
       ) (import-dir ./nix-on-droid/profiles "profile.nix");
       nixosModules = import-dir ./module "module.nix";
+      darwinConfigurations = builtins.mapAttrs (
+        name: value: (value (inputs // { inherit pkgs-template; }))
+      ) (import-dir ./darwin "profile.nix");
       deploy.nodes =
         builtins.mapAttrs
           (host: config: {

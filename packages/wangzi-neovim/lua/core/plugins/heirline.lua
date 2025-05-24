@@ -1,12 +1,14 @@
 ﻿local function config()
-    local heirline            = require "heirline"
-    local heirline_components = require "heirline-components.all"
-    local conditions          = require("heirline.conditions")
-    local utils               = require("heirline.utils")
-    local symbols             = require("core.theme").symbols
-    local components          = heirline_components.component
+    local heirline                 = require "heirline"
+    local heirline_components      = require "heirline-components.all"
+    local conditions               = require("heirline.conditions")
+    local utils                    = require("heirline.utils")
+    local symbols                  = require("core.theme").symbols
+    local components               = heirline_components.component
 
-    local tokyonight_colors   = require("tokyonight.colors").setup({ style = "moon" })
+    local tokyonight_colors        = require("tokyonight.colors").setup({ style = "moon" })
+
+    local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
 
 
     local separator1 = { '', '' }
@@ -22,6 +24,7 @@
         rnix = " ",
         lua_ls = "",
         ["GitHub Copilot"] = "",
+        vectorcode_server = "",
     }
 
     vim.api.nvim_create_autocmd("ModeChanged", {
@@ -499,14 +502,25 @@
     local DAPMessages = {
         condition = function()
             local session = require("dap").session()
-            return session ~= nil
+            return session ~= nil and conditions.is_active()
         end,
         provider = function()
-            return " " .. require("dap").status() .. " "
+            return " "
         end,
         hl = "Debug",
         {
-            provider = "󰆹",
+            provider = " ",
+            hl = "DapUIRestartNC",
+            on_click = {
+                callback = function()
+                    require("dap").continue()
+                end,
+                name = "heirline_dap_continue",
+            },
+        },
+        {
+            provider = " 󰆹",
+            hl = "DapUIStepIntoNC",
             on_click = {
                 callback = function()
                     require("dap").step_into()
@@ -514,19 +528,9 @@
                 name = "heirline_dap_step_into",
             },
         },
-        { provider = " " },
         {
-            provider = "󰆸",
-            on_click = {
-                callback = function()
-                    require("dap").step_out()
-                end,
-                name = "heirline_dap_step_out",
-            },
-        },
-        { provider = " " },
-        {
-            provider = "",
+            provider = " ",
+            hl = "DapUIStepOverNC",
             on_click = {
                 callback = function()
                     require("dap").step_over()
@@ -534,9 +538,19 @@
                 name = "heirline_dap_step_over",
             },
         },
-        { provider = " " },
         {
-            provider = "",
+            provider = " 󰆸",
+            hl = "DapUIStepOutNC",
+            on_click = {
+                callback = function()
+                    require("dap").step_out()
+                end,
+                name = "heirline_dap_step_out",
+            },
+        },
+        {
+            provider = " ",
+            hl = "DapUIRestartNC",
             on_click = {
                 callback = function()
                     require("dap").run_last()
@@ -544,9 +558,9 @@
                 name = "heirline_dap_run_last",
             },
         },
-        { provider = " " },
         {
-            provider = "",
+            provider = " ",
+            hl = "DapUIStopNC",
             on_click = {
                 callback = function()
                     require("dap").terminate()
@@ -555,15 +569,29 @@
                 name = "heirline_dap_close",
             },
         },
-        { provider = " " },
-        -- icons:       ﰇ  
+        {
+            flexible = 1,
+            {
+                provider = function()
+                    return " " .. require("dap").status() .. " "
+                end,
+                hl = "Debug",
+                on_click = {
+                    callback = function()
+                        require("dapui").toggle()
+                    end,
+                    name = "heirline_dapui",
+                },
+            },
+            { provider = "" },
+        }
     }
 
     local function FileSize(opts)
         return vim.tbl_deep_extend("keep", opts or {}, {
             provider = function()
                 -- stackoverflow, compute human readable file size
-                local suffix = { 'b', 'k', 'M', 'G', 'T', 'P', 'E' }
+                local suffix = { 'B', 'K', 'M', 'G', 'T', 'P', 'E' }
                 local fsize = vim.fn.getfsize(vim.api.nvim_buf_get_name(0))
                 fsize = (fsize < 0 and 0) or fsize
                 if fsize < 1024 then
@@ -585,11 +613,15 @@
     local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
 
     local function VectorCode(opts)
-        local lualine_component = require("vectorcode.integrations").lualine({})
-        return vim.tbl_deep_extend("keep", opts or {}, {
-            provider = lualine_component[1],
-            condition = lualine_component.condition,
-        })
+        if found_vectorcode_command then
+            local lualine_component = require("vectorcode.integrations").lualine({})
+            return vim.tbl_deep_extend("keep", opts or {}, {
+                provider = lualine_component[1],
+                condition = lualine_component.condition,
+            })
+        else
+            return {}
+        end
     end
 
 
@@ -608,6 +640,7 @@
             file_info(set_hl_bg2({})),
             git_diff(set_hl_bg2({})),
         }, { separator = { "", separator2[2] }, bg = bg2 }),
+        DAPMessages,
         components.fill(),
         {
             components.cmd_info(),
@@ -666,7 +699,7 @@
             file_relative_path(set_hl_bg2({})),
             components.file_info(set_hl_bg2({ file_name = false, })),
         }, { separator = { "", separator4_right[2] }, bg = bg2, }),
-        DAPMessages,
+        require("core.plugins.overseer").Overseer(),
         components.fill(),
         tabline_buffers(),
         components.fill(),
@@ -745,7 +778,7 @@ return {
         dir = gen.heirline,
         name = "heirline",
         package = "heirline",
-        event = "VeryLazy",
+        event = "LazyFile",
         dependencies = "heirline_components",
         config = config
     },

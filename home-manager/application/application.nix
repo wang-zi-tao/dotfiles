@@ -86,7 +86,7 @@
       inotify-tools
 
       # xiezuo
-      # wpsoffice
+      wpsoffice
       qq
 
       # libreoffice

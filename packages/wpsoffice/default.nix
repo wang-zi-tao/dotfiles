@@ -1,17 +1,17 @@
 { lib, stdenv, fetchurl, autoPatchelfHook, dpkg, wrapGAppsHook, libsForQt5, xorg
-, alsa-lib, atk, bzip2, cairo, cups, dbus, expat, ffmpeg, rigsofrods-bin, mesa
+, alsa-lib, atk, bzip2, cairo, cups, dbus, expat, rigsofrods-bin, mesa
 , fontconfig, freetype, gdk-pixbuf, glib, gperftools, gtk2-x11, libICE, libpng12
 , libSM, libtool, libuuid, libX11, libxcb, libXcomposite, libXcursor, libXdamage
 , libXext, libXfixes, libXi, libxml2, libXrandr, libXrender, libXScrnSaver
-, libXtst, nspr, nss, curl, pango, sqlite, unixODBC, xz, zlib, libcxxabi, libcxx
-, nixpkgs-old, steam, libusb1, }:
+, libXtst, nspr, nss, curl, pango, sqlite, unixODBC, xz, zlib, libcxx
+, nixpkgs-old, steam, libusb1, SDL2 }:
 stdenv.mkDerivation rec {
   pname = "wpsoffice";
-  version = "12.1.0.17885";
+  version = "12.1.0.17900";
   src = fetchurl {
     url =
-      "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/17885/wps-office_12.1.0.17885_amd64.deb?t=1730810635&k=5bccef95e85b08b6ca152dea63cbe5eb";
-    sha256 = "sha256-tCffhevxBnpNin1qBB2PTyOPpGvPLlI0qWLCCykltiU=";
+      "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/17900/wps-office_12.1.0.17900_amd64.deb?t=1747793460&k=3a74c89061863870ebeaa774a4abbe26";
+    sha256 = "sha256-RnJvu3J0N9z2Vt1w2rzBmLTUzizd06j53rBOSZyxwpg=";
   };
   unpackCmd = "dpkg -x $src .";
   sourceRoot = ".";
@@ -38,12 +38,6 @@ stdenv.mkDerivation rec {
     # Have to use parts of the vendored qt4
     #"Qt"
     "SDL2"
-    "avcodec"
-    "avdevice"
-    "avformat"
-    "avutil"
-    "swresample"
-    "swscale"
     "jpeg"
     "stdc++"
     "curl"
@@ -60,6 +54,7 @@ stdenv.mkDerivation rec {
     "libavutil.so.57"
     "libavdevice.so.59"
     "libswscale.so.6"
+    "libswresample.so.4"
   ];
 
   buildInputs = with xorg; [
@@ -69,8 +64,6 @@ stdenv.mkDerivation rec {
     cairo
     dbus.lib
     expat
-    ffmpeg.lib
-    "${rigsofrods-bin}/share/rigsofrods/"
     mesa
     fontconfig
     freetype
@@ -91,6 +84,7 @@ stdenv.mkDerivation rec {
     libXrandr
     libXrender
     libXtst
+    libXv
     libpng12
     libtool
     libuuid
@@ -108,8 +102,8 @@ stdenv.mkDerivation rec {
     zlib
     cups.lib
     libusb1
-    # libcxxabi
     libcxx
+    SDL2
   ];
   libPath = with xorg; lib.makeLibraryPath (buildInputs ++ [ ]);
 

@@ -536,7 +536,7 @@ lualine.setup({
     extensions = {
         "quickfix",
         "nvim-tree",
-        "symbols-outline",
+        -- "symbols-outline",
         "nvim-dap-ui",
         "neo-tree",
         "toggleterm",

@@ -1,4 +1,5 @@
 local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
+
 local function codecompanion_fidget()
     local progress = require("fidget.progress")
 
@@ -112,7 +113,10 @@ local function config_codecompanion()
         local model = config.model
 
         return {
-            schema = { model = { default = model, }, },
+            schema = {
+                schema = { default = 0.0, },
+                model = { default = model, },
+            },
             env = {
                 url = url,
                 api_key = api_key,
@@ -143,11 +147,16 @@ local function config_codecompanion()
                     vectorcode = found_vectorcode_command and {
                         description = "Run VectorCode to retrieve the project context.",
                         callback = require("vectorcode.integrations").codecompanion.chat.make_tool(),
+                    },
+                    mcp = {
+                        -- calling it in a function would prevent mcphub from being loaded before it's needed
+                        callback = function() return require("mcphub.extensions.codecompanion") end,
+                        description = "Call tools and resources from the MCP Servers",
                     }
                 },
             },
             inline = {
-                adapter = "copilot",
+                adapter = "deepseek_v3",
             },
         },
         adapters = {
@@ -162,10 +171,60 @@ local function config_codecompanion()
                 local config = get_api_config("deepseek")
                 return require("codecompanion.adapters").extend("deepseek", config)
             end,
+            deepseek_v3 = function()
+                local config = get_api_config("deepseek-v3")
+                return require("codecompanion.adapters").extend("deepseek", config)
+            end,
         },
     })
     require("telescope").load_extension("codecompanion")
     codecompanion_fidget():init()
+end
+
+local function config_cmp_ai()
+    local cmp_ai = require('cmp_ai.config')
+
+    cmp_ai:setup({
+        max_lines = 1000,
+        provider = 'Ollama',
+        provider_options = {
+            -- model = 'qwen2.5-coder:7b-base-q6_K',
+            model = 'deepseek-r1:7b',
+            auto_unload = false, -- Set to true to automatically unload the model when
+            -- exiting nvim.
+            prompt = function(prefix, suffix)
+                -- local retrieval_results = require("vectorcode").query(prefix .. " " .. suffix, {
+                --     n_query = 5,
+                -- })
+                local file_context = ""
+                -- for _, source in pairs(retrieval_results) do
+                --     -- This works for qwen2.5-coder.
+                --     file_context = file_context
+                --         .. "<|file_sep|>"
+                --         .. source.path
+                --         .. "\n"
+                --         .. source.document
+                --         .. "\n"
+                -- end
+                return file_context
+                    .. "<|fim_prefix|>"
+                    .. prefix
+                    .. "<|fim_suffix|>"
+                    .. suffix
+                    .. "<|fim_middle|>"
+            end
+        },
+        notify = true,
+        notify_callback = function(msg)
+            vim.notify(msg)
+        end,
+        run_on_every_keystroke = true,
+        ignored_file_types = {
+            -- default is not to ignore
+            -- uncomment to ignore in lua:
+            -- lua = true
+        },
+    })
 end
 
 return {
@@ -196,6 +255,7 @@ return {
             "dressing_nvim",
             "copilot_vim",
             "fidget_nvim",
+            "mcphub",
             {
                 "Davidyz/VectorCode",
                 dir = gen.vectorcode,
@@ -261,8 +321,106 @@ return {
                 mode = { "n", "v" },
                 desc = "generate code"
             },
-            { "<leader>aa", [[<cmd>CodeCompanionActions<CR>]],     mode = { "n", "v" }, desc = "AI Actions" },
-            { "<leader>at", [[<cmd>CodeCompanionChat Toggle<CR>]], desc = "AI Chat" },
+            { "<leader>aa", [[<cmd>CodeCompanionActions<CR>]], mode = { "n", "v" }, desc = "AI Actions" },
+            {
+                "<leader>at",
+                function()
+                    -- require("mcphub")
+                    vim.cmd [[CodeCompanionChat Toggle]]
+                end,
+                desc = "AI Chat"
+            },
         },
     },
+    {
+        "tzachar/cmp-ai",
+        name = "cmp_ai",
+        dir = gen.cmp_ai,
+        module = "cmp_ai",
+        lazy = true,
+        dependencies = {
+            "plenary_nvim",
+        },
+        config = config_cmp_ai
+    },
+    {
+        "Davidyz/VectorCode",
+        dir = gen.vectorcode,
+        name = "vectorcode",
+        module = "vectorcode",
+        enabled = found_vectorcode_command,
+        version = "*", -- optional, depending on whether you're on nightly or release
+        -- enabled = false,
+        dependencies = { "plenary_nvim" },
+        config = function()
+            vim.api.nvim_create_autocmd("LspAttach", {
+                callback = function()
+                    local bufnr = vim.api.nvim_get_current_buf()
+                    local cacher = require("vectorcode.config").get_cacher_backend()
+                    cacher.async_check("config", function()
+                        cacher.register_buffer(
+                            bufnr,
+                            {
+                                n_query = 10,
+                            }
+                        )
+                    end, nil)
+                end,
+                desc = "Register buffer for VectorCode",
+            })
+            require("vectorcode").setup({
+                async_opts = {
+                    debounce = 10,
+                    events = { "BufWritePost", "InsertEnter", "BufReadPost" },
+                    exclude_this = true,
+                    n_query = 5,
+                    notify = false,
+                    query_cb = require("vectorcode.utils").make_surrounding_lines_cb(-1),
+                    run_on_register = true,
+                },
+                async_backend = "lsp",
+                exclude_this = true,
+                n_query = 5,
+                notify = true,
+                timeout_ms = 32000,
+                on_setup = {
+                    update = false,
+                }
+            })
+        end
+    },
+    {
+        "ravitemer/mcphub.nvim",
+        name = "mcphub",
+        dir = gen.mcphub,
+        module = "mcphub",
+        dependencies = { "plenary_nvim" },
+        cmd = "MCPHub",
+        build = vim.fn.has("win32") == 1 and "npm install -g mcp-hub@latest",
+        keys = {
+            { "<leader>am", "<cmd>MCPHub<CR>", desc = "MCPHub" },
+        },
+        config = function()
+            local home = vim.loop.os_homedir()
+            local Path = require("plenary.path")
+            local mcpconfig = Path:new(home .. "/.config/mcphub/servers.json")
+            if not mcpconfig:exists() then
+                local mcpconfig_dir = Path:new(home .. "/.config/mcphub")
+                mcpconfig_dir:mkdir({ parents = true })
+                mcpconfig:write([[{"mcpServers":{}}]], "w")
+            end
+
+            require("mcphub").setup({
+                extensions = {
+                    codecompanion = {
+                        -- Show the mcp tool result in the chat buffer
+                        show_result_in_chat = true,
+                        make_vars = true,           -- make chat #variables from MCP server resources
+                        make_slash_commands = true, -- make /slash_commands from MCP server prompts
+                    },
+                },
+                cmd = gen.mcp_hub and gen.mcp_hub .. "/bin/mcp-hub",
+            })
+        end,
+    }
 }

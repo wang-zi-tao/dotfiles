@@ -1,11 +1,11 @@
+local Event = require("lazy.core.handler.event")
+
 local gen = gen
 local state = {}
 global = {}
 
-function global:toggle_term(number)
-    require("toggleterm")
-    self.toggleterm_nvim[number]:toggle()
-end
+Event.mappings.LazyFile = { id = "LazyFile", event = { "BufReadPost", "BufNewFile", "BufWritePre" } }
+Event.mappings["User LazyFile"] = Event.mappings.LazyFile
 
 vim.g.mapleader = " "
 require("lazy").setup({
@@ -19,7 +19,7 @@ require("lazy").setup({
 
     -- require("core.plugins.nvimtree"),
     require("core.plugins.neotree"),
-    require("core.plugins.symbols_outline_pre"),
+    -- require("core.plugins.symbols_outline_pre"),
     require("core.plugins.git"),
     -- require("core.plugins.vgit"),
     require("core.plugins.ai"),
@@ -36,6 +36,7 @@ require("lazy").setup({
     require("core.plugins.null_ls"),
     require("core.plugins.fold"),
     require("core.plugins.codeql"),
+    require("core.plugins.overseer"),
 
     {
         "nvim-lua/plenary.nvim",

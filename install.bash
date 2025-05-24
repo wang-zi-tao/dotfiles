@@ -17,6 +17,7 @@ if ! command -v nix &>/dev/null; then
 	else
 		command sh <(curl -L https://nixos.org/nix/install) --daemon
 	fi
+	export PATH=$HOME/.nix-profile/bin:$PATH
 fi
 
 script_dir=$(realpath "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)")
@@ -99,6 +100,11 @@ nixos)
 	sudo nix-env -p /nix/var/nix/profiles/system --set "$(readlink ./result)"
 	sudo ./result/bin/switch-to-configuration switch
 	;;
+nix-darwin)
+	profile=$1
+	shift
+    nix run "nix-darwin/nix-darwin-24.11#darwin-rebuild" -- switch --flake "$script_dir#$profile" "$@"
+    ;;
 nixos-wsl)
     set -xe
 	profile=$1

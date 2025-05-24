@@ -245,7 +245,7 @@ return {
         dir = gen.arrow_nvim,
         name = "arrow_nvim",
         module = "arrow",
-        event = "VeryLazy",
+        event = "LazyFile",
         config = function()
             require('arrow').setup({
                 show_icons = true,

@@ -14,7 +14,7 @@ return {
         dependencies = "friendly_snippets",
         lazy = true,
         config = function()
-            require("luasnip/loaders/from_vscode").load({ paths = paths, })
+            require("luasnip/loaders/from_vscode").lazy_load()
             local ls = require("luasnip")
             local s = ls.snippet
             local sn = ls.snippet_node
@@ -56,17 +56,13 @@ return {
                 s("class_connect", { i(1, "class"), t(" --> "), i(2, "class2"), t(" "), i(3), newline() }),
 
                 s("ts_call", {
-                    i(1, "class1"), t(" --> "), i(2, "class2"), t(" : "), i(3, "function"), t("("), i(4, ""), t({ ")", "" }),
-                    t("activate "), rep(2), newline(),
+                    i(1, "class1"), t(" --> "), i(2, "class2"), t(" ++ : "), i(3, "function"), t("("), i(4, ""), t({ ")", "" }),
                     t("\t"), newline(),
-                    rep(1), t(" <-- "), rep(2), t(" : return "), i(5, ""), newline(),
-                    t("deactivate "), rep(2), newline(),
+                    t("return "), newline(),
                 }),
                 s("ts_call_this", {
-                    i(1, "class1"), t(" --> "), i(2, "class2"), t(" : "), i(3, "function"), t("("), i(4, ""), t({ ")", "" }),
-                    t("activate "), rep(2), newline(),
+                    i(1, "class1"), t(" --> "), i(2, "class2"), t(" ++ : "), i(3, "function"), t("("), i(4, ""), t({ ")", "" }),
                     t("\t"), newline(),
-                    t("deactivate "), rep(2), newline(),
                 }),
                 s("ts_message", { i(1, "class"), t(" --> "), i(2, "class2"), t(" : "), i(3, "message"), newline() }),
                 s("ts_event", {
@@ -95,7 +91,6 @@ return {
                 }),
             })
 
-            require("luasnip.loaders.from_vscode").load({})
         end,
     },
 }
