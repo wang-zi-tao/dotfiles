@@ -123,7 +123,7 @@
 
       ".." = "cd ..";
 
-      podmanexec = "podman exec -w $PWD -ti wps_build_linux_v8_2_2_multi_arch";
+      podmanexec = "podman exec -e DISPLAY=$DISPLAY -w $PWD -ti wps_debug";
     };
     sessionVariables = config.home.sessionVariables // {
       _ZO_EXCLUDE_DIRS = "/nix";

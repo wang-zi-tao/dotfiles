@@ -126,6 +126,14 @@ local function config()
     }
 
     local ip_cache = "localhost:1234"
+    local getIp = function()
+        ip_cache = vim.fn.input("ip address to attach: ", ip_cache)
+        return ip_cache
+    end
+
+    local getPID = function()
+        return vim.fn.input("pid to attach: ")
+    end
 
     local path_cache
     local get_program = function()
@@ -240,6 +248,16 @@ local function config()
         vim.tbl_deep_extend("force", lldb_config, {
             name = "lldb attach",
             processId = require("dap.utils").pick_process,
+            -- stopOnEntry = true,
+        }),
+        vim.tbl_deep_extend("force", lldb_config, {
+            name = "lldb remote attach",
+            request = "attach",
+            processId = getPID,
+            connect = {
+                host = getIp,
+                port = 1234,
+            }
             -- stopOnEntry = true,
         }),
         vim.tbl_deep_extend("force", gdb_config, {
@@ -430,7 +448,7 @@ local function config()
         get_program = get_program,
         find_config = find_config,
         remove_config = remove_config,
-        override_config = function(override_config_name, language, name)
+        override_config = function(override_config_name, language, config)
             local override_config = find_config(override_config_name, language)
             remove_config(config.name, language)
             local new_config = vim.tbl_deep_extend("force", override_config, config)
