@@ -3,7 +3,7 @@
   programs.vscode = {
     enable = true;
     package = pkgs.unstable.vscode;
-    extensions = with pkgs.unstable.vscode-extensions; [
+    profiles.default.extensions = with pkgs.unstable.vscode-extensions; [
       # markdowm
       yzhang.markdown-all-in-one
       # sh

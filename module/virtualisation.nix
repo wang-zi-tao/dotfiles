@@ -216,7 +216,7 @@ with builtins;
         };
       };
     })
-    (lib.mkIf nodeConfig.NextCloudServer.enable {
+    (lib.mkIf nodeConfig.virtualisation.enable {
       virtualisation.oci-containers.containers.virtlyst = {
         image = "dantti/virtlyst";
         volumes = [
@@ -225,7 +225,7 @@ with builtins;
         ];
         ports = [ "9090:80" ];
       };
-      services.caddy = lib.optionalAttrs nodeConfig.NextCloudServer.enable {
+      services.caddy = lib.optionalAttrs nodeConfig.virtualisation.enable {
         enable = true;
         virtualHosts = {
           "https://${builtins.toString networkConfig.publicIp}:9093" = {

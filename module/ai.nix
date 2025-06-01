@@ -14,8 +14,7 @@ in
       host = "0.0.0.0";
       port = 11434;
       loadModels = [
-        "deepseek-r1:7b"
-        "deepseek-coder-v2:16b"
+        "deepseek-r1:8b"
       ];
       environmentVariables = {
         # HTTP_PROXY = "http://aliyun-hk.wg:8889";

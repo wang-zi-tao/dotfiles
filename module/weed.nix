@@ -91,6 +91,10 @@ let
   enabled = hasAttr hostname config.cluster.seaweedfs.edges;
   mkIfEnbled = mkIf enabled;
   pkg = pkgs.unstable.seaweedfs;
+  seaweedfs = config.cluster.seaweedfs.edges.${hostname};
+  wireguardCluster = config.cluster.wireguard.edges;
+  wireguardConfig = wireguardCluster.${hostname}.config;
+  weed = seaweedfs.config;
 in
 {
   options = {
@@ -108,13 +112,18 @@ in
     system.activationScripts.weed-self = mkIfEnbled ''
       ln -sfn /mnt/weed/mount/${hostname} /mnt/weed/mount/self
     '';
+    systemd.timers.seaweedfs-server-clean-log = lib.mkIf seaweedfs.config.server.enable {
+      enable = true;
+      description = "clean log";
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = "weakly";
+        OnBootSec = "5m";
+        OnUnitActiveSec = "5m";
+        Unit = "seaweedfs-server-clean-log.service";
+      };
+    };
     systemd.services = optionalAttrs enabled (
-      let
-        seaweedfs = config.cluster.seaweedfs.edges.${hostname};
-        wireguardCluster = config.cluster.wireguard.edges;
-        wireguardConfig = wireguardCluster.${hostname}.config;
-        weed = seaweedfs.config;
-      in
       listToAttrs (
         (optional seaweedfs.config.server.enable (
           nameValuePair "seaweedfs-server" {
@@ -159,17 +168,23 @@ in
             };
           }
         ))
-        # ++ (optional seaweedfs.config.server.enable
-        #   (nameValuePair "seaweedfs-server-clean-log"
-        #     {
-        #       enable = true;
-        #       description = "clean log";
-        #       Services = let script = pkgs.scripts."clean-seaweedfs-log.py"; in
-        #         {
-        #           Type = "oneshot";
-        #           ExecStart = "${script}";
-        #         };
-        #     }))
+        ++ (optional seaweedfs.config.server.enable (
+          nameValuePair "seaweedfs-server-clean-log" {
+            enable = true;
+            description = "clean log";
+            serviceConfig =
+              let
+                script = pkgs.writeScript "weed-server-clean-log" ''
+                  #!${pkgs.busybox}/bin/sh
+                  ${pkgs.busybox}/bin/echo "fs.log.purge -daysAgo 7 -v" | ${pkg}/bin/weed shell -master=localhost:301
+                '';
+              in
+              {
+                Type = "oneshot";
+                ExecStart = builtins.toString script;
+              };
+          }
+        ))
         ++ (optional seaweedfs.config.client.enable (
           nameValuePair "seaweedfs-mount-${hostname}" {
             enable = true;

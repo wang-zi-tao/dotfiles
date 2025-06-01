@@ -125,51 +125,8 @@ local function config()
         },
     }
 
-    local ip_cache = "localhost:1234"
-
-    local path_cache
-    local get_program = function()
-        path_cache = vim.fn.input("Path to executable: ", path_cache, "file")
-        return path_cache
-        -- return util.pick_file({
-        --     no_ignore = true,
-        --     prompt = "Path to executable: ",
-        -- })
-    end
-
-    local get_coredmp = function()
-        -- codedump_cache = vim.fn.input("Path to coredump: ", codedump_cache, "file")
-        -- return codedump_cache
-        return util.pick_file({
-            no_ignore = true,
-            prompt = "Path to coredump: ",
-        })
-    end
-
-    local find_config = function(name, language)
-        local configs = dap.configurations[language]
-        for _, config in ipairs(configs) do
-            if config.name == name then
-                return config
-            end
-        end
-        return nil
-    end
-
-    local remove_config = function(name, language)
-        local configs = dap.configurations[language]
-        for i, config in ipairs(configs) do
-            if config.name == name then
-                table.remove(configs, i)
-                return true
-            end
-        end
-        return false
-    end
-
-    local get_args = function()
-        return util.cached()
-    end
+    local get_program = util.get_program
+    local get_coredmp = util.get_coredmp
 
     local vsdbg_config = {
         type = "cppvsdbg",
@@ -419,31 +376,6 @@ local function config()
         },
     }
     dap.configurations.typescript = dap.configurations.javascript
-
-    ---@class DapTools
-
-    dap.tools = {
-        lldb_config = lldb_config,
-        gdb_config = gdb_config,
-        vsdbg_config = vsdbg_config,
-        get_coredmp = get_coredmp,
-        get_program = get_program,
-        find_config = find_config,
-        remove_config = remove_config,
-        override_config = function(override_config_name, language, name)
-            local override_config = find_config(override_config_name, language)
-            remove_config(config.name, language)
-            local new_config = vim.tbl_deep_extend("force", override_config, config)
-
-            if override_config == nil then
-                vim.notify("No such debug config: " .. override_config_name, vim.log.levels.ERROR)
-                return
-            end
-
-            remove_config(config.name, language)
-            table.insert(dap.configurations[language], new_config)
-        end
-    }
 end
 
 return {

@@ -39,10 +39,4 @@
       '';
     };
   };
-  environment.systemPackages = with pkgs; [
-    bcache-tools
-    bcachefs-tools
-    duperemove
-    btrfs-progs
-  ];
 }

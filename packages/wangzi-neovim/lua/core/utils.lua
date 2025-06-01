@@ -207,6 +207,10 @@ function M.get_selection()
     ), '\n')
 end
 
+---@param key string
+---@param prompt string
+---@param default string
+---@param completion string
 function M.cached_input_sync(key, prompt, default, completion)
     local co = coroutine.running()
     vim.schedule(function()
@@ -217,7 +221,7 @@ function M.cached_input_sync(key, prompt, default, completion)
     return coroutine.yield()
 end
 
----@param key string
+---@param opt table
 function M.pick_file(opt)
     local actions = require "telescope.actions"
     local action_state = require "telescope.actions.state"
@@ -274,16 +278,71 @@ end
 M.pwd = vim.fn.getcwd()
 
 vim.api.nvim_create_autocmd("DirChanged", {
-	pattern = "*",
-	callback = function()
-		M.pwd = vim.fn.getcwd()
-	end,
+    pattern = "*",
+    callback = function()
+        M.pwd = vim.fn.getcwd()
+    end,
 })
 
 M.toggleterm_nvim = {}
 function M.toggle_term(number)
     require("toggleterm")
     M.toggleterm_nvim[number]:toggle()
+end
+
+M.get_coredmp = function()
+    return M.cached_input_sync("coredump_path", "Path to coredump: ", "", "file")
+    -- return M.pick_file({
+    --     no_ignore = true,
+    --     prompt = "Path to coredump: ",
+    -- })
+end
+
+local path_cache
+M.get_program = function()
+    return M.cached_input_sync("program_path", "Path to executable: ", "", "file")
+    -- return util.pick_file({
+    --     no_ignore = true,
+    --     prompt = "Path to executable: ",
+    -- })
+end
+
+M.find_dap_config = function(name, language)
+    local dap = require("dap")
+    local configs = dap.configurations[language] or {}
+    for _, config in ipairs(configs) do
+        if config.name == name then
+            return config
+        end
+    end
+    return nil
+end
+
+M.remove_dap_config = function(name, language)
+    local dap = require("dap")
+    local configs = dap.configurations[language]
+    for i, config in ipairs(configs) do
+        if config.name == name then
+            table.remove(configs, i)
+            return true
+        end
+    end
+    return false
+end
+
+M.override_dap_config = function(override_config_name, language, config)
+    local dap = require("dap")
+    local override_config = M.find_dap_config(override_config_name, language)
+    M.remove_dap_config(config.name, language)
+    local new_config = vim.tbl_deep_extend("force", override_config, config)
+
+    if override_config == nil then
+        vim.notify("No such debug config: " .. override_config_name, vim.log.levels.ERROR)
+        return
+    end
+
+    M.remove_dap_config(config.name, language)
+    table.insert(dap.configurations[language], new_config)
 end
 
 return M

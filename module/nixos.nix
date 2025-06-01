@@ -81,7 +81,7 @@ in
               ];
               sshUser = "root";
               protocol = "ssh";
-              maxJobs = 8;
+              maxJobs = 16;
               supportedFeatures = [
                 "nixos-test"
                 "benchmark"
@@ -152,10 +152,10 @@ in
         ) config.lazyPackage);
 
       services.nixfs.enable = true;
+      services.swapspace.enable = true;
     }
     (lib.mkIf nodeConfig.guiClient.enable {
       hardware = {
-        opengl.enable = true;
         enableRedistributableFirmware = true;
         enableAllFirmware = true;
         graphics = {

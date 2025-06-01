@@ -1,9 +1,10 @@
 local dap = require("dap")
 local overseer = require("overseer")
+local util = require("core.utils")
 
-dap.tools.override_config("lldb launch", "cpp", {
+util.override_dap_config("lldb launch", "cpp", {
     name = "lldb launch with arg",
-    program = dap.tools.get_program,
+    program = util.get_program,
     programArgs = {},
 })
 
@@ -52,7 +53,7 @@ overseer.register_template({
         dir = "/home/user/my_project",
         -- Arbitrary logic for determining if task is available
         callback = function(search)
-            print(vim.inspect(search))
+            vim.print(vim.inspect(search))
             return true
         end,
     },

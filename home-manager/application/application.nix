@@ -19,7 +19,7 @@
     figma-linux
     vlc
     obs-studio
-    kdenlive
+    kdePackages.kdenlive
     mpd
     brightnessctl
     pamixer
@@ -65,7 +65,7 @@
       glib
       gtk4
       gtk3.debug
-      gnome2.pango
+      pango
       gdk-pixbuf
       xorg.libX11
       cairo
@@ -90,7 +90,6 @@
       qq
 
       # libreoffice
-      libsForQt5.kdeconnect-kde
       # gimp
       # slack
       # inkscape

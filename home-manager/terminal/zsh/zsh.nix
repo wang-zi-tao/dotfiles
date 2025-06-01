@@ -128,13 +128,7 @@
     sessionVariables = config.home.sessionVariables // {
       _ZO_EXCLUDE_DIRS = "/nix";
     };
-    initExtraFirst = ''
-      if [[ -r "$HOME/.cache/p10k-instant-prompt-${config.home.username}.zsh" ]]; then
-        source "$HOME/.cache/p10k-instant-prompt-${config.home.username}.zsh"
-      fi
-      source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
-    '';
-    initExtra =
+    initContent =
       builtins.readFile ./p10k.zsh
       + builtins.readFile ./zshrc.zsh
       + ''
@@ -145,6 +139,11 @@
         if [[ -e /run/secrets-for-users/atuin-key ]];then
             nohup atuin login -u wangzi -p 03hat0zw0oEH7nipcKB6JqLpxptl7DdV -k $(cat /run/secrets-for-users/atuin-key) > /dev/null 2> /dev/null
         fi
+
+        if [[ -r "$HOME/.cache/p10k-instant-prompt-${config.home.username}.zsh" ]]; then
+            source "$HOME/.cache/p10k-instant-prompt-${config.home.username}.zsh"
+        fi
+        source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
       '';
   };
   programs.nushell =

@@ -7,7 +7,7 @@
 {
   config = lib.mkMerge [
     (lib.mkIf config.cluster.nodeConfig.guiClient.enable {
-      programs.ssh.askPassword = "${pkgs.gnome.seahorse}/libexec/seahorse/ssh-askpass";
+      programs.ssh.askPassword = "${pkgs.seahorse}/libexec/seahorse/ssh-askpass";
       services = {
         xserver = {
           enable = true;

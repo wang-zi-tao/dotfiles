@@ -33,6 +33,7 @@ sudo() {
 nix() {
 	nixversion=$(command nix --version)
 	nixversion="${nixversion:12:2}"
+	export NIX_SSHOPTS="-o ControlMaster=no"
 	if [[ $nixversion -lt 4 ]]; then
 		command nix-shell -p nixFlakes --command "nix --experimental-features 'nix-command flakes' $*"
 	else

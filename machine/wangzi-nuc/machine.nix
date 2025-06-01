@@ -37,7 +37,7 @@ in nixpkgs.lib.nixosSystem {
         gobject-introspection
       ];
       services.ollama.acceleration = "rocm";
-      hardware.opengl.extraPackages = with pkgs; [ rocmPackages.clr.icd ];
+      hardware.graphics.extraPackages = with pkgs; [ rocmPackages.clr.icd ];
 
       vm = {
         guest-reserved = 1600;

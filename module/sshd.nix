@@ -25,6 +25,7 @@ in
       authorizedKeysFiles = lib.optional sops-enable config.sops.secrets.ssh-public-keys.path;
       extraConfig = ''
         TCPKeepAlive yes
+        MaxStartups 500:30:1000
         AuthorizedKeysFile %h/.ssh/authorized_keys %h/.ssh/authorized_keys2 /etc/ssh/authorized_keys.d/%u ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
 
         Match User *

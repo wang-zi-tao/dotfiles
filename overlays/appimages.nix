@@ -1,7 +1,8 @@
 pkgs: prev: {
 
   qq = pkgs.appimageTools.wrapType2 rec {
-    name = "qq";
+    pname = "qq";
+    version = "3.2.16";
     src = pkgs.fetchurl {
       url = "https://dldir1.qq.com/qqfile/qq/QQNT/Linux/QQ_3.2.16_250401_x86_64_01.AppImage";
       sha256 = "sha256-M++enPKnFXYxnHjkkHf/0/2xYVvM1VAG8WZeScnLxuU=";

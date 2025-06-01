@@ -13,11 +13,12 @@ in
     environment.systemPackages = [ config.services.nextcloud.occ ];
     services.nextcloud = {
       enable = true;
-      package = pkgs.nextcloud29;
+      package = pkgs.nextcloud30;
       hostName = networkConfig.publicIp;
       caching.redis = true;
       appstoreEnable = true;
       enableImagemagick = true;
+      config.dbtype = "sqlite";
       config.adminuser = "wang-zi-tao";
       config.adminpassFile = config.sops.secrets."nextcloud/admin_password".path;
       autoUpdateApps.enable = true;

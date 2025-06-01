@@ -1,10 +1,10 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
-    nixpkgs-old.url = "github:nixos/nixpkgs/release-24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs-old.url = "github:nixos/nixpkgs/release-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     master.url = "github:nixos/nixpkgs";
-    home-manager.url = "github:nix-community/home-manager/release-24.11";
+    home-manager.url = "github:nix-community/home-manager/release-25.05";
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
@@ -126,9 +126,9 @@
                     flake-inputs = inputs;
                     eza = eza.packages.${system}.default;
                     atuin = unstable.atuin;
-                    scripts = map (f: prev.writeScriptBin f (readFile (./scripts + "/${f}"))) (
-                      attrNames (readDir ./scripts)
-                    );
+                    scripts = builtins.mapAttrs (
+                      name: kind: prev.writeScriptBin name (readFile (./scripts + "/${name}"))
+                    ) (readDir ./scripts);
                   }
                   // (listToAttrs (
                     map (name: {
@@ -167,11 +167,14 @@
           ];
         };
         apps.deploy-rs = deploy-rs.defaultApp.${system};
-        vars = {
-          inherit pkgs inputs;
-          inherit (pkgs) lib unstable nur;
-          outputs = self;
-        } // inputs // self;
+        vars =
+          {
+            inherit pkgs inputs;
+            inherit (pkgs) lib unstable nur;
+            outputs = self;
+          }
+          // inputs
+          // self;
         packages = packages pkgs pkgs;
         homeConfigurations = builtins.mapAttrs (
           name: value:
@@ -241,7 +244,7 @@
             "aliyun-ecs" = {
               magicRollback = true;
             };
-            # "huawei-ecs" 
+            # "huawei-ecs"
           };
     };
 }
