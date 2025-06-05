@@ -126,36 +126,27 @@ with builtins;
       virtualisation.libvirt.connections."qemu:///session" = {
         networks = [
           {
-            definition = lib.network.getXML {
-              name = "default";
-              uuid = "1af25fd8-af0b-11ef-8569-efcee4ef42f5";
-              dns.enable = "no";
-              forward = {
-                mode = "nat";
-                nat = {
-                  port = {
-                    start = 1024;
-                    end = 65535;
-                  };
-                };
-              };
-              bridge = {
-                name = "virbr0";
-              };
-              mac = {
-                address = "52:54:00:02:77:4b";
-              };
-              ip = {
-                address = "192.168.32.1";
-                netmask = "255.255.255.0";
-                dhcp = {
-                  range = {
-                    start = "192.168.32.2";
-                    end = "192.168.32.254";
-                  };
-                };
-              };
-            };
+            definition = ''
+              <network>
+                <name>default</name>
+                <bridge name='virbr0'/>
+                <forward/>
+                <ip address='192.168.122.1' netmask='255.255.255.0'>
+                  <dhcp>
+                    <range start='192.168.122.2' end='192.168.122.254'/>
+                  </dhcp>
+                </ip>
+                <ip family="ipv6" address="2001:db8:ca2:2::1" prefix="64">
+                <dhcp>
+                    <host name="paul" ip="2001:db8:ca2:2:3::1"/>
+                    <host id="0:1:0:1:18:aa:62:fe:0:16:3e:44:55:66" ip="2001:db8:ca2:2:3::2"/>
+                    <host id="0:3:0:1:0:16:3e:11:22:33" name="ralph" ip="2001:db8:ca2:2:3::3"/>
+                    <host id="0:4:7e:7d:f0:7d:a8:bc:c5:d2:13:32:11:ed:16:ea:84:63"
+                        name="badbob" ip="2001:db8:ca2:2:3::4"/>
+                </dhcp>
+                </ip>
+              </network>
+            '';
             active = true;
           }
         ];

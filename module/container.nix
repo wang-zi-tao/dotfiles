@@ -4,6 +4,12 @@
   lib,
   ...
 }:
+let
+  hostname = config.networking.hostName;
+  nodeList = builtins.attrValues config.cluster.nodes;
+  wireguardCluster = config.cluster.wireguard.edges;
+  inherit (config.cluster) nodeConfig;
+in
 {
   config = lib.mkIf config.cluster.nodeConfig.container.enable {
     environment.etc."docker/daemon.json".text = ''
@@ -28,25 +34,91 @@
     };
     programs.criu.enable = true;
     lazyPackage = with pkgs; [ criu ];
-    # systemd.services.k3s = {
-    #   enable = false;
-    #   description = "k3s.wangzicloud.cn";
-    #   wantedBy = [ "multi-user.target" ];
-    #   path = [
-    #     pkgs.wireguard-tools
-    #     pkgs.busybox
-    #     pkgs.bash
-    #     (pkgs.writeScriptBin "wg-add.sh" ./scripts/wg-add.sh)
-    #   ];
-    #   serviceConfig = {
-    #     Type = "simple";
-    #     Restart = "always";
-    #     RestartSec = "2s";
-    #     wants = [ "network-online.target" ];
-    #     after = [ "network-online.target" ];
-    #     ExecStart =
-    #       "${pkgs.k3s}/bin/k3s agent --node-taint mobile=true:NoSchedule --server https://116.62.23.116:6443 --token 'K1080728ddd8df3515ba3f9be378dbe1ff69f3a22f3d88bf3a67726e7885d53bf63::server:6608812d75e0de2af2fcfdb925a5f3f5' ";
-    #   };
-    # };
+
+    environment.systemPackages =
+      with pkgs;
+      lib.mkIf nodeConfig.k3s.enable [
+        k3s
+      ];
+    sops.secrets."k3s-token" = {
+      mode = "0500";
+      restartUnits = [ "k3s" ];
+      sopsFile = config.cluster.ssh.publicKeySops;
+    };
+    environment.etc."rancher/k3s/registries.yaml".text = ''
+      mirrors:
+        "*":
+          endpoint:
+            - "https://registry.cn-hangzhou.aliyuncs.com"
+    '';
+    systemd.services.k3s = lib.mkIf nodeConfig.k3s.enable {
+      enable = true;
+      wantedBy = [ "multi-user.target" ];
+      path = [
+        pkgs.wireguard-tools
+        pkgs.busybox
+        pkgs.bash
+        pkgs.scripts."wg-add.sh"
+      ];
+      script =
+        let
+          clusterIp = wireguardCluster.${hostname}.config.clusterIp;
+          servers = lib.optionalString (nodeConfig.k3s.kind == "agent") (
+            builtins.concatStringsSep " " (
+              builtins.map (node: "--server https://${wireguardCluster.${node.hostname}.config.clusterIp}:6443") (
+                builtins.filter (node: node.k3s.enable && node.k3s.kind == "server") nodeList
+              )
+            )
+          );
+          node-taint = lib.optionalString (
+            nodeConfig.k3s.taint != null
+          ) "--node-taint ${nodeConfig.k3s.taint}";
+          commonArgs = ''
+            ${node-taint} \
+            --node-external-ip ${clusterIp} \
+            --bind-address ${clusterIp} \
+            --token-file ${config.sops.secrets."k3s-token".path}
+          '';
+        in
+        if nodeConfig.k3s.kind == "server" then
+          ''
+            ${pkgs.k3s}/bin/k3s server \
+                      --flannel-backend=wireguard-native \
+                      --write-kubeconfig /etc/rancher/k3s/k3s.yaml \
+                      --system-default-registry "registry.cn-hangzhou.aliyuncs.com" \
+                      ${commonArgs}
+          ''
+        else
+          ''
+            ${pkgs.k3s}/bin/k3s agent \
+                      ${servers} \
+                      ${commonArgs}
+          '';
+      serviceConfig = {
+        Type = "simple";
+        Restart = "always";
+        RestartSec = "2s";
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ];
+        ExecStartPre = "${pkgs.busybox}/bin/mkdir -p /var/lib/rancher/k3s/server/tls";
+      };
+      unitConfig = {
+        RequiresMountsFor = "/etc/rancher/k3s/registries.yaml";
+      };
+    };
+    security.pki.certificates = lib.mkIf nodeConfig.k3s.enable [
+      ''
+        -----BEGIN CERTIFICATE-----
+        MIIBeDCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3Mtc2Vy
+        dmVyLWNhQDE3NDkwNTM4NjIwHhcNMjUwNjA0MTYxNzQyWhcNMzUwNjAyMTYxNzQy
+        WjAjMSEwHwYDVQQDDBhrM3Mtc2VydmVyLWNhQDE3NDkwNTM4NjIwWTATBgcqhkjO
+        PQIBBggqhkjOPQMBBwNCAASON7ssdHOlf5W57Xp7wFDnK3uQ/M05qJ7BTKzQyPBx
+        +e10MrMGNVrb7II9phTfLo/4vZa/Mr4BtX7+rwdERLt/o0IwQDAOBgNVHQ8BAf8E
+        BAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU9oyZZ3hAwTDynprbAy9C
+        AO8sC78wCgYIKoZIzj0EAwIDSQAwRgIhAPEf2ENoNJB4tMdHuHNCwbTnkiSmVC3a
+        m58Yft3WkxQfAiEAsLBwcRLpTrwMOV66vxcMhmU5tiETNUBSKWHpxABo9D4=
+        -----END CERTIFICATE-----
+      ''
+    ];
   };
 }

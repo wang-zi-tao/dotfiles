@@ -308,6 +308,7 @@ M.get_program = function()
 end
 
 M.find_dap_config = function(name, language)
+    require("lazy").load({ "dap" })
     local dap = require("dap")
     local configs = dap.configurations[language] or {}
     for _, config in ipairs(configs) do
@@ -319,6 +320,7 @@ M.find_dap_config = function(name, language)
 end
 
 M.remove_dap_config = function(name, language)
+    require("lazy").load({ "dap" })
     local dap = require("dap")
     local configs = dap.configurations[language]
     for i, config in ipairs(configs) do
@@ -331,6 +333,7 @@ M.remove_dap_config = function(name, language)
 end
 
 M.override_dap_config = function(override_config_name, language, config)
+    require("lazy").load({ "dap" })
     local dap = require("dap")
     local override_config = M.find_dap_config(override_config_name, language)
     M.remove_dap_config(config.name, language)

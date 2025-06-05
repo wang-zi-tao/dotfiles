@@ -9,6 +9,22 @@
   config = {
     virtualisation.libvirt.swtpm.enable = true;
     virtualisation.libvirt.connections."qemu:///session" = {
+      networks = lib.mkForce [
+        {
+          definition = ''
+            <network>
+              <name>default</name>
+              <bridge name='virbr0'/>
+              <forward/>
+              <ip address='192.168.122.1' netmask='255.255.255.0'>
+              </ip>
+              <ip family="ipv6" address="2001:db8:ca2:2::1" prefix="64">
+              </ip>
+            </network>
+          '';
+          active = true;
+        }
+      ];
       domains = [
         {
           definition = NixVirt.lib.domain.writeXML (

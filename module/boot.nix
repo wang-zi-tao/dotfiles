@@ -75,7 +75,7 @@
       enableNotifications = true;
       extraArgs = [
         "-g"
-        "--prefer '(^|/)(chromium|nvim|clang|clang++|cargo|rustc|ghc|rust-analyzer|.haskell-language-server-.*)$'"
+        # "--prefer '(^|/)(chromium|nvim|clang|clang++|cargo|rustc|ghc|rust-analyzer|.haskell-language-server-.*)$'"
       ];
     };
     systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {

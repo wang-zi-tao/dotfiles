@@ -135,6 +135,20 @@ with builtins; {
                 default = false;
               };
             };
+            k3s = {
+                enable = mkOption {
+                    type = bool;
+                    default = false;
+                };
+                kind = mkOption {
+                    type = str;
+                    default = "agent";
+                };
+                taint = mkOption {
+                  type = nullOr str;
+                  default = null;
+                };
+            };
           };
         }));
       };
@@ -250,13 +264,13 @@ with builtins; {
       keys.wireguard.sharedKeySops = ../secrets/public-key.yaml;
       seaweedfs = {
         nodes = {
-          wangzi-pc.config = { client.size = 32 * 1024; };
+          wangzi-pc.config = { client.size = 4 * 1024; };
           wangzi-pc.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
           wangzi-pc.to.wangzi-nuc = {
             mountDirs = {
               "wangzi-nuc" = {
                 # ip = "192.168.32.1";
-                cacheSize = 32 * 1024;
+                cacheSize = 4096;
               };
             };
             syncDirs = { "wangzi" = { }; };
@@ -302,6 +316,7 @@ with builtins; {
           virtualisation.enable = true;
           buildNode.enable = true;
           ollama.enable = true;
+          k3s.enable = true;
         };
         server_config = { container.enable = true; };
       in {
@@ -333,6 +348,9 @@ with builtins; {
           atuin.enable = true;
           cockpitServer.enable = true;
           prometheus.server = true;
+          k3s.enable = true;
+          k3s.kind = "server";
+          k3s.taint = "master:NoSchedule";
           inVM = true;
         };
         aliyun-ecs = server_config // {
