@@ -285,11 +285,11 @@ return {
                     {
                         title = "Neo-Tree",
                         ft = "neo-tree",
+                        size = { height = 0.3 },
+                        collapsed = true,
                         filter = function(buf, win)
                             return vim.b[buf].neo_tree_source == "filesystem" and not isFloadWindow(win)
                         end,
-                        size = { height = 0.3 },
-                        -- collapsed = true, -- show window as closed/collapsed on start
                     },
                     {
                         title = "Neo-Tree Git",
@@ -297,7 +297,7 @@ return {
                         filter = function(buf, win)
                             return vim.b[buf].neo_tree_source == "git_status" and not isFloadWindow(win)
                         end,
-                        open = "Neotree position=right git_status",
+                        open = "Neotree position=left git_status",
                     },
                     {
                         title = "Neo-Tree Buffers",
@@ -305,15 +305,27 @@ return {
                         filter = function(buf, win)
                             return vim.b[buf].neo_tree_source == "buffers" and not isFloadWindow(win)
                         end,
-                        open = "Neotree position=top buffers",
+                        open = "Neotree position=left buffers",
                     },
                     {
                         ft = "trouble",
-                        title = "Trouble",
+                        title = "Trouble LSP",
+                        pinned = true,
                         filter = function(buf, win)
                             local trouble = vim.w[win].trouble
-                            return trouble and trouble.position == "left"
+                            return trouble and trouble.mode == "lsp"
                         end,
+                        open = "Trouble lsp win.position=left",
+                    },
+                    {
+                        ft = "trouble",
+                        title = "Trouble Outline",
+                        pinned = true,
+                        filter = function(buf, win)
+                            local trouble = vim.w[win].trouble
+                            return trouble and trouble.mode == "lsp_document_symbols"
+                        end,
+                        open = "Trouble lsp_document_symbols win.position=left",
                     },
                 },
                 right = {
@@ -326,22 +338,6 @@ return {
                         end,
                         title = "AI",
                         size = { width = 0.25 },
-                    },
-                    {
-                        ft = "trouble",
-                        title = "Trouble Outline",
-                        size = { height = 0.5 },
-                        filter = function(buf, win)
-                            local trouble = vim.w[win].trouble
-                            return trouble and trouble.position == "right"
-                        end,
-                        open = function()
-                            require("trouble").open({
-                                mode = "lsp_document_symbols",
-                                open_no_results = true,
-                                win = { position = "right" }
-                            })
-                        end,
                     },
                 },
                 bottom = {
@@ -356,6 +352,16 @@ return {
                 },
             })
         end,
+        keys = {
+            {
+                "<leader>ww",
+                function()
+                    require("edgy").toggle("left")
+                end,
+                mode = "n",
+                desc = "next tab",
+            },
+        },
     },
     {
         "goolord/alpha-nvim",

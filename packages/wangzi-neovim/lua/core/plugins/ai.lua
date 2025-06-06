@@ -326,7 +326,7 @@ return {
                 "<leader>at",
                 function()
                     -- require("mcphub")
-                    vim.cmd [[CodeCompanionChat Toggle]]
+                    vim.cmd [[CodeCompanionChat]]
                 end,
                 desc = "AI Chat"
             },
