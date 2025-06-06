@@ -1,10 +1,10 @@
 { lib, stdenv, fetchurl, autoPatchelfHook, dpkg, wrapGAppsHook, libsForQt5, xorg
-, alsa-lib, atk, bzip2, cairo, cups, dbus, expat, rigsofrods-bin, mesa
+, alsa-lib, atk, bzip2, cairo, cups, dbus, expat, mesa
 , fontconfig, freetype, gdk-pixbuf, glib, gperftools, gtk2-x11, libICE, libpng12
 , libSM, libtool, libuuid, libX11, libxcb, libXcomposite, libXcursor, libXdamage
 , libXext, libXfixes, libXi, libxml2, libXrandr, libXrender, libXScrnSaver
 , libXtst, nspr, nss, curl, pango, sqlite, unixODBC, xz, zlib, libcxx
-, nixpkgs-old, steam, libusb1, SDL2 }:
+, libusb1, SDL2, libudev-zero }:
 stdenv.mkDerivation rec {
   pname = "wpsoffice";
   version = "12.1.0.17900";
@@ -104,14 +104,12 @@ stdenv.mkDerivation rec {
     libusb1
     libcxx
     SDL2
+    libudev-zero
   ];
-  libPath = with xorg; lib.makeLibraryPath (buildInputs ++ [ ]);
 
   buildPhase = ''
     dpkg -x $src .
   '';
-
-  steam-run = (steam.override { extraPkgs = p: buildInputs; }).run;
 
   installPhase = ''
     prefix=$out/opt/kingsoft/wps-office
@@ -123,20 +121,12 @@ stdenv.mkDerivation rec {
         rm -v "$prefix/office6/lib$lib"*.so{,.*}
       done
       chmod +x $prefix/office6/lib*.so{,.*}
+      patchelf \
+        --force-rpath --add-needed libudev.so.1 \
+        $prefix/office6/addons/cef/libcef.so
       for i in wps wpp et wpspdf; do
-        # patchelf \
-        #   --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-        #   --force-rpath --set-rpath "${stdenv.cc.cc.lib}/lib64:${libPath}:$(patchelf --print-rpath $prefix/office6/$i)" \
-        #   --ignore-missing="${lib.strings.concatStringsSep "" autoPatchelfIgnoreMissingDeps}" \
-        #   $prefix/office6/$i
         substituteInPlace $out/bin/$i \
           --replace /opt/kingsoft/wps-office $prefix
-      done
-      for i in wps wpp et wpspdf; do
-      mv $out/bin/$i $out/bin/.$i-orig
-      makeWrapper ${steam-run}/bin/steam-run $out/bin/$i \
-        --add-flags $out/bin/.$i-orig \
-        --argv0 $i
       done
       for i in $out/share/applications/*;do
         substituteInPlace $i \

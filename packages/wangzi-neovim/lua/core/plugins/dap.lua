@@ -199,6 +199,16 @@ local function config()
             processId = util.pick_process,
             -- stopOnEntry = true,
         }),
+        vim.tbl_deep_extend("force", lldb_config, {
+            name = "lldb remote attach",
+            request = "attach",
+            processId = getPID,
+            connect = {
+                host = getIp,
+                port = 1234,
+            }
+            -- stopOnEntry = true,
+        }),
         vim.tbl_deep_extend("force", gdb_config, {
             name = "gdb launch",
             request = "launch",
