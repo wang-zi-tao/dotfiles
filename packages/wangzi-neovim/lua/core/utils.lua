@@ -298,7 +298,6 @@ M.get_coredmp = function()
     -- })
 end
 
-local path_cache
 M.get_program = function()
     return M.cached_input_sync("program_path", "Path to executable: ", "", "file")
     -- return util.pick_file({
@@ -307,8 +306,15 @@ M.get_program = function()
     -- })
 end
 
+M.get_debug_ip = function()
+    return M.cached_input_sync("debug_ip", "ip: ", "", "")
+    -- return util.pick_file({
+    --     no_ignore = true,
+    --     prompt = "Path to executable: ",
+    -- })
+end
+
 M.find_dap_config = function(name, language)
-    require("lazy").load({ "dap" })
     local dap = require("dap")
     local configs = dap.configurations[language] or {}
     for _, config in ipairs(configs) do
@@ -320,7 +326,6 @@ M.find_dap_config = function(name, language)
 end
 
 M.remove_dap_config = function(name, language)
-    require("lazy").load({ "dap" })
     local dap = require("dap")
     local configs = dap.configurations[language]
     for i, config in ipairs(configs) do
@@ -333,9 +338,9 @@ M.remove_dap_config = function(name, language)
 end
 
 M.override_dap_config = function(override_config_name, language, config)
-    require("lazy").load({ "dap" })
+    vim.cmd [[Lazy load dap]]
     local dap = require("dap")
-    local override_config = M.find_dap_config(override_config_name, language)
+    local override_config = M.find_dap_config(override_config_name, language) or {}
     M.remove_dap_config(config.name, language)
     local new_config = vim.tbl_deep_extend("force", override_config, config)
 
@@ -346,6 +351,19 @@ M.override_dap_config = function(override_config_name, language, config)
 
     M.remove_dap_config(config.name, language)
     table.insert(dap.configurations[language], new_config)
+end
+
+function M.load_nvim_lua_file(dir)
+    local nvim_lua = dir .. "/.nvim.lua"
+    if vim.fn.filereadable(nvim_lua) == 1 then
+        vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+            pattern = nvim_lua,
+            callback = function()
+                dofile(nvim_lua)
+            end,
+        })
+        dofile(nvim_lua)
+    end
 end
 
 return M

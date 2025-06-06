@@ -44,6 +44,8 @@ opt.termguicolors = true
 opt.undofile = true
 opt.updatetime = 250
 opt.whichwrap:append("<>[]hl")
+opt.exrc = true
+opt.secure = true
 
 opt.tabstop = 4
 opt.softtabstop = -1
@@ -107,6 +109,13 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
         opt.autoindent = true
         opt.expandtab = false
         -- vim.cmd [[set bomb]]
+    end,
+})
+
+vim.api.nvim_create_autocmd("DirChanged", {
+    pattern = "*",
+    callback = function()
+        require("core.utils").load_nvim_lua_file(vim.fn.getcwd())
     end,
 })
 

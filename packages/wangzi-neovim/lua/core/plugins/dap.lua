@@ -64,7 +64,7 @@ local function config()
         if Path:new(file):exists() then
             return file
         end
-        return nul
+        return nil
     end
 
     local function vsdbg_send_payload(client, payload)
@@ -196,7 +196,7 @@ local function config()
         }),
         vim.tbl_deep_extend("force", lldb_config, {
             name = "lldb attach",
-            processId = require("dap.utils").pick_process,
+            processId = util.pick_process,
             -- stopOnEntry = true,
         }),
         vim.tbl_deep_extend("force", gdb_config, {
@@ -207,17 +207,14 @@ local function config()
         vim.tbl_deep_extend("force", gdb_config, {
             name = "gdb attach",
             program = get_program,
-            processId = require("dap.utils").pick_process,
+            processId = util.pick_process,
         }),
         {
             name = "Attach to gdbserver :1234",
             type = "cppdbg",
             request = "launch",
             MIMode = "gdb",
-            miDebuggerServerAddress = function()
-                ip_cache = vim.fn.input("ip address to attach: ", ip_cache)
-                return ip_cache
-            end,
+            miDebuggerServerAddress = util.get_debug_ip,
             cwd = "${workspaceFolder}",
             program = get_program,
         },
@@ -243,7 +240,7 @@ local function config()
         vim.tbl_deep_extend("force", vsdbg_config, {
             name = "vsdbg attach",
             request = "attach",
-            processId = require("dap.utils").pick_process,
+            processId = util.pick_process,
         }),
     }
     dap.adapters.cppdbg = {
@@ -383,7 +380,6 @@ return {
     dir = gen.dap,
     name = "dap",
     module = "dap",
-    lazy = true,
     config = config,
     init = function()
         require("which-key").add({

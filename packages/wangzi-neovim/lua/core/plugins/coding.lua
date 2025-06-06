@@ -94,6 +94,8 @@
                 vim.defer_fn(save, save_time)
             end
             vim.defer_fn(save, save_time)
+
+            require("core.utils").load_nvim_lua_file(vim.fn.getcwd())
         end,
     },
     {

@@ -353,14 +353,6 @@ return {
                             return trouble and trouble.position == "bottom"
                         end,
                     },
-                    {
-                        ft = "qf",
-                        title = "TrailBlazer",
-                        size = {},
-                        open = function()
-                            require("trailblazer").toggle_trail_mark_list()
-                        end,
-                    },
                 },
             })
         end,
