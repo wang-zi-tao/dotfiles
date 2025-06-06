@@ -41,6 +41,7 @@
       url = "https://flakehub.com/f/AshleyYakeley/NixVirt/*.tar.gz";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    kubenix.url = "github:hall/kubenix";
   };
   outputs =
     inputs@{
@@ -60,6 +61,7 @@
       master,
       nixfs,
       NixVirt,
+      kubenix,
       ...
     }:
     let
@@ -202,9 +204,22 @@
       }
     )
     // {
-      nixos = builtins.mapAttrs (name: value: value ({ inherit pkgs-template; } // inputs)) (
-        import-dir ./machine "machine.nix"
-      );
+      nixos = builtins.mapAttrs (
+        name: value:
+        value (
+          {
+            inherit pkgs-template;
+            modules = [
+              sops-nix.nixosModules.sops
+              home-manager.nixosModules.home-manager
+              disko.nixosModules.disko
+              nixfs.nixosModules.nixfs
+              NixVirt.nixosModules.default
+            ];
+          }
+          // inputs
+        )
+      ) (import-dir ./machine "machine.nix");
       # nixosConfigurations = builtins.mapAttrs
       #   (name: value: value ({ inherit pkgs-template; } // inputs))
       #   (import-dir ./machine "machine.nix");

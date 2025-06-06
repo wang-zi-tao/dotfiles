@@ -1,5 +1,4 @@
-{ pkgs-template, nixpkgs, home-manager, sops-nix, disko, nixfs, NixVirt, ...
-}@inputs:
+{ pkgs-template, nixpkgs, modules, ... }@inputs:
 let
   hostname = "wangzi-pc";
   system = "x86_64-linux";
@@ -7,12 +6,7 @@ let
 in nixpkgs.lib.nixosSystem {
   inherit pkgs system;
   specialArgs = inputs;
-  modules = [
-    sops-nix.nixosModules.sops
-    home-manager.nixosModules.home-manager
-    nixfs.nixosModules.nixfs
-    NixVirt.nixosModules.default
-    disko.nixosModules.disko
+  modules = modules ++ [
     ({ pkgs, ... }: {
       imports = [
         ../../module/cluster.nix
