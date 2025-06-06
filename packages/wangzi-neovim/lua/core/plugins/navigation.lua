@@ -2,13 +2,11 @@ return {
     {
         "phaazon/hop.nvim",
         dir = gen.hop_nvim,
-        name = "hop_nvim",
+        name = "hop",
         module = "hop",
         lazy = true,
         event = { "BufNewFile", "BufReadPost" },
-        config = function()
-            require("hop").setup({})
-        end,
+        opts = {},
         init = function()
             require("which-key").add({
                 { "<leader>T", group = "Hop" },
@@ -79,9 +77,7 @@ return {
         name = "navigator",
         module = "Navigator",
         lazy = true,
-        config = function()
-            require("Navigator").setup({ autosave = "all" })
-        end,
+        opts = { autosave = "all" },
         keys = {
             {
                 "<C-h>",
@@ -149,15 +145,13 @@ return {
             "FocusMaximise",
             "FocusMaxOrEqual",
         },
-        config = function()
-            require("focus").setup({
-                excluded_filetypes = { "toggleterm", "notify", "markdown" },
-                -- hybridnumber = true,
-                treewidth = 30,
-                width = 96,
-                height = 30,
-            })
-        end,
+        opts = {
+            excluded_filetypes = { "toggleterm", "notify", "markdown" },
+            -- hybridnumber = true,
+            treewidth = 30,
+            width = 96,
+            height = 30,
+        },
         event = "VeryLazy",
         keys = {
             { "<leader>wh", "<cmd>FocusSplitLeft<CR>",          silent = true, desc = "Split left" },
@@ -174,9 +168,7 @@ return {
         disable = true,
         lazy = true,
         event = "VeryLazy",
-        config = function()
-            require("better_escape").setup({})
-        end,
+        opts = {},
     },
     {
         "folke/flash.nvim",
@@ -246,43 +238,41 @@ return {
         name = "arrow_nvim",
         module = "arrow",
         event = "LazyFile",
-        config = function()
-            require('arrow').setup({
-                show_icons = true,
-                leader_key = ';',
-                buffer_leader_key = 'm',
-                per_buffer_config = {
-                    lines = 6,                 -- Number of lines showed on preview.
-                    sort_automatically = true, -- Auto sort buffer marks.
-                    satellite = {              -- defualt to nil, display arrow index in scrollbar at every update
-                        enable = false,
-                        overlap = true,
-                        priority = 1000,
-                    },
-                    zindex = 10,              --default 50
-                    treesitter_context = nil, -- it can be { line_shift_down = 2 }, currently not usable, for detail see https://github.com/otavioschwanck/arrow.nvim/pull/43#issue-2236320268
+        opts = {
+            show_icons = true,
+            leader_key = ';',
+            buffer_leader_key = 'm',
+            per_buffer_config = {
+                lines = 6,                 -- Number of lines showed on preview.
+                sort_automatically = true, -- Auto sort buffer marks.
+                satellite = {              -- defualt to nil, display arrow index in scrollbar at every update
+                    enable = false,
+                    overlap = true,
+                    priority = 1000,
                 },
-                mappings = {
-                    edit = "e",
-                    delete_mode = "d",
-                    clear_all_items = "C",
-                    toggle = "t", -- used as save if separate_save_and_remove is true
-                    open_vertical = "v",
-                    open_horizontal = "s",
-                    quit = "q",
-                    remove = "x", -- only used if separate_save_and_remove is true
-                    next_item = "]",
-                    prev_item = "["
-                },
-                window = { -- controls the appearance and position of an arrow window (see nvim_open_win() for all options)
-                    width = "auto",
-                    height = "auto",
-                    row = "auto",
-                    col = "auto",
-                    border = "single",
-                },
-            })
-        end,
+                zindex = 10,              --default 50
+                treesitter_context = nil, -- it can be { line_shift_down = 2 }, currently not usable, for detail see https://github.com/otavioschwanck/arrow.nvim/pull/43#issue-2236320268
+            },
+            mappings = {
+                edit = "e",
+                delete_mode = "d",
+                clear_all_items = "C",
+                toggle = "t", -- used as save if separate_save_and_remove is true
+                open_vertical = "v",
+                open_horizontal = "s",
+                quit = "q",
+                remove = "x", -- only used if separate_save_and_remove is true
+                next_item = "]",
+                prev_item = "["
+            },
+            window = { -- controls the appearance and position of an arrow window (see nvim_open_win() for all options)
+                width = "auto",
+                height = "auto",
+                row = "auto",
+                col = "auto",
+                border = "single",
+            },
+        },
         keys = {
             {
                 "[A",

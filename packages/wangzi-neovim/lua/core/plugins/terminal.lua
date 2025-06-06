@@ -6,15 +6,13 @@ return {
         module = "FTerm",
         lazy = true,
         disable = true,
-        config = function()
-            require("FTerm").setup({
-                border = "rounded",
-                dimensions = {
-                    height = 0.9,
-                    width = 0.9,
-                },
-            })
-        end,
+        opts = {
+            border = "rounded",
+            dimensions = {
+                height = 0.9,
+                width = 0.9,
+            },
+        },
         -- keys = {
         --     { "\\'", function() require("FTerm").toggle() end, mode = "n", desc = "Float Terminal" },
         --     {

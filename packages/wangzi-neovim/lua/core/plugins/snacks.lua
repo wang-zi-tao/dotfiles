@@ -1,7 +1,4 @@
-local function config()
-    local snacks = require("snacks")
-
-    local ascii = [[
+local ascii = [[
     ⣴⣶⣤⡤⠦⣤⣀⣤⠆     ⣈⣭⣿⣶⣿⣦⣼⣆
      ⠉⠻⢿⣿⠿⣿⣿⣶⣦⠤⠄⡠⢾⣿⣿⡿⠋⠉⠉⠻⣿⣿⡛⣦
            ⠈⢿⣿⣟⠦ ⣾⣿⣿⣷    ⠻⠿⢿⣿⣧⣄
@@ -15,9 +12,18 @@ local function config()
         ⠻⣿⣿⣿⣿⣶⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⡟⢀⣀⣤⣾⡿⠃
     ]]
 
-    local in_git = Snacks.git.get_root() ~= nil
+local function in_git()
+    return Snacks.git.get_root() ~= nil
+end
 
-    snacks.setup({
+return {
+    "folke/snacks.nvim",
+    name = "snacks",
+    dir = gen.snacks,
+    priority = 70,
+    lazy = false,
+    dependencies = { "tokyonight", "nvim_web_devicons" },
+    opts = {
         bigfile = {
             enabled = true,
         },
@@ -69,15 +75,5 @@ local function config()
                 { pane = 2, icon = " ", title = "Projects", section = "projects", indent = 2, padding = 1 },
             },
         },
-    })
-end
-
-return {
-    "folke/snacks.nvim",
-    name = "snacks",
-    dir = gen.snacks,
-    priority = 70,
-    lazy = false,
-    dependencies = { "tokyonight", "nvim_web_devicons" },
-    config = config,
+    }
 }

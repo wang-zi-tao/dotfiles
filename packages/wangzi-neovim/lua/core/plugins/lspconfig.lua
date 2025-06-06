@@ -353,21 +353,19 @@ return {
                 module = "mason-lspconfig",
             }
         },
-        config = function()
-            require("mason").setup({
-                pip = {
-                    upgrade_pip = true,
-                    install_args = {},
-                },
+        opts = {
+            pip = {
+                upgrade_pip = true,
+                install_args = {},
+            },
 
-                ui = {
-                    check_outdated_packages_on_open = true,
-                    border = "rounded",
-                    width = 0.8,
-                    height = 0.9,
-                },
-            })
-        end,
+            ui = {
+                check_outdated_packages_on_open = true,
+                border = "rounded",
+                width = 0.8,
+                height = 0.9,
+            },
+        },
     } or {},
     {
         "folke/lazydev.nvim",

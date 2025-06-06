@@ -1,5 +1,13 @@
-local function config()
-    require("vgit").setup({
+return {
+    "tanvirtin/vgit.nvim",
+    dir = gen.vgit_nvim,
+    name = "vgit",
+    dependencies = "plenary_nvim",
+    event = 'VimEnter',
+    cmd = "VGit",
+    lazy = true,
+    config = config,
+    opts = {
         keymaps = {
             -- ["n [h"] = "hunk_up",
             -- ["n ]h"] = "hunk_down",
@@ -26,15 +34,5 @@ local function config()
                 }
             }
         },
-    })
-end
-return {
-    "tanvirtin/vgit.nvim",
-    dir = gen.vgit_nvim,
-    name = "vgit_nvim",
-    dependencies = "plenary_nvim",
-    event = 'VimEnter',
-    cmd = "VGit",
-    lazy = true,
-    config = config,
+    },
 }

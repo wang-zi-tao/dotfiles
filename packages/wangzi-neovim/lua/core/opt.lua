@@ -26,7 +26,6 @@ opt.expandtab = true
 opt.fillchars = { eob = " " }
 opt.hidden = true
 opt.ignorecase = true
-opt.lazyredraw = true
 opt.mouse = "a"
 opt.number = true
 opt.numberwidth = 2

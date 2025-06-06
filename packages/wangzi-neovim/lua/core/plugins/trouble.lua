@@ -1,6 +1,12 @@
-local function config()
-    local symbols = require("core.theme").symbols
-    require("trouble").setup({
+local symbols = require("core.theme").symbols
+
+return {
+    "folke/trouble.nvim",
+    dir = gen.trouble_nvim,
+    name = "trouble_nvim",
+    dependencies = "nvim_web_devicons",
+    lazy = true,
+    opts = {
         position = "bottom", -- position of the list can be: bottom, top, left, right
         height = 10, -- height of the trouble list when position is top or bottom
         width = 80, -- width of the list when position is left or right
@@ -48,16 +54,7 @@ local function config()
             other = "﫠",
         },
         use_diagnostic_signs = false, -- enabling this will use the signs defined in your lsp client
-    })
-end
-
-return {
-    "folke/trouble.nvim",
-    dir = gen.trouble_nvim,
-    name = "trouble_nvim",
-    dependencies = "nvim_web_devicons",
-    lazy = true,
-    config = config,
+    },
     cmd = "Trouble",
     module = { "trouble", "trouble.sources.telescope" },
     keys = {

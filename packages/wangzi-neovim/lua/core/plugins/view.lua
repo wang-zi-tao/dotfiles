@@ -24,9 +24,7 @@ return {
             "DiffviewRefresh",
             "DiffviewFileHistory",
         },
-        config = function()
-            require("diffview").setup({})
-        end,
+        opts = {},
         keys = {
             {
                 "<leader>gd",
@@ -78,10 +76,8 @@ return {
         setup = function()
             vim.treesitter.language.register('markdown', 'vimwiki')
         end,
-        config = function()
-            require('render-markdown').setup({
-                file_types = { "markdown", "lsp_markdown", "vimwiki", "codecompanion" },
-            })
-        end,
+        opts = {
+            file_types = { "markdown", "lsp_markdown", "vimwiki", "codecompanion" },
+        },
     }
 }

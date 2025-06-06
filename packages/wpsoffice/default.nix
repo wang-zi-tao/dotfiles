@@ -10,7 +10,7 @@ stdenv.mkDerivation rec {
   version = "12.1.0.17900";
   src = fetchurl {
     url =
-      "https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/17900/wps-office_12.1.0.17900_amd64.deb?t=1749218576&k=ef189eae43c55374789a93afef75a336";
+      "http://47.83.14.140/s/mmC7LFp6qZXXmat/download/wps-office_12.1.0.17900_amd64.deb";
     sha256 = "sha256-RnJvu3J0N9z2Vt1w2rzBmLTUzizd06j53rBOSZyxwpg=";
   };
   unpackCmd = "dpkg -x $src .";
