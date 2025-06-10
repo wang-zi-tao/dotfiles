@@ -3,7 +3,7 @@ local a = require("async")
 
 local autocmd = vim.api.nvim_create_autocmd
 autocmd({ "BufNewFile", "BufRead" }, {
-    pattern = { "*.qrc", "*.ts" },
+    pattern = { "*.qrc", "*.ts", "*.natvis" },
     callback = function()
         vim.cmd([[setfiletype xml]])
     end,

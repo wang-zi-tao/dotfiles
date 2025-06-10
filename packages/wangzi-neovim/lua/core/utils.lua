@@ -139,6 +139,9 @@ function M.config_dir()
 end
 
 M.module_dir_names = {
+    ".git",
+}
+M.module_file_names = {
     "CMakeLists.txt",
     "Cargo.toml",
 }
@@ -155,9 +158,16 @@ end
 
 function M.module_dir()
     local current = vim.fn.expand('%:p:h')
+    for k, v in ipairs(M.module_file_names) do
+        ---@type string
+        local path = vim.fn.findfile(v, current .. ';')
+        if path ~= current then
+            return path
+        end
+    end
     for k, v in ipairs(M.module_dir_names) do
         ---@type string
-        local path = vim.fn.finddir('Coding/..', current .. ';')
+        local path = vim.fn.finddir(v, current .. ';')
         if path ~= current then
             return path
         end
@@ -173,7 +183,7 @@ function M.add_mark()
 
     -- M.try(function() require("trailblazer").new_trail_mark() end)
     M.try(function() require("harpoon"):list():add() end)
-    M.try(function() vim.cmd [[Arrow toggle_current_line_for_buffer]] end)
+    -- M.try(function() vim.cmd [[Arrow toggle_current_line_for_buffer]] end)
     M.try(function() require("arrow.persist").save(M.get_current_buffer_path()) end)
 end
 

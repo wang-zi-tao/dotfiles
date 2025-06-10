@@ -2,7 +2,7 @@
  * file : {{_file_name_}}.h
  *
  * author : {{_author_}}
- * date : {{_lua:os.date("%y/%m/%d")_}}
+ * date : {{_lua:os.date("%Y/%m/%d")_}}
  ************************************************************/
 
 #ifndef __JDE_{{_upper_file_}}_H__

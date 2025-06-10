@@ -81,6 +81,10 @@ vim.api.nvim_create_user_command("WatchFile", function(opts)
     WatchFile(opts.args[1])
 end, { nargs = 1, complete = "file" })
 
+vim.api.nvim_create_user_command("ClearLineEnd", function()
+    vim.cmd [[%s/\r//g]]
+end, { nargs = 0 })
+
 return {
     ClearTerm = ClearTerm,
     OpenInVS = OpenInVS,

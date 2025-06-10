@@ -99,7 +99,7 @@ local function config()
     vim.api.nvim_create_user_command("KrepoBuild", function(opts)
         utils.argOrCachedInput(opts.args, "target", "target", "", nil, function(target)
             if target == "" then
-                require("toggleterm").exec("cd " .. wps.path .. "/../debug ; krepo-ng build")
+                require("toggleterm").exec("cd " .. wps.path .. "/../debug ; krepo-ng build; cd -")
             else
                 require("toggleterm").exec("cd " .. wps.path .. "/../debug ; krepo-ng build wps/" .. target)
             end
