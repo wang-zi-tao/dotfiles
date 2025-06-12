@@ -100,6 +100,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
 vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
     pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "CMakeLists.txt", "*.h", "*.hpp", "*.pch", "*.def" },
     callback = function()
+        opt.filetype = "cpp"
         opt.tabstop = 4
         opt.softtabstop = 0
         opt.shiftwidth = 4

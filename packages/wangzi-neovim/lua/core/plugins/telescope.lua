@@ -118,7 +118,6 @@ local function config()
     })
 
     local extensions = {
-        "ui-select",
         "dap",
         "file_browser",
         -- "fzf",
@@ -174,7 +173,7 @@ return {
                         default_text = require("core.utils").get_selection(),
                     })
                 end,
-                mode = { "n", "v" },
+                mode = { "v" },
                 desc = "Grep",
             },
             {
@@ -186,7 +185,7 @@ return {
                         default_text = require("core.utils").get_selection(),
                     })
                 end,
-                mode = { "n", "v" },
+                mode = { "v" },
                 desc = "Grep Buffers",
             },
             {
@@ -234,14 +233,14 @@ return {
                 end,
                 desc = "Actions",
             },
-            {
-                "<leader>fi",
-                function()
-                    pcall(require("core.utils").add_mark)
-                    telescope().lsp_references()
-                end,
-                desc = "LSP Reference",
-            },
+            -- {
+            --     "<leader>fi",
+            --     function()
+            --         pcall(require("core.utils").add_mark)
+            --         telescope().lsp_references()
+            --     end,
+            --     desc = "LSP Reference",
+            -- },
             {
                 "<leader>fb",
                 function()
@@ -284,20 +283,20 @@ return {
                 end,
                 desc = "Marks",
             },
-            {
-                "<leader>fD",
-                function()
-                    telescope().lsp_definitions()
-                end,
-                desc = "lsp definitions",
-            },
-            {
-                "<leader>fd",
-                function()
-                    telescope().lsp_document_symbols()
-                end,
-                desc = "Lsp_document_symbols",
-            },
+            -- {
+            --     "<leader>fD",
+            --     function()
+            --         telescope().lsp_definitions()
+            --     end,
+            --     desc = "lsp definitions",
+            -- },
+            -- {
+            --     "<leader>fd",
+            --     function()
+            --         telescope().lsp_document_symbols()
+            --     end,
+            --     desc = "Lsp_document_symbols",
+            -- },
             {
                 "<leader>fp",
                 function()
@@ -320,29 +319,29 @@ return {
                 end,
                 desc = "lsp outgoing calls",
             },
-            {
-                "<leader>fI",
-                function()
-                    pcall(require("core.utils").add_mark)
-                    require("telescope.builtin").lsp_implementations()
-                end,
-                desc = "LSP Implementation",
-            },
-            {
-                "<leader>ft",
-                function()
-                    pcall(require("core.utils").add_mark)
-                    require("telescope.builtin").lsp_definitions()
-                end,
-                desc = "LSP Define",
-            },
-            {
-                "<leader>fT",
-                function()
-                    require("telescope.builtin").lsp_type_definitions()
-                end,
-                desc = "LSP TypeDefinition",
-            },
+            -- {
+            --     "<leader>fI",
+            --     function()
+            --         pcall(require("core.utils").add_mark)
+            --         require("telescope.builtin").lsp_implementations()
+            --     end,
+            --     desc = "LSP Implementation",
+            -- },
+            -- {
+            --     "<leader>ft",
+            --     function()
+            --         pcall(require("core.utils").add_mark)
+            --         require("telescope.builtin").lsp_definitions()
+            --     end,
+            --     desc = "LSP Define",
+            -- },
+            -- {
+            --     "<leader>fT",
+            --     function()
+            --         require("telescope.builtin").lsp_type_definitions()
+            --     end,
+            --     desc = "LSP TypeDefinition",
+            -- },
             {
                 "<leader>fg",
                 function()
@@ -400,13 +399,6 @@ return {
                 dir = gen.telescope_project_nvim,
                 name = "telescope_project_nvim",
                 module = "telescope._extensions.project",
-            },
-            {
-                "nvim-telescope/telescope-ui-select.nvim",
-                dir = gen.telescope_ui_select,
-                name = "telescope_ui_select",
-                module = "telescope._extensions.ui-select",
-                lazy = true,
             },
             {
                 "nvim-telescope/telescope-dap.nvim",

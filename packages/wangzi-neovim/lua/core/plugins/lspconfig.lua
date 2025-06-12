@@ -276,7 +276,7 @@ return {
                 "gD",
                 function()
                     pcall(require("core.utils").add_mark)
-                    require("telescope.builtin").lsp_definitions()
+                    Snacks.picker.lsp_definitions()
                 end,
                 mode = "n",
                 desc = "Goto Definition",
@@ -285,7 +285,7 @@ return {
                 "gT",
                 function()
                     pcall(require("core.utils").add_mark)
-                    require("telescope.builtin").lsp_type_definitions()
+                    Snacks.picker.lsp_type_definitions()
                 end,
                 mode = "n",
                 desc = "Goto Type Definition",

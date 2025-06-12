@@ -55,18 +55,18 @@ end
 
 function M.cachedinput(key, prompt, default, completion, callback)
     local function ui_input()
-        local value
-        if completion == nil then
-            value = vim.fn.input(prompt, default)
-        else
-            value = vim.fn.input(prompt, default, completion)
-        end
-        database.tables.caches:insert({
-            project = M.project_dir(),
-            key = key,
-            value = value,
-        })
-        callback(value)
+        vim.ui.input({
+            prompt = prompt,
+            default = default,
+            completion = completion,
+        }, function(value)
+            database.tables.caches:insert({
+                project = M.project_dir(),
+                key = key,
+                value = value,
+            })
+            callback(value)
+        end)
     end
 
     local list = database.tables.caches:get({
@@ -377,3 +377,4 @@ function M.load_nvim_lua_file(dir)
 end
 
 return M
+

@@ -7,7 +7,6 @@ return {
 	require("core.plugins.tokyonight"),
 	require("core.plugins.heirline"),
 	require("core.plugins.snacks"),
-	require("core.plugins.dressing"),
 	require("core.plugins.noice"),
 	require("core.plugins.edgy"),
 	{
