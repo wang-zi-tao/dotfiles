@@ -13,6 +13,7 @@
     ./ranger/ranger.nix
     ../develop/git.nix
     ./zellij.nix
+    ./nushell.nix
   ];
   options =
     with lib;
@@ -43,7 +44,6 @@
     programs.direnv = {
       enable = true;
       enableZshIntegration = true;
-      enableNushellIntegration = true;
     };
     programs.fzf = {
       enable = true;

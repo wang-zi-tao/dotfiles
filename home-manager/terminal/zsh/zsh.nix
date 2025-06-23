@@ -146,45 +146,6 @@
         source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
       '';
   };
-  programs.nushell =
-    let
-      scripts = pkgs.fetchgit {
-        url = "https://github.com/nushell/nu_scripts";
-        rev = "dbf4586594a30eeec3e3a39977a397d5ea4b6be0";
-        sha256 = "sha256-7PwB5DaXe3gfyytDd7ge4nRQtnzbrXoOgGij5MuakXY=";
-      };
-    in
-    {
-      enable = true;
-      package = pkgs.unstable.nushell;
-      configFile.text = with pkgs.unstable; ''
-        use ${scripts}/custom-completions/git/git-completions.nu *
-        use ${scripts}/custom-completions/make/make-completions.nu *
-        use ${scripts}/custom-completions/cargo/cargo-completions.nu *
-        use ${scripts}/custom-completions/nix/nix-completions.nu *
-
-        # plugin add ${nushellPlugins.units}/bin/nu_plugin_units
-        plugin add ${nushellPlugins.polars}/bin/nu_plugin_polars
-        plugin add ${nushellPlugins.query}/bin/nu_plugin_query
-        # plugin add ${nushellPlugins.net}/bin/nu_plugin_net
-        plugin add ${nushellPlugins.highlight}/bin/nu_plugin_highlight
-        plugin add ${nushellPlugins.gstat}/bin/nu_plugin_gstat
-        plugin add ${nushellPlugins.formats}/bin/nu_plugin_formats
-
-        def --env get-env [name] { $env | get $name }
-        def --env set-env [name, value] { load-env { $name: $value } }
-        def --env unset-env [name] { hide-env $name }
-        let carapace_completer = {|spans|
-          carapace $spans.0 nushell $spans | from json
-        }
-        mut current = (($env | default {} config).config | default {} completions)
-        $current.completions = ($current.completions | default {} external)
-        $current.completions.external = ($current.completions.external
-            | default true enable
-            | default $carapace_completer completer)
-        $env.config = $current
-      '';
-    };
   home.file.".config/atuin/config.toml".text =
     builtins.readFile ./atuin.toml
     + lib.optionalString pkgs.stdenv.isLinux ''
@@ -194,69 +155,18 @@
     enable = true;
     enableZshIntegration = true;
     enableBashIntegration = true;
-    enableNushellIntegration = true;
   };
   programs.carapace = {
     enable = true;
-    enableNushellIntegration = true;
     enableBashIntegration = true;
     enableZshIntegration = true;
   };
   programs.yazi = {
     enable = true;
-    enableNushellIntegration = true;
     enableBashIntegration = true;
     enableZshIntegration = true;
   };
-  programs.starship = {
-    enable = true;
-    enableNushellIntegration = true;
-    settings = {
-      add_newline = true;
-      scan_timeout = 10;
-      format = ''
-        [](254)[$os](bg:254 blue)[  $directory](254 bg:blue)[](bg:11 fg:blue)[  $git_branch$git_commit$git_state$git_metrics$git_status](bg:11 black)[](fg:11) $all [$character](blue)
-      '';
-      directory = {
-        style = "bg:blue 254";
-      };
-      git_state = {
-        format = "[ $state ($progress_current of $progress_total) ] ($style) ";
-        style = "black bg:11";
-        cherry_pick = "[🍒 PICKING](bold red)";
-      };
-      git_branch = {
-        format = "[$symbol$branch(:$remote_branch)]($style) ";
-        style = "bg:11 black";
-      };
-      git_status = {
-        format = "([\\[$all_status$ahead_behind\\]]($style) )";
-        style = "bg:11 black";
-        ahead = "⇡\${count} ";
-        diverged = "⇕⇡\${ahead_count}⇣\${behind_count} ";
-        behind = "⇣\${count} ";
-        modified = "!\${count} ";
-        stashed = "s\${count} ";
-        staged = "+\${count} ";
-        untracked = "?\${count} ";
-        conflicted = "=\${count} ";
-      };
-      git_metrics = {
-        added_style = "bg:11 black";
-        deleted_style = "bg:11 black";
-        format = ''[+$added]($added_style)/[-$deleted]($deleted_style) '';
-        disabled = false;
-      };
-      nix_shell = { };
-      os = {
-        style = "bg:254 fg:blue";
-        disabled = false;
-      };
-    };
-  };
-  programs.direnv.enableNushellIntegration = true;
   programs.direnv.enableZshIntegration = true;
-  programs.keychain.enableNushellIntegration = true;
   programs.command-not-found.enable = !config.programs.nix-index.enable;
   programs.nix-index = {
     enableZshIntegration = true;
@@ -272,7 +182,6 @@
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
-    enableNushellIntegration = true;
   };
   home.packages =
     with pkgs;

@@ -515,7 +515,6 @@ return {
             "nvim_treesitter",
             "nvim_cmp",
             "telescope_nvim",
-            "dressing_nvim",
             "copilot_vim",
             "fidget_nvim",
             "mcphub",

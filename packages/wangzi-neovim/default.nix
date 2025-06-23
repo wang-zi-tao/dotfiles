@@ -250,6 +250,7 @@ let
 
     # navigator
     navigator = Navigator-nvim;
+    zellij_nav = zellij-nav-nvim;
     harpoon2 = harpoon2;
     hop_nvim = hop-nvim;
     arrow_nvim = arrow-nvim;

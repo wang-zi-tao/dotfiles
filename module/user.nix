@@ -10,7 +10,7 @@ in
     home-manager.useUserPackages = true;
     home-manager.backupFileExtension = ".backup";
     users.users.root = {
-      shell = pkgs.zsh;
+      shell = pkgs.nushell;
       hashedPassword = lib.mkDefault "$6$hKb9K3137LuNYU.n$ZZ0uRjIfMSOEyHtunuMorhVIo3QC3PlXgrHwW1Ysp3Bf4eqcouRoX20JHN4C.RYzlzow3MYu4GtugpJeOe0IB.";
     };
     home-manager.users.root =
@@ -30,7 +30,7 @@ in
     users.users.wangzi = lib.mkIf (nodeConfig.users ? wangzi) {
       isNormalUser = true;
       uid = 1000;
-      shell = pkgs.zsh;
+      shell = pkgs.nushell;
       group = "wangzi";
       description = "王子陶";
       extraGroups = [

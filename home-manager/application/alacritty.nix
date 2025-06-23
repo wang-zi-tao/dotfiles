@@ -67,11 +67,4 @@ in
     enable = true;
   };
   home.file.".config/alacritty/alacritty.toml".text = setting + '''';
-  home.file.".config/alacritty/alacritty-drop.toml".text =
-    setting
-    + ''
-
-      [terminal.shell]
-      program = "${pkgs.writeScript "tmuxinator-s-drop" "tmuxinator s  drop"}"
-    '';
 }

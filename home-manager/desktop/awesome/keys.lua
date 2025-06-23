@@ -28,11 +28,10 @@ awful.keyboard.append_global_keybindings({
         for _, tag in pairs(awful.screen.focused().selected_tags) do
             awful.spawn(
                 apps.default.terminal
-                    .. " --title=alacritty-workspace-"
-                    .. tag.index
-                    .. " -e tmuxinator s 'workspace-"
-                    .. tag.index
-                    .. "'"
+                .. " --title=alacritty-workspace-"
+                .. tag.index
+                .. " -e zellij attach -c workspace-"
+                .. tag.index
             )
             break
         end

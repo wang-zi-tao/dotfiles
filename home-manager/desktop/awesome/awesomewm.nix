@@ -164,9 +164,6 @@ with builtins;
       Type = "oneshot";
       ExecStart = "xhost +";
     };
-    systemd.user.services.firefox = makeService {
-      ExecStart = "${config.programs.firefox.package}/bin/firefox";
-    };
     systemd.user.services.xpra-shadow = makeService {
       Restart = "always";
       ExecStart =

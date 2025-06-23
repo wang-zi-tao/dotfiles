@@ -1,3 +1,7 @@
+local function isFloadWindow(win)
+    return vim.api.nvim_win_get_config(win).relative == "win"
+end
+
 return {
     "folke/edgy.nvim",
     name = "edgy",

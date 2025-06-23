@@ -76,6 +76,7 @@ return {
         dir = gen.navigator,
         name = "navigator",
         module = "Navigator",
+        enabled = false,
         lazy = true,
         opts = { autosave = "all" },
         keys = {
@@ -120,6 +121,26 @@ return {
                 desc = "Navigator previous",
             },
         },
+    },
+    {
+        "swaits/zellij-nav.nvim",
+        name = "zellij-nav",
+        dir = gen.zellij_nav,
+        lazy = true,
+        event = "VeryLazy",
+        keys = {
+            { "<c-h>", "<cmd>ZellijNavigateLeftTab<cr>",  { silent = true, desc = "navigate left or tab" } },
+            { "<c-j>", "<cmd>ZellijNavigateDown<cr>",     { silent = true, desc = "navigate down" } },
+            { "<c-k>", "<cmd>ZellijNavigateUp<cr>",       { silent = true, desc = "navigate up" } },
+            { "<c-l>", "<cmd>ZellijNavigateRightTab<cr>", { silent = true, desc = "navigate right or tab" } },
+        },
+        opts = {},
+        init = function()
+            vim.api.nvim_create_autocmd("VimLeave", {
+                pattern = "*",
+                command = "silent !zellij action switch-mode normal"
+            })
+        end
     },
     {
         "beauwilliams/focus.nvim",

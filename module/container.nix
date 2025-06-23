@@ -129,7 +129,7 @@ in
         ''
       ];
     })
-    (lib.mkIf (nodeConfig.k3s.enable && nodeConfig.k3s.kind == "server") {
+    (lib.mkIf (false && nodeConfig.k3s.enable && nodeConfig.k3s.kind == "server") {
       environment.etc."kubenix.yaml".source =
         (kubenix.evalModules.${pkgs.system} {
           module =

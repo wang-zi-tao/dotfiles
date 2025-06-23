@@ -1,22 +1,56 @@
 { pkgs, config, ... }:
-{
+let
+  autolock = pkgs.fetchurl {
+    url =
+      "https://github.com/fresh2dev/zellij-autolock/releases/latest/download/zellij-autolock.wasm";
+    hash = "sha256-aclWB7/ZfgddZ2KkT9vHA6gqPEkJ27vkOVLwIEh7jqQ=";
+  };
+  datetime = pkgs.fetchurl {
+    url =
+      "https://github.com/h1romas4/zellij-datetime/releases/latest/download/zellij-datetime.wasm";
+    hash = "sha256-oVMh3LlFe4hcY9XmcEHz8pmodyf1aMvgDH31QEusEEE=";
+  };
+    zjstatus = pkgs.fetchurl {
+      url = "https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm";
+      hash = "sha256-p6JTnAyim0T3TkJzGhEitzc3JpPovL5k7jb8gv+oLD4=";
+    };
+in {
   programs.zellij = {
     enable = true;
-    # enableBashIntegration = true;
-    # enableZshIntegration = true;
+    enableBashIntegration = true;
+    enableZshIntegration = true;
+    exitShellOnExit = true;
   };
   home.file.".config/zellij/config.kdl".text = ''
-    // If you'd like to override the default keybindings completely, be sure to change "keybinds" to "keybinds clear-defaults=true"
     keybinds {
-        normal {
-            // uncomment this and adjust key if using copy_on_select=false
-            // bind "Alt c" { Copy; }
+        normal clear-defaults=true {
+            bind "Ctrl f" { Write 2; SwitchToMode "Normal"; }
+            bind "Ctrl g" { SwitchToMode "Locked"; }
+            bind "Ctrl p" { SwitchToMode "Pane"; }
+            bind "Ctrl t" { SwitchToMode "Tab"; }
+            bind "Ctrl n" { SwitchToMode "Resize"; }
+            bind "Ctrl m" { SwitchToMode "Move"; }
+            bind "Ctrl s" { SwitchToMode "Scroll"; }
+            bind "Ctrl y" { SwitchToMode "Session"; }
+            bind "Ctrl q" { Quit; }
+
+            bind "Alt n" { NewPane; }
+            bind "Alt i" { MoveTab "Left"; }
+            bind "Alt o" { MoveTab "Right"; }
+            bind "Alt h" "Alt Left" { MoveFocusOrTab "Left"; }
+            bind "Alt l" "Alt Right" { MoveFocusOrTab "Right"; }
+            bind "Alt j" "Alt Down" { MoveFocus "Down"; }
+            bind "Alt k" "Alt Up" { MoveFocus "Up"; }
+            bind "Alt =" "Alt +" { Resize "Increase"; }
+            bind "Alt -" { Resize "Decrease"; }
+            bind "Alt [" { PreviousSwapLayout; }
+            bind "Alt ]" { NextSwapLayout; }
         }
         locked {
             bind "Ctrl g" { SwitchToMode "Normal"; }
         }
         resize {
-            bind "Ctrl n" { SwitchToMode "Normal"; }
+            bind "Ctrl m" { SwitchToMode "Normal"; }
             bind "h" "Left" { Resize "Increase Left"; }
             bind "j" "Down" { Resize "Increase Down"; }
             bind "k" "Up" { Resize "Increase Up"; }
@@ -46,7 +80,7 @@
             bind "c" { SwitchToMode "RenamePane"; PaneNameInput 0;}
         }
         move {
-            bind "Ctrl h" { SwitchToMode "Normal"; }
+            bind "Ctrl m" { SwitchToMode "Normal"; }
             bind "n" "Tab" { MovePane; }
             bind "p" { MovePaneBackwards; }
             bind "h" "Left" { MovePane "Left"; }
@@ -118,7 +152,7 @@
             bind "Esc" { UndoRenamePane; SwitchToMode "Pane"; }
         }
         session {
-            bind "Ctrl o" { SwitchToMode "Normal"; }
+            bind "Ctrl y" { SwitchToMode "Normal"; }
             bind "Ctrl s" { SwitchToMode "Scroll"; }
             bind "d" { Detach; }
             bind "w" {
@@ -155,17 +189,6 @@
         shared_except "locked" {
             bind "Ctrl g" { SwitchToMode "Locked"; }
             bind "Ctrl q" { Quit; }
-            bind "Alt n" { NewPane; }
-            bind "Alt i" { MoveTab "Left"; }
-            bind "Alt o" { MoveTab "Right"; }
-            bind "Alt h" "Alt Left" { MoveFocusOrTab "Left"; }
-            bind "Alt l" "Alt Right" { MoveFocusOrTab "Right"; }
-            bind "Alt j" "Alt Down" { MoveFocus "Down"; }
-            bind "Alt k" "Alt Up" { MoveFocus "Up"; }
-            bind "Alt =" "Alt +" { Resize "Increase"; }
-            bind "Alt -" { Resize "Decrease"; }
-            bind "Alt [" { PreviousSwapLayout; }
-            bind "Alt ]" { NextSwapLayout; }
         }
         shared_except "normal" "locked" {
             bind "Enter" "Esc" { SwitchToMode "Normal"; }
@@ -180,23 +203,42 @@
             bind "Ctrl s" { SwitchToMode "Scroll"; }
         }
         shared_except "session" "locked" {
-            bind "Ctrl o" { SwitchToMode "Session"; }
+            bind "Ctrl y" { SwitchToMode "Session"; }
         }
         shared_except "tab" "locked" {
             bind "Ctrl t" { SwitchToMode "Tab"; }
         }
         shared_except "move" "locked" {
-            bind "Ctrl h" { SwitchToMode "Move"; }
+            bind "Ctrl m" { SwitchToMode "Move"; }
         }
         shared_except "tmux" "locked" {
             bind "Ctrl b" { SwitchToMode "Tmux"; }
         }
     }
 
+    autolock location="file:${autolock}" {
+        triggers "nvim|vim|v|nv"  // Lock when any open these programs open. They are expected to unlock themselves when closed (e.g., using zellij.vim plugin).
+        watch_triggers "fzf|zoxide|atuin|atac"  // Lock when any of these open and monitor until closed.
+        watch_interval "1.0"  // When monitoring, check every X seconds.
+    }
+
+    layout {
+        pane size=1 borderless=true {
+            plugin location="file:${datetime}"
+        }
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        pane
+        pane size=1 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+
     plugins {
         tab-bar location="zellij:tab-bar"
         status-bar location="zellij:status-bar"
-        // strider location="zellij:strider"
+        strider location="zellij:strider"
         compact-bar location="zellij:compact-bar"
         session-manager location="zellij:session-manager"
         welcome-screen location="zellij:session-manager" {
@@ -206,62 +248,10 @@
             cwd "/"
         }
     }
-
-    // Choose what to do when zellij receives SIGTERM, SIGINT, SIGQUIT or SIGHUP
-    // eg. when terminal window with an active zellij session is closed
-    // Options:
-    //   - detach (Default)
-    //   - quit
-    //
-    // on_force_close "quit"
-
-    //  Send a request for a simplified ui (without arrow fonts) to plugins
-    //  Options:
-    //    - true
-    //    - false (Default)
-    //
-    // simplified_ui true
-
-    // Choose the path to the default shell that zellij will use for opening new panes
-    // Default: $SHELL
-    //
-    default_shell "zsh"
-
-    // Choose the path to override cwd that zellij will use for opening new panes
-    //
-    // default_cwd ""
-
-    // Toggle between having pane frames around the panes
-    // Options:
-    //   - true (default)
-    //   - false
-    //
+    default_shell "nu"
     pane_frames false
-
-    // Toggle between having Zellij lay out panes according to a predefined set of layouts whenever possible
-    // Options:
-    //   - true (default)
-    //   - false
-    //
-    // auto_layout true
-
-    // Whether sessions should be serialized to the cache folder (including their tabs/panes, cwds and running commands) so that they can later be resurrected
-    // Options:
-    //   - true (default)
-    //   - false
-    //
     session_serialization true
-
-    // Whether pane viewports are serialized along with the session, default is false
-    // Options:
-    //   - true
-    //   - false (default)
-    // serialize_pane_viewport true
-
-    // Scrollback lines to serialize along with the pane viewport when serializing sessions, 0
-    // defaults to the scrollback size. If this number is higher than the scrollback size, it will
-    // also default to the scrollback size. This does nothing if `serialize_pane_viewport` is not true.
-    //
+    serialize_pane_viewport true
     // scrollback_lines_to_serialize 10000
 
     // Define color themes for Zellij
@@ -284,89 +274,57 @@
         }
     }
 
-    theme "tokyonight_night"
-
-    // The name of the default layout to load on startup
-    // Default: "default"
-    //
+    theme "tokyo-night-dark"
     // default_layout "compact"
 
-    // Choose the mode that zellij uses when starting up.
-    // Default: normal
-    //
     // default_mode "locked"
-
-    // Toggle enabling the mouse mode.
-    // On certain configurations, or terminals this could
-    // potentially interfere with copying text.
-    // Options:
-    //   - true (default)
-    //   - false
-    //
     mouse_mode true
+    scroll_buffer_size 65536
 
-    // Configure the scroll back buffer size
-    // This is the number of lines zellij stores for each pane in the scroll back
-    // buffer. Excess number of lines are discarded in a FIFO fashion.
-    // Valid values: positive integers
-    // Default value: 10000
-    //
-    // scroll_buffer_size 10000
-
-    // Provide a command to execute when copying text. The text will be piped to
-    // the stdin of the program to perform the copy. This can be used with
-    // terminal emulators which do not support the OSC 52 ANSI control sequence
-    // that will be used by default if this option is not set.
-    // Examples:
-    //
     // copy_command "xclip -selection clipboard" // x11
     // copy_command "wl-copy"                    // wayland
     // copy_command "pbcopy"                     // osx
-
-    // Choose the destination for copied text
-    // Allows using the primary selection buffer (on x11/wayland) instead of the system clipboard.
-    // Does not apply when using copy_command.
-    // Options:
-    //   - system (default)
-    //   - primary
-    //
     // copy_clipboard "primary"
-
-    // Enable or disable automatic copy (and clear) of selection when releasing mouse
-    // Default: true
-    //
     copy_on_select true
-
-    // Path to the default editor to use to edit pane scrollbuffer
-    // Default: $EDITOR or $VISUAL
-    //
     scrollback_editor "${config.neovim.pkg}/bin/nvim"
-
-    // When attaching to an existing session with other users,
-    // should the session be mirrored (true)
-    // or should each user have their own cursor (false)
-    // Default: false
-    //
     // mirror_session true
-
-    // The folder in which Zellij will look for layouts
-    //
-    // layout_dir "/path/to/my/layout_dir"
-
-    // The folder in which Zellij will look for themes
-    //
-    // theme_dir "/path/to/my/theme_dir"
-
-    // Enable or disable the rendering of styled and colored underlines (undercurl).
-    // May need to be disabled for certain unsupported terminals
-    // Default: true
-    //
-    // styled_underlines false
-
-    // Enable or disable writing of session metadata to disk (if disabled, other sessions might not know
-    // metadata info on this session)
-    // Default: false
-    //
+    styled_underlines true
     // disable_session_metadata true
+  '';
+
+  home.file.".config/zellij/layouts/drop.kdl".text = ''
+    layout "drop" {
+        default_tab_template {
+            pane size=1 borderless=true {
+                plugin location="zellij:tab-bar"
+            }
+            children
+            pane size=1 borderless=true {
+                plugin location="zellij:status-bar"
+            }
+        }
+        tab
+        tab name="nixos" {
+            pane cwd="~/workspace/nixos" command="nvim"
+        }
+        tab name="monitor" {
+            pane command="htop"
+        }
+        tab name="Temp" {
+            pane cwd="~/Temp"
+        }
+        tab name="wangzi-nuc" {
+            pane command="ssh-wangzi-nuc"
+        }
+        tab name="wangzi-asys" {
+            pane command="ssh-wangzi-asys"
+        }
+        tab name="wangzi-pc" {
+            pane command="ssh-wangzi-pc"
+        }
+        tab name="aliyun-hk" {
+            pane command="aliyun-hk"
+        }
+    }
   '';
 }
