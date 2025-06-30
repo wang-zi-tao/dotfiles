@@ -145,6 +145,13 @@ local function config()
                 telemetry = {
                     enable = false
                 },
+                format = {
+                    enable = true,
+                    defaultConfig = {
+                        indent_style = "tab",
+                        indent_size = "4",
+                    }
+                },
             },
         },
         on_init = function(client)
@@ -222,9 +229,6 @@ local function config()
     })
     setup_lsp("nil_ls", {
         settings = {
-            formatting = {
-                command = "nixpkgs-fmt",
-            },
             ["nil"] = {
                 flake = {
                     autoArchive = true,
@@ -377,6 +381,9 @@ return {
                 -- Load luvit types when the `vim.uv` word is found
                 { path = "${3rd}/luv/library", words = { "vim%.uv" } },
             },
+        },
+    },
+}
         },
     },
 }
