@@ -348,7 +348,6 @@ M.remove_dap_config = function(name, language)
 end
 
 M.override_dap_config = function(override_config_name, language, config)
-    vim.cmd [[Lazy load dap]]
     local dap = require("dap")
     local override_config = M.find_dap_config(override_config_name, language) or {}
     M.remove_dap_config(config.name, language)

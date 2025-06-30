@@ -330,7 +330,7 @@ return {
     vim.fn.has('win32') == 1 and {
         "williamboman/mason.nvim",
         dir = gen.mason_nvim,
-        name = "mason_nvim",
+        name = "mason",
         cmd = { "Mason", "MasonUpdate", "MasonInstall", "MasonUninstall", "MasonUninstallAll", "MasonLog" },
         -- lazy = 0 == vim.fn.has("win32"),
         module = "mason",

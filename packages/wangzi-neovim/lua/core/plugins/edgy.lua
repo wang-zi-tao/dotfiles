@@ -1,4 +1,4 @@
-local function isFloadWindow(win)
+local function isFloatWindow(win)
     return vim.api.nvim_win_get_config(win).relative == "win"
 end
 
@@ -21,14 +21,14 @@ return {
                 size = { height = 0.3 },
                 collapsed = true,
                 filter = function(buf, win)
-                    return vim.b[buf].neo_tree_source == "filesystem" and not isFloadWindow(win)
+                    return vim.b[buf].neo_tree_source == "filesystem" and not isFloatWindow(win)
                 end,
             },
             {
                 title = "Neo-Tree Git",
                 ft = "neo-tree",
                 filter = function(buf, win)
-                    return vim.b[buf].neo_tree_source == "git_status" and not isFloadWindow(win)
+                    return vim.b[buf].neo_tree_source == "git_status" and not isFloatWindow(win)
                 end,
                 open = "Neotree position=left git_status",
             },
@@ -36,7 +36,7 @@ return {
                 title = "Neo-Tree Buffers",
                 ft = "neo-tree",
                 filter = function(buf, win)
-                    return vim.b[buf].neo_tree_source == "buffers" and not isFloadWindow(win)
+                    return vim.b[buf].neo_tree_source == "buffers" and not isFloatWindow(win)
                 end,
                 open = "Neotree position=left buffers",
             },

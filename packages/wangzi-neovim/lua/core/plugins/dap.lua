@@ -1,41 +1,22 @@
-local function config()
-    local dap = require("dap")
-    local dapui = require("dapui")
-    local util = require("core.utils")
-    local rpc = require('dap.rpc')
-    local plenary = require("plenary")
+local function vsdbg_adapter(callback)
     local Job = require("plenary.job")
-    local scandir = require("plenary.scandir")
-    local Path = require("plenary.path")
-
-    dap.listeners.before.attach.dapui_config = function()
-        dapui.open()
-    end
-    dap.listeners.before.launch.dapui_config = function()
-        dapui.open()
-    end
-    dap.listeners.before.event_terminated.dapui_config = function()
-        dapui.close()
-    end
-    dap.listeners.before.event_exited.dapui_config = function()
-        dapui.close()
-    end
-
-    dap.adapters.gdb = {
-        type = "executable",
-        command = "gdb",
-        args = { "--interpreter=dap", "--eval-command", "set print pretty on" }
-    }
-
-    dap.adapters.lldb = {
-        type = "executable",
-        command = "lldb-vscode", -- adjust as needed
-        name = "lldb",
-    }
-
+    local rpc = require('dap.rpc')
+    local scan = require 'plenary.scandir'
     local home = vim.fn.expand("~")
 
-    local vscode_cpptoools_dir = home .. "/.vscode/extensions/ms-vscode.cpptools-1.25.3-win32-x64"
+    local vscode_extensions_dir = (home .. "/.vscode/extensions")
+    local vscode_cpptoools_dir = "."
+    local plugins = scan.scan_dir(vscode_extensions_dir, { depth = 1, only_dirs = true })
+    for _, dir in ipairs(plugins) do
+        if string.match(dir, "ms%-vscode%.cpptools%-[0-9.]+%-win32%-x64") then
+            vim.notify("found dir: " .. dir, vim.log.levels.DEBUG)
+            vscode_cpptoools_dir = dir
+        end
+    end
+    if vscode_cpptoools_dir == "." then
+        vim.notify("vscode cpptools not found, please install it first", vim.log.levels.ERROR)
+        return
+    end
 
     local vsdbg_js_adapter = [[
         /* declare module vsda {
@@ -57,15 +38,6 @@ local function config()
         }
         });
     ]]
-
-    local function vsdbg_find_natvis()
-        local file = "C:/dotfiles-install/all.natvis"
-
-        if Path:new(file):exists() then
-            return file
-        end
-        return nil
-    end
 
     local function vsdbg_send_payload(client, payload)
         local msg = rpc.msg_with_content_length(vim.json.encode(payload))
@@ -102,31 +74,74 @@ local function config()
         job:sync()
     end
 
-
-    dap.adapters.cppvsdbg = {
+    callback({
         id = 'cppvsdbg',
         type = 'executable',
         command = vscode_cpptoools_dir .. [[\debugAdapters\vsdbg\bin\vsdbg.exe]],
         args = {
             "--interpreter=vscode",
-            -- '--engineLogging=' .. vim.fn.stdpath("log") .. '/vsdbg.log',
+            '--engineLogging=' .. vim.fn.stdpath("log") .. '/vsdbg.log',
         },
         options = {
             externalTerminal = true,
-            -- logging = {
-            --   moduleLoad = false,
-            --   trace = true
-            -- }
+            logging = {
+                moduleLoad = false,
+                trace = true
+            }
         },
         runInTerminal = true,
         reverse_request_handlers = {
             handshake = vsdbg_RunHandshake,
-
         },
+    })
+end
+
+local function init()
+    local dap = require("dap")
+    local dapui = require("dapui")
+    local util = require("core.utils")
+    local Path = require("plenary.path")
+
+    dap.listeners.before.attach.dapui_config = function()
+        dapui.open()
+    end
+    dap.listeners.before.launch.dapui_config = function()
+        dapui.open()
+    end
+    dap.listeners.before.event_terminated.dapui_config = function()
+        dapui.close()
+    end
+    dap.listeners.before.event_exited.dapui_config = function()
+        dapui.close()
+    end
+
+    dap.adapters.gdb = {
+        type = "executable",
+        command = "gdb",
+        args = { "--interpreter=dap", "--eval-command", "set print pretty on" }
     }
+
+    dap.adapters.lldb = {
+        type = "executable",
+        command = "lldb-vscode", -- adjust as needed
+        name = "lldb",
+    }
+
+    local home = vim.fn.expand("~")
+
+    dap.adapters.cppvsdbg = vsdbg_adapter
 
     local get_program = util.get_program
     local get_coredmp = util.get_coredmp
+
+    local function vsdbg_find_natvis()
+        local file = "C:/dotfiles-install/all.natvis"
+
+        if Path:new(file):exists() then
+            return file
+        end
+        return nil
+    end
 
     local vsdbg_config = {
         type = "cppvsdbg",
@@ -390,12 +405,12 @@ return {
     dir = gen.dap,
     name = "dap",
     module = "dap",
-    config = config,
     init = function()
         require("which-key").add({
             { "<leader>d",  group = "Debugger" },
             { "<leader>du", group = "Debugger UI" },
         })
+        init()
     end,
     keys = {
         {

@@ -204,9 +204,9 @@ return {
             {
                 "<leader>fF",
                 function()
-                    vim.cmd("Telescope frecency")
+                    Snacks.picker.recent()
                 end,
-                desc = "frecency",
+                desc = "recent files",
             },
             {
                 "<leader>fr",

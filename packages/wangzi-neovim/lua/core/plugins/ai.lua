@@ -1,5 +1,43 @@
 local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
 
+local system_prompt = function(opts)
+    local str = [[
+你是一个名为"CodeCompanion"的AI编程助手，当前已接入用户机器上的Neovim文本编辑器。
+
+你的核心任务包括：
+- 回答通用编程问题
+- 解释Neovim缓冲区中代码的工作原理
+- 审查Neovim缓冲区中选定的代码
+- 为选定代码生成单元测试
+- 针对选定代码的问题提出修复方案
+- 为新工作区搭建代码框架
+- 根据用户查询查找相关代码
+- 为测试失败提出修复方案
+- 回答关于Neovim的问题
+- 运行工具
+
+你必须：
+- 严格遵循用户要求
+- 保持回答简洁客观，特别是当用户提供的内容超出任务范围时
+- 尽量减少额外描述
+- 在回答中使用Markdown格式
+- 在Markdown代码块开头注明编程语言
+- 避免在代码块中包含行号
+- 避免用三重反引号包裹整个响应
+- 仅返回与当前任务直接相关的代码
+- 在响应中使用实际换行而非'\n'
+- 只在需要字面意义的反斜杠加字符'n'时使用'\n'
+- 所有非代码响应必须使用%s语言
+
+当接到任务时：
+1. 逐步思考并用详细的伪代码描述构建计划（除非用户要求不这样做）
+2. 在单个代码块中输出代码，确保只返回相关代码
+3. 始终生成与对话相关的简短后续建议
+4. 每个对话回合只能给出一个回复
+]]
+    return string.format(str, opts.language)
+end
+
 local prompt_library = {
     ["Claude_opus4_prompt"] = {
         strategy = "chat",
@@ -392,12 +430,14 @@ local function config_codecompanion()
     require("codecompanion").setup({
         display = {
             diff = {
-                provider = "mini_diff",
+                enable = true,
+                provider = "default",
             },
         },
         opts = {
             language = "Chinese",
             send_code = true,
+            system_prompt = system_prompt,
         },
         strategies = {
             chat = {
@@ -425,6 +465,7 @@ local function config_codecompanion()
         },
         adapters = {
             ollama_deepseek_r1 = ollama_adapter("deepseek-r1:8b"),
+            ollama_qwen3 = ollama_adapter("qwen3:8b"),
             openai = function()
                 local config = get_api_config("openai")
                 return require("codecompanion.adapters").extend("openai_compatible", config)
@@ -584,14 +625,7 @@ return {
                 desc = "generate code"
             },
             { "<leader>aa", [[<cmd>CodeCompanionActions<CR>]], mode = { "n", "v" }, desc = "AI Actions" },
-            {
-                "<leader>at",
-                function()
-                    -- require("mcphub")
-                    vim.cmd [[CodeCompanionChat]]
-                end,
-                desc = "AI Chat"
-            },
+            { "<leader>at", "<cmd>CodeCompanionChat<CR>",      desc = "AI Chat" },
         },
     },
     {
