@@ -443,15 +443,8 @@ local function config_codecompanion()
             chat = {
                 adapter = "deepseek",
                 slash_commands = {
-                    -- add the vectorcode command here.
-                    codebase = found_vectorcode_command and
-                        require("vectorcode.integrations").codecompanion.chat.make_slash_command(),
                 },
                 tools = {
-                    vectorcode = found_vectorcode_command and {
-                        description = "Run VectorCode to retrieve the project context.",
-                        callback = require("vectorcode.integrations").codecompanion.chat.make_tool(),
-                    },
                     mcp = {
                         -- calling it in a function would prevent mcphub from being loaded before it's needed
                         callback = function() return require("mcphub.extensions.codecompanion") end,
@@ -480,6 +473,48 @@ local function config_codecompanion()
             end,
         },
         prompt_library = prompt_library,
+        extensions = {
+            vectorcode = {
+                ---@type VectorCode.CodeCompanion.ExtensionOpts
+                opts = {
+                    tool_group = {
+                        -- this will register a tool group called `@vectorcode_toolbox` that contains all 3 tools
+                        enabled = true,
+                        -- a list of extra tools that you want to include in `@vectorcode_toolbox`.
+                        -- if you use @vectorcode_vectorise, it'll be very handy to include
+                        -- `file_search` here.
+                        extras = {},
+                        collapse = false, -- whether the individual tools should be shown in the chat
+                    },
+                    tool_opts = {
+                        ---@type VectorCode.CodeCompanion.ToolOpts
+                        ["*"] = {},
+                        ---@type VectorCode.CodeCompanion.LsToolOpts
+                        ls = {},
+                        ---@type VectorCode.CodeCompanion.VectoriseToolOpts
+                        vectorise = {},
+                        ---@type VectorCode.CodeCompanion.QueryToolOpts
+                        query = {
+                            max_num = { chunk = -1, document = -1 },
+                            default_num = { chunk = 50, document = 10 },
+                            include_stderr = false,
+                            use_lsp = true,
+                            no_duplicate = true,
+                            chunk_mode = false,
+                            ---@type VectorCode.CodeCompanion.SummariseOpts
+                            summarise = {
+                                ---@type boolean|(fun(chat: CodeCompanion.Chat, results: VectorCode.QueryResult[]):boolean)|nil
+                                enabled = false,
+                                adapter = nil,
+                                query_augmented = true,
+                            }
+                        },
+                        files_ls = {},
+                        files_rm = {}
+                    }
+                },
+            },
+        }
     })
     require("telescope").load_extension("codecompanion")
     codecompanion_fidget():init()

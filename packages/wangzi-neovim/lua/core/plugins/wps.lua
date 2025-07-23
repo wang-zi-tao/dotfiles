@@ -6,7 +6,10 @@ local function config()
     local Path       = require("plenary.path")
     local Job        = require("plenary.job")
     local Terminal   = require('toggleterm.terminal').Terminal
-    wps.path         = Path:new(vim.fn.finddir('Coding/..', vim.fn.expand('%:p:h') .. ';'))
+    local dap_utils  = require("dap.utils")
+    local util       = require("core.utils")
+    local dap        = require("dap")
+    wps.path         = Path:new(require("null-ls.utils").root_pattern("Coding")(vim.fn.expand('%:p:h')))
     wps.qt_path      = wps.path:joinpath("../debug/3rd_build/qt5/source/qtbase/")
     wps.ohos_qt_path = wps.path:joinpath("../debug_ohos/3rd_build/qt5/source/qtbase/")
 
@@ -131,6 +134,28 @@ local function config()
     vim.api.nvim_create_user_command("NotesTree", function(opts)
         vim.cmd [[neotree dir=C:\Users\wps\Documents\Obsidian-work]]
     end, { nargs = 0 })
+
+    local debug_wps = function(component)
+        local processes = dap_utils.get_processes({
+            filter = function(p)
+                return vim.endswith(p.name, component .. ".exe")
+            end
+        })
+
+        for _, p in ipairs(processes) do
+            local dap_config = vim.tbl_deep_extend('force', util.find_dap_config("vsdbg attach", "cpp"), {
+                name = "Attach " .. p.name .. ":" .. p.pid,
+                processId = p.pid,
+                program =
+                    tostring(wps.path:joinpath("../debug/wps_build/WPSOffice/office6/", component .. ".exe"))
+            })
+            pcall(dap.run, dap_config)
+        end
+    end
+
+    vim.api.nvim_create_user_command("AttachWps", function()
+        debug_wps("wps")
+    end, { desc = "Attach to WPS process" })
 end
 
 config()

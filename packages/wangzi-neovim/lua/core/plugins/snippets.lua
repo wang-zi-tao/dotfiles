@@ -219,7 +219,7 @@ return {
                     newline(),
                 }),
                 s("comclass", {
-                    t("class "), i(1, "class"), t(": public "), i(2, "interface"), t(" {"), newline(),
+                    t("class "), i(1, "class"), t(": public "), i(2, "IUnknown"), t(" {"), newline(),
                     t("public:"), newline(),
                     t("\tBEGIN_QUERYINTERFACE(IUnknown)"), newline(),
                     t("\t\tADD_INTERFACE("), rep(2), t(")"), newline(),
@@ -236,6 +236,7 @@ return {
                 s("ks_new", {
                     t("ks_stdptr<"), i(1, "type"), t("> sp"), rep(1), t(";"), newline(),
                     t("sp"), rep(1), t(".attach(KS_NEW_("), rep(1), t("));"), newline(),
+                    t("sp"), rep(1), t("->Init();"), newline(),
                 }),
                 postfix("std_vector", {
                     f(function(_, snip)

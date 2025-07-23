@@ -162,14 +162,14 @@ function M.module_dir()
         ---@type string
         local path = vim.fn.findfile(v, current .. ';')
         if path ~= current then
-            return path
+            return vim.fn.fnamemodify(path, ":p:h")
         end
     end
     for k, v in ipairs(M.module_dir_names) do
         ---@type string
         local path = vim.fn.finddir(v, current .. ';')
         if path ~= current then
-            return path
+            return vim.fn.fnamemodify(path, ":p:h")
         end
     end
     return M.project_dir()
@@ -375,5 +375,16 @@ function M.load_nvim_lua_file(dir)
     end
 end
 
-return M
+---@param process_name string|nil
+function M.pick_process(process_name)
+    return require("dap.utils").pick_process({
+        filter = function(process)
+            if process_name == nil or process.name == process_name then
+                return true
+            end
+            return false
+        end,
+    })
+end
 
+return M

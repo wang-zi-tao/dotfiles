@@ -12,7 +12,8 @@ opt.listchars:append("trail:-")
 
 opt.copyindent = true
 opt.preserveindent = true
-opt.swapfile = true
+opt.swapfile = false
+opt.shortmess:append("A")
 opt.backup = true
 opt.writebackup = true
 opt.backupcopy = "yes"
@@ -195,6 +196,23 @@ vim.api.nvim_create_autocmd({ "BufWinEnter", "WinEnter" }, {
     pattern = "term://*",
     command = "startinsert",
 })
+
+vim.api.nvim_create_autocmd("BufEnter", {
+    pattern = "*",
+    callback = function()
+        pcall(function()
+            local branch = vim.api.nvim_buf_get_var(0, "gitsigns_head")
+            if vim.startswith(branch, "func_") then
+                branch = branch:gsub("func_", "")
+            end
+            if vim.endswith(branch, "_branch") then
+                branch = branch:gsub("_branch", "")
+            end
+            vim.opt.titlestring = branch
+        end)
+    end,
+})
+
 -- vim.cm([[ autocmd BufWinEnter,WinEnter term://* startinsert ]])
 -- vim.cmd([[ autocmd BufEnter,BufRead,BufWinEnter,FileType,WinEnter * lua require("core.utils").hide_statusline() ]])
 -- vim.cmd([[let mapleader = "\<space>"]])

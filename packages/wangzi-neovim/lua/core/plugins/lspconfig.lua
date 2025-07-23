@@ -137,8 +137,6 @@ local function config()
     for _, lsp in ipairs(servers) do
         setup_lsp(lsp)
     end
-    require("core.plugins.cpp").clangd_config(on_attach, nil)
-
     setup_lsp("lua_ls", {
         settings = {
             Lua = {
@@ -215,14 +213,19 @@ local function config()
             "clangd",
             "--background-index",
             "--pch-storage=disk",
+            "--clang-tidy",
             "--log=error",
+            "--enable-config",
             num_of_job ~= 0 and "-j=" .. tostring(num_of_job) or nil,
         },
+        cmd_env = {
+            CLANGD_FLAGS = "-Wall -Wextra -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic",
+        },
         root_dir = lspconfig_util.root_pattern(
+            'compile_commands.json',
             "wps_3rdparty_list.cmake",
             '.clang-tidy',
             '.clang-format',
-            'compile_commands.json',
             'compile_flags.txt',
             'configure.ac'
         ),
@@ -381,9 +384,6 @@ return {
                 -- Load luvit types when the `vim.uv` word is found
                 { path = "${3rd}/luv/library", words = { "vim%.uv" } },
             },
-        },
-    },
-}
         },
     },
 }
