@@ -326,6 +326,11 @@ let
     OpenDebugAD7 = "${vscode-cpptools}/extension/debugAdapters/bin/OpenDebugAD7";
     nio = nvim-nio;
     one_small_step_for_vimkind = one-small-step-for-vimkind;
+    dap_disasm = fetchgit {
+      url = "https://github.com/Jorenar/nvim-dap-disasm";
+      rev = "543939e2572c4291f1978737d687977385a9e669";
+      sha256 = "sha256-U7oPbml4qy0ISCgkr8Di16u2jDiW52IW5g+P+cwAlmE=";
+    };
 
     # terminal
     fterm = FTerm-nvim;
