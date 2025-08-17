@@ -188,11 +188,13 @@ with builtins; {
   config = {
     boot.isContainer = nodeConfig.inContainer;
     cluster = {
-      network = {
+      network = let desktop_config = {
+          doh.enable = true;
+        }; in {
         nodes = {
-          wangzi-pc.config = { localIp = "192.168.1.145"; };
-          wangzi-nuc.config = { localIp = "192.168.32.1"; };
-          wangzi-asus.config = { localIp = "192.168.32.129"; };
+          wangzi-pc.config = desktop_config // { localIp = "192.168.1.145"; };
+          wangzi-nuc.config = desktop_config // { localIp = "192.168.32.1"; };
+          wangzi-asus.config = desktop_config // { localIp = "192.168.32.129"; };
           huawei-ecs.config = { publicIp = "139.9.235.87"; };
           aliyun-hk.config = { publicIp = "47.83.14.140"; };
           aliyun-ecs.config = { publicIp = "116.62.23.116"; };

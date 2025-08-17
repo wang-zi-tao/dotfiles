@@ -88,6 +88,8 @@
           plugin add ${nushellPlugins.highlight}/bin/nu_plugin_highlight
           plugin add ${nushellPlugins.gstat}/bin/nu_plugin_gstat
           plugin add ${nushellPlugins.formats}/bin/nu_plugin_formats
+
+          $env.config.show_banner = false
         '';
       };
     programs.direnv = {

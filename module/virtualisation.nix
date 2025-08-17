@@ -208,14 +208,14 @@ with builtins;
       };
     })
     (lib.mkIf nodeConfig.virtualisation.enable {
-      virtualisation.oci-containers.containers.virtlyst = {
-        image = "dantti/virtlyst";
-        volumes = [
-          "virtlyst:/root"
-          "/root/.ssh:/root/.ssh"
-        ];
-        ports = [ "9090:80" ];
-      };
+      # virtualisation.oci-containers.containers.virtlyst = {
+      #   image = "dantti/virtlyst";
+      #   volumes = [
+      #     "virtlyst:/root"
+      #     "/root/.ssh:/root/.ssh"
+      #   ];
+      #   ports = [ "9090:80" ];
+      # };
       services.caddy = lib.optionalAttrs nodeConfig.virtualisation.enable {
         enable = true;
         virtualHosts = {

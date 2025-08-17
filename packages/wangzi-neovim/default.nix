@@ -409,9 +409,14 @@ stdenvNoCC.mkDerivation {
 
     export LUA_PATH="$out/lua/?.lua;$out/lua/?/init.lua;${lazy-nvim}/lua/?.lua;${lazy-nvim}/lua/?/init.lua;;"
     HOME=. ${pkg}/bin/nvim -u $out/init.lua "+Lazy! install" --headless +qa
-    makeWrapper ${pkg}/bin/nvim $out/bin/wnvim --add-flags '-u' --add-flags "$out/init.lua" \
-        --set LUA_PATH "$LUA_PATH" \
-        --prefix LD_LIBRARY_PATH : ${luarocks}:${sqlite.out}/lib
+
+    cat > $out/bin/wnvim << EOF
+    #!${stdenv.shell}
+    export LUA_PATH="\$LUA_PATH;$LUA_PATH"
+    export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:${luarocks}:${sqlite.out}/lib"
+    ${pkg}/bin/nvim -u $out/init.lua "\$@"
+    EOF
+    chmod +x $out/bin/wnvim
 
     ln -s ${pkgs.tree-sitter}/bin/tree-sitter $out/bin/tree-sitter
     cp $out/bin/wnvim $out/bin/wangzi-neovim

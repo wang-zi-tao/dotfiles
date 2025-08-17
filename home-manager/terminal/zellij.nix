@@ -45,6 +45,9 @@ in {
             bind "Alt -" { Resize "Decrease"; }
             bind "Alt [" { PreviousSwapLayout; }
             bind "Alt ]" { NextSwapLayout; }
+
+            bind "Ctrl f" "PageDown" "Right" "l" { SwitchToMode "scroll"; PageScrollDown; }
+            bind "Ctrl b" "PageUp" "Left" "h" { SwitchToMode "scroll"; PageScrollUp; }
         }
         locked {
             bind "Ctrl g" { SwitchToMode "Normal"; }
