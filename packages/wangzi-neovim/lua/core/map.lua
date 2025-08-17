@@ -39,13 +39,18 @@ wk.add({
         desc = "hover"
     },
     {
-        "K",
+        "<A-k>",
         function()
             local dap = require("dap")
             if dap.status() ~= "" then
                 require("dapui").eval(nil, { enter = true })
             end
-
+        end,
+        desc = "dap hover"
+    },
+    {
+        "K",
+        function()
             local filename = vim.fn.expand("%:t")
             local filetype = vim.bo.filetype
             if filename == "Cargo.toml" then

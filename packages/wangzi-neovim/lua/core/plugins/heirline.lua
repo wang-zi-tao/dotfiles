@@ -610,14 +610,11 @@
         end
     }
 
-    local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
-
     local function VectorCode(opts)
         if found_vectorcode_command then
-            local lualine_component = require("vectorcode.integrations").lualine({})
-            return vim.tbl_deep_extend("keep", opts or {}, {
-                provider = lualine_component[1],
-                condition = lualine_component.condition,
+            return require("vectorcode.integrations").heirline({
+                show_job_count = true,
+                component_opts = opts,
             })
         else
             return {}

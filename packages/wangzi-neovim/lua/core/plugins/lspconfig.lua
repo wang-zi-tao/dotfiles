@@ -137,13 +137,18 @@ local function config()
     for _, lsp in ipairs(servers) do
         setup_lsp(lsp)
     end
-    require("core.plugins.cpp").clangd_config(on_attach, nil)
-
     setup_lsp("lua_ls", {
         settings = {
             Lua = {
                 telemetry = {
                     enable = false
+                },
+                format = {
+                    enable = true,
+                    defaultConfig = {
+                        indent_style = "tab",
+                        indent_size = "4",
+                    }
                 },
             },
         },
@@ -208,23 +213,25 @@ local function config()
             "clangd",
             "--background-index",
             "--pch-storage=disk",
+            "--clang-tidy",
             "--log=error",
+            "--enable-config",
             num_of_job ~= 0 and "-j=" .. tostring(num_of_job) or nil,
         },
+        cmd_env = {
+            CLANGD_FLAGS = "-Wall -Wextra -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic",
+        },
         root_dir = lspconfig_util.root_pattern(
+            'compile_commands.json',
             "wps_3rdparty_list.cmake",
             '.clang-tidy',
             '.clang-format',
-            'compile_commands.json',
             'compile_flags.txt',
             'configure.ac'
         ),
     })
     setup_lsp("nil_ls", {
         settings = {
-            formatting = {
-                command = "nixpkgs-fmt",
-            },
             ["nil"] = {
                 flake = {
                     autoArchive = true,
@@ -330,7 +337,7 @@ return {
     vim.fn.has('win32') == 1 and {
         "williamboman/mason.nvim",
         dir = gen.mason_nvim,
-        name = "mason_nvim",
+        name = "mason",
         cmd = { "Mason", "MasonUpdate", "MasonInstall", "MasonUninstall", "MasonUninstallAll", "MasonLog" },
         -- lazy = 0 == vim.fn.has("win32"),
         module = "mason",

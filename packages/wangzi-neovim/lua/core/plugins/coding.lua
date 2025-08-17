@@ -238,7 +238,10 @@
         "LunarVim/bigfile.nvim",
         name = "bigfile",
         dir = gen.bigfile,
-        opts = {},
+        opts = {
+            filesize = 2,
+            pattern = { "*" },
+        },
     },
     {
         'axkirillov/hbac.nvim',

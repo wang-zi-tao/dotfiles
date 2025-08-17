@@ -1,5 +1,43 @@
 local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
 
+local system_prompt = function(opts)
+    local str = [[
+你是一个名为"CodeCompanion"的AI编程助手，当前已接入用户机器上的Neovim文本编辑器。
+
+你的核心任务包括：
+- 回答通用编程问题
+- 解释Neovim缓冲区中代码的工作原理
+- 审查Neovim缓冲区中选定的代码
+- 为选定代码生成单元测试
+- 针对选定代码的问题提出修复方案
+- 为新工作区搭建代码框架
+- 根据用户查询查找相关代码
+- 为测试失败提出修复方案
+- 回答关于Neovim的问题
+- 运行工具
+
+你必须：
+- 严格遵循用户要求
+- 保持回答简洁客观，特别是当用户提供的内容超出任务范围时
+- 尽量减少额外描述
+- 在回答中使用Markdown格式
+- 在Markdown代码块开头注明编程语言
+- 避免在代码块中包含行号
+- 避免用三重反引号包裹整个响应
+- 仅返回与当前任务直接相关的代码
+- 在响应中使用实际换行而非'\n'
+- 只在需要字面意义的反斜杠加字符'n'时使用'\n'
+- 所有非代码响应必须使用%s语言
+
+当接到任务时：
+1. 逐步思考并用详细的伪代码描述构建计划（除非用户要求不这样做）
+2. 在单个代码块中输出代码，确保只返回相关代码
+3. 始终生成与对话相关的简短后续建议
+4. 每个对话回合只能给出一个回复
+]]
+    return string.format(str, opts.language)
+end
+
 local prompt_library = {
     ["Claude_opus4_prompt"] = {
         strategy = "chat",
@@ -392,26 +430,21 @@ local function config_codecompanion()
     require("codecompanion").setup({
         display = {
             diff = {
-                provider = "mini_diff",
+                enable = true,
+                provider = "default",
             },
         },
         opts = {
             language = "Chinese",
             send_code = true,
+            system_prompt = system_prompt,
         },
         strategies = {
             chat = {
                 adapter = "deepseek",
                 slash_commands = {
-                    -- add the vectorcode command here.
-                    codebase = found_vectorcode_command and
-                        require("vectorcode.integrations").codecompanion.chat.make_slash_command(),
                 },
                 tools = {
-                    vectorcode = found_vectorcode_command and {
-                        description = "Run VectorCode to retrieve the project context.",
-                        callback = require("vectorcode.integrations").codecompanion.chat.make_tool(),
-                    },
                     mcp = {
                         -- calling it in a function would prevent mcphub from being loaded before it's needed
                         callback = function() return require("mcphub.extensions.codecompanion") end,
@@ -425,6 +458,7 @@ local function config_codecompanion()
         },
         adapters = {
             ollama_deepseek_r1 = ollama_adapter("deepseek-r1:8b"),
+            ollama_qwen3 = ollama_adapter("qwen3:8b"),
             openai = function()
                 local config = get_api_config("openai")
                 return require("codecompanion.adapters").extend("openai_compatible", config)
@@ -439,6 +473,48 @@ local function config_codecompanion()
             end,
         },
         prompt_library = prompt_library,
+        extensions = {
+            vectorcode = {
+                ---@type VectorCode.CodeCompanion.ExtensionOpts
+                opts = {
+                    tool_group = {
+                        -- this will register a tool group called `@vectorcode_toolbox` that contains all 3 tools
+                        enabled = true,
+                        -- a list of extra tools that you want to include in `@vectorcode_toolbox`.
+                        -- if you use @vectorcode_vectorise, it'll be very handy to include
+                        -- `file_search` here.
+                        extras = {},
+                        collapse = false, -- whether the individual tools should be shown in the chat
+                    },
+                    tool_opts = {
+                        ---@type VectorCode.CodeCompanion.ToolOpts
+                        ["*"] = {},
+                        ---@type VectorCode.CodeCompanion.LsToolOpts
+                        ls = {},
+                        ---@type VectorCode.CodeCompanion.VectoriseToolOpts
+                        vectorise = {},
+                        ---@type VectorCode.CodeCompanion.QueryToolOpts
+                        query = {
+                            max_num = { chunk = -1, document = -1 },
+                            default_num = { chunk = 50, document = 10 },
+                            include_stderr = false,
+                            use_lsp = true,
+                            no_duplicate = true,
+                            chunk_mode = false,
+                            ---@type VectorCode.CodeCompanion.SummariseOpts
+                            summarise = {
+                                ---@type boolean|(fun(chat: CodeCompanion.Chat, results: VectorCode.QueryResult[]):boolean)|nil
+                                enabled = false,
+                                adapter = nil,
+                                query_augmented = true,
+                            }
+                        },
+                        files_ls = {},
+                        files_rm = {}
+                    }
+                },
+            },
+        }
     })
     require("telescope").load_extension("codecompanion")
     codecompanion_fidget():init()
@@ -584,14 +660,7 @@ return {
                 desc = "generate code"
             },
             { "<leader>aa", [[<cmd>CodeCompanionActions<CR>]], mode = { "n", "v" }, desc = "AI Actions" },
-            {
-                "<leader>at",
-                function()
-                    -- require("mcphub")
-                    vim.cmd [[CodeCompanionChat]]
-                end,
-                desc = "AI Chat"
-            },
+            { "<leader>at", "<cmd>CodeCompanionChat<CR>",      desc = "AI Chat" },
         },
     },
     {

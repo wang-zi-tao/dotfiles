@@ -1,26 +1,4 @@
-local function clangd_config(on_attach, capabilities)
-    local num_of_job = require("core.utils").num_of_core()
-    require("clangd_extensions").setup({
-        server = {
-            on_attach = on_attach,
-            capabilities = capabilities,
-            flags = {
-                debounce_text_changes = 150,
-            },
-            -- cmd = { "clangd", "--background-index", "--pch-storage=disk", "-j=" .. tostring(num_of_job) }
-            cmd = {
-                "clangd",
-                "--background-index",
-                "--pch-storage=disk",
-                "--log=error",
-                num_of_job ~= 0 and "-j=" .. tostring(num_of_job) or nil,
-            },
-        },
-    })
-end
-
 return {
-    clangd_config = clangd_config,
     require("core.plugins.cmake"),
     {
         "p00f/clangd_extensions.nvim",

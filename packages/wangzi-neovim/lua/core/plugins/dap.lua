@@ -1,41 +1,21 @@
-local function config()
-    local dap = require("dap")
-    local dapui = require("dapui")
-    local util = require("core.utils")
-    local rpc = require('dap.rpc')
-    local plenary = require("plenary")
+local function vsdbg_adapter(callback)
     local Job = require("plenary.job")
-    local scandir = require("plenary.scandir")
-    local Path = require("plenary.path")
-
-    dap.listeners.before.attach.dapui_config = function()
-        dapui.open()
-    end
-    dap.listeners.before.launch.dapui_config = function()
-        dapui.open()
-    end
-    dap.listeners.before.event_terminated.dapui_config = function()
-        dapui.close()
-    end
-    dap.listeners.before.event_exited.dapui_config = function()
-        dapui.close()
-    end
-
-    dap.adapters.gdb = {
-        type = "executable",
-        command = "gdb",
-        args = { "--interpreter=dap", "--eval-command", "set print pretty on" }
-    }
-
-    dap.adapters.lldb = {
-        type = "executable",
-        command = "lldb-vscode", -- adjust as needed
-        name = "lldb",
-    }
-
+    local rpc = require('dap.rpc')
+    local scan = require 'plenary.scandir'
     local home = vim.fn.expand("~")
 
-    local vscode_cpptoools_dir = home .. "/.vscode/extensions/ms-vscode.cpptools-1.25.3-win32-x64"
+    local vscode_extensions_dir = (home .. "/.vscode/extensions")
+    local vscode_cpptoools_dir = "."
+    local plugins = scan.scan_dir(vscode_extensions_dir, { depth = 1, only_dirs = true })
+    for _, dir in ipairs(plugins) do
+        if string.match(dir, "ms%-vscode%.cpptools%-[0-9.]+%-win32%-x64") then
+            vscode_cpptoools_dir = dir
+        end
+    end
+    if vscode_cpptoools_dir == "." then
+        vim.notify("vscode cpptools not found, please install it first", vim.log.levels.ERROR)
+        return
+    end
 
     local vsdbg_js_adapter = [[
         /* declare module vsda {
@@ -57,15 +37,6 @@ local function config()
         }
         });
     ]]
-
-    local function vsdbg_find_natvis()
-        local file = "C:/dotfiles-install/all.natvis"
-
-        if Path:new(file):exists() then
-            return file
-        end
-        return nil
-    end
 
     local function vsdbg_send_payload(client, payload)
         local msg = rpc.msg_with_content_length(vim.json.encode(payload))
@@ -102,31 +73,74 @@ local function config()
         job:sync()
     end
 
-
-    dap.adapters.cppvsdbg = {
+    callback({
         id = 'cppvsdbg',
         type = 'executable',
         command = vscode_cpptoools_dir .. [[\debugAdapters\vsdbg\bin\vsdbg.exe]],
         args = {
             "--interpreter=vscode",
-            -- '--engineLogging=' .. vim.fn.stdpath("log") .. '/vsdbg.log',
+            '--engineLogging=' .. vim.fn.stdpath("log") .. '/vsdbg.log',
         },
         options = {
             externalTerminal = true,
-            -- logging = {
-            --   moduleLoad = false,
-            --   trace = true
-            -- }
+            logging = {
+                moduleLoad = false,
+            }
         },
         runInTerminal = true,
         reverse_request_handlers = {
             handshake = vsdbg_RunHandshake,
-
         },
+    })
+end
+
+local function init()
+    local dap = require("dap")
+    local dapui = require("dapui")
+    local util = require("core.utils")
+    local Path = require("plenary.path")
+
+    dap.listeners.before.attach.dapui_config = function()
+        dapui.open()
+    end
+    dap.listeners.before.launch.dapui_config = function()
+        dapui.open()
+    end
+    dap.listeners.before.event_terminated.dapui_config = function()
+        dapui.close()
+    end
+    dap.listeners.before.event_exited.dapui_config = function()
+        dapui.close()
+    end
+    dap.defaults.fallback.auto_continue_if_many_stopped = false
+
+    dap.adapters.gdb = {
+        type = "executable",
+        command = "gdb",
+        args = { "--interpreter=dap", "--eval-command", "set print pretty on" }
     }
+
+    dap.adapters.lldb = {
+        type = "executable",
+        command = "lldb-vscode", -- adjust as needed
+        name = "lldb",
+    }
+
+    local home = vim.fn.expand("~")
+
+    dap.adapters.cppvsdbg = vsdbg_adapter
 
     local get_program = util.get_program
     local get_coredmp = util.get_coredmp
+
+    local function vsdbg_find_natvis()
+        local file = "C:/dotfiles-install/all.natvis"
+
+        if Path:new(file):exists() then
+            return file
+        end
+        return nil
+    end
 
     local vsdbg_config = {
         type = "cppvsdbg",
@@ -390,12 +404,14 @@ return {
     dir = gen.dap,
     name = "dap",
     module = "dap",
-    config = config,
     init = function()
         require("which-key").add({
             { "<leader>d",  group = "Debugger" },
             { "<leader>du", group = "Debugger UI" },
+            { "<leader>df", group = "Debugger UI Float" },
+            { "<leader>ds", group = "Debugger Telescope" },
         })
+        init()
     end,
     keys = {
         {
@@ -463,11 +479,10 @@ return {
         },
         {
             "<leader>dr",
-            function()
-                require("dap").run()
-            end,
+            function() require("dap").run() end,
             desc = "Run",
         },
+        { "<leader>dn", [[<cmd>DapNew<CR>]], desc = "New session", },
         {
             "<leader>dR",
             function()
@@ -490,6 +505,13 @@ return {
             end,
             mode = { "n", "v" },
             desc = "Eval expr",
+        },
+        {
+            "<leader>dh",
+            function()
+                require("dapui").float_element("eval", { enter = true })
+            end,
+            desc = "Eval",
         },
         {
             "<leader>dF",
@@ -525,6 +547,64 @@ return {
                 require("dapui").float_element("breakpoints", { enter = true })
             end,
             desc = "breakpoints window",
+        },
+        {
+            "<leader>dsb",
+            function()
+                vim.cmd [[Telescope dap list_breakpoints]]
+            end,
+            desc = "breakpoints",
+        },
+        {
+            "<leader>dsf",
+            function()
+                vim.cmd [[Telescope dap frames]]
+            end,
+            desc = "frames",
+        },
+        {
+            "<leader>dt",
+            function()
+                local dap = require("dap")
+                local dapui = require("dapui")
+
+                local sessions = dap.sessions()
+                local sessions_index = {}
+                for i, session in pairs(sessions) do
+                    table.insert(sessions_index, i)
+                end
+                vim.ui.select(sessions_index, {
+                    prompt = "Select a session",
+                    format_item = function(sessions_index)
+                        local session = sessions[sessions_index]
+                        local config_name = session.config.name or "unnamed"
+                        local frame = session.current_frame and "--" .. session.current_frame.name or ""
+                        local thread_id = session.stopped_thread_id
+                        local thread_info = ""
+                        if thread_id then
+                            local thread = session.threads[thread_id]
+                            thread_info = string.format(" (thread %d: %s)", thread_id, thread.name or "unnamed")
+                        end
+                        return string.format(
+                            "[%d]: %s %s %s",
+                            session.id,
+                            thread_info,
+                            config_name,
+                            frame
+                        )
+                    end,
+                }, function(sessions_index)
+                    local session = sessions[sessions_index]
+                    if session then
+                        dap.set_session(session)
+                        dapui.close()
+                        dapui.open()
+                    else
+                        vim.notify("No session selected", vim.log.levels.INFO)
+                    end
+                end)
+            end,
+            desc = "switch session",
         },
         {
             "\\9",
@@ -642,8 +722,7 @@ return {
         {
             "rcarriga/nvim-dap-ui",
             dir = gen.dap_ui,
-            name = "dap_ui",
-            module = "dapui",
+            name = "dapui",
             lazy = true,
             keys = {
                 {
@@ -661,63 +740,110 @@ return {
                     desc = "Close",
                 },
             },
-            config = function()
-                require("dapui").setup({
-                    icons = { expanded = "▾", collapsed = "▸" },
-                    mappings = {
-                        -- Use a table to apply multiple mappings
-                        expand = { "<CR>", "<2-LeftMouse>" },
-                        open = "o",
-                        remove = "d",
-                        edit = "e",
-                        repl = "r",
-                        toggle = "t",
+            opts = {
+                icons = { expanded = "▾", collapsed = "▸" },
+                mappings = {
+                    -- Use a table to apply multiple mappings
+                    expand = { "<CR>", "<2-LeftMouse>" },
+                    open = "o",
+                    remove = "d",
+                    edit = "e",
+                    repl = "r",
+                    toggle = "t",
+                },
+                -- Expand lines larger than the window
+                -- Requires >= 0.7
+                expand_lines = vim.fn.has("nvim-0.7"),
+                -- Layouts define sections of the screen to place windows.
+                -- The position can be "left", "right", "top" or "bottom".
+                -- The size specifies the height/width depending on position. It can be an Int
+                -- or a Float. Integer specifies height/width directly (i.e. 20 lines/columns) while
+                -- Float value specifies percentage (i.e. 0.3 - 30% of available lines/columns)
+                -- Elements are the elements shown in the layout (in order).
+                -- Layouts are opened in order so that earlier layouts take priority in window sizing.
+                layouts = {
+                    {
+                        elements = {
+                            -- Elements can be strings or table with id and size keys.
+                            { id = "watches", size = 0.25 },
+                            { id = "scopes",  size = 0.25 },
+                            "stacks",
+                            { id = "breakpoints", size = 0.1 },
+                        },
+                        size = 40, -- 40 columns
+                        position = "left",
                     },
-                    -- Expand lines larger than the window
-                    -- Requires >= 0.7
-                    expand_lines = vim.fn.has("nvim-0.7"),
-                    -- Layouts define sections of the screen to place windows.
-                    -- The position can be "left", "right", "top" or "bottom".
-                    -- The size specifies the height/width depending on position. It can be an Int
-                    -- or a Float. Integer specifies height/width directly (i.e. 20 lines/columns) while
-                    -- Float value specifies percentage (i.e. 0.3 - 30% of available lines/columns)
-                    -- Elements are the elements shown in the layout (in order).
-                    -- Layouts are opened in order so that earlier layouts take priority in window sizing.
+                    {
+                        elements = {
+                            "repl",
+                            { id = "console", size = 0.25 }
+                        },
+                        size = 0.25, -- 25% of total lines
+                        position = "bottom",
+                    },
+                },
+                floating = {
+                    max_height = nil,   -- These can be integers or a float between 0 and 1.
+                    max_width = nil,    -- Floats will be treated as percentage of your screen.
+                    border = "rounded", -- Border style. Can be "single", "double" or "rounded"
+                    mappings = {
+                        close = { "q", "<Esc>" },
+                    },
+                },
+                windows = { indent = 1 },
+                render = {
+                    max_type_length = nil, -- Can be integer or nil.
+                },
+            },
+            config = function(opts)
+                require("dapui").setup(opts)
+            end,
+        },
+        {
+            "Jorenar/nvim-dap-disasm",
+            dir = gen.dap_disasm,
+            name = "nvim-dap-disasm",
+            opts = {
+                -- Add disassembly view to elements of nvim-dap-ui
+                dapui_register = true,
+                -- Add custom REPL commands for stepping with instruction granularity
+                repl_commands = true,
+                -- The sign to use for instruction the exectution is stopped at
+                sign = "DapStopped",
+                -- Number of instructions to show before the memory reference
+                ins_before_memref = 16,
+                -- Number of instructions to show after the memory reference
+                ins_after_memref = 16,
+                -- Labels of buttons in winbar
+                controls = {
+                    step_into = "Step Into",
+                    step_over = "Step Over",
+                    step_back = "Step Back",
+                },
+                -- Columns to display in the disassembly view
+                columns = {
+                    "address",
+                    "instructionBytes",
+                    "instruction",
+                },
+            },
+            specs = {
+                "rcarriga/nvim-dap-ui",
+                dir = gen.dap_ui,
+                name = "dapui",
+                opts = {
                     layouts = {
                         {
-                            elements = {
-                                -- Elements can be strings or table with id and size keys.
-                                { id = "scopes",  size = 0.25 },
-                                { id = "watches", size = 0.16 },
-                                "stacks",
-                                { id = "breakpoints", size = 0.1 },
-                            },
-                            size = 40, -- 40 columns
-                            position = "left",
-                        },
-                        {
-                            elements = {
-                                "repl",
-                                "console",
-                            },
-                            size = 0.25, -- 25% of total lines
+                            elements = { { id = "disassembly" } },
                             position = "bottom",
+                            size = 0.15,
                         },
-                    },
-                    floating = {
-                        max_height = nil,   -- These can be integers or a float between 0 and 1.
-                        max_width = nil,    -- Floats will be treated as percentage of your screen.
-                        border = "rounded", -- Border style. Can be "single", "double" or "rounded"
-                        mappings = {
-                            close = { "q", "<Esc>" },
-                        },
-                    },
-                    windows = { indent = 1 },
-                    render = {
-                        max_type_length = nil, -- Can be integer or nil.
-                    },
-                })
-            end,
+                    }
+                }
+            },
+            keys = {
+                { "<leader>da", [[<cmd>DapDisasm<CR>]], desc = "Disassemble" }
+            }
         },
         {
             "theHamsta/nvim-dap-virtual-text",

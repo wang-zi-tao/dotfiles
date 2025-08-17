@@ -12,9 +12,12 @@ local function config()
         -- null_ls.builtins.diagnostics.cpplint,
         b.diagnostics.cppcheck.with({
             root_dir = require("null-ls.utils").root_pattern("compile_commands.json"),
+            cwd = function(params)
+                return require("null-ls.utils").root_pattern("compile_commands.json")(params.bufname)
+            end,
             to_temp_file = false,
             args = function(params)
-                local Path = require("plenary.path")
+                --- @type string
                 local uri = params.lsp_params.textDocument.uri
                 local p = "file:///" .. params.cwd .. "/"
                 local relative_path = (uri:sub(0, #p) == p) and uri:sub(#p + 1) or uri
@@ -69,7 +72,7 @@ local function config()
         --     },
         -- }),
         -- nix
-        b.formatting.nixfmt,
+        -- b.formatting.nixfmt,
 
         -- other
         b.diagnostics.codespell.with({ extra_args = { "--ignore-words=crate" } }),
@@ -90,7 +93,7 @@ local function config()
     }
     null_ls.setup({
         sources = sources,
-        debug = false,
+        debug = true,
     })
 end
 return {
