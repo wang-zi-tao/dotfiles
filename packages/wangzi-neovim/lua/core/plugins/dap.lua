@@ -360,7 +360,7 @@ local function init()
 
 
     dap.adapters["pwa-node"] = function(callback, config, parent)
-        local js_dap_path = (gen.core or "./") .. "js-debug/src/dapDebugServer.js"
+        local js_dap_path = (gen.vscode_js_debug or "./") .. "/lib/node_modules/js-debug/dist/src/dapDebugServer.js"
         if vim.fn.has("win32") == 1 then
             js_dap_path = (vim.env.DOTFILE_WINDOWS or "C:/dotfiles-windows/") .. "repo/js-debug/src/dapDebugServer.js"
         end
