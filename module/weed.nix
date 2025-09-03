@@ -112,7 +112,7 @@ in
     system.activationScripts.weed-self = mkIfEnbled ''
       ln -sfn /mnt/weed/mount/${hostname} /mnt/weed/mount/self
     '';
-    systemd.timers.seaweedfs-server-clean-log = lib.mkIf seaweedfs.config.server.enable {
+    systemd.timers.seaweedfs-server-clean-log = lib.mkIf (enabled && seaweedfs.config.server.enable) {
       enable = true;
       description = "clean log";
       wantedBy = [ "timers.target" ];
