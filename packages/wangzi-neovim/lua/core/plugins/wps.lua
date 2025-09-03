@@ -135,6 +135,13 @@ local function config()
         vim.cmd [[neotree dir=C:\Users\wps\Documents\Obsidian-work]]
     end, { nargs = 0 })
 
+    vim.api.nvim_create_user_command("WpsPluginConfig", function(opts)
+        Job:new({
+            command = wps.path .. "/../debug/wps_build/WPSOffice/office6/pluginconfig.exe",
+            args = {}
+        }):start()
+    end, { nargs = 0 })
+
     local debug_wps = function(component)
         local processes = dap_utils.get_processes({
             filter = function(p)

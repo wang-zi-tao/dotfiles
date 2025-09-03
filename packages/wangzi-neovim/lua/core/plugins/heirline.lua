@@ -1,14 +1,14 @@
 ﻿local function config()
-    local heirline                 = require "heirline"
-    local heirline_components      = require "heirline-components.all"
-    local conditions               = require("heirline.conditions")
-    local utils                    = require("heirline.utils")
-    local symbols                  = require("core.theme").symbols
-    local components               = heirline_components.component
+    local heirline            = require "heirline"
+    local heirline_components = require "heirline-components.all"
+    local conditions          = require("heirline.conditions")
+    local utils               = require("heirline.utils")
+    local symbols             = require("core.theme").symbols
+    local components          = heirline_components.component
 
-    local tokyonight_colors        = require("tokyonight.colors").setup({ style = "moon" })
+    local tokyonight_colors   = require("tokyonight.colors").setup({ style = "moon" })
 
-    local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
+    local enable_vectorcode   = require("core.plugins.ai").enable_vectorcode
 
 
     local separator1 = { '', '' }
@@ -611,7 +611,7 @@
     }
 
     local function VectorCode(opts)
-        if found_vectorcode_command then
+        if enable_vectorcode then
             return require("vectorcode.integrations").heirline({
                 show_job_count = true,
                 component_opts = opts,
@@ -701,7 +701,7 @@
         tabline_buffers(),
         components.fill(),
         {
-            found_vectorcode_command and VectorCode({ hl = { fg = "gray" } }),
+            enable_vectorcode and VectorCode({ hl = { fg = "gray" } }),
             components.virtual_env(),
             FileSize({ hl = { fg = "gray" } }),
             components.file_encoding({ hl = { fg = "gray" } }),

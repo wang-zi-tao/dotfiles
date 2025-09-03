@@ -358,28 +358,41 @@ local function init()
         callback({ type = 'server', host = config.host or "127.0.0.1", port = config.port or 8086 })
     end
 
-    local js_dap_path = (gen.core or "./") .. "js-debug/src/dapDebugServer.js"
-    if vim.fn.has("win32") == 1 then
-        js_dap_path = (vim.env.DOTFILE_WINDOWS or "C:/dotfiles-windows/") .. "repo/js-debug/src/dapDebugServer.js"
-    end
 
-    dap.adapters["pwa-node"] = {
-        type = "server",
-        host = "localhost",
-        port = "${port}",
-        executable = {
-            command = "node",
-            args = { js_dap_path, "${port}" },
-        }
-    }
+    dap.adapters["pwa-node"] = function(callback, config, parent)
+        local js_dap_path = (gen.core or "./") .. "js-debug/src/dapDebugServer.js"
+        if vim.fn.has("win32") == 1 then
+            js_dap_path = (vim.env.DOTFILE_WINDOWS or "C:/dotfiles-windows/") .. "repo/js-debug/src/dapDebugServer.js"
+        end
+
+        local host = config.host or "localhost"
+        local port = config.port or 9222
+        callback({
+            type = "server",
+            host = host,
+            port = port,
+            executable = {
+                command = "node",
+                args = { js_dap_path, port },
+            }
+        })
+    end
 
     dap.configurations.javascript = {
         {
             type = "pwa-node",
             request = "launch",
-            name = "Launch file",
+            name = "Node Launch file",
             program = "${file}",
             cwd = "${workspaceFolder}",
+        },
+        {
+            type = "pwa-node",
+            request = "attach",
+            name = "Node attach",
+            cwd = "${workspaceFolder}",
+            port = 9229,
+            restart = true,
         },
         {
             type = "pwa-node",
