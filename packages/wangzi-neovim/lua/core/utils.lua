@@ -365,11 +365,13 @@ end
 function M.load_nvim_lua_file(dir)
     local nvim_lua = dir .. "/.nvim.lua"
     if vim.fn.filereadable(nvim_lua) == 1 then
-        vim.api.nvim_create_autocmd({ "BufWritePost" }, {
-            pattern = nvim_lua,
+        vim.api.nvim_create_autocmd('BufWritePost', {
+            pattern = '.nvim.lua',
             callback = function()
                 dofile(nvim_lua)
+                vim.notify('Reloaded .nvim.lua configuration', vim.log.levels.INFO)
             end,
+            desc = 'Auto-reload .nvim.lua on save'
         })
         dofile(nvim_lua)
     end
@@ -385,6 +387,22 @@ function M.pick_process(process_name)
             return false
         end,
     })
+end
+
+function M.platform_env_split()
+    if vim.fn.has("win32") == 1 then
+        return ";"
+    else
+        return ":"
+    end
+end
+
+function M.append_env(env, value)
+    if vim.env[env] == nil then
+        vim.env[env] = value
+    else
+        vim.env[env] = vim.env[env] .. M.platform_env_split() .. value
+    end
 end
 
 return M

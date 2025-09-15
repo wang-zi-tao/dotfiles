@@ -162,6 +162,9 @@ local function config()
 
     vim.api.nvim_create_user_command("AttachWps", function()
         debug_wps("wps")
+        debug_wps("et")
+        debug_wps("wpp")
+        debug_wps("promecefpluginhost")
     end, { desc = "Attach to WPS process" })
 end
 

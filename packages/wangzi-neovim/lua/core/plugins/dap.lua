@@ -1,3 +1,4 @@
+---@type dap.AdapterFactory
 local function vsdbg_adapter(callback)
     local Job = require("plenary.job")
     local rpc = require('dap.rpc')
@@ -142,6 +143,7 @@ local function init()
         return nil
     end
 
+    local vsdbg_symbolSearchPath = "srv*;srv*http://localhost:8001"
     local vsdbg_config = {
         type = "cppvsdbg",
         clientID = 'vscode',
@@ -154,7 +156,6 @@ local function init()
         externalConsole = false,
         cwd = "${workspaceFolder}",
         visualizerFile = vsdbg_find_natvis,
-        symbolSearchPath = "srv*;srv*http://localhost:8001",
         initCommands = ".childdbg 1",
         showDisplayString = true,
         stopAtEntry = false,
@@ -256,13 +257,26 @@ local function init()
             program = get_program,
         }),
         vim.tbl_deep_extend("force", vsdbg_config, {
+            name = "vsdbg launch(load symbol)",
+            request = "launch",
+            program = get_program,
+            symbolSearchPath = vsdbg_symbolSearchPath,
+        }),
+        vim.tbl_deep_extend("force", vsdbg_config, {
             name = "vsdbg coredump",
             request = "launch",
             program = get_program,
             dumpPath = get_coredmp,
+            symbolSearchPath = vsdbg_symbolSearchPath,
         }),
         vim.tbl_deep_extend("force", vsdbg_config, {
             name = "vsdbg attach",
+            request = "attach",
+            processId = util.pick_process,
+            symbolSearchPath = vsdbg_symbolSearchPath,
+        }),
+        vim.tbl_deep_extend("force", vsdbg_config, {
+            name = "vsdbg attach(without symbol)",
             request = "attach",
             processId = util.pick_process,
         }),

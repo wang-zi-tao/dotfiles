@@ -1,3 +1,5 @@
+local utils = require("core.utils")
+
 local opt = vim.opt
 local g = vim.g
 local wo = vim.wo
@@ -203,21 +205,16 @@ vim.api.nvim_create_autocmd({ "BufWinEnter", "WinEnter" }, {
     command = "startinsert",
 })
 
-vim.api.nvim_create_autocmd("BufEnter", {
+vim.api.nvim_create_autocmd("DirChanged", {
     pattern = "*",
     callback = function()
         pcall(function()
-            local branch = vim.api.nvim_buf_get_var(0, "gitsigns_head")
-            if vim.startswith(branch, "func_") then
-                branch = branch:gsub("func_", "")
-            end
-            if vim.endswith(branch, "_branch") then
-                branch = branch:gsub("_branch", "")
-            end
-            vim.opt.titlestring = branch
+            vim.opt.titlestring = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
         end)
     end,
 })
+
+vim.opt.titlestring = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
 
 -- vim.cm([[ autocmd BufWinEnter,WinEnter term://* startinsert ]])
 -- vim.cmd([[ autocmd BufEnter,BufRead,BufWinEnter,FileType,WinEnter * lua require("core.utils").hide_statusline() ]])
@@ -271,4 +268,10 @@ if vim.fn.has("win32") == 1 then
         command = "wmic",
         args = { "where", "Name like '%%WindowsTerminal.exe%%'", "call", "setpriority", "AboveNormal" }
     }):start()
+end
+
+local node_bin_path = vim.fn.getcwd() .. "/node_modules/.bin"
+if vim.fn.isdirectory(node_bin_path) == 1 and not string.find(current_path, node_bin_path, 1, true) then
+    utils.append_env("PATH", node_bin_path)
+    print("Added node_modules/.bin to PATH")
 end
