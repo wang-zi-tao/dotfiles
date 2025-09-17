@@ -165,30 +165,6 @@ return {
                 desc = "Keymaps",
             },
             {
-                "<leader>fw",
-                function()
-                    pcall(require("core.utils").add_mark)
-                    require("telescope.builtin").live_grep({
-                        search_dirs = { require("core.utils").pwd or "." },
-                        default_text = require("core.utils").get_selection(),
-                    })
-                end,
-                mode = { "v" },
-                desc = "Grep",
-            },
-            {
-                "<leader>fW",
-                function()
-                    pcall(require("core.utils").add_mark)
-                    require("telescope.builtin").live_grep({
-                        grep_open_files = true,
-                        default_text = require("core.utils").get_selection(),
-                    })
-                end,
-                mode = { "v" },
-                desc = "Grep Buffers",
-            },
-            {
                 "<leader>ff",
                 function()
                     pcall(require("core.utils").add_mark)

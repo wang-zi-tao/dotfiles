@@ -46,8 +46,8 @@ in {
             bind "Alt [" { PreviousSwapLayout; }
             bind "Alt ]" { NextSwapLayout; }
 
-            bind "Ctrl f" "PageDown" "Right" "l" { SwitchToMode "scroll"; PageScrollDown; }
-            bind "Ctrl b" "PageUp" "Left" "h" { SwitchToMode "scroll"; PageScrollUp; }
+            bind "Ctrl f" "Ctrl PageDown" "Ctrl Down" { SwitchToMode "scroll"; PageScrollDown; }
+            bind "Ctrl b" "Ctrl PageUp" "Ctrl Up" { SwitchToMode "scroll"; PageScrollUp; }
         }
         locked {
             bind "Ctrl g" { SwitchToMode "Normal"; }

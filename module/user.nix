@@ -18,10 +18,6 @@ in
         { imports = [ ../home-manager/profiles/root.nix ]; }
       else
         import nodeConfig.users.root;
-    sops.secrets."shell/root" = lib.mkIf sops-enable {
-      owner = "root";
-      mode = "0700";
-    };
     home-manager.users.wangzi = lib.mkIf (nodeConfig.users ? wangzi) (import nodeConfig.users.wangzi);
     users.groups.wangzi = lib.mkIf (nodeConfig.users ? wangzi) {
       gid = 1000;
@@ -45,9 +41,9 @@ in
       ];
       hashedPassword = lib.mkDefault "$6$Rd67.bPCRXvMahE1$seiawpNy.1eV/CLVBY5qogsP5Z77BIGMW2FvNf51XWi0QU597YpbnfaNjTwQQxKA3mSwBV47dxlkJmqyX1y5x1";
     };
-    sops.secrets."shell/wangzi" = lib.mkIf (sops-enable && (nodeConfig.users ? wangzi)) {
-      owner = "wangzi";
-      mode = "0700";
+    sops.secrets."env.json" = lib.mkIf (sops-enable && (nodeConfig.users ? wangzi)) {
+      owner = "root";
+      mode = "0555";
     };
   };
 }

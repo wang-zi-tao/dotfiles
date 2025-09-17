@@ -133,8 +133,8 @@
       + builtins.readFile ./zshrc.zsh
       + ''
         # source ${pkgs.tmuxinator}/share/zsh/site-functions/_tmuxinator
-        if [[ -e /run/secrets/shell/${config.home.username} ]];then
-          source /run/secrets/shell/${config.home.username}
+        if [[ -e /run/secrets/env.json ]];then
+          cat /run/secrets/env.json | ${pkgs.jq}/bin/jq -r 'to_entries | .[] | "export " + .key + "=" + (.value | @sh)' | source /dev/stdin
         fi
         if [[ -e /run/secrets-for-users/atuin-key ]];then
             nohup atuin login -u wangzi -p 03hat0zw0oEH7nipcKB6JqLpxptl7DdV -k $(cat /run/secrets-for-users/atuin-key) > /dev/null 2> /dev/null
@@ -144,6 +144,8 @@
             source "$HOME/.cache/p10k-instant-prompt-${config.home.username}.zsh"
         fi
         source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
+
+        PATH = "$PATH:$HOME/.local/bin:$HOME/.cargo/bin";
       '';
   };
   home.file.".config/atuin/config.toml".text =

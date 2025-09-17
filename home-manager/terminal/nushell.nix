@@ -17,6 +17,7 @@
       {
         enable = true;
         package = pkgs.unstable.nushell;
+        environmentVariables = config.home.sessionVariables;
         shellAliases = {
           grep = "rg --color=auto";
           xclip = "xclip -selection c";
@@ -89,6 +90,11 @@
           plugin add ${nushellPlugins.gstat}/bin/nu_plugin_gstat
           plugin add ${nushellPlugins.formats}/bin/nu_plugin_formats
 
+          if ("/run/secrets/env.json" | path exists) {
+            load-env ( open "/run/secrets/env.json" )
+          }
+
+          $env.Path ++= [ ( $env.HOME + "/.local/bin" ), ( $env.HOME + "/.cargo/bin" ) ]
           $env.config.show_banner = false
         '';
       };

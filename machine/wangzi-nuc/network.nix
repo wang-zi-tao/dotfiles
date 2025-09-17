@@ -12,18 +12,6 @@
         }];
         # useDHCP = false;
       };
-      lan = {
-        ipv4.addresses = [{
-          address = "192.168.32.1";
-          prefixLength = 24;
-        }];
-      };
-    };
-    vlans = {
-      lan = {
-        id = 20;
-        interface = "eno1";
-      };
     };
   };
   systemd.services.NetworkManager-wait-online.enable = false;
@@ -60,7 +48,7 @@
       }];
     };
   };
-  networking.firewall.trustedInterfaces = [ "eno1" "wlp3s0" "lan@eno1" ];
+  networking.firewall.trustedInterfaces = [ "eno1" "wlp3s0" ];
   systemd.network.networks.main.routes.wg.routeConfig = {
     Gateway = "192.168.16.2";
   };

@@ -51,7 +51,6 @@ in
     RUSTUP_DIST_SERVER = "http://mirrors.ustc.edu.cn/rust-static";
     RUSTUP_UPDATE_ROOT = "http://mirrors.ustc.edu.cn/rust-static/rustup";
     RUST_BACKTRACE = "1";
-    PATH = "$PATH:$HOME/.local/bin:$HOME/.cargo/bin";
   };
   lazyPackage = with pkgs; [
     "/nixfs/flake/str/nixpkgs#jdk/bin/java"
