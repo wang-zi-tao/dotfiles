@@ -96,8 +96,8 @@ local function config()
     local lsp_list = {}
 
     local function setup_lsp(lsp_name, opts)
-        local opts = opts or {}
-        lspconfig[lsp_name].setup({
+        opts = opts or {}
+        lspconfig.enable(lsp_name, {
             on_attach = on_attach,
             flags = {
                 debounce_text_changes = 150,

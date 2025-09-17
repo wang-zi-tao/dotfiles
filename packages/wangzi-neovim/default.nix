@@ -324,6 +324,7 @@ let
     vscode_lldb =
       if enable-debuger then pkgs.unstable.vscode-extensions.vadimcn.vscode-lldb else "false";
     OpenDebugAD7 = "${vscode-cpptools}/extension/debugAdapters/bin/OpenDebugAD7";
+    vscode_js_debug = vscode-js-debug;
     nio = nvim-nio;
     one_small_step_for_vimkind = one-small-step-for-vimkind;
     dap_disasm = fetchgit {

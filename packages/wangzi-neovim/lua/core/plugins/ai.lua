@@ -1,4 +1,5 @@
 local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
+local enable_vectorcode = false
 
 local system_prompt = function(opts)
     local str = [[
@@ -437,7 +438,7 @@ local function config_codecompanion()
         opts = {
             language = "Chinese",
             send_code = true,
-            system_prompt = system_prompt,
+            -- system_prompt = system_prompt,
         },
         strategies = {
             chat = {
@@ -567,6 +568,8 @@ local function config_cmp_ai()
 end
 
 return {
+    found_vectorcode_command = found_vectorcode_command,
+    enable_vectorcode = enable_vectorcode,
     {
         "github/copilot.vim",
         dir = gen.copilot_vim,
@@ -601,9 +604,9 @@ return {
                 module = "vectorcode",
                 version = "*", -- optional, depending on whether you're on nightly or release
                 dependencies = { "plenary_nvim" },
-                enabled = found_vectorcode_command,
+                enabled = enable_vectorcode,
                 config = function()
-                    if not found_vectorcode_command then
+                    if not enable_vectorcode then
                         vim.notify("VectorCode command not found. Please install VectorCode.", vim.log.levels.INFO)
                         return
                     end
@@ -679,7 +682,7 @@ return {
         dir = gen.vectorcode,
         name = "vectorcode",
         module = "vectorcode",
-        enabled = found_vectorcode_command,
+        enabled = enable_vectorcode,
         version = "*", -- optional, depending on whether you're on nightly or release
         -- enabled = false,
         dependencies = { "plenary_nvim" },

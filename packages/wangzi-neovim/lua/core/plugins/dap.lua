@@ -1,3 +1,4 @@
+---@type dap.AdapterFactory
 local function vsdbg_adapter(callback)
     local Job = require("plenary.job")
     local rpc = require('dap.rpc')
@@ -142,6 +143,7 @@ local function init()
         return nil
     end
 
+    local vsdbg_symbolSearchPath = "srv*;srv*http://localhost:8001"
     local vsdbg_config = {
         type = "cppvsdbg",
         clientID = 'vscode',
@@ -154,7 +156,6 @@ local function init()
         externalConsole = false,
         cwd = "${workspaceFolder}",
         visualizerFile = vsdbg_find_natvis,
-        symbolSearchPath = "srv*;srv*http://localhost:8001",
         initCommands = ".childdbg 1",
         showDisplayString = true,
         stopAtEntry = false,
@@ -256,13 +257,26 @@ local function init()
             program = get_program,
         }),
         vim.tbl_deep_extend("force", vsdbg_config, {
+            name = "vsdbg launch(load symbol)",
+            request = "launch",
+            program = get_program,
+            symbolSearchPath = vsdbg_symbolSearchPath,
+        }),
+        vim.tbl_deep_extend("force", vsdbg_config, {
             name = "vsdbg coredump",
             request = "launch",
             program = get_program,
             dumpPath = get_coredmp,
+            symbolSearchPath = vsdbg_symbolSearchPath,
         }),
         vim.tbl_deep_extend("force", vsdbg_config, {
             name = "vsdbg attach",
+            request = "attach",
+            processId = util.pick_process,
+            symbolSearchPath = vsdbg_symbolSearchPath,
+        }),
+        vim.tbl_deep_extend("force", vsdbg_config, {
+            name = "vsdbg attach(without symbol)",
             request = "attach",
             processId = util.pick_process,
         }),
@@ -358,28 +372,41 @@ local function init()
         callback({ type = 'server', host = config.host or "127.0.0.1", port = config.port or 8086 })
     end
 
-    local js_dap_path = (gen.core or "./") .. "js-debug/src/dapDebugServer.js"
-    if vim.fn.has("win32") == 1 then
-        js_dap_path = (vim.env.DOTFILE_WINDOWS or "C:/dotfiles-windows/") .. "repo/js-debug/src/dapDebugServer.js"
-    end
 
-    dap.adapters["pwa-node"] = {
-        type = "server",
-        host = "localhost",
-        port = "${port}",
-        executable = {
-            command = "node",
-            args = { js_dap_path, "${port}" },
-        }
-    }
+    dap.adapters["pwa-node"] = function(callback, config, parent)
+        local js_dap_path = (gen.vscode_js_debug or "./") .. "/lib/node_modules/js-debug/dist/src/dapDebugServer.js"
+        if vim.fn.has("win32") == 1 then
+            js_dap_path = (vim.env.DOTFILE_WINDOWS or "C:/dotfiles-windows/") .. "repo/js-debug/src/dapDebugServer.js"
+        end
+
+        local host = config.host or "localhost"
+        local port = config.port or 9222
+        callback({
+            type = "server",
+            host = host,
+            port = port,
+            executable = {
+                command = "node",
+                args = { js_dap_path, port },
+            }
+        })
+    end
 
     dap.configurations.javascript = {
         {
             type = "pwa-node",
             request = "launch",
-            name = "Launch file",
+            name = "Node Launch file",
             program = "${file}",
             cwd = "${workspaceFolder}",
+        },
+        {
+            type = "pwa-node",
+            request = "attach",
+            name = "Node attach",
+            cwd = "${workspaceFolder}",
+            port = 9229,
+            restart = true,
         },
         {
             type = "pwa-node",
