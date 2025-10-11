@@ -16,7 +16,6 @@
       in
       {
         enable = true;
-        package = pkgs.unstable.nushell;
         environmentVariables = config.home.sessionVariables;
         shellAliases = {
           grep = "rg --color=auto";
@@ -63,7 +62,7 @@
           ".." = "cd ..";
         };
 
-        configFile.text = with pkgs.unstable; ''
+        configFile.text = with pkgs; ''
           use ${scripts}/custom-completions/git/git-completions.nu *
           use ${scripts}/custom-completions/make/make-completions.nu *
           use ${scripts}/custom-completions/cargo/cargo-completions.nu *
@@ -82,10 +81,10 @@
 
           source ${scripts}/themes/nu-themes/tokyo-moon.nu
 
-          plugin add ${nushellPlugins.units}/bin/nu_plugin_units
+          # plugin add $nushellPlugins.units/bin/nu_plugin_units
           plugin add ${nushellPlugins.polars}/bin/nu_plugin_polars
           plugin add ${nushellPlugins.query}/bin/nu_plugin_query
-          plugin add ${nushellPlugins.net}/bin/nu_plugin_net
+          # plugin add $nushellPlugins.net/bin/nu_plugin_net
           plugin add ${nushellPlugins.highlight}/bin/nu_plugin_highlight
           plugin add ${nushellPlugins.gstat}/bin/nu_plugin_gstat
           plugin add ${nushellPlugins.formats}/bin/nu_plugin_formats

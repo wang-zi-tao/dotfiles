@@ -97,7 +97,7 @@ local function config()
 
     local function setup_lsp(lsp_name, opts)
         opts = opts or {}
-        lspconfig.enable(lsp_name, {
+        vim.lsp.enable(lsp_name, {
             on_attach = on_attach,
             flags = {
                 debounce_text_changes = 150,

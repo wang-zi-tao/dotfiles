@@ -24,6 +24,7 @@ in nixpkgs.lib.nixosSystem {
         mode = "0500";
         restartUnits = [ "run-secrets-scripts" ];
       };
+
       environment.enableDebugInfo = true;
       environment.systemPackages = with pkgs; [
         gtk3

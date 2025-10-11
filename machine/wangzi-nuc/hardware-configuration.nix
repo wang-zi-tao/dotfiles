@@ -31,7 +31,6 @@
     "kvm-amd"
     "mt7921e"
   ];
-  boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod_stable;
   boot.extraModulePackages = with config.boot.kernelPackages; [ ];
   boot.tmp.cleanOnBoot = false;
   boot.tmp.useTmpfs = false;

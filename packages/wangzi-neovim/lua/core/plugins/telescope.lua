@@ -1,7 +1,13 @@
 local function config()
     local telescope = require("telescope")
-    local add_to_trouble = require("trouble.sources.telescope").add
-    local open_with_trouble = require("trouble.sources.telescope").open
+    local add_to_trouble = function(...)
+        require("lazy").load({ plugins = { "trouble_nvim" } })
+        require("trouble.sources.telescope").add(...)
+    end
+    local open_with_trouble = function(...)
+        require("lazy").load({ plugins = { "trouble_nvim" } })
+        require("trouble.sources.telescope").open(...)
+    end
     telescope.setup({
         defaults = {
             vimgrep_arguments = {
