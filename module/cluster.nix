@@ -192,7 +192,6 @@ with builtins; {
           doh.enable = true;
         }; in {
         nodes = {
-          wangzi-pc.config = desktop_config // { localIp = "192.168.1.145"; };
           wangzi-nuc.config = desktop_config // { localIp = "192.168.32.1"; };
           wangzi-asus.config = desktop_config // { localIp = "192.168.32.129"; };
           huawei-ecs.config = { publicIp = "139.9.235.87"; };
@@ -206,16 +205,8 @@ with builtins; {
       };
       wireguard = {
         nodes = {
-          wangzi-pc.config = {
-            index = 11;
-            port = 16538;
-            publicKey = "jh1sHn85aq4Hkb3/s8AeQwfzpQ5PtNU7p0dqyeUOTWQ=";
-            gateway = "aliyun-hk";
-          };
-          wangzi-pc.peers.wangzi-nuc = { };
           wangzi-asus.peers.wangzi-nuc = { };
           # wangzi-asus.peers.wangzi-nuc = { };
-          wangzi-pc.peers.aliyun-hk = { tunnel = true; };
           wangzi-nuc.config = {
             index = 12;
             port = 16538;
@@ -266,17 +257,6 @@ with builtins; {
       keys.wireguard.sharedKeySops = ../secrets/public-key.yaml;
       seaweedfs = {
         nodes = {
-          wangzi-pc.config = { client.size = 4 * 1024; };
-          wangzi-pc.to.aliyun-hk = { syncDirs = { "Cluster" = { }; }; };
-          wangzi-pc.to.wangzi-nuc = {
-            mountDirs = {
-              "wangzi-nuc" = {
-                # ip = "192.168.32.1";
-                cacheSize = 4096;
-              };
-            };
-            syncDirs = { "wangzi" = { }; };
-          };
           wangzi-asus.to.wangzi-nuc = {
             mountDirs = {
               "wangzi-nuc" = {
@@ -322,9 +302,6 @@ with builtins; {
         };
         server_config = { container.enable = true; };
       in {
-        wangzi-pc = desktop_config // {
-          users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
-        };
         wangzi-nuc = desktop_config // {
           users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
           # localIp = "192.168.32.1";

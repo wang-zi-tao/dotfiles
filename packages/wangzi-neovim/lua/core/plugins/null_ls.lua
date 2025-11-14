@@ -72,7 +72,7 @@ local function config()
         --     },
         -- }),
         -- nix
-        -- b.formatting.nixfmt,
+        b.formatting.nixfmt,
 
         -- other
         b.diagnostics.codespell.with({ extra_args = { "--ignore-words=crate" } }),

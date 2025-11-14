@@ -119,7 +119,7 @@
       sudo = "sudo ";
       watch = "watch ";
 
-      nlocate = "nix-locate --top-level";
+      nlocate = "nix-locate";
 
       ".." = "cd ..";
 
@@ -201,7 +201,7 @@
         duf
         tmuxinator
         tmux
-        unstable.joshuto
+        joshuto
       ]
       ++ (lib.optionals (pkgs.system == "x86_64-linux") [
         powertop

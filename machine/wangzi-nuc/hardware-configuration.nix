@@ -16,7 +16,11 @@
     timeout = 1;
   };
   boot.kernelParams = [
-    # "amdgpu.virtual_display=0000:04:00.0,1"
+    "i915.enable_gvt=1"
+    "intel_iommu=on"
+    "i915.enable_guc=1"
+    "i915.enable_fbc=1"
+    "pcie_aspm=off"
   ];
   boot.initrd.availableKernelModules = [
     "nvme"
@@ -26,12 +30,31 @@
     "usb_storage"
     "sd_mod"
   ];
-  boot.initrd.kernelModules = [ "amdgpu" ];
+  boot.blacklistedKernelModules = [ "uvcvideo" ];
   boot.kernelModules = [
-    "kvm-amd"
-    "mt7921e"
+    "kvm-intel"
+    "dm-snapshot"
+    "dm-raid"
+    "dm-cache-default"
+    "dm-thin-pool"
+    "dm-mirror"
+    "i2c-i801"
+    "i2c-dev"
   ];
-  boot.extraModulePackages = with config.boot.kernelPackages; [ ];
+
+  environment.systemPackages = with pkgs; [
+    openrgb-with-all-plugins
+  ];
+
+  services.hardware.openrgb = {
+    enable = true;
+    package = pkgs.openrgb-with-all-plugins;
+    motherboard = "intel";
+  };
+
+  boot.extraModulePackages = with config.boot.kernelPackages; [
+    asus-ec-sensors
+  ];
   boot.tmp.cleanOnBoot = false;
   boot.tmp.useTmpfs = false;
   services.udev.extraRules = ''
@@ -50,6 +73,7 @@
     device = "/dev/disk/by-uuid/21E6-1EB0";
     fsType = "vfat";
   };
+
   fileSystems."/mnt/weed/server" = {
     device = "/dev/disk/by-uuid/ff337eaf-f0e7-468c-b23f-68a2ee2c0c73";
     fsType = "btrfs";
@@ -72,14 +96,16 @@
 
   swapDevices = [ ];
 
-  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   hardware.firmware = [ pkgs.firmwareLinuxNonfree ];
   hardware.enableAllFirmware = true;
 
   hardware = {
     graphics = {
-      extraPackages32 = with pkgs.pkgsi686Linux; [ amdvlk mesa ];
-      extraPackages = with pkgs; [ amdvlk mesa ];
+      extraPackages32 = with pkgs.pkgsi686Linux; [ mesa ];
+      extraPackages = with pkgs; [ 
+        mesa
+        vpl-gpu-rt
+      ];
     };
   };
 
@@ -90,8 +116,11 @@
       xf86videodummy
       xf86videovesa
     ];
-    videoDrivers = [ "amdgpu" ];
+    videoDrivers = [ "modestting" ];
   };
+
+  boot.kernelPackages = pkgs.linuxKernel.packages.linux_6_17;
+
 
   # services.xserver.monitorSection = ''Modeline "1920x1080" 23.53 1920 1952 2040 2072 1080 1106 1108 1135'';
   # services.xserver.resolutions = [{ x = "1920"; y = "1080"; }];

@@ -205,7 +205,7 @@ nixpkgs.lib.nixosSystem {
         services.nixfs.enable = true;
         services.ollama = {
           enable = true;
-          package = pkgs.unstable.ollama;
+          package = pkgs.ollama;
         };
         services.neo4j = {
             enable=true;

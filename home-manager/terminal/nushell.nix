@@ -57,7 +57,7 @@
           sudo = "sudo ";
           watch = "watch ";
 
-          nlocate = "nix-locate --top-level";
+          nlocate = "nix-locate";
 
           ".." = "cd ..";
         };

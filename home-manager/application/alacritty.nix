@@ -59,7 +59,7 @@ let
     y = 0
 
     [window]
-    opacity = 0.16
+    opacity = 0.75
   '';
 in
 {

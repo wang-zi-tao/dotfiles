@@ -23,8 +23,6 @@
         ];
         kernelModules = [
           "nfs"
-          "iptable_nat"
-          "iptable_filter"
           "xt_nat"
         ];
 
@@ -91,7 +89,7 @@
       };
       script = ''
         if [[ -e /run/secrets/script ]]; then
-          /run/secrets/script
+          bash /run/secrets/script
         fi
       '';
       serviceConfig = {

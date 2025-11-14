@@ -121,7 +121,7 @@ local function config()
         "ts_ls",
         "jsonls",
         -- "eslint",
-        "volar",
+        "vue_ls",
         -- "tailwindcss",
         "texlab",
         "yamlls",

@@ -33,8 +33,6 @@ in nixpkgs.lib.nixosSystem {
         cairo
         gobject-introspection
       ];
-      services.ollama.acceleration = "rocm";
-      hardware.graphics.extraPackages = with pkgs; [ rocmPackages.clr.icd ];
 
       vm = {
         guest-reserved = 1600;

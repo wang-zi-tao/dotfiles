@@ -127,7 +127,6 @@
                     nixpkgs-old = import inputs.nixpkgs-old { inherit system overlays config; };
                     flake-inputs = inputs;
                     eza = eza.packages.${system}.default;
-                    atuin = unstable.atuin;
                     scripts = builtins.mapAttrs (
                       name: kind: prev.writeScriptBin name (readFile (./scripts + "/${name}"))
                     ) (readDir ./scripts);
@@ -168,7 +167,7 @@
             pkgs.home-manager
           ];
         };
-        apps.deploy-rs = deploy-rs.defaultApp.${system};
+        apps.deploy-rs = deploy-rs.apps.${system}.deploy-rs;
         vars =
           {
             inherit pkgs inputs;
@@ -250,16 +249,9 @@
             "wangzi-nuc" = {
               magicRollback = false;
             };
-            "wangzi-pc" = {
-              magicRollback = false;
-            };
             "aliyun-hk" = {
               magicRollback = true;
             };
-            "aliyun-ecs" = {
-              magicRollback = true;
-            };
-            # "huawei-ecs"
           };
     };
 }

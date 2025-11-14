@@ -24,8 +24,8 @@
     brightnessctl
     pamixer
     upower
-    unstable.wine
-    unstable.winetricks
+    wine
+    winetricks
     xdotool
     meld
     nextcloud-client
@@ -86,7 +86,7 @@
       inotify-tools
 
       # xiezuo
-      wpsoffice
+      # wpsoffice
       qq
 
       # libreoffice

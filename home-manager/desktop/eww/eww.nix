@@ -5,7 +5,7 @@ let
 in
 {
   home.packages = [
-    pkgs.unstable.eww
+    pkgs.eww
     pkgs.jq
     pkgs.i3lock
     pkgs.wmctrl

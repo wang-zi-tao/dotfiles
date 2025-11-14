@@ -28,6 +28,13 @@ autocmd("FileType", {
     end,
 })
 
+autocmd("FileType", {
+    pattern = { "*.wgsl" },
+    callback = function()
+        vim.cmd [[set ft=wgsl_bevy]]
+    end,
+})
+
 -- a.async(function()
 --     while true do
 --         plenary.sleep(360)

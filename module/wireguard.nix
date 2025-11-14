@@ -66,6 +66,7 @@ let
   };
   enabled = hasAttr hostname wireguardCluster;
   mkIfWireguard = mkIf enabled;
+  channelPort = peerConfig: peerConfig.index + 41000;
 in
 {
   options = {
@@ -152,7 +153,7 @@ in
               inherit (otherNodeWireguardConfig) publicKey;
               endpoint =
                 if edge.tunnel then
-                  "127.0.0.1:${toString (otherNodeWireguardConfig.index + 40000)}"
+                  "127.0.0.1:${toString (channelPort otherNodeWireguardConfig)}"
                 else if otherNodeNetworkConfig.publicIp != null then
                   "${otherNodeNetworkConfig.publicIp}:${toString otherNodeWireguardConfig.port}"
                 else if otherNodeNetworkConfig.localIp != null then
@@ -220,7 +221,7 @@ in
       [ 52343 ]
       ++ concatLists (
         mapAttrsToList (
-          otherNodeName: edge: (optional edge.tunnel (wireguardCluster.${otherNodeName}.config.index + 40000))
+          otherNodeName: edge: (optional edge.tunnel (channelPort wireguardCluster.${otherNodeName}.config))
         ) wireguard.peers
       )
     );
@@ -276,10 +277,10 @@ in
                   Restart = "always";
                   RestartSec = "5s";
                   ExecStart = "${pkgs.udp2raw}/bin/udp2raw --fix-gro -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -c -l127.0.0.1:${
-                    toString (wireguardCluster.${otherNodeName}.config.index + 40000)
+                    toString (channelPort wireguardCluster.${otherNodeName}.config)
                   } -r ${networkCluster.${otherNodeName}.config.publicIp}:${
-                    toString (wireguard.config.index + 40000)
-                  }";
+                    toString (channelPort wireguard.config)
+                  } -a";
                 };
               }
             )
@@ -302,8 +303,8 @@ in
                   Restart = "always";
                   RestartSec = "5s";
                   ExecStart = "${pkgs.udp2raw}/bin/udp2raw --fix-gro -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -s -l0.0.0.0:${
-                    toString (wireguardCluster.${otherNodeName}.config.index + 40000)
-                  } -r 127.0.0.1:${builtins.toString (wireguard.config.port)}";
+                    toString (channelPort wireguardCluster.${otherNodeName}.config)
+                  } -r 127.0.0.1:${builtins.toString (wireguard.config.port)} -a";
                 };
               }
             )

@@ -39,16 +39,6 @@ wk.add({
         desc = "hover"
     },
     {
-        "<C-k>",
-        function()
-            local dap = require("dap")
-            if dap.status() ~= "" then
-                require("dapui").eval(nil, { enter = true })
-            end
-        end,
-        desc = "dap hover"
-    },
-    {
         "<A-k>",
         function()
             local dap = require("dap")

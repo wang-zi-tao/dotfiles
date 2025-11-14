@@ -16,10 +16,10 @@
   enable-markdown-preview ? false,
   enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux"),
 }:
-with pkgs.unstable;
-with pkgs.unstable.vimPlugins;
+with pkgs;
+with pkgs.vimPlugins;
 let
-  pkg = pkgs.unstable.neovim-unwrapped;
+  pkg = pkgs.neovim-unwrapped;
   vscode-cpptools = stdenvNoCC.mkDerivation {
     name = "vscode-cpptools";
     version = "v1.20.5";
@@ -298,7 +298,7 @@ let
     };
     bufferline_nvim = bufferline-nvim;
     notify_nvim = nvim-notify;
-    FixCursorHold_nvim = FixCursorHold-nvim;
+    FixCursorHold_nvim = pkgs.vimPlugins.FixCursorHold-nvim;
     nvim_nio = nvim-nio;
     nvim_ufo = nvim-ufo;
     fidget_nvim = fidget-nvim;
@@ -322,7 +322,7 @@ let
       sha256 = "sha256-euwc9XD02g8W52Z8SzjSInLnatS3aGLY44Frvd+yDTc=";
     };
     vscode_lldb =
-      if enable-debuger then pkgs.unstable.vscode-extensions.vadimcn.vscode-lldb else "false";
+      if enable-debuger then pkgs.vscode-extensions.vadimcn.vscode-lldb else "false";
     OpenDebugAD7 = "${vscode-cpptools}/extension/debugAdapters/bin/OpenDebugAD7";
     vscode_js_debug = vscode-js-debug;
     nio = nvim-nio;

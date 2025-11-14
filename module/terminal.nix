@@ -15,7 +15,7 @@
         uutils-coreutils
         pciutils
         xclip
-        unstable.extra-container
+        extra-container
       ]
       ++ (with pkgs.tmuxPlugins; [
         resurrect
@@ -29,7 +29,7 @@
           let
             make_command = user: ''
               if (( "$#" == 0 )); then
-                exec ssh "${user}@${remoteHostName}.wg" -X -Y -t "tmux attach"
+                exec ssh "${user}@${remoteHostName}.wg" -X -Y -t "zellij attach ssh -c"
               else
                 exec ssh "${user}@${remoteHostName}.wg" -X -Y -t $@
               fi

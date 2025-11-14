@@ -5,7 +5,7 @@
     networkmanager = { enable = true; };
     nat.enable = true;
     interfaces = {
-      eno1 = {
+      enp131s0 = {
         ipv4.addresses = [{
           address = "192.168.32.1";
           prefixLength = 24;
@@ -18,7 +18,7 @@
   services.kea.dhcp4 = {
     enable = true;
     settings = {
-      interfaces-config.interfaces = [ "eno1" ];
+      interfaces-config.interfaces = [ "enp131s0" ];
       control-socket = {
         socket-type = "unix";
         socket-name = "/run/kea/kea4-ctrl-socket";
@@ -48,7 +48,7 @@
       }];
     };
   };
-  networking.firewall.trustedInterfaces = [ "eno1" "wlp3s0" ];
+  networking.firewall.trustedInterfaces = [ "enp131s0" "wlp132s0" ];
   systemd.network.networks.main.routes.wg.routeConfig = {
     Gateway = "192.168.16.2";
   };

@@ -90,7 +90,7 @@ let
   hostname = config.networking.hostName;
   enabled = hasAttr hostname config.cluster.seaweedfs.edges;
   mkIfEnbled = mkIf enabled;
-  pkg = pkgs.unstable.seaweedfs;
+  pkg = pkgs.seaweedfs;
   seaweedfs = config.cluster.seaweedfs.edges.${hostname};
   wireguardCluster = config.cluster.wireguard.edges;
   wireguardConfig = wireguardCluster.${hostname}.config;

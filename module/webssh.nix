@@ -8,6 +8,11 @@ let
   cfg = config.cluster;
   nodeConfig = cfg.nodes.${cfg.nodeName};
   networkConfig = config.cluster.network.nodes.${config.cluster.nodeName}.config;
+  webssh = pkgs.nixpkgs-old.webssh.overrideAttrs (oldAttrs: {
+    postInstall = ''
+      cp "${pkgs.iosevka-nerd}/share/fonts/truetype/IosevkaNerdFont-Regular.ttf" $out/lib/python3.12/site-packages/webssh/static/css/fonts/
+    '';
+  });
 in
 with lib;
 with builtins;
@@ -17,7 +22,7 @@ with builtins;
       webssh = {
         wantedBy = [ "multi-user.target" ];
         script = ''
-          ${pkgs.webssh}/bin/wssh --port=64535 --log-to-stderr
+          ${webssh}/bin/wssh --port=64535 --log-to-stderr
         '';
       };
     };
