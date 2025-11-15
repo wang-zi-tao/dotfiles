@@ -95,6 +95,74 @@
 
           $env.Path ++= [ ( $env.HOME + "/.local/bin" ), ( $env.HOME + "/.cargo/bin" ) ]
           $env.config.show_banner = false
+
+          let carapace_completer = {|spans|
+            # if the current command is an alias, get it's expansion
+            let expanded_alias = (scope aliases | where name == $spans.0 | get -i 0 | get -i expansion)
+
+            # overwrite
+            let spans = (if $expanded_alias != null  {
+              # put the first word of the expanded alias first in the span
+              $spans | skip 1 | prepend ($expanded_alias | split row " " | take 1)
+            } else {
+              $spans | skip 1 | prepend ($spans.0)
+            })
+
+            carapace $spans.0 nushell ...$spans
+            | from json
+          }
+
+          $env.config.completions.external.completer = $carapace_completer
+
+          $env.config.hooks.command_not_found = { |cmd_name|
+              let install = { |pkgs|
+                  $pkgs | each {|pkg| $"nix shell n#($pkg)" }
+              }
+              let run_once = { |pkgs|
+                  $pkgs | each {|pkg| $"nix shell n#($pkg) -c ($cmd_name)" }
+              }
+              let single_pkg = { |pkg|
+                  let lines = [
+                  $"The program '($cmd_name)' is currently not installed."
+                  ""
+                  "You can install it by typing:"
+                  (do $install [$pkg] | get 0)
+                  ""
+                  "Or run it once with:"
+                  (do $run_once [$pkg] | get 0)
+                  ]
+                  $lines | str join "\n"
+              }
+              let multiple_pkgs = { |pkgs|
+                  let lines = [
+                  $"The program '($cmd_name)' is currently not installed. It is provided by several packages."
+                  ""
+                  "You can install it by typing one of the following:"
+                  (do $install $pkgs | str join "\n")
+                  ""
+                  "Or run it once with:"
+                  (do $run_once $pkgs | str join "\n")
+                  ]
+                  $lines | str join "\n"
+              }
+              let pkgs = (nix-locate --minimal --no-group --type x --type s --whole-name --at-root $"/bin/($cmd_name)" | lines)
+              let len = ($pkgs | length)
+              let ret = match $len {
+                  0 => null,
+                  1 => (do $single_pkg ($pkgs | get 0)),
+                  _ => (do $multiple_pkgs $pkgs),
+              }
+              return $ret
+          }
+
+          def nix-gc [] {
+            nix-collect-garbage -d
+            sudo nix-collect-garbage -d
+          }
+
+          def ns [package:string, ...$rest] {
+            ^nix shell $"nixpkgs#($package)" --command $package ...$rest
+          }
         '';
       };
     programs.direnv = {

@@ -119,9 +119,9 @@ nixos-remote)
 	shift
 	nix build "$script_dir#nixos.$profile.config.system.build.toplevel" "$@"
 	result=$(realpath ./result)
-	nix copy --to "ssh://root@$profile.wg" "$result"
-	ssh "root@$profile.wg" "nix-env -p /nix/var/nix/profiles/system --set $result"
-	ssh "root@$profile.wg" "$result/bin/switch-to-configuration switch"
+	nix copy --to "ssh://root@$profile" "$result"
+	ssh "root@$profile" "nix-env -p /nix/var/nix/profiles/system --set $result"
+	ssh "root@$profile" "$result/bin/switch-to-configuration switch"
 	;;
 nixos-remote-to)
 	profile=$1
