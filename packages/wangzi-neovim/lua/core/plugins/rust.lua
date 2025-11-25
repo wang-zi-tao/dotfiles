@@ -110,7 +110,12 @@ vim.g.rustaceanvim = function()
             cmd = { "rust-analyzer" },
             on_attach = require("core.plugins.lspconfig").on_attach,
             settings = {
-                ['rust-analyzer'] = { checkOnSave = { overrideCommand = {} } } -- here
+                ['rust-analyzer'] = {
+                    cargo = {
+                        features = {},
+                        allFeatures = false,
+                    },
+                    checkOnSave = { overrideCommand = {} } } -- here
             }
         },
     }

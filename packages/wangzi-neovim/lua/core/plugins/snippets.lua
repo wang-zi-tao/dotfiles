@@ -110,6 +110,43 @@ return {
                     t("\t"), i(2), newline(),
                     t("end"), newline(),
                 }),
+
+                s("doc_prop", {
+                    t("# "), i(1, "class_name"), t("."), i(2, "property_name"), newline(),
+                    newline(),
+                    t(""), i(3, "property_description"), newline(),
+                    newline(),
+                    t("## 语法"), newline(),
+                    newline(),
+                    t("express."), rep(2), newline(),
+                    newline(),
+                    t("express   "), rep(1), newline(),
+                }),
+
+                s("doc_method", {
+                    t("# "), i(1, "class_name"), t("."), i(2, "method_name"), newline(),
+                    newline(),
+                    t(""), i(3, "method_description"), newline(),
+                    newline(),
+                    t("## 语法"), newline(),
+                    newline(),
+                    t("express."), rep(2), t("("), i(4, ""), t(")"), newline(),
+                    newline(),
+                    t("express   一个代表 "), rep(1), t(" 对象的变量。"), newline(),
+                    newline(),
+                    t("## 参数"), newline(),
+                    newline(),
+                    t("| **名称** | **必选/可选** | **数据类型** | **说明** |"), newline(),
+                    t("| :------ | :------------ | :---------- | :------- |"), newline(),
+                    t("| "), i(5, "param_name"), t(" | "), i(6, "required_or_optional"), t(" | "),
+                    t("## 说明"), newline(),
+                    newline(),
+                    i(5, "method_explanation"), newline(),
+                    newline(),
+                    t("## 返回值"), newline(),
+                    newline(),
+                    i(6, "return_value_description"), t("类型"), newline(),
+                }),
             })
 
             ls.add_snippets("cpp", {

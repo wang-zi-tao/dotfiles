@@ -575,6 +575,7 @@ return {
         dir = gen.copilot_vim,
         name = "copilot_vim",
         event = { "VeryLazy" },
+        cmd = { "Copilot" },
         config = function()
             vim.keymap.set('i', '<C-J>', 'copilot#Accept("\\<CR>")', {
                 expr = true,
