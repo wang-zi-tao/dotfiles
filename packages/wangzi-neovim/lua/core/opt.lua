@@ -258,6 +258,7 @@ if vim.fn.has("win32") == 1 then
     }):start()
 end
 
+local current_path = os.getenv("PATH") or ""
 local node_bin_path = vim.fn.getcwd() .. "/node_modules/.bin"
 if vim.fn.isdirectory(node_bin_path) == 1 and not string.find(current_path, node_bin_path, 1, true) then
     utils.append_env("PATH", node_bin_path)

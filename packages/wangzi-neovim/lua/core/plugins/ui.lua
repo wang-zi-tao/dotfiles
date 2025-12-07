@@ -311,7 +311,7 @@ return {
                     end
                 end
                 vim.keymap.set('n', '<Esc>', close, { buffer = buff })
-                vim.keymap.set('n', 'q', close, { buffer = buff })
+                -- vim.keymap.set('n', 'q', close, { buffer = buff })
             end,
         },
         keys = {

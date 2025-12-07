@@ -101,6 +101,10 @@ local function init()
     local util = require("core.utils")
     local Path = require("plenary.path")
 
+    dap.listeners.after['launch']['exception_breakpoints'] = function(session, _)
+        dap.set_exception_breakpoints(dap.defaults.fallback.exception_breakpoints)
+    end
+
     dap.listeners.before.attach.dapui_config = function()
         dapui.open()
     end
@@ -114,6 +118,7 @@ local function init()
         dapui.close()
     end
     dap.defaults.fallback.auto_continue_if_many_stopped = false
+    dap.defaults.fallback.exception_breakpoints = { 'all uncaught' }
 
     dap.adapters.gdb = {
         type = "executable",
@@ -376,7 +381,7 @@ local function init()
     dap.adapters["pwa-node"] = function(callback, config, parent)
         local js_dap_path = (gen.vscode_js_debug or "./") .. "/lib/node_modules/js-debug/dist/src/dapDebugServer.js"
         if vim.fn.has("win32") == 1 then
-            js_dap_path = (vim.env.DOTFILE_WINDOWS or "C:/dotfiles-windows/") .. "repo/js-debug/src/dapDebugServer.js"
+            js_dap_path = (vim.env.DOTFILE_WINDOWS or "C:/dotfiles-windows/") .. "/repo/js-debug/src/dapDebugServer.js"
         end
 
         local host = config.host or "localhost"
@@ -398,13 +403,17 @@ local function init()
             request = "launch",
             name = "Node Launch file",
             program = "${file}",
+            args = {},
             cwd = "${workspaceFolder}",
+            console = "integratedTerminal",
+            stopOnEntry = false,
         },
         {
             type = "pwa-node",
             request = "attach",
             name = "Node attach",
             cwd = "${workspaceFolder}",
+            console = "integratedTerminal",
             port = 9229,
             restart = true,
         },
@@ -414,6 +423,7 @@ local function init()
             name = "Deno Launch file",
             program = "${file}",
             cwd = "${workspaceFolder}",
+            console = "integratedTerminal",
             runtimeExecutable = "deno",
             attachSimplePort = 9229,
             runtimeArgs = {
@@ -960,5 +970,31 @@ return {
                 },
             },
         },
+        {
+            "lucaSartore/nvim-dap-exception-breakpoints",
+            name = "nvim-dap-exception-breakpoints",
+            dir = gen.dap_exception_breakpoints,
+
+            keys = {
+                {
+                    "<leader>dD",
+                    function()
+                        local set_exception_breakpoints = require("nvim-dap-exception-breakpoints")
+                        set_exception_breakpoints()
+                    end,
+                    desc = "Debug Condition breakpoints",
+                }
+            },
+
+            cmd = "DapExceptionBreakpoints",
+            config = function()
+                vim.api.nvim_create_user_command("DapExceptionBreakpoints", function()
+                    local set_exception_breakpoints = require("nvim-dap-exception-breakpoints")
+                    set_exception_breakpoints()
+                end, {
+                    desc = "Set exception breakpoints for the current debugger",
+                })
+            end,
+        }
     },
 }

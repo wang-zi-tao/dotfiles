@@ -20,7 +20,11 @@ return {
         "Mythos-404/xmake.nvim",
         lazy = true,
         event = "BufReadPost xmake.lua",
-        config = true,
+        opts = {
+            on_save = {
+                reload_project_info = false,
+            }
+        },
         dependencies = { "nui_nvim", "plenary_nvim" },
         keys = {
         },

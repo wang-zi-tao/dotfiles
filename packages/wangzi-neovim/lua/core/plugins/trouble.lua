@@ -65,6 +65,7 @@ return {
                     mode = "diagnostics",
                     open_no_results = true,
                     focus = true,
+                    max_items = 1000,
                 })
             end,
             desc = "Error/Warning",
@@ -101,7 +102,8 @@ return {
                     mode = "lsp_document_symbols",
                     focus = true,
                     open_no_results = true,
-                    win = { position = "right" }
+                    win = { position = "right" },
+                    max_items = 1000,
                 })
             end,
             desc = "outline",
