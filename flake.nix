@@ -113,7 +113,7 @@
             (
               [
                 packages
-                nur.overlay
+                nur.overlays.default
                 fenix.overlays.default
                 # nixpkgs-wayland.overlay
                 (

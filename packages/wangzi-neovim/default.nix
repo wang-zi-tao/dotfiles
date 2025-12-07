@@ -331,6 +331,11 @@ let
       rev = "543939e2572c4291f1978737d687977385a9e669";
       sha256 = "sha256-U7oPbml4qy0ISCgkr8Di16u2jDiW52IW5g+P+cwAlmE=";
     };
+    dap_exception_breakpoints = fetchgit {
+      url = "https://github.com/lucaSartore/nvim-dap-exception-breakpoints";
+      rev = "6bc8d52fb48d20c8cd61920a8c1a4b487eff3afd";
+      sha256 = "sha256-TnFFRurZb5yP/1sWsf53TJyOJH0lvUyu7TyZyoesqNY=";
+    };
 
     # terminal
     fterm = FTerm-nvim;
