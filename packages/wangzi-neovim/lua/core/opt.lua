@@ -67,18 +67,6 @@ vim.o.foldenable = true
 opt.foldenable = true
 
 opt.winborder = "rounded"
-vim.api.nvim_create_autocmd("User", {
-    pattern = { "TelescopeFindPre", "neo-tree" },
-    callback = function()
-        vim.opt_local.winborder = "none"
-        vim.api.nvim_create_autocmd("WinLeave", {
-            once = true,
-            callback = function()
-                vim.opt_local.winborder = "rounded"
-            end,
-        })
-    end,
-})
 
 if vim.env.BOMB or 1 == vim.fn.has("win32") then
     o.bomb = true

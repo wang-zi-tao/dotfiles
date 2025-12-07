@@ -119,7 +119,7 @@
                 (
                   final: prev:
                   let
-                    unstable = import inputs.nixpkgs-unstable { inherit system overlays config; };
+                    unstable = import inputs.nixpkgs-unstable { inherit system config; };
                   in
                   {
                     unstable = unstable;

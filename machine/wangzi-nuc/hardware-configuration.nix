@@ -18,6 +18,7 @@
   boot.kernelParams = [
     "i915.enable_gvt=1"
     "intel_iommu=on"
+    "iommu=pt"
     "i915.enable_guc=1"
     "i915.enable_fbc=1"
     "pcie_aspm=off"
@@ -38,17 +39,14 @@
     "dm-cache-default"
     "dm-thin-pool"
     "dm-mirror"
-    "i2c-i801"
-    "i2c-dev"
   ];
 
   environment.systemPackages = with pkgs; [
-    openrgb-with-all-plugins
+    openrgb
   ];
 
   services.hardware.openrgb = {
-    enable = false;
-    package = pkgs.openrgb-with-all-plugins;
+    enable = true;
     motherboard = "intel";
   };
 
@@ -100,6 +98,7 @@
   hardware.enableAllFirmware = true;
 
   hardware = {
+    cpu.intel.updateMicrocode = true;
     graphics = {
       extraPackages32 = with pkgs.pkgsi686Linux; [ mesa ];
       extraPackages = with pkgs; [ 
@@ -120,7 +119,6 @@
   };
 
   boot.kernelPackages = pkgs.linuxKernel.packages.linux_6_17;
-
 
   # services.xserver.monitorSection = ''Modeline "1920x1080" 23.53 1920 1952 2040 2072 1080 1106 1108 1135'';
   # services.xserver.resolutions = [{ x = "1920"; y = "1080"; }];

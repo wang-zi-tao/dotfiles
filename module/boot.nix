@@ -80,9 +80,13 @@
       wantedBy = [ "multi-user.target" ];
       before = [ "multi-user.target" ];
       path = with pkgs; [
+        bash
         busybox
         nix
         openssh
+        iptables
+        wireguard-tools
+        extra-container
       ];
       environment = {
         inherit (config.environment.sessionVariables) NIX_PATH;

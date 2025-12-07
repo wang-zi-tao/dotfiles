@@ -16,16 +16,16 @@
   enable-markdown-preview ? false,
   enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux"),
 }:
-with pkgs;
-with pkgs.vimPlugins;
+with pkgs.unstable;
+with pkgs.unstable.vimPlugins;
 let
-  pkg = pkgs.neovim-unwrapped;
+  pkg = pkgs.unstable.neovim-unwrapped;
   vscode-cpptools = stdenvNoCC.mkDerivation {
     name = "vscode-cpptools";
-    version = "v1.20.5";
+    version = "v1.29.2";
     src = fetchurl {
-      url = "https://github.com/microsoft/vscode-cpptools/releases/download/v1.20.5/cpptools-linux.vsix";
-      sha256 = "16dwik9yigc433gsbvqjnpa57wy72a7d6js7lgl9q0qnfnvw3d3a";
+      url = "https://github.com/microsoft/vscode-cpptools/releases/download/v1.29.2/cpptools-linux-x64.vsix";
+      sha256 = "05hrwryawx5qfz9135711cm18nwj67gygv78p47h4srdfnkh7jcp";
     };
     nativeBuildInputs = [ unzip ];
     unpackPhase = ''
@@ -159,7 +159,6 @@ let
     navbuddy = nvim-navbuddy;
     # symbols_outline = symbols-outline-nvim;
     rustaceanvim = rustaceanvim;
-    rust_tools = rust-tools-nvim;
     none_ls = none-ls-nvim;
     clangd_extensions_nvim = clangd_extensions-nvim;
     haskell_tools_nvim = haskell-tools-nvim;

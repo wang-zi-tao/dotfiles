@@ -124,64 +124,6 @@ end
 
 return {
     {
-        "simrat39/rust-tools.nvim",
-        dir = gen.rust_tools,
-        name = "rust_tools",
-        dependencies = "nvim_lspconfig",
-        enabled = false,
-        cmd = {
-            "RustSetInlayHints",
-            "RustDisableInlayHints",
-            "RustToggleInlayHints",
-            "RustRunnables",
-            "RustExpandMacro",
-            "RustOpenCargo",
-            "RustParentModule",
-            "RustJoinLines",
-            "RustHoverActions",
-            "RustHoverRange",
-            "RustMoveItemDown",
-            "RustMoveItemUp",
-            "RustStartStandaloneServerForBuffer",
-            "RustDebuggables",
-            "RustViewCrateGraph",
-            "RustReloadWorkspace",
-            "RustSSR",
-        },
-        lazy = true,
-        config = function()
-            local adapter
-            if gen.vscode_lldb then
-                adapter = require("rust-tools.dap").get_codelldb_adapter(
-                    gen.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/adapter/codelldb",
-                    gen.vscode_lldb .. "/share/vscode/extensions/vadimcn.vscode-lldb/lldb/lib/liblldb.so"
-                )
-            end
-            require("rust-tools").setup({
-                tools = {
-                    inlay_hints = {
-                        auto = false,
-                        show_variable_name = true,
-                    },
-                },
-                dap = {
-                    adapter = adapter,
-                },
-            })
-        end,
-        keys = {
-            {
-                "<leader>ca",
-                function()
-                    require("rust-tools").hover_actions.hover_actions()
-                end,
-                mode = "n",
-                desc = "Cargo actio",
-            },
-        },
-        ft = { "rs", "rust", "toml" },
-    },
-    {
         "mrcjkb/rustaceanvim",
         dir = gen.rustaceanvim,
         name = "rustaceanvim",

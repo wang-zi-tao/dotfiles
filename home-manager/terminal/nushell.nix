@@ -155,6 +155,31 @@
               return $ret
           }
 
+          def set_title [title:string] {
+            mut title = $title
+            if ($title | str length) > 15 {
+                $title = ($title | str substring 0..14) + "..."
+            }
+            zellij action rename-tab ($title)
+          }
+
+          $env.config = ($env.config | upsert hooks {
+              pre_prompt: [ { ||
+                if not ( "NVIM" in $env ) {
+                    set_title $"nu ($env.PWD | path basename)";
+                }
+              } ]
+              pre_execution: [ { || 
+                if not ( "NVIM" in $env ) {
+                  mut repl_commandline = (commandline)
+                  if ($repl_commandline | str starts-with "nvim") {
+                    $repl_commandline = $"nvim ($env.PWD | path basename)"
+                  }
+                  set_title ($repl_commandline)
+                }
+              } ]
+          })
+
           def nix-gc [] {
             nix-collect-garbage -d
             sudo nix-collect-garbage -d
