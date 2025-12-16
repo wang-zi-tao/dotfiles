@@ -106,7 +106,7 @@
       {
         services.xrdp.enable = true;
         services.xrdp.defaultWindowManager = "${pkgs.awesome}/bin/awesome";
-        networking.firewall.allowedTCPPorts = [ 3389 ];
+        networking.firewall.allowedTCPPorts = [ 3389 24800 ];
         # services.xrdp.defaultWindowManager = "${pkgs.gnome-console}/bin/kgx";
         environment.etc."X11/Xwrapper.config".text = "allowed_users=anybody";
         environment.etc."xrdp/xrdp.ini".text = ''
@@ -139,7 +139,7 @@
             powerline-fonts
             powerline-symbols
             iosevka
-            iosevka-nerd
+            nerd-fonts.iosevka
             # nerdfonts
             fira-code-symbols
 

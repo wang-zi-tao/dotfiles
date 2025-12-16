@@ -130,6 +130,7 @@ in
       };
       system.stateVersion = "24.11";
       programs.nix-ld.enable = true;
+      services.dbus.implementation = "broker";
 
       environment.systemPackages =
         with pkgs;

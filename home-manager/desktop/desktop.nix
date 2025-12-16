@@ -133,7 +133,7 @@ with lib;
       powerline-fonts
       powerline-symbols
       iosevka
-      iosevka-nerd
+      nerd-fonts.iosevka
       # nerdfonts
       fira-code-symbols
 
