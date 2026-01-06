@@ -95,17 +95,17 @@ local function config()
 
     local lsp_list = {}
 
+    ---@param lsp_name string
+    ---@param opts? vim.lsp.Config
     local function setup_lsp(lsp_name, opts)
         opts = opts or {}
-        vim.lsp.enable(lsp_name, {
+        vim.lsp.config(lsp_name, vim.tbl_deep_extend("keep", {
             on_attach = on_attach,
             flags = {
                 debounce_text_changes = 150,
             },
-            settings = opts.settings,
-            cmd = opts.cmd,
-            on_init = opts.on_init,
-        })
+        }, opts))
+        vim.lsp.enable(lsp_name)
         table.insert(lsp_list, lsp_name)
     end
 
@@ -208,6 +208,15 @@ local function config()
     setup_lsp("java_language_server", {
         cmd = { "java-language-server" }
     })
+
+    local clangd_root_pattern = lspconfig_util.root_pattern(
+        'compile_commands.json',
+        "wps_3rdparty_list.cmake",
+        '.clang-tidy',
+        '.clang-format',
+        'compile_flags.txt',
+        'configure.ac'
+    )
     setup_lsp("clangd", {
         cmd = {
             "clangd",
@@ -218,17 +227,15 @@ local function config()
             "--enable-config",
             num_of_job ~= 0 and "-j=" .. tostring(num_of_job) or nil,
         },
-        cmd_env = {
-            CLANGD_FLAGS = "-Wall -Wextra -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic",
-        },
-        root_dir = lspconfig_util.root_pattern(
-            'compile_commands.json',
-            "wps_3rdparty_list.cmake",
-            '.clang-tidy',
-            '.clang-format',
-            'compile_flags.txt',
-            'configure.ac'
-        ),
+        root_dir = function(bufnr, callback)
+            local path = vim.api.nvim_buf_get_name(bufnr)
+            local root = clangd_root_pattern(path)
+            if root then
+                callback(root)
+            else
+                callback(lspconfig_util.find_git_ancestor(path))
+            end
+        end,
     })
     setup_lsp("nil_ls", {
         settings = {

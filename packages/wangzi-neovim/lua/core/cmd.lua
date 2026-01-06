@@ -19,11 +19,21 @@ vim.api.nvim_create_user_command("ClearTerm", ClearTerm, { nargs = 0 })
 
 vim.api.nvim_create_user_command("CopyFilePath", [[ let @+ = expand('%:p')  ]], {})
 
+local function findDevenv()
+    local glob = "C:/Program Files/Microsoft Visual Studio/*/Professional/Common7/IDE/devenv.com"
+    local result = vim.fn.glob(glob, false, true)
+    if #result > 0 then
+        return result[1]
+    else
+        vim.notify("Could not find Visual Studio installation", vim.log.levels.WARN)
+    end
+end
+
 local function OpenInVS()
     local file = vim.fn.expand("%")
     local row = vim.api.nvim_win_get_cursor(0)[1]
     require("plenary.job"):new({
-        command = "devenv",
+        command = findDevenv() or "devenv",
         args = { file, "/edit", file, "/command", "Edit.GoTo " .. row }
     }):start()
 end

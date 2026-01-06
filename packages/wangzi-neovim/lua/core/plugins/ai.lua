@@ -377,6 +377,50 @@ local function codecompanion_fidget()
     return M
 end
 
+local function ollama_adapter(ollama_server, model)
+    return function()
+        local config = require("codecompanion.adapters").extend("ollama", {
+            schema = {
+                model = {
+                    default = model,
+                },
+            },
+            env = {
+                url = ollama_server,
+                chat_url = "/v1/chat/completions",
+            },
+        })
+        return config
+    end
+end
+
+local function get_api_config(name)
+    local Path = require("plenary.path")
+
+    local key_path = Path:new("/run/secrets/ai")
+    if not key_path:exists() then
+        key_path = Path:new(vim.loop.os_homedir()) / ".ai.json"
+    end
+
+    local json = vim.json.decode(key_path:read())
+    local config = json[name]
+    local api_key = config.key
+    local url = config.url
+    local model = config.model
+
+    return {
+        schema = {
+            schema = { default = 0.0, },
+            model = { default = model, },
+        },
+        env = {
+            url = url,
+            api_key = api_key,
+            chat_url = "/v1/chat/completions",
+        },
+    }
+end
+
 local function config_codecompanion()
     local ollama_server = vim.env.OLLAMA_SERVER or "http://localhost:11434"
     local host = vim.env.HOST
@@ -384,49 +428,6 @@ local function config_codecompanion()
         ollama_server = "http://wangzi-pc.wg:11434"
     end
 
-    local function ollama_adapter(model)
-        return function()
-            local config = require("codecompanion.adapters").extend("ollama", {
-                schema = {
-                    model = {
-                        default = model,
-                    },
-                },
-                env = {
-                    url = ollama_server,
-                    chat_url = "/v1/chat/completions",
-                },
-            })
-            return config
-        end
-    end
-
-    local function get_api_config(name)
-        local Path = require("plenary.path")
-
-        local key_path = Path:new("/run/secrets/ai")
-        if not key_path:exists() then
-            key_path = Path:new(vim.loop.os_homedir()) / ".ai.json"
-        end
-
-        local json = vim.json.decode(key_path:read())
-        local config = json[name]
-        local api_key = config.key
-        local url = config.url
-        local model = config.model
-
-        return {
-            schema = {
-                schema = { default = 0.0, },
-                model = { default = model, },
-            },
-            env = {
-                url = url,
-                api_key = api_key,
-                chat_url = "/v1/chat/completions",
-            },
-        }
-    end
 
     require("codecompanion").setup({
         display = {
@@ -458,8 +459,8 @@ local function config_codecompanion()
             },
         },
         adapters = {
-            ollama_deepseek_r1 = ollama_adapter("deepseek-r1:8b"),
-            ollama_qwen3 = ollama_adapter("qwen3:8b"),
+            ollama_deepseek_r1 = ollama_adapter(ollama_server, "deepseek-r1:8b"),
+            ollama_qwen3 = ollama_adapter(ollama_server, "qwen3:8b"),
             openai = function()
                 local config = get_api_config("openai")
                 return require("codecompanion.adapters").extend("openai_compatible", config)
@@ -573,7 +574,7 @@ return {
     {
         "github/copilot.vim",
         dir = gen.copilot_vim,
-        name = "copilot_vim",
+        name = "copilot.vim",
         event = { "VeryLazy" },
         cmd = { "Copilot" },
         config = function()
@@ -595,7 +596,7 @@ return {
             "nvim_treesitter",
             "nvim_cmp",
             "telescope_nvim",
-            "copilot_vim",
+            "copilot.vim",
             "fidget_nvim",
             "mcphub",
             {
@@ -665,6 +666,82 @@ return {
             },
             { "<leader>aa", [[<cmd>CodeCompanionActions<CR>]], mode = { "n", "v" }, desc = "AI Actions" },
             { "<leader>at", "<cmd>CodeCompanionChat<CR>",      desc = "AI Chat" },
+        },
+    },
+    {
+        "yetone/avante.nvim",
+        name = "avante",
+        dir = gen.avante,
+        -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+        -- ⚠️ must add this setting! ! !
+        build = vim.fn.has("win32") ~= 0
+            and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
+            or "false",
+        event = "VeryLazy",
+        version = false, -- Never set this value to "*"! Never!
+        ---@module 'avante'
+        ---@type avante.Config
+        config = function(opts)
+            local avante = require("avante")
+
+            if vim.fn.has("win32") ~= 0 then
+                local lib_path = vim.fn.stdpath("data") .. "/lazy/avante/build"
+                package.cpath = package.cpath .. ";" .. lib_path .. "/?.dll"
+            else
+                local lib_path = gen.avante_build
+                package.cpath = package.cpath .. ";" .. lib_path .. "/?.so"
+            end
+
+            --- @return AvanteSupportedProvider | AvanteProviderFunctor | AvanteBedrockProviderFunctor
+            local function convert_ai_config(config)
+                local api_key_name = "AI_APIKEY_" .. config.schema.model.default
+                vim.env[api_key_name] = config.env.api_key
+                return {
+                    __inherited_from = "openai",
+                    endpoint = config.env.url,
+                    model = config.schema.model.default,
+                    api_key_name = api_key_name,
+                    extra_request_body = {
+                        -- temperature = 0.7,
+                        -- max_tokens = 8192,
+                    },
+                }
+            end
+
+            local deepseek_r1 = convert_ai_config(get_api_config("deepseek"))
+            local deepseek_v3 = convert_ai_config(get_api_config("deepseek-v3"))
+
+            avante.setup(vim.tbl_deep_extend("keep", {
+                provider = "deepseek_v3",
+                providers = {
+                    deepseek_r1 = deepseek_r1,
+                    deepseek_v3 = deepseek_v3,
+                }
+            }, opts))
+        end,
+        opts = {
+            -- add any opts here
+            -- this file can contain specific instructions for your project
+            instructions_file = "avante.md",
+            -- for example
+        },
+        dependencies = {
+            "plenary_nvim",
+            "nui_nvim",
+            --- The below dependencies are optional,
+            "telescope_nvim",    -- for file_selector provider telescope
+            "nvim_cmp",          -- autocompletion for avante commands and mentions
+            "snacks",            -- for input provider snacks
+            "nvim_web_devicons", -- or echasnovski/mini.icons
+            "copilot.vim",       -- for providers='copilot'
+            {
+                -- Make sure to set this up properly if you have lazy=true
+                'render_markdown',
+                opts = {
+                    file_types = { "markdown", "Avante" },
+                },
+                ft = { "markdown", "Avante" },
+            },
         },
     },
     {
