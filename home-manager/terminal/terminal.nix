@@ -94,6 +94,14 @@
           pkgs.writeShellScriptBin name ''nix run nixpkgs#"${name}" -- $@''
       ) config.lazyPackage)
       ++ [
+        (pkgs.writeShellScriptBin "nix-gc" ''
+          nix-collect-garbage -d
+          sudo nix-collect-garbage -d
+        '')
+
+        (pkgs.writeShellScriptBin "iflow" ''npx "@iflow-ai/iflow-cli" $@'')
+        opencode
+
         neovim-remote
         config.neovim.pkg
 

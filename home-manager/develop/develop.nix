@@ -36,6 +36,21 @@ let
       autopep8
     ]
   );
+  rust-prettifier-for-lldb = pkgs.fetchFromGitHub {
+    owner = "cmrschwarz";
+    repo = "rust-prettifier-for-lldb";
+    rev = "refs/tags/v0.5.1";
+    sha256 = "sha256-6EIR901c6PVOQApKVbpLf1DPHMwef3LUxFJji2PiduI=";
+  };
+  lldb-py = pkgs.stdenv.mkDerivation {
+    name = "lldbcustomtype";
+    src = ./lldb.py;
+    dontUnpack = true;
+    installPhase = ''
+        mkdir -p $out/lib/python3.9/site-packages/
+        cp $src $out/lldbcustomtype.py
+    '';
+  };
 in
 {
   imports = [
@@ -173,6 +188,8 @@ in
     neovim-remote
     sccache
 
+    renderdoc
+
     # unstable.tracy
 
     (python3.withPackages (
@@ -212,6 +229,10 @@ in
           # Load symbol table
           add-symbol-file $arg0 $text_address
       end
+    '';
+    ".lldbinit".text = ''
+      command script import "${rust-prettifier-for-lldb}/rust_prettifier_for_lldb.py"
+      command script import "${lldb-py}/lldbcustomtype.py"
     '';
   };
   programs.zsh.shellAliases = {

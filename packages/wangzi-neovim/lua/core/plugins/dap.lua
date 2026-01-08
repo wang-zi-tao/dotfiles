@@ -132,6 +132,12 @@ local function init()
         name = "lldb",
     }
 
+    dap.adapters.rust_lldb = {
+        type = "executable",
+        command = "lldb-vscode", -- adjust as needed
+        name = "rust_lldb",
+    }
+
     local home = vim.fn.expand("~")
 
     dap.adapters.cppvsdbg = vsdbg_adapter
@@ -551,35 +557,35 @@ return {
             desc = "Eval",
         },
         {
-            "<leader>dF",
+            "<leader>dFe",
             function()
                 require("dapui").float_element(nil, { enter = true })
             end,
             desc = "Eval",
         },
         {
-            "<leader>dfv",
+            "<leader>dFv",
             function()
                 require("dapui").float_element("scopes", { enter = true })
             end,
             desc = "Scopes",
         },
         {
-            "<leader>dfs",
+            "<leader>dFs",
             function()
                 require("dapui").float_element("stacks", { enter = true })
             end,
             desc = "stacks",
         },
         {
-            "<leader>dfr",
+            "<leader>dFr",
             function()
                 require("dapui").float_element("repl", { enter = true })
             end,
             desc = "repl window",
         },
         {
-            "<leader>dfb",
+            "<leader>dFb",
             function()
                 require("dapui").float_element("breakpoints", { enter = true })
             end,
@@ -591,6 +597,13 @@ return {
                 vim.cmd [[Telescope dap list_breakpoints]]
             end,
             desc = "breakpoints",
+        },
+        {
+            "<leader>df",
+            function()
+                vim.cmd [[Telescope dap frames]]
+            end,
+            desc = "frames",
         },
         {
             "<leader>dsf",
@@ -820,8 +833,8 @@ return {
                     },
                 },
                 floating = {
-                    max_height = nil,   -- These can be integers or a float between 0 and 1.
-                    max_width = nil,    -- Floats will be treated as percentage of your screen.
+                    max_height = 0.8,   -- These can be integers or a float between 0 and 1.
+                    max_width = 0.8,    -- Floats will be treated as percentage of your screen.
                     border = "rounded", -- Border style. Can be "single", "double" or "rounded"
                     mappings = {
                         close = { "q", "<Esc>" },

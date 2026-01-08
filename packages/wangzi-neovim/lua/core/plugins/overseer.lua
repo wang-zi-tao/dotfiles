@@ -63,7 +63,7 @@ local function config()
     require("overseer").register_template({
         name = "Git checkout",
         params = function()
-            local stdout = vim.system({ "git", "branch", "--format=%(refname:short)" }):wait().stdout
+            local stdout = vim.system({ "git", "branch", "--format=%(refname:short)" }):wait().stdout or ""
             local branches = vim.split(stdout, "\n", { trimempty = true })
             return {
                 branch = {

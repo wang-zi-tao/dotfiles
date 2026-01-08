@@ -129,6 +129,7 @@ let
     # AI
     copilot_vim = copilot-vim;
     codecompanion = codecompanion-nvim;
+    opencode = opencode-nvim;
     vectorcode = fetchgit {
       url = "https://github.com/Davidyz/VectorCode";
       rev = "810ad4188be9389578ff75b08dfd18c152141d82";
@@ -320,8 +321,7 @@ let
       rev = "4b199b1dcfd136cac8b0fa9c8dbbdeb81463f7a9";
       sha256 = "sha256-euwc9XD02g8W52Z8SzjSInLnatS3aGLY44Frvd+yDTc=";
     };
-    vscode_lldb =
-      if enable-debuger then pkgs.vscode-extensions.vadimcn.vscode-lldb else "false";
+    vscode_lldb = if enable-debuger then pkgs.vscode-extensions.vadimcn.vscode-lldb else "false";
     OpenDebugAD7 = "${vscode-cpptools}/extension/debugAdapters/bin/OpenDebugAD7";
     vscode_js_debug = vscode-js-debug;
     nio = nvim-nio;

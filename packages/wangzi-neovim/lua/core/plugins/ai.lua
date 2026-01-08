@@ -679,6 +679,28 @@ return {
         config = config_cmp_ai
     },
     {
+        "NickvanDyke/opencode.nvim",
+        name = "opencode",
+        dir = gen.opencode,
+        module = "opencode",
+        dependencies = {
+            { "snacks", opts = { input = {}, picker = {}, terminal = {} } },
+        },
+        keys = {
+            { "<leader>ao", function() require("opencode").toggle() end, desc = "OpenCode" },
+        },
+        config = function()
+            vim.o.autoread = true
+            vim.g.opencode_opts = {
+                provider = {
+                    enabled = "snacks",
+                    snacks = {
+                    }
+                }
+            }
+        end
+    },
+    {
         "Davidyz/VectorCode",
         dir = gen.vectorcode,
         name = "vectorcode",

@@ -16,7 +16,7 @@
       in
       {
         enable = true;
-        environmentVariables = config.home.sessionVariables;
+        environmentVariables = builtins.removeAttrs config.home.sessionVariables [ "XDG_DATA_DIRS" ];
         shellAliases = {
           grep = "rg --color=auto";
           xclip = "xclip -selection c";
