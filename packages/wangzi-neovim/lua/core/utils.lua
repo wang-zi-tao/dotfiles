@@ -349,6 +349,7 @@ end
 
 ---@param override_config_name string
 ---@param language string
+---@param config dap.Configuration
 M.override_dap_config = function(override_config_name, language, config)
     local dap = require("dap")
     local override_config = M.find_dap_config(override_config_name, language) or {}

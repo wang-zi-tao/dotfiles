@@ -1,21 +1,44 @@
+local function vsdbg_find_natvis()
+    local Path = require("plenary.path")
+    local file = "C:/dotfiles-install/all.natvis"
+
+    if Path:new(file):exists() then
+        return file
+    end
+    return nil
+end
+
 ---@type dap.AdapterFactory
 local function vsdbg_adapter(callback)
     local Job = require("plenary.job")
     local rpc = require('dap.rpc')
     local scan = require 'plenary.scandir'
     local home = vim.fn.expand("~")
+    local Path = require("plenary.path")
 
     local vscode_extensions_dir = (home .. "/.vscode/extensions")
     local vscode_cpptoools_dir = "."
+    local vscode_cpptoools_version = ""
     local plugins = scan.scan_dir(vscode_extensions_dir, { depth = 1, only_dirs = true })
     for _, dir in ipairs(plugins) do
-        if string.match(dir, "ms%-vscode%.cpptools%-[0-9.]+%-win32%-x64") then
+        local version = string.match(dir, "ms%-vscode%.cpptools%-([0-9.]+)%-win32%-x64")
+        if version and version > vscode_cpptoools_version then
+            vscode_cpptoools_version = version
             vscode_cpptoools_dir = dir
         end
     end
     if vscode_cpptoools_dir == "." then
         vim.notify("vscode cpptools not found, please install it first", vim.log.levels.ERROR)
         return
+    end
+
+    local natvis_file = vsdbg_find_natvis()
+    if natvis_file then
+        local dest_path = Path:joinpath(vscode_cpptoools_dir, [[\debugAdapters\vsdbg\bin\Visualizers\all.natvis]])
+        if not dest_path:exists() then
+            vim.notify("copy natvis file to vsdbg bin dir", vim.log.levels.INFO)
+            Path:new(natvis_file):copy({ destination = dest_path:absolute() })
+        end
     end
 
     local vsdbg_js_adapter = [[
@@ -145,15 +168,6 @@ local function init()
     local get_program = util.get_program
     local get_coredmp = util.get_coredmp
 
-    local function vsdbg_find_natvis()
-        local file = "C:/dotfiles-install/all.natvis"
-
-        if Path:new(file):exists() then
-            return file
-        end
-        return nil
-    end
-
     local vsdbg_symbolSearchPath = "srv*;srv*http://localhost:8001"
     local vsdbg_config = {
         type = "cppvsdbg",
@@ -173,8 +187,20 @@ local function init()
         logging = {
             moduleLoad = true,
         },
-        -- symbolSearchPath = "srv*;srv*http://localhost:8001;srv*https://msdl.microsoft.com/download/symbols",
+        sourceFileMap = {},
+        symbolSearchPath = vsdbg_symbolSearchPath,
     }
+
+    local vsdbg_remote_config = vim.tbl_deep_extend("force", vsdbg_config, {
+        name = "vsdbg remote attach",
+        request = "attach",
+        symbolSearchPath = vsdbg_symbolSearchPath,
+        pipeTransport = {
+            pipeCwd = "C:/",
+            pipeProgram = "ssh",
+            pipeArgs = { "-pw", "<password>", "user@10.10.10.10" },
+        },
+    })
 
     local lldb_config = {
         type = "lldb",

@@ -72,7 +72,7 @@ return {
         dependencies = { "nvim_treesitter", "nvim_web_devicons" },
         module = "render-markdown",
         cmd = "RenderMarkdown",
-        ft = { "markdown", "lsp_markdown", "vimwiki", "codecompanion" },
+        ft = { "markdown", "lsp_markdown", "vimwiki", "codecompanion", "Avante" },
         setup = function()
             vim.treesitter.language.register('markdown', 'vimwiki')
         end,

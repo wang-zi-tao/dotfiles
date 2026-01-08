@@ -16,7 +16,7 @@ inputs@{
   home-manager.useGlobalPkgs = true;
   user.shell = "${pkgs.zsh}/bin/zsh";
   system.stateVersion = "22.05";
-  terminal.font = "${pkgs.iosevka-nerd}/share/fonts/truetype/IosevkaNerdFont-Regular.ttf";
+  terminal.font = "${pkgs.nerd-fonts.iosevka}/share/fonts/truetype/NerdFonts/Iosevka/IosevkaNerdFont-Regular.ttf";
   time.timeZone = "Asia/Shanghai";
   nix = {
     substituters = [

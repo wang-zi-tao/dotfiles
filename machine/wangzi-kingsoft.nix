@@ -178,7 +178,6 @@ nixpkgs.lib.nixosSystem {
         services.udev.extraRules = ''
           SUBSYSTEM=="usb", ATTR{idVendor}=="12d1", ATTR{idProduct}=="5000", GROUP="users", MODE="0777"
         '';
-        users.users.wangzi.extraGroups = [ "docker" ];
 
         virtualisation.libvirtd.qemu = {
           package = pkgs.qemu_full;
@@ -187,10 +186,6 @@ nixpkgs.lib.nixosSystem {
             pkgs.OVMFFull.fd
             pkgs.pkgsCross.aarch64-multiplatform.OVMF.fd
           ];
-        };
-        virtualisation.docker = {
-          enable = true;
-          enableOnBoot = true;
         };
         networking.firewall.allowedTCPPortRanges = [
           {
