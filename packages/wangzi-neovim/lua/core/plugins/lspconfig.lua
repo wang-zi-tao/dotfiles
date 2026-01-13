@@ -133,6 +133,7 @@ local function config()
         "csharp_ls",
         "cssls",
         "codeqlls",
+        "nushell",
     }
     for _, lsp in ipairs(servers) do
         setup_lsp(lsp)

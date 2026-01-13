@@ -303,6 +303,83 @@ After each solution:
     }
 }
 
+local function iflow()
+    local helpers = require("codecompanion.adapters.acp.helpers")
+
+    return {
+        name = "iflow",
+        formatted_name = "iFlow",
+        type = "acp",
+        roles = {
+            llm = "assistant",
+            user = "user",
+        },
+        opts = {
+            vision = true,
+            trim_tool_output = true,
+        },
+        commands = {
+            default = {
+                "iflow",
+                "--experimental-acp",
+            },
+        },
+        defaults = {
+            auth_method = "oauth-personal",
+            mcpServers = {},
+            timeout = 20000, -- 20 seconds
+        },
+        env = {
+            IFLOW_OAUTH_TOKEN = "IFLOW_OAUTH_TOKEN",
+        },
+        parameters = {
+            protocolVersion = 1,
+            clientCapabilities = {
+                fs = { readTextFile = true, writeTextFile = true },
+            },
+            clientInfo = {
+                name = "CodeCompanion.nvim",
+                version = "1.0.0",
+            },
+        },
+        handlers = {
+            ---@param self CodeCompanion.ACPAdapter
+            ---@return boolean
+            setup = function(self)
+                return true
+            end,
+
+            ---Manually handle authentication using OAuth
+            ---@param self CodeCompanion.ACPAdapter
+            ---@return boolean
+            auth = function(self)
+                -- Set iFlow OAuth token for the subprocess
+                local oauth_token = self.env_replaced.IFLOW_OAUTH_TOKEN
+                if oauth_token and oauth_token ~= "" then
+                    vim.env.IFLOW_OAUTH_TOKEN = oauth_token
+                    return true
+                end
+
+                return true
+            end,
+
+            ---@param self CodeCompanion.ACPAdapter
+            ---@param messages table
+            ---@param capabilities table
+            ---@return table
+            form_messages = function(self, messages, capabilities)
+                return helpers.form_messages(self, messages, capabilities)
+            end,
+
+            ---Function to run when the request has completed. Useful to catch errors
+            ---@param self CodeCompanion.ACPAdapter
+            ---@param code number
+            ---@return nil
+            on_exit = function(self, code) end,
+        }
+    }
+end
+
 local function codecompanion_fidget()
     local progress = require("fidget.progress")
 
@@ -347,7 +424,7 @@ local function codecompanion_fidget()
 
     function M:create_progress_handle(request)
         return progress.handle.create({
-            title = " Requesting assistance (" .. request.data.strategy .. ")",
+            title = " Requesting assistance",
             message = "In progress...",
             lsp_client = {
                 name = M:llm_role_title(request.data.adapter),
@@ -394,7 +471,7 @@ local function ollama_adapter(ollama_server, model)
     end
 end
 
-local function get_api_config(name)
+local function getAiJson()
     local Path = require("plenary.path")
 
     local key_path = Path:new("/run/secrets/ai")
@@ -403,6 +480,11 @@ local function get_api_config(name)
     end
 
     local json = vim.json.decode(key_path:read())
+    return json
+end
+
+local function get_api_config(name)
+    local json = getAiJson()
     local config = json[name]
     local api_key = config.key
     local url = config.url
@@ -473,10 +555,35 @@ local function config_codecompanion()
                 local config = get_api_config("deepseek-v3")
                 return require("codecompanion.adapters").extend("deepseek", config)
             end,
+            acp = {
+                iflow = iflow,
+                opencode = function()
+                    return require("codecompanion.adapters").extend("opencode", {
+                        commands = {
+                            default = { "opencode", "acp" }
+                        },
+                        opts = {
+                            vision = true,
+                            trim_tool_output = true,
+                        },
+                    })
+                end,
+                -- iflow = function()
+                --     return require("codecompanion.adapters").extend("opencode", {
+                --         commands = {
+                --             default = { "iflow", "--experimental-acp" }
+                --         },
+                --         opts = {
+                --             vision = true,
+                --             trim_tool_output = true,
+                --         },
+                --     })
+                -- end,
+            }
         },
         prompt_library = prompt_library,
         extensions = {
-            vectorcode = {
+            vectorcode = enable_vectorcode and {
                 ---@type VectorCode.CodeCompanion.ExtensionOpts
                 opts = {
                     tool_group = {
@@ -515,7 +622,7 @@ local function config_codecompanion()
                         files_rm = {}
                     }
                 },
-            },
+            } or nil,
         }
     })
     require("telescope").load_extension("codecompanion")
@@ -712,7 +819,17 @@ return {
             local deepseek_v3 = convert_ai_config(get_api_config("deepseek-v3"))
 
             avante.setup(vim.tbl_deep_extend("keep", {
-                provider = "deepseek_v3",
+                provider = "opencode",
+                acp_providers = {
+                    ["opencode"] = {
+                        command = vim.fn.has("win32") == 1 and "opencode.cmd" or "opencode",
+                        args = { "acp" }
+                    },
+                    ["iflow"] = {
+                        command = vim.fn.has("win32") == 1 and "iflow.cmd" or "iflow",
+                        args = { "--experimental-acp" }
+                    }
+                },
                 providers = {
                     deepseek_r1 = deepseek_r1,
                     deepseek_v3 = deepseek_v3,
