@@ -1,4 +1,5 @@
 local database = require("core.database")
+local Job = require("plenary.job")
 
 local M = {}
 
@@ -420,6 +421,47 @@ function M.ensure_env_list(env, value)
     if current_values[value] == nil then
         M.append_env(env, value)
     end
+end
+
+---@param pid number
+---@return number[]
+function M.get_subprocess(pid)
+    local ps_job = Job:new({ command = "nu", args = { "-c", "ps | where ppid = " .. pid .. " | get pid | str join '\n'" }, })
+    ps_job:sync()
+    local pids = ps_job:result()
+    return pids
+end
+
+---@param pid number
+---@return number[]
+function M.get_subprocess_recursive(pid)
+    local all_pids = {}
+    local function dfs(current_pid)
+        table.insert(all_pids, current_pid)
+        local children = M.get_subprocess(current_pid)
+        for _, child_pid_str in ipairs(children) do
+            local child_pid = tonumber(child_pid_str)
+            if child_pid ~= nil then
+                dfs(child_pid)
+            end
+        end
+    end
+    dfs(pid)
+    return all_pids
+end
+
+M.task_template_builders = {}
+
+---@param template overseer.TemplateDefinition
+function M.register_task_template(template)
+    local name = template.name
+    local builder = template.builder
+    M.task_template_builders[name] = builder
+    require("overseer").register_template(vim.tbl_deep_extend("force", template, {
+        builder = function()
+            return M.task_template_builders[name]()
+        end,
+    }))
 end
 
 return M

@@ -183,6 +183,10 @@ local function config()
                 -- table.insert(runtime_path, join(dir, 'lua', '?', 'init.lua'))
             end
 
+            for _, path in ipairs(vim.api.nvim_get_runtime_file('', true)) do
+                table.insert(library, path)
+            end
+
             local nvim_settings = {
                 runtime = {
                     -- Tell the language server which version of Lua you're using

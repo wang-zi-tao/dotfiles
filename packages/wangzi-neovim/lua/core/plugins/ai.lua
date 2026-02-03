@@ -483,6 +483,12 @@ local function getAiJson()
     return json
 end
 
+local function create_key_env(name, key)
+    local api_key_name = "AI_APIKEY_" .. name
+    vim.fn.setenv(api_key_name, key)
+    return api_key_name
+end
+
 local function get_api_config(name)
     local json = getAiJson()
     local config = json[name]
@@ -497,7 +503,7 @@ local function get_api_config(name)
         },
         env = {
             url = url,
-            api_key = api_key,
+            api_key = create_key_env(model, api_key),
             chat_url = "/v1/chat/completions",
         },
     }
@@ -541,20 +547,22 @@ local function config_codecompanion()
             },
         },
         adapters = {
-            ollama_deepseek_r1 = ollama_adapter(ollama_server, "deepseek-r1:8b"),
-            ollama_qwen3 = ollama_adapter(ollama_server, "qwen3:8b"),
-            openai = function()
-                local config = get_api_config("openai")
-                return require("codecompanion.adapters").extend("openai_compatible", config)
-            end,
-            deepseek = function()
-                local config = get_api_config("deepseek")
-                return require("codecompanion.adapters").extend("deepseek", config)
-            end,
-            deepseek_v3 = function()
-                local config = get_api_config("deepseek-v3")
-                return require("codecompanion.adapters").extend("deepseek", config)
-            end,
+            http = {
+                ollama_deepseek_r1 = ollama_adapter(ollama_server, "deepseek-r1:8b"),
+                ollama_qwen3 = ollama_adapter(ollama_server, "qwen3:8b"),
+                openai = function()
+                    local config = get_api_config("openai")
+                    return require("codecompanion.adapters").extend("openai_compatible", config)
+                end,
+                deepseek = function()
+                    local config = get_api_config("deepseek")
+                    return require("codecompanion.adapters").extend("deepseek", config)
+                end,
+                deepseek_v3 = function()
+                    local config = get_api_config("deepseek-v3")
+                    return require("codecompanion.adapters").extend("deepseek", config)
+                end,
+            },
             acp = {
                 iflow = iflow,
                 opencode = function()
@@ -801,13 +809,11 @@ return {
 
             --- @return AvanteSupportedProvider | AvanteProviderFunctor | AvanteBedrockProviderFunctor
             local function convert_ai_config(config)
-                local api_key_name = "AI_APIKEY_" .. config.schema.model.default
-                vim.env[api_key_name] = config.env.api_key
                 return {
                     __inherited_from = "openai",
                     endpoint = config.env.url,
                     model = config.schema.model.default,
-                    api_key_name = api_key_name,
+                    api_key_name = create_key_env(config.schema.model.default, config.env.api_key),
                     extra_request_body = {
                         -- temperature = 0.7,
                         -- max_tokens = 8192,

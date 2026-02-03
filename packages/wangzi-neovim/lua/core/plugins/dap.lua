@@ -182,7 +182,7 @@ local function init()
             moduleLoad = true,
         },
         sourceFileMap = {},
-        symbolSearchPath = vsdbg_symbolSearchPath,
+        -- symbolSearchPath = vsdbg_symbolSearchPath,
     }
 
     local vsdbg_remote_config = vim.tbl_deep_extend("force", vsdbg_config, {
@@ -480,16 +480,28 @@ return {
         {
             "<leader>dp",
             function()
-                require("dap").pause()
+                local dap = require("dap")
+                for _, session in pairs(dap.sessions()) do
+                    for _, thread in pairs(session.threads) do
+                        session:_pause(thread.id)
+                    end
+                end
             end,
             desc = "Pause",
         },
         {
             "<leader>dc",
             function()
-                require("dap").continue()
+                local dap = require("dap")
+                for _, session in pairs(dap.sessions()) do
+                    session:_step("continue")
+                end
+
+                if #dap.sessions() == 0 then
+                    dap.continue()
+                end
             end,
-            desc = "Continue",
+            desc = "Continue All",
         },
         {
             "<leader>dr",
@@ -501,9 +513,10 @@ return {
         {
             "<leader>dC",
             function()
-                require("dap").close()
+                local dap = require("dap")
+                dap.terminate({ all = true })
             end,
-            desc = "Close",
+            desc = "Terminate All",
         },
         {
             "<leader>do",

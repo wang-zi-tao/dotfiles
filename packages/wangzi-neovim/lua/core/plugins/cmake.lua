@@ -59,9 +59,7 @@ local function config()
                         }
                     }, -- options to pass into the `overseer.new_task` command
                     on_new_task = function(task)
-                        require("overseer").open(
-                            { enter = false, direction = "right" }
-                        )
+                        require("overseer").open()
                     end, -- a function that gets overseer.Task when it is created, before calling `task:start`
                 },
                 terminal = {
