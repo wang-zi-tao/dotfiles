@@ -408,4 +408,18 @@ function M.append_env(env, value)
     end
 end
 
+function M.ensure_env_list(env, value)
+    local split_char = M.platform_env_split()
+    local current_values = {}
+    if vim.env[env] ~= nil then
+        for v in string.gmatch(vim.env[env], "([^" .. split_char .. "]+)") do
+            current_values[v] = true
+        end
+    end
+
+    if current_values[value] == nil then
+        M.append_env(env, value)
+    end
+end
+
 return M

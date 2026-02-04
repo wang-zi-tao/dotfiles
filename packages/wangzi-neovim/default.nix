@@ -129,6 +129,7 @@ let
     # AI
     copilot_vim = copilot-vim;
     codecompanion = codecompanion-nvim;
+    avante = avante-nvim;
     opencode = opencode-nvim;
     vectorcode = fetchgit {
       url = "https://github.com/Davidyz/VectorCode";

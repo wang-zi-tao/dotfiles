@@ -208,8 +208,8 @@
     };
     programs.keychain.enableNushellIntegration = true;
     programs.zoxide = {
-      enable = true;
-      enableNushellIntegration = true;
+      # enable = true;
+      # enableNushellIntegration = true;
     };
     programs.starship = {
       enable = true;
