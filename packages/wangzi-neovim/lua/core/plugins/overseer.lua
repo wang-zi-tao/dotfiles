@@ -18,7 +18,7 @@ local heirline_component = function()
             end,
             hl = function(self)
                 return {
-                    fg = "cyan",
+                    fg = self.colors[status],
                 }
             end,
         }
@@ -33,6 +33,12 @@ local heirline_component = function()
             local tasks_by_status = require("overseer.util").tbl_group_by(tasks, "status")
             self.tasks = tasks_by_status
         end,
+        on_click = {
+            callback = function()
+                require("overseer").toggle()
+            end,
+            name = "overseer_status",
+        },
         static = {
             symbols = {
                 ["CANCELED"] = " ",
@@ -40,6 +46,12 @@ local heirline_component = function()
                 ["SUCCESS"] = "󰄴 ",
                 ["RUNNING"] = "󰑮 ",
             },
+            colors = {
+                ["CANCELED"] = "orange",
+                ["FAILURE"] = "red",
+                ["SUCCESS"] = "green",
+                ["RUNNING"] = "cyan",
+            }
         },
 
         rpad(OverseerTasksForStatus("CANCELED")),
@@ -52,12 +64,38 @@ local heirline_component = function()
 end
 
 local function config()
-    require('overseer').setup({
+    local overseer = require("overseer")
+    overseer.setup({
         dap = true,
         templates = { "builtin", },
-        strategy = {
-            "toggleterm",
+        output = {
+            use_terminal = true,
         },
+        actions = {
+            ["on finish"] = {
+                condition = function(task, status)
+                    return status == "SUCCESS" or status == "FAILURE"
+                end,
+                run = function(task, status)
+                    if status == "SUCCESS" then
+                        vim.notify(string.format("Task '%s' completed successfully.", task.name), vim.log.levels.INFO)
+                    elseif status == "FAILURE" then
+                        vim.notify(string.format("Task '%s' failed with status: %s", task.name, status),
+                            vim.log.levels.ERROR)
+                        overseer.open()
+                    end
+                end,
+            }
+        },
+        component_aliases = {
+            default = {
+                "on_exit_set_status",
+                { "on_complete_notify" },
+                "on_result_diagnostics_trouble",
+                "unique",
+                { "open_output",       on_complete = "failure", on_start = "never" }
+            },
+        }
     })
 
     require("overseer").register_template({
