@@ -531,7 +531,10 @@ local function config_codecompanion()
         },
         strategies = {
             chat = {
-                adapter = "deepseek",
+                adapter = {
+                    name = "opencode",
+                    model = "deepseek/deepseek-chat",
+                },
                 slash_commands = {
                 },
                 tools = {
@@ -566,27 +569,8 @@ local function config_codecompanion()
             acp = {
                 iflow = iflow,
                 opencode = function()
-                    return require("codecompanion.adapters").extend("opencode", {
-                        commands = {
-                            default = { "opencode", "acp" }
-                        },
-                        opts = {
-                            vision = true,
-                            trim_tool_output = true,
-                        },
-                    })
+                    return require("codecompanion.adapters").extend("opencode", {})
                 end,
-                -- iflow = function()
-                --     return require("codecompanion.adapters").extend("opencode", {
-                --         commands = {
-                --             default = { "iflow", "--experimental-acp" }
-                --         },
-                --         opts = {
-                --             vision = true,
-                --             trim_tool_output = true,
-                --         },
-                --     })
-                -- end,
             }
         },
         prompt_library = prompt_library,
