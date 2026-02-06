@@ -6,7 +6,7 @@
 }:
 {
   config = lib.mkIf config.cluster.nodeConfig.develop.enable {
-    services.nixseparatedebuginfod.enable = true;
+    services.nixseparatedebuginfod2.enable = true;
     environment.systemPackages = with pkgs; [ config.boot.kernelPackages.perf ];
     lazyPackage = with pkgs; [
       perf-tools

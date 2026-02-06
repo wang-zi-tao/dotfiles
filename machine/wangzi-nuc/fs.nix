@@ -13,9 +13,9 @@
   services.rsnapshot = {
     enable = true;
     cronIntervals = {
-      daily = "30 21 * * *";
-      weekly = "00 22 * * 6";
-      monthly = "30 22 1 * *";
+      daily = "30 9 * * *";
+      weekly = "00 10 * * 6";
+      monthly = "30 10 1 * *";
     };
     extraConfig =
       "snapshot_root\t/mnt/data/backup/\n"

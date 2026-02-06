@@ -30,5 +30,9 @@ in
       sopsFile = config.cluster.ssh.publicKeySops;
       mode = "0555";
     };
+    sops.secrets."apikey/deepseek" = lib.mkIf sops-enable {
+      sopsFile = config.cluster.ssh.publicKeySops;
+      mode = "0555";
+    };
   };
 }

@@ -795,7 +795,7 @@ return {
                 local lib_path = vim.fn.stdpath("data") .. "/lazy/avante/build"
                 package.cpath = package.cpath .. ";" .. lib_path .. "/?.dll"
             else
-                local lib_path = gen.avante_build
+                local lib_path = gen.avante .. "/build"
                 package.cpath = package.cpath .. ";" .. lib_path .. "/?.so"
             end
 

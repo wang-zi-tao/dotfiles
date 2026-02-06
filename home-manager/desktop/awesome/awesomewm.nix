@@ -120,10 +120,12 @@ with builtins;
     #   ExecStart = "${pkgs.xiezuo}/bin/xiezuo --no-sandbox --no-zygote --package-format=deb";
     # };
     systemd.user.services.virt-manager = makeService { ExecStart = "virt-manager"; };
-    systemd.user.services.barrier = makeService {
+
+    systemd.user.services.deskflow = makeService {
       Type = "simple";
-      ExecStart = "${pkgs.barrier}/bin/barrier --config ${config.home.homeDirectory}/.barrier";
+      ExecStart = "${pkgs.deskflow}/bin/deskflow";
     };
+
     systemd.user.services.run_secret_script = makeService {
       ExecStart =
         let

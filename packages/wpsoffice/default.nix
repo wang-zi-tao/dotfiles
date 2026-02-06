@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, autoPatchelfHook, dpkg, wrapGAppsHook, libsForQt5, xorg
+{ lib, stdenv, fetchurl, autoPatchelfHook, dpkg, wrapGAppsHook3, libsForQt5, xorg
 , alsa-lib, atk, bzip2, cairo, cups, dbus, expat, mesa
 , fontconfig, freetype, gdk-pixbuf, glib, gperftools, gtk2-x11, libICE, libpng12
 , libSM, libtool, libuuid, libX11, libxcb, libXcomposite, libXcursor, libXdamage
@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
   sourceRoot = ".";
 
   nativeBuildInputs =
-    [ autoPatchelfHook dpkg wrapGAppsHook libsForQt5.qt5.wrapQtAppsHook ];
+    [ autoPatchelfHook dpkg wrapGAppsHook3 libsForQt5.qt5.wrapQtAppsHook ];
 
   meta = with lib; {
     description = "Office suite, formerly Kingsoft Office";

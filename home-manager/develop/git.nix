@@ -58,7 +58,6 @@ in
   };
   home.packages = with pkgs; [
     delta
-    gitfs
     rs-git-fsmonitor
   ];
   lazyPackage = with pkgs; [ bfg-repo-cleaner ];

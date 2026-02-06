@@ -158,15 +158,18 @@ in
     (lib.mkIf nodeConfig.guiClient.enable {
       hardware = {
         enableRedistributableFirmware = true;
-        enableAllFirmware = true;
+        firmware = with pkgs; [
+          broadcom-bt-firmware
+        ];
+
         graphics = {
           enable = true;
           enable32Bit = true;
           extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
           extraPackages = with pkgs; [
-            vaapiIntel
+            intel-vaapi-driver
             libvdpau-va-gl
-            vaapiVdpau
+            libva-vdpau-driver
           ];
         };
         bluetooth.enable = true;

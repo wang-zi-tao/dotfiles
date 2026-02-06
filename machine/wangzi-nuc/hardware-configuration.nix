@@ -43,6 +43,7 @@
 
   environment.systemPackages = with pkgs; [
     openrgb
+    lm_sensors
   ];
 
   services.hardware.openrgb = {
@@ -94,14 +95,11 @@
 
   swapDevices = [ ];
 
-  hardware.firmware = [ pkgs.firmwareLinuxNonfree ];
-  hardware.enableAllFirmware = true;
-
   hardware = {
     cpu.intel.updateMicrocode = true;
     graphics = {
       extraPackages32 = with pkgs.pkgsi686Linux; [ mesa ];
-      extraPackages = with pkgs; [ 
+      extraPackages = with pkgs; [
         mesa
         vpl-gpu-rt
       ];
@@ -118,7 +116,14 @@
     videoDrivers = [ "modestting" ];
   };
 
-  boot.kernelPackages = pkgs.linuxKernel.packages.linux_6_17;
+  boot.kernelPackages = pkgs.linuxKernel.packages.linux_6_18;
+
+  hardware.fancontrol = {
+    enable = true;
+    config = ''
+
+    '';
+  };
 
   # services.xserver.monitorSection = ''Modeline "1920x1080" 23.53 1920 1952 2040 2072 1080 1106 1108 1135'';
   # services.xserver.resolutions = [{ x = "1920"; y = "1080"; }];

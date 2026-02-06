@@ -4,8 +4,11 @@
   lib,
   ...
 }:
+let
+  nodeConfig = config.cluster.nodeConfig;
+in
 {
-  config = lib.mkIf (!config.cluster.nodeConfig.inContainer) {
+  config = lib.mkIf (!nodeConfig.inContainer) {
     boot = {
       initrd = {
         # network.enable = true;
@@ -53,9 +56,18 @@
       * soft nofile 65535   
       * hard nofile 65535
     '';
-    services.logind.extraConfig = ''
-      HandlePowerKey=suspend
-    '';
+    services.logind.settings.Login = {
+      HandlePowerKey = "suspend";
+    };
+
+    services.envfs = {
+      enable = true;
+    };
+
+    programs.nix-ld = {
+      enable = true;
+    };
+
     systemd.coredump.enable = true;
     boot.extraSystemdUnitPaths = [ "/etc/systemd-mutable/system" ];
     systemd.oomd = {
@@ -75,7 +87,11 @@
         "-g"
         # "--prefer '(^|/)(chromium|nvim|clang|clang++|cargo|rustc|ghc|rust-analyzer|.haskell-language-server-.*)$'"
       ];
+
     };
+
+    hardware.firmware = [ pkgs.linux-firmware ];
+
     systemd.services.run-secrets-scripts = lib.mkIf (config.sops.defaultSopsFile != "/") {
       wantedBy = [ "multi-user.target" ];
       before = [ "multi-user.target" ];

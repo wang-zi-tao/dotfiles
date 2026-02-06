@@ -16,7 +16,7 @@ local function config()
     local parser_dir = vim.fn.stdpath("cache") .. "/treesitter"
     vim.opt.runtimepath:append(parser_dir)
 
-    require("nvim-treesitter.configs").setup({
+    require("nvim-treesitter").setup({
         -- A list of parser names, or "all"
         --
         -- ensure_installed = { "c", "cpp", "rust", "java", "typescript", "haskell", "lua", "python", "vim", "vimdoc", "query" },

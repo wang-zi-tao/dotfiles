@@ -1,4 +1,9 @@
-{ config, pkgs, ... }@inputs:
+{
+  config,
+  pkgs,
+  sops-nix,
+  ...
+}@inputs:
 let
   inherit (pkgs) lib;
   inherit (config.cluster) nodeConfig;

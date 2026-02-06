@@ -45,11 +45,6 @@ with builtins;
         options vfio-pci ids=8086:a7a0
       '';
       virtualisation = {
-        lxd = {
-          package = pkgs.lxd;
-          recommendedSysctlSettings = true;
-        };
-        lxc.lxcfs.enable = false;
         libvirtd = {
           enable = true;
           package = pkgs.libvirt.overrideAttrs (oldAttrs: {

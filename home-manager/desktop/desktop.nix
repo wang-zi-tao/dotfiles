@@ -123,12 +123,9 @@ with lib;
     home.packages = with pkgs; [
       noto-fonts
       noto-fonts-cjk-sans
-      noto-fonts-emoji
-      noto-fonts-extra
+      noto-fonts-color-emoji
       source-han-sans
-      source-han-sans-simplified-chinese
       source-han-serif
-      source-han-serif-simplified-chinese
       # hack-font
       powerline-fonts
       powerline-symbols

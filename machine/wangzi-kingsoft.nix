@@ -82,7 +82,6 @@ nixpkgs.lib.nixosSystem {
         # boot.kernelPackages = pkgs.linuxKernel.packages.linux_6_1;
         boot.kernelParams = [ "elevator=noop" ];
         hardware.cpu.amd.updateMicrocode = pkgs.lib.mkDefault config.hardware.enableRedistributableFirmware;
-        hardware.firmware = [ pkgs.firmwareLinuxNonfree ];
         hardware.enableAllFirmware = true;
         networking = {
           #useDHCP = true;

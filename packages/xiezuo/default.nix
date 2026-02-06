@@ -4,7 +4,7 @@
   fetchurl,
   autoPatchelfHook,
   dpkg,
-  wrapGAppsHook,
+  wrapGAppsHook3,
   libsForQt5,
   xorg,
   alsa-lib,
@@ -28,7 +28,7 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [
     autoPatchelfHook
     dpkg
-    wrapGAppsHook
+    wrapGAppsHook3
     libsForQt5.qt5.wrapQtAppsHook
   ];
 

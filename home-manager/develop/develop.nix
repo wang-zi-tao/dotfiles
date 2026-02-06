@@ -154,7 +154,7 @@ in
     curlie
     highlight
 
-    lldb_17
+    lldb
 
     pkg-config
     global
@@ -172,7 +172,7 @@ in
 
     cargo-watch
 
-    sumneko-lua-language-server
+    lua-language-server
     nodejs
     nodePackages.typescript
 
@@ -208,7 +208,7 @@ in
     ".cargo/config.toml" = lib.mkIf pkgs.stdenv.isLinux {
       text = ''
         [target.x86_64-unknown-linux-gnu]
-        linker = "${pkgs.clang_14}/bin/clang"
+        linker = "${pkgs.clang}/bin/clang"
         rustflags = ["-C", "link-arg=--ld-path=${pkgs.mold}/bin/mold", "-L", "${pkgs.glibc}/lib/"]
         # [build]
         # rustc-wrapper = "${pkgs.sccache}/bin/sccache"
