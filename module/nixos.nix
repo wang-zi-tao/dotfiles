@@ -74,7 +74,6 @@ in
             host: node:
             lib.optional (node.buildNode.enable && host != hostName) {
               hostName = "${host}";
-              system = "x86_64-linux";
               systems = [
                 "x86_64-linux"
                 "aarch64-linux"

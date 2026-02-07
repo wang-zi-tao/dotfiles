@@ -98,7 +98,7 @@ nixpkgs.lib.nixosSystem {
           device = "/dev/vda1";
           fsType = "ext4";
         };
-        services.xserver.desktopManager.gnome.enable = true;
+        services.desktopManager.gnome.enable = true;
         hardware.ksm.enable = true;
         services.xserver.enable = true;
         networking.firewall.rejectPackets = lib.mkForce true;

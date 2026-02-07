@@ -47,8 +47,8 @@ let
     src = ./lldb.py;
     dontUnpack = true;
     installPhase = ''
-        mkdir -p $out/lib/python3.9/site-packages/
-        cp $src $out/lldbcustomtype.py
+      mkdir -p $out/lib/python3.9/site-packages/
+      cp $src $out/lldbcustomtype.py
     '';
   };
 in
@@ -59,8 +59,10 @@ in
   ];
   programs.go = {
     enable = true;
-    goBin = ".go/bin";
-    goPath = ".go/path";
+    env = {
+      GOBIN = ".go/bin";
+      GOPATH = ".go/path";
+    };
   };
   home.sessionVariables = with pkgs; {
     RUSTUP_DIST_SERVER = "http://mirrors.ustc.edu.cn/rust-static";
@@ -127,9 +129,13 @@ in
     semgrep
     deno
     xmake
+
     vala-language-server
     cmake-language-server
     java-language-server
+    bash-language-server
+    vue-language-server
+    asm-lsp
 
     "/nixfs/flake/str/nixpkgs#vscode-langservers-extracted/bin/vscode-css-language-server"
     "/nixfs/flake/str/nixpkgs#vscode-langservers-extracted/bin/vscode-eslint-language-server"

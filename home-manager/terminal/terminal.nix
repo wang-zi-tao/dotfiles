@@ -85,7 +85,7 @@
         pkg:
         if (builtins.typeOf pkg == "string") then
           if (lib.strings.hasPrefix "/" pkg) then
-            pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "/" pkg)) ''exec ${pkg} $@''
+            pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "/" pkg)) "exec ${pkg} $@"
           else
             pkgs.writeShellScriptBin (lib.lists.last (lib.strings.splitString "." pkg)) ''nix run nixpkgs#"${pkg}" -- $@''
         else
@@ -100,7 +100,7 @@
           sudo nix-collect-garbage -d
         '')
 
-        (pkgs.writeShellScriptBin "iflow" ''npx "@iflow-ai/iflow-cli" $@'')
+        (pkgs.writeShellScriptBin "iflow" ''npx -y "@iflow-ai/iflow-cli" $@'')
         opencode
 
         neovim-remote
@@ -148,7 +148,6 @@
         nload
         lm_sensors
       ]);
-
 
     # home.file.".config/nvim/parser/nix.so".source =
     #   lib.mkDefault "${pkgs.unstable.tree-sitter.builtGrammars.tree-sitter-nix}/parser";

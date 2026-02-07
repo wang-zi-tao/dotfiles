@@ -4,15 +4,6 @@ local function config()
         require("nvim-treesitter.install").prefer_git = false
     end
 
-    vim.filetype.add({ extension = { wgsl = "wgsl" } })
-    local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
-    parser_config.wgsl = {
-        install_info = {
-            url = "https://github.com/szebniok/tree-sitter-wgsl",
-            files = { "src/parser.c" },
-        },
-    }
-
     local parser_dir = vim.fn.stdpath("cache") .. "/treesitter"
     vim.opt.runtimepath:append(parser_dir)
 
@@ -160,7 +151,7 @@ return {
             dir = gen.nvim_treesitter_textobjects,
             name = "nvim_treesitter_textobjects",
             config = function()
-                require("nvim-treesitter.configs").setup({
+                require("nvim-treesitter").setup({
                     textobjects = {
                         select = {
                             enable = true,

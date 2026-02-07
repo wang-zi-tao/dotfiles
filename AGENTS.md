@@ -8,7 +8,52 @@ This is a personal NixOS configuration repository for managing multiple systems 
 
 ## Build/Lint/Test Commands
 
-### Nix Development
+### Installation Script (install.bash)
+The `install.bash` script provides a unified interface for all Nix operations:
+
+```bash
+# Basic usage: ./install.bash <command> [args]
+
+# Development and build commands
+./install.bash develop                    # Enter development shell
+./install.bash nix-lang-check            # Check Nix code with statix
+./install.bash nix-lang-fix              # Fix Nix code with statix
+./install.bash nix <args>                # Run nix command with flakes enabled
+
+# Package management
+./install.bash pkgs <package-name>       # Build specific package
+./install.bash pkgs-shell <package-name> # Enter shell with package
+./install.bash pkgs-run <package-name>   # Run package executable
+
+# System management
+./install.bash nixos                     # Build and switch current system
+./install.bash system <profile>          # Build system configuration
+./install.bash home-manager <profile>    # Build and activate home-manager
+./install.bash nix-on-droid <profile>    # Build and activate nix-on-droid
+./install.bash nix-darwin <profile>      # Build and switch nix-darwin
+
+# Deployment
+./install.bash deploy <node>             # Deploy to remote node
+./install.bash nixos-remote <host>       # Deploy to remote NixOS system
+./install.bash nixos-remote-to <profile> <ip> # Deploy specific profile to IP
+
+# Virtualization and installation
+./install.bash iso <profile>             # Generate ISO image
+./install.bash vm <profile>              # Build VM configuration
+./install.bash run-vm <profile>          # Build and run VM
+./install.bash disk <profile>            # Run disko disk configuration
+./install.bash nixos-install <profile>   # Install NixOS (mounts partitions)
+./install.bash nixos-wsl <profile>       # Build and activate NixOS WSL configuration
+
+# Utilities
+./install.bash repl                      # Enter Nix REPL with flake variables
+./install.bash shell                     # Setup direnv environment
+./install.bash update                    # Update flake inputs
+./install.bash compile-all               # Build all packages and deploy
+./install.bash nix-boost                 # Install/upgrade Nix daemon
+```
+
+### Nix Development (Direct Commands)
 ```bash
 # Enter development shell with all tools
 nix develop
@@ -37,7 +82,7 @@ statix fix
 nix build .#<package-name> && ./result/bin/<executable> --test
 ```
 
-### System Management
+### System Management (Direct Commands)
 ```bash
 # Build specific machine configuration
 nix build .#nixosConfigurations.<machine-name>.config.system.build.toplevel

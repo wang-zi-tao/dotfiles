@@ -29,7 +29,7 @@ in
       greeters.gtk.clock-format = "%H:%M:%S";
       background = "${pkgs.resources}/share/backgrounds/locked_wallpaper.png";
     };
-    services.xserver.displayManager.gdm = {
+    services.displayManager.gdm = {
       enable = false;
       wayland = true;
       debug = true;

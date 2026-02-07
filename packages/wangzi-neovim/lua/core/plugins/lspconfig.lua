@@ -134,6 +134,9 @@ local function config()
         "cssls",
         "codeqlls",
         "nushell",
+        "bashls",
+        "asm_lsp",
+        "denols",
     }
     for _, lsp in ipairs(servers) do
         setup_lsp(lsp)

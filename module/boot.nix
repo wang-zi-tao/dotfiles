@@ -31,7 +31,10 @@ in
 
       };
       # extraModulePackages = with config.boot.kernelPackages; (lib.optional config.virtualisation.virtualbox.host.enable virtualbox);
-      kernelParams = [ "quite" ];
+      kernelParams = [
+        "quite"
+        "acpi_call"
+      ];
       plymouth = {
         enable = true;
         # theme = "breeze";
@@ -42,8 +45,13 @@ in
         "vm.nr_hugepages" = 0;
         "perf_event_paranoid" = 1;
       };
+      extraModulePackages = with config.boot.kernelPackages; [
+        acpi_call
+      ];
+
+      kernelPackages = pkgs.linuxKernel.packages.linux_6_18;
     };
-    services.logind.lidSwitch = "ignore";
+    services.logind.settings.Login.HandleLidSwitch = "ignore";
     services.upower.ignoreLid = true;
 
     services.lvm.boot.thin.enable = true;
@@ -68,11 +76,15 @@ in
       enable = true;
     };
 
+    services.acpid = {
+      enable = true;
+    };
+
     systemd.coredump.enable = true;
     boot.extraSystemdUnitPaths = [ "/etc/systemd-mutable/system" ];
     systemd.oomd = {
       enable = true;
-      extraConfig = {
+      settings.OOM = {
         DefaultMemoryPressureDurationSec = "15s";
       };
       enableUserSlices = true;
