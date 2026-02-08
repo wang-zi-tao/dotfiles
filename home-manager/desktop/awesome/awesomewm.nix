@@ -205,7 +205,7 @@ with builtins;
         '';
     };
     systemd.user.services.close-screen = makeService {
-      ExecStart = ''${pkgs.xorg.xset}/bin/xset s ${toString (config.desktop.close-screen-timeout * 60)}'';
+      ExecStart = "${pkgs.xorg.xset}/bin/xset s ${toString (config.desktop.close-screen-timeout * 60)}";
     };
     systemd.user.services.lock = makeService {
       ExecStart =
@@ -224,6 +224,9 @@ with builtins;
       ExecStart = "${pkgs.rustdesk}/bin/rustdesk";
       Restart = "always";
     });
-    home.packages = with pkgs;[ virtualgl ];
+    home.packages = with pkgs; [
+      virtualgl
+      deskflow
+    ];
   };
 }

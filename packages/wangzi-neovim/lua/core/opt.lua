@@ -131,18 +131,34 @@ if 0 == vim.fn.has("win32") then
             cache_enabled = 1,
         }
     else
-        g.clipboard = {
-            name = "xclip",
-            copy = {
-                ["+"] = "xclip -selection clipboard",
-                ["*"] = "xclip -selection clipboard",
-            },
-            paste = {
-                ["+"] = "xclip -selection clipboard -o",
-                ["*"] = "xclip -selection clipboard -o",
-            },
-            cache_enabled = 1,
-        }
+        -- Check for Wayland first, then fall back to X11
+        if vim.env.WAYLAND_DISPLAY then
+            g.clipboard = {
+                name = "wl-clipboard",
+                copy = {
+                    ["+"] = "wl-copy --type text/plain",
+                    ["*"] = "wl-copy --type text/plain --primary",
+                },
+                paste = {
+                    ["+"] = "wl-paste --no-newline",
+                    ["*"] = "wl-paste --no-newline --primary",
+                },
+                cache_enabled = 1,
+            }
+        else
+            g.clipboard = {
+                name = "xclip",
+                copy = {
+                    ["+"] = "xclip -selection clipboard",
+                    ["*"] = "xclip -selection clipboard",
+                },
+                paste = {
+                    ["+"] = "xclip -selection clipboard -o",
+                    ["*"] = "xclip -selection clipboard -o",
+                },
+                cache_enabled = 1,
+            }
+        end
     end
 else
     g.terminal_emulator = "powershell"

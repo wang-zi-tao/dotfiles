@@ -116,6 +116,7 @@ in
       enable = true;
       description = "clean log";
       wantedBy = [ "timers.target" ];
+      wants = [ "seaweedfs-server.service" ];
       timerConfig = {
         OnCalendar = "weakly";
         OnBootSec = "5m";
@@ -130,6 +131,7 @@ in
             enable = true;
             description = "seaweedfs server";
             wantedBy = [ "multi-user.target" ];
+            wants = [ "wireguard-wg0.target" ];
             before = [ "multi-user.target" ];
             after = [ "seaweedfs-master.service" ];
             serviceConfig = {
@@ -190,6 +192,7 @@ in
             enable = true;
             description = "mount seaweedfs";
             wantedBy = [ "multi-user.target" ];
+            wants = [ "wireguard-wg0.target" ];
             before = [ "multi-user.target" ];
             path = with pkgs; [ fuse ];
             serviceConfig = {
@@ -229,6 +232,7 @@ in
                 enable = true;
                 description = "mount seaweedfs from ${remoteHostname}";
                 wantedBy = [ "multi-user.target" ];
+                wants = [ "wireguard-wg0.target" ];
                 before = [ "multi-user.target" ];
                 path = with pkgs; [ fuse ];
                 serviceConfig = {
@@ -262,6 +266,7 @@ in
                 enable = true;
                 description = "sync seaweedfs in ${dir} from ${remoteHostname} to ${hostname}";
                 wantedBy = [ "multi-user.target" ];
+                wants = [ "seaweedfs-server.service" ];
                 before = [ "multi-user.target" ];
                 path = with pkgs; [ fuse ];
                 serviceConfig = {

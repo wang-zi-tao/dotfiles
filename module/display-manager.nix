@@ -10,7 +10,7 @@ in
 {
   config = lib.mkIf nodeConfig.guiClient.enable {
     services.xserver.displayManager.lightdm = {
-      enable = true;
+      enable = false;
       greeter.enable = true;
       greeters.gtk.theme.package = pkgs.orchis-theme;
       greeters.gtk.theme.name = "Orchis";
@@ -30,9 +30,8 @@ in
       background = "${pkgs.resources}/share/backgrounds/locked_wallpaper.png";
     };
     services.displayManager.gdm = {
-      enable = false;
-      wayland = true;
-      debug = true;
+      enable = true;
+      debug = false;
     };
     # hardware.nvidia.modesetting.enable = true;
     services.displayManager.sddm.enable = false;

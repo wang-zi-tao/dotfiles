@@ -34,7 +34,7 @@
           extraConfig = "";
         };
         displayManager = {
-          defaultSession = "none+awesome";
+          defaultSession = "gnome";
           autoLogin = {
             enable = false;
             user = "wangzi";
@@ -106,7 +106,10 @@
       {
         services.xrdp.enable = true;
         services.xrdp.defaultWindowManager = "${pkgs.awesome}/bin/awesome";
-        networking.firewall.allowedTCPPorts = [ 3389 24800 ];
+        networking.firewall.allowedTCPPorts = [
+          3389
+          24800
+        ];
         # services.xrdp.defaultWindowManager = "${pkgs.gnome-console}/bin/kgx";
         environment.etc."X11/Xwrapper.config".text = "allowed_users=anybody";
         environment.etc."xrdp/xrdp.ini".text = ''

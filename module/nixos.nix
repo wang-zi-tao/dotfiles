@@ -180,7 +180,6 @@ in
         };
       };
       services.xserver = {
-        verbose = 7;
         modules = with pkgs.xorg; [
           xf86videonv
           xf86inputlibinput

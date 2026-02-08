@@ -36,7 +36,7 @@ nixpkgs.lib.nixosSystem {
           "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
           "https://mirrors.ustc.edu.cn/nix-channels/store"
         ];
-        nix.buildMachines = pkgs.lib.mkForce [];
+        nix.buildMachines = pkgs.lib.mkForce [ ];
         cluster.network.nodes."${hostname}" = { };
         cluster.nodes."${hostname}" = {
           users.wangzi = ../home-manager/profiles/wangzi-develop.nix;
@@ -202,12 +202,12 @@ nixpkgs.lib.nixosSystem {
           package = pkgs.ollama;
         };
         services.neo4j = {
-            enable=true;
-            http.enable = true;
-            http.listenAddress = ":7474";
-            https.enable = false;
-            shell.enable=true;
-            bolt.tlsLevel = "DISABLED";
+          enable = true;
+          http.enable = true;
+          http.listenAddress = ":7474";
+          https.enable = false;
+          shell.enable = true;
+          bolt.tlsLevel = "DISABLED";
         };
         # networking.firewall.allowedUDPPorts = [ 7474 ];
 

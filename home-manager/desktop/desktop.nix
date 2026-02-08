@@ -141,6 +141,8 @@ with lib;
       wmctrl
 
       winapps
+
+      wl-clipboard
     ];
   };
 }

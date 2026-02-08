@@ -150,4 +150,7 @@
   # user = "wangzi";
   # };
   # services.xserver.displayManager.defaultSession = lib.mkForce "none+awesome";
+  #
+  # services.xserver.displayManager.lightdm.enable = lib.mkForce true;
+  # services.xserver.displayManager.gdm.enable = lib.mkForce false;
 }

@@ -6,7 +6,7 @@ local xresources = require("beautiful.xresources")
 local dpi = xresources.apply_dpi
 local util = require("widget.util")
 local apps = require("apps")
-local launcher = require("widget.launcher")
+-- local launcher = require("widget.launcher")
 
 local info_center = require("widget.info_center")
 
@@ -42,7 +42,8 @@ awful.screen.connect_for_each_screen(function(s)
         {
             util.block({
                 util.button({ text = " ", widget = wibox.widget.textbox }, function()
-                    launcher:toggle()
+                    awful.spawn("rofi -combi-modi drun -show combi -modi combi -theme ~/.config/rofi/apps.css")
+                    -- launcher:toggle()
                 end),
                 {
                     mytaglist,

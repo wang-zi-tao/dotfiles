@@ -204,8 +204,6 @@ return {
         },
     },
     config = function(_, opts)
-
-
         require("snacks").setup(vim.tbl_deep_extend("force", opts, {
             picker = {
                 actions = require("trouble.sources.snacks").actions,
@@ -213,6 +211,10 @@ return {
                     input = {
                         keys = {
                             ["<c-t>"] = {
+                                "trouble_open",
+                                mode = { "n", "i" },
+                            },
+                            ["<c-f>"] = {
                                 "trouble_open",
                                 mode = { "n", "i" },
                             },

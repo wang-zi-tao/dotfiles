@@ -13,7 +13,7 @@ in
     environment.systemPackages = [ config.services.nextcloud.occ ];
     services.nextcloud = {
       enable = true;
-      package = pkgs.nextcloud30;
+      package = pkgs.nextcloud31;
       hostName = networkConfig.publicIp;
       caching.redis = true;
       appstoreEnable = true;

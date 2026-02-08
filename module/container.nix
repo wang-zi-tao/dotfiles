@@ -62,6 +62,7 @@ in
       systemd.services.k3s = {
         enable = true;
         wantedBy = [ "multi-user.target" ];
+        wants = [ "wireguard-wg0.target" ];
         path = [
           pkgs.wireguard-tools
           pkgs.busybox

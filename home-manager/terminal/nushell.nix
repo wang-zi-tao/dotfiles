@@ -97,8 +97,13 @@
           $env.config.show_banner = false
 
           let carapace_completer = {|spans|
+            load-env {
+                    CARAPACE_SHELL_BUILTINS: (help commands | where category != "" | get name | each { split row " " | first } | uniq  | str join "\n")
+                    CARAPACE_SHELL_FUNCTIONS: (help commands | where category == "" | get name | each { split row " " | first } | uniq  | str join "\n")
+            }
+
             # if the current command is an alias, get it's expansion
-            let expanded_alias = (scope aliases | where name == $spans.0 | get -i 0 | get -i expansion)
+            let expanded_alias = (scope aliases | where name == $spans.0 | $in.0?.expansion?)
 
             # overwrite
             let spans = (if $expanded_alias != null  {
@@ -155,12 +160,18 @@
               return $ret
           }
 
+          def is_in_zellij [] {
+            return ( "ZELLIJ_PANE_ID" in $env )
+          }
+
           def set_title [title:string] {
             mut title = $title
             if ($title | str length) > 15 {
                 $title = ($title | str substring 0..14) + "..."
             }
-            zellij action rename-tab ($title)
+            if ( "ZELLIJ_PANE_ID" in $env ) {
+                zellij action rename-tab ($title)
+            }
           }
 
           $env.config = ($env.config | upsert hooks {
@@ -247,7 +258,7 @@
         git_metrics = {
           added_style = "bg:11 black";
           deleted_style = "bg:11 black";
-          format = ''[+$added]($added_style)/[-$deleted]($deleted_style) '';
+          format = "[+$added]($added_style)/[-$deleted]($deleted_style) ";
           disabled = false;
         };
         nix_shell = { };

@@ -29,12 +29,6 @@
     xdotool
     meld
     nextcloud-client
-    "gnome.baobab"
-    "gnome.cheese"
-    "gnome.gnome-nettool"
-    dconf
-    "gnome.dconf-editor"
-    "gnome.gnome-tweaks"
     tilix
     weston
     waypipe
@@ -49,6 +43,8 @@
   home.packages =
     with pkgs;
     [
+      google-chrome
+
       libinput
       seatd
       mesa
@@ -137,5 +133,12 @@
       inotify-tools
       kazam
       flameshot
+
+      baobab
+      cheese
+      gnome-nettool
+      dconf
+      dconf-editor
+      gnome-tweaks
     ];
 }

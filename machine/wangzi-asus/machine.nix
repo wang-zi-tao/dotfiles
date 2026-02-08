@@ -1,4 +1,9 @@
-{ pkgs-template, nixpkgs, modules, ... }@inputs:
+{
+  pkgs-template,
+  nixpkgs,
+  modules,
+  ...
+}@inputs:
 let
   hostname = "wangzi-asus";
   system = "x86_64-linux";

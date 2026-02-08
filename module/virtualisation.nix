@@ -48,11 +48,9 @@ with builtins;
         libvirtd = {
           enable = true;
           package = pkgs.libvirt.overrideAttrs (oldAttrs: {
-            postInstall =
-              oldAttrs.postInstall
-              + ''
-                sed -i 's|name>|name>\n  <dns enable="no"/>|' $out/var/lib/libvirt/qemu/networks/default.xml
-              '';
+            postInstall = oldAttrs.postInstall + ''
+              sed -i 's|name>|name>\n  <dns enable="no"/>|' $out/var/lib/libvirt/qemu/networks/default.xml
+            '';
           });
           # qemu.ovmf.enable = true;
           # qemu.ovmf.packages = [ pkgs.OVMFFull ];
@@ -83,6 +81,7 @@ with builtins;
       systemd.services.balloond = {
         enable = true;
         wantedBy = [ "libvirtd.service" ];
+        after = [ "libvirtd.service" ];
         environment = {
           RUST_LOG = "info";
         };

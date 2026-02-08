@@ -60,6 +60,14 @@
             "${config.home.homeDirectory}/NextCloud/obsidian/"
           ];
         };
+        mcp-server-code-runner = {
+          command = "npx";
+          args = [
+            "-y"
+            "@iflow-mcp/mcp-server-code-runner"
+          ];
+          values = { };
+        };
       };
     };
     xdg.configFile."mcphub/servers.json".text = builtins.toJSON {
@@ -99,6 +107,10 @@
           websearch = "allow";
           lsp = "allow";
         };
+        plugin = [
+          "opencode-agent-memory@0.1.0"
+          "@simonwjackson/opencode-direnv"
+        ];
       };
     };
     home.sessionVariables = {
