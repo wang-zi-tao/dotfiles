@@ -141,6 +141,13 @@ return {
             end,
             desc = "command history",
         },
+        {
+            "<leader>fb",
+            function()
+                Snacks.picker.buffers()
+            end,
+            desc = "Buffers",
+        }
     },
     opts = {
         bigfile = {

@@ -224,13 +224,6 @@ return {
             --     desc = "LSP Reference",
             -- },
             {
-                "<leader>fb",
-                function()
-                    telescope().buffers()
-                end,
-                desc = "Buffers",
-            },
-            {
                 "<leader>fs",
                 function()
                     telescope().git_status()

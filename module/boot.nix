@@ -49,7 +49,7 @@ in
         acpi_call
       ];
 
-      kernelPackages = pkgs.linuxKernel.packages.linux_6_18;
+      kernelPackages = pkgs.linuxKernel.packages.linux_6_19;
     };
     services.logind.settings.Login.HandleLidSwitch = "ignore";
     services.upower.ignoreLid = true;

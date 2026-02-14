@@ -9,7 +9,7 @@ in
     "apps/light-locker" = {
       idle-hint = false;
       late-locking = true;
-      lock-after-screensaver = "uint32 5";
+      lock-after-screensaver = "uint32 30";
       lock-on-lid = true;
       lock-on-suspend = true;
     };
@@ -549,7 +549,7 @@ in
     };
 
     "org/gnome/settings-daemon/plugins/color" = {
-      night-light-enabled = true;
+      night-light-enabled = false;
       night-light-schedule-automatic = false;
       night-light-schedule-from = 0.0;
       night-light-temperature = "uint32 4700";

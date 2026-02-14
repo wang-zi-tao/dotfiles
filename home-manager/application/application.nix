@@ -47,7 +47,6 @@
 
       libinput
       seatd
-      mesa
       udev
       alsa-lib
       vulkan-loader

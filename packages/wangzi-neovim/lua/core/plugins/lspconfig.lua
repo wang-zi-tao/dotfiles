@@ -182,8 +182,8 @@ local function config()
             for _, plugin in ipairs(plugins) do
                 local dir = plugin.dir
                 table.insert(library, dir)
-                -- table.insert(runtime_path, join(dir, 'lua', '?.lua'))
-                -- table.insert(runtime_path, join(dir, 'lua', '?', 'init.lua'))
+                table.insert(runtime_path, join(dir, 'lua', '?.lua'))
+                table.insert(runtime_path, join(dir, 'lua', '?', 'init.lua'))
             end
 
             for _, path in ipairs(vim.api.nvim_get_runtime_file('', true)) do

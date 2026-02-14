@@ -55,37 +55,37 @@ pkgs: prev: rec {
       '';
 
       installPhase = ''
-          export CMAKE_INSTALL_INCLUDEDIR=$out/include
-          export CMAKE_INSTALL_BINDIR=$out/bin
-          mkdir $out/
-          runHook preInstall
+        export CMAKE_INSTALL_INCLUDEDIR=$out/include
+        export CMAKE_INSTALL_BINDIR=$out/bin
+        mkdir $out/
+        runHook preInstall
 
-          install -D -m 0755 capture/tracy-capture $out/bin/tracy-capture
-          install -D -m 0755 csvexport/tracy-csvexport $out/bin/tracy-csvexport
-          install -D -m 0755 import/tracy-import-chrome $out/bin/tracy-import-chrome
-          install -D -m 0755 profiler/tracy-profiler $out/bin/tracy-profiler
+        install -D -m 0755 capture/tracy-capture $out/bin/tracy-capture
+        install -D -m 0755 csvexport/tracy-csvexport $out/bin/tracy-csvexport
+        install -D -m 0755 import/tracy-import-chrome $out/bin/tracy-import-chrome
+        install -D -m 0755 profiler/tracy-profiler $out/bin/tracy-profiler
 
-          mkdir -p $out/include/Tracy/client
-          mkdir -p $out/include/Tracy/common
-          mkdir -p $out/include/Tracy/tracy
+        mkdir -p $out/include/Tracy/client
+        mkdir -p $out/include/Tracy/common
+        mkdir -p $out/include/Tracy/tracy
 
-          cp -p $src/public/client/*.{h,hpp} $out/include/Tracy/client
-          cp -p $src/public/common/*.{h,hpp} $out/include/Tracy/common
-          cp -p $src/public/tracy/*.{h,hpp} $out/include/Tracy/tracy
-        ''
-        + lib.optionalString stdenv.hostPlatform.isLinux ''
+        cp -p $src/public/client/*.{h,hpp} $out/include/Tracy/client
+        cp -p $src/public/common/*.{h,hpp} $out/include/Tracy/common
+        cp -p $src/public/tracy/*.{h,hpp} $out/include/Tracy/tracy
+      ''
+      + lib.optionalString stdenv.hostPlatform.isLinux ''
 
-          install -D -m 0644 $src/extra/desktop/application-tracy.xml $out/share/mime/packages/application-tracy.xml
-          install -D -m 0644 $src/extra/desktop/tracy.desktop $out/share/applications/tracy.desktop
-          substituteInPlace $out/share/applications/tracy.desktop \
-          --replace Exec=/usr/bin/tracy Exec=tracy
-          install -D -m 0644 $src/icon/application-tracy.svg $out/share/icons/hicolor/scalable/apps/application-tracy.svg
-          install -D -m 0644 $src/icon/icon.png $out/share/icons/hicolor/256x256/apps/tracy.png
-          install -D -m 0644 $src/icon/icon.svg $out/share/icons/hicolor/scalable/apps/tracy.svg
-        ''
-        + ''
-          runHook postInstall
-        '';
+        install -D -m 0644 $src/extra/desktop/application-tracy.xml $out/share/mime/packages/application-tracy.xml
+        install -D -m 0644 $src/extra/desktop/tracy.desktop $out/share/applications/tracy.desktop
+        substituteInPlace $out/share/applications/tracy.desktop \
+        --replace Exec=/usr/bin/tracy Exec=tracy
+        install -D -m 0644 $src/icon/application-tracy.svg $out/share/icons/hicolor/scalable/apps/application-tracy.svg
+        install -D -m 0644 $src/icon/icon.png $out/share/icons/hicolor/256x256/apps/tracy.png
+        install -D -m 0644 $src/icon/icon.svg $out/share/icons/hicolor/scalable/apps/tracy.svg
+      ''
+      + ''
+        runHook postInstall
+      '';
     }
   );
 }

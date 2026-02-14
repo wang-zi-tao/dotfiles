@@ -1,5 +1,7 @@
 local database = require("core.database")
 local Job = require("plenary.job")
+local async = require('plenary.async')
+local nio = require("nio")
 
 local M = {}
 
@@ -369,14 +371,6 @@ end
 function M.load_nvim_lua_file(dir)
     local nvim_lua = dir .. "/.nvim.lua"
     if vim.fn.filereadable(nvim_lua) == 1 then
-        vim.api.nvim_create_autocmd('BufWritePost', {
-            pattern = '.nvim.lua',
-            callback = function()
-                dofile(nvim_lua)
-                vim.notify('Reloaded .nvim.lua configuration', vim.log.levels.INFO)
-            end,
-            desc = 'Auto-reload .nvim.lua on save'
-        })
         dofile(nvim_lua)
     end
 end
@@ -462,6 +456,50 @@ function M.register_task_template(template)
             return M.task_template_builders[name]()
         end,
     }))
+end
+
+---@return { env: table<string, string> } | nil
+function M.load_direnv()
+    local env_process = nio.process.run({
+        cmd = "direnv", args = { "exec", ".", "env" },
+    })
+
+    if env_process.code ~= 0 then
+        vim.notify("Failed to load direnv: " .. env_process.stderr.read(), vim.log.levels.ERROR)
+        return nil
+    end
+
+    ---@type string
+    local stdout = env_process.stdout.read()
+    local env = {}
+    for key, value in string.gmatch(stdout, "([^=]+)=([^\n]*)") do
+        env[key] = value
+    end
+    return { env = env }
+end
+
+function M.apply_envrc()
+    nio.run(function()
+        local direnv = M.load_direnv()
+        if direnv == nil then
+            return
+        end
+        vim.schedule(function()
+            for k, v in pairs(direnv.env) do
+                vim.env[k] = v
+            end
+            vim.notify('Reload direnv', vim.log.levels.INFO)
+        end)
+    end)
+end
+
+---@param file1 string
+---@param file2 string
+---@return boolean
+function M.is_same_file(file1, file2)
+    local path1 = vim.fn.fnamemodify(file1, ":p")
+    local path2 = vim.fn.fnamemodify(file2, ":p")
+    return path1 == path2
 end
 
 return M

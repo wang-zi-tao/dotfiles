@@ -6,4 +6,6 @@ if vim.fn.has("win32") == 1 then
         command = "powershell",
         args = { "-c", [[Get-WmiObject Win32_process -filter 'name = "nvim.exe"' | foreach-object { $_.SetPriority(128) }]] }
     }):start()
+else
+
 end

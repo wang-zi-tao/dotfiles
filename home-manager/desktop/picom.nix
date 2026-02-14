@@ -2,7 +2,7 @@
 {
   home.packages = [ pkgs.picom-pijulius ];
   services.picom = {
-    enable = true;
+    enable = false;
     package = pkgs.picom-pijulius;
     extraArgs = [
       "--dbus"

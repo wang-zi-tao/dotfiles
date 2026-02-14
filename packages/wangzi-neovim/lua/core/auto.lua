@@ -1,5 +1,8 @@
 local plenary = require("plenary")
 local a = require("async")
+local utils = require("core.utils")
+local async = require 'plenary.async'
+
 
 local autocmd = vim.api.nvim_create_autocmd
 autocmd({ "BufNewFile", "BufRead" }, {
@@ -34,6 +37,41 @@ autocmd("FileType", {
         vim.cmd [[set ft=wgsl_bevy]]
     end,
 })
+
+autocmd("BufWritePre", {
+    pattern = { "*.cpp", "*.h", "*.ts", "*.natvis", "*.qrc" },
+    callback = function()
+        vim.cmd [[%s/\s\+$//e]]
+    end,
+})
+
+vim.api.nvim_create_autocmd('BufWritePost', {
+    pattern = '.nvim.lua',
+    callback = function(ev)
+        local cwd_config = vim.fn.getcwd() .. '/.nvim.lua'
+        if utils.is_same_file(cwd_config, ev.file) then
+            dofile(ev.file)
+            vim.notify('Reloaded .nvim.lua configuration', vim.log.levels.INFO)
+        end
+    end,
+    desc = 'Auto-reload .nvim.lua on save'
+})
+
+vim.api.nvim_create_autocmd('BufWritePost', {
+    pattern = { ".envrc", "shell.nix", "flake.nix" },
+    callback = function(ev)
+        local dir = vim.fn.fnamemodify(ev.file, ":h")
+        if utils.is_same_file(dir, vim.fn.getcwd()) then
+            utils.apply_envrc()
+        end
+    end,
+    desc = 'Auto-reload init.lua on save'
+})
+
+local envrc_path = vim.fn.getcwd() .. '/.envrc'
+if vim.fn.filereadable(envrc_path) == 1 then
+    utils.apply_envrc()
+end
 
 -- a.async(function()
 --     while true do

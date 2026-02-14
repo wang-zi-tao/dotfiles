@@ -319,8 +319,8 @@ let
     dap_virtual_text = nvim-dap-virtual-text;
     persistent_breakpoints_nvim = fetchgit {
       url = "https://github.com/Weissle/persistent-breakpoints.nvim";
-      rev = "4b199b1dcfd136cac8b0fa9c8dbbdeb81463f7a9";
-      sha256 = "sha256-euwc9XD02g8W52Z8SzjSInLnatS3aGLY44Frvd+yDTc=";
+      rev = "d1656221836207787b8a7969cc2dc72668c4742a";
+      sha256 = "sha256-7ZWNRyVAbQuM/y3jFuZ5QfmvI+pT4Jmo5kW2HwjDS1Y=";
     };
     vscode_lldb = if enable-debuger then pkgs.vscode-extensions.vadimcn.vscode-lldb else "false";
     OpenDebugAD7 = "${vscode-cpptools}/extension/debugAdapters/bin/OpenDebugAD7";
@@ -337,6 +337,7 @@ let
       rev = "6bc8d52fb48d20c8cd61920a8c1a4b487eff3afd";
       sha256 = "sha256-TnFFRurZb5yP/1sWsf53TJyOJH0lvUyu7TyZyoesqNY=";
     };
+    dap_rr = nvim-dap-rr;
 
     # terminal
     fterm = FTerm-nvim;

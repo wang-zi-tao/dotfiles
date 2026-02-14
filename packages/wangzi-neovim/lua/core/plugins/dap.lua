@@ -143,6 +143,29 @@ local function init()
     dap.defaults.fallback.auto_continue_if_many_stopped = false
     dap.defaults.fallback.exception_breakpoints = { 'all uncaught' }
 
+    local rr_dap = require("nvim-dap-rr")
+    rr_dap.setup({
+        mappings = {
+            -- you will probably want to change these defaults to that they match
+            -- your usual debugger mappings
+            continue = "<F5>",
+            step_over = "<F10>",
+            step_out = "<F12>",
+            step_into = "<F11>",
+            reverse_continue = "<F17>",    -- <S-F5>
+            reverse_step_over = "<F22>",   -- <S-F10>
+            reverse_step_out = "<F24>",    -- <S-F12>
+            reverse_step_into = "<F23>",   -- <S-F11>
+            -- instruction level stepping
+            step_over_i = "<F34>",         -- <C-F10>
+            step_out_i = "<F37>",          -- <C-F12>
+            step_into_i = "<F36>",         -- <C-F11>
+            reverse_step_over_i = "<F46>", -- <SC-F10>
+            reverse_step_out_i = "<F48>",  -- <SC-F12>
+            reverse_step_into_i = "<F47>", -- <SC-F11>
+        }
+    })
+
     dap.adapters.gdb = {
         type = "executable",
         command = "gdb",
@@ -159,6 +182,12 @@ local function init()
         type = "executable",
         command = "lldb-dap", -- adjust as needed
         name = "rust_lldb",
+    }
+
+    dap.adapters.vscode_lldb = {
+        type = "executable",
+        command = "lldb-vscode", -- adjust as needed
+        name = "vscode_lldb",
     }
 
     local home = vim.fn.expand("~")
@@ -206,7 +235,7 @@ local function init()
         type = "lldb",
         program = get_program,
         cwd = "${workspaceFolder}",
-        initCommands = { "settings set target.process.follow-fork-mode child" },
+        initCommands = {},
     }
 
     local gdb_config = {
@@ -316,6 +345,9 @@ local function init()
             name = "vsdbg attach(without symbol)",
             request = "attach",
             processId = util.pick_process,
+        }),
+        vim.tbl_deep_extend("force", rr_dap.get_rust_config(), {
+            program = get_program,
         }),
     }
     dap.adapters.cppdbg = {
@@ -498,12 +530,16 @@ return {
         {
             "<leader>dc",
             function()
+                local stoped = false
                 local dap = require("dap")
                 for _, session in pairs(dap.sessions()) do
-                    session:_step("continue")
+                    if session.stopped_thread_id then
+                        session:_step("continue")
+                        stoped = true
+                    end
                 end
 
-                if #dap.sessions() == 0 then
+                if not stoped then
                     dap.continue()
                 end
             end,
@@ -1047,6 +1083,11 @@ return {
                     desc = "Set exception breakpoints for the current debugger",
                 })
             end,
+        },
+        {
+            "jonboh/nvim-dap-rr",
+            name = "dap_rr",
+            dir = gen.dap_rr,
         }
     },
 }
