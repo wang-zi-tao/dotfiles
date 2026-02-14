@@ -151,13 +151,13 @@ local function init()
 
     dap.adapters.lldb = {
         type = "executable",
-        command = "lldb-vscode", -- adjust as needed
+        command = "lldb-dap", -- adjust as needed
         name = "lldb",
     }
 
     dap.adapters.rust_lldb = {
         type = "executable",
-        command = "lldb-vscode", -- adjust as needed
+        command = "lldb-dap", -- adjust as needed
         name = "rust_lldb",
     }
 
@@ -206,7 +206,7 @@ local function init()
         type = "lldb",
         program = get_program,
         cwd = "${workspaceFolder}",
-        initCommands = "settings set target.process.follow-fork-mode child",
+        initCommands = { "settings set target.process.follow-fork-mode child" },
     }
 
     local gdb_config = {
