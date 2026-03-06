@@ -870,6 +870,11 @@ return {
                         size = 0.25, -- 25% of total lines
                         position = "bottom",
                     },
+                    {
+                        elements = { { id = "disassembly" } },
+                        position = "bottom",
+                        size = 0.15,
+                    },
                 },
                 floating = {
                     max_height = 0.8,   -- These can be integers or a float between 0 and 1.
@@ -915,20 +920,6 @@ return {
                     "instructionBytes",
                     "instruction",
                 },
-            },
-            specs = {
-                "rcarriga/nvim-dap-ui",
-                dir = gen.dap_ui,
-                name = "dapui",
-                opts = {
-                    layouts = {
-                        {
-                            elements = { { id = "disassembly" } },
-                            position = "bottom",
-                            size = 0.15,
-                        },
-                    }
-                }
             },
             keys = {
                 { "<leader>da", [[<cmd>DapDisasm<CR>]], desc = "Disassemble" }

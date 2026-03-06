@@ -51,6 +51,7 @@ local function config()
         -- Python
         b.formatting.yapf,
         b.diagnostics.pylint,
+        b.formatting.ruff,
         -- java
         b.formatting.google_java_format,
         -- mark

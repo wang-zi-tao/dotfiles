@@ -565,6 +565,10 @@ local function config_codecompanion()
                     local config = get_api_config("deepseek-v3")
                     return require("codecompanion.adapters").extend("deepseek", config)
                 end,
+                kimi = function()
+                    local config = get_api_config("kimi")
+                    return require("codecompanion.adapters").extend("openai_compatible", config)
+                end,
             },
             acp = {
                 iflow = iflow,
@@ -807,6 +811,7 @@ return {
 
             local deepseek_r1 = convert_ai_config(get_api_config("deepseek"))
             local deepseek_v3 = convert_ai_config(get_api_config("deepseek-v3"))
+            local kimi = convert_ai_config(get_api_config("kimi"))
 
             avante.setup(vim.tbl_deep_extend("keep", {
                 provider = "opencode",
@@ -823,6 +828,7 @@ return {
                 providers = {
                     deepseek_r1 = deepseek_r1,
                     deepseek_v3 = deepseek_v3,
+                    kimi = kimi,
                 }
             }, opts))
         end,
