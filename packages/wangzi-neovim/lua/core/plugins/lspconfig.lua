@@ -324,12 +324,12 @@ return {
                 "<leader>lf",
                 function()
                     local hunks = require("gitsigns").get_hunks()
-                    if hunks ~= nil then
+                    if hunks ~= nil or #hunlks == 0 then
                         for range in require("core.utils").get_changed_ranges() do
                             vim.lsp.buf.format({ range = range })
                         end
                     else
-                        vim.lsp.buf.format({ range = range })
+                        vim.lsp.buf.format({})
                     end
                 end,
                 desc = "Format hunks",

@@ -70,8 +70,11 @@ return {
             ls.add_snippets("markdown", {
                 s("class_parent", { i(1, "class"), t(" --|> "), i(2, "parent_class"), newline() }),
                 s("class_interface", { i(1, "class"), t(" ..|> "), i(2, "interface"), newline() }),
-                s("class_reference", { i(1, "class"), t(" --o "), i(2, "class2"), newline() }),
-                s("class_has", { i(1, "class"), t(" --* "), i(2, "class2"), newline() }),
+                s("class_reference", { i(1, "class"), t(" o-- "), i(2, "class2"), newline() }),
+                s("class_has", { i(1, "class"), t(" *-- "), i(2, "class2"), newline() }),
+                s("class_aggregation", { i(1, "class"), t(" *-- "), i(2, "class2"), newline() }),
+                s("class_composition", { i(1, "class"), t(" o-- "), i(2, "class2"), newline() }),
+                s("class_one_to_many", { t(': "1" "n"') }),
                 s("class_connect", { i(1, "class"), t(" --> "), i(2, "class2"), t(" "), i(3), newline() }),
 
                 s("ts_call", {
