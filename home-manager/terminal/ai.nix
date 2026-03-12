@@ -18,21 +18,14 @@
           command = "mcp-nixos";
         };
         neovim = {
-          command = "npx";
-          args = [
-            "-y"
-            "mcp-neovim-server"
-          ];
+          command = "${pkgs.mcp-neovim-server}/bin/mcp-neovim-server";
           env = {
             "ALLOW_SHELL_COMMANDS" = "true";
             "NVIM_SOCKET_PATH" = "/tmp/nvim";
           };
         };
         web-search = {
-          command = "npx";
-          args = [
-            "open-websearch@latest"
-          ];
+          command = "${pkgs.mcp-open-websearch}/bin/open-websearch";
           env = {
             "MODE" = "stdio";
             "DEFAULT_SEARCH_ENGINE" = "duckduckgo";
@@ -40,33 +33,17 @@
           };
         };
         playwright = {
-          command = "npx";
-          args = [
-            "-y"
-            "@playwright/mcp@latest"
-          ];
+          command = "${pkgs.playwright-mcp}/bin/mcp-server-playwright";
         };
         git = {
-          command = "uvx";
-          args = [
-            "mcp-server-git"
-          ];
+          command = "${pkgs.git-mcp-server}/bin/git-mcp-server";
+        };
+        github = {
+          command = "${pkgs.github-mcp-server}/bin/github-mcp-server";
+          args = [ "stdio" ];
         };
         obsidian = {
-          command = "npx";
-          args = [
-            "-y"
-            "mcp-obsidian"
-            "${config.home.homeDirectory}/NextCloud/obsidian/"
-          ];
-        };
-        mcp-server-code-runner = {
-          command = "npx";
-          args = [
-            "-y"
-            "@iflow-mcp/mcp-server-code-runner"
-          ];
-          values = { };
+          command = "${pkgs.mcp-obsidian}/bin/mcpvault";
         };
       };
     };
@@ -100,6 +77,11 @@
           deepseek = {
             options = {
               apiKey = "{file:/run/secrets/apikey/deepseek}";
+            };
+          };
+          moonshotai-cn = {
+            options = {
+              apiKey = "{file:/run/secrets/apikey/moonshotai-cn}";
             };
           };
         };

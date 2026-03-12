@@ -34,5 +34,9 @@ in
       sopsFile = config.cluster.ssh.publicKeySops;
       mode = "0555";
     };
+    sops.secrets."apikey/moonshotai-cn" = lib.mkIf sops-enable {
+      sopsFile = config.cluster.ssh.publicKeySops;
+      mode = "0555";
+    };
   };
 }

@@ -14,7 +14,7 @@ nixpkgs.lib.nixosSystem {
   specialArgs = inputs;
   modules = modules ++ [
     (
-      { pkgs, ... }:
+      { pkgs, lib, ... }:
       {
         imports = [
           ../../module/cluster.nix
@@ -47,7 +47,14 @@ nixpkgs.lib.nixosSystem {
           guest-reserved-percent = 0.2;
         };
 
+        # services.displayManager.gdm.enable = lib.mkForce false;
         services.xserver.desktopManager.plasma6.enable = true;
+        # services.displayManager.sddm = {
+        #   enable = lib.mkForce true;
+        #
+        #   # To use Wayland (Experimental for SDDM)
+        #   wayland.enable = true;
+        # };
       }
     )
   ];
