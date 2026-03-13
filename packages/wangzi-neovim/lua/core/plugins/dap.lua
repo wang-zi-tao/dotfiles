@@ -532,6 +532,8 @@ return {
             function()
                 local stoped = false
                 local dap = require("dap")
+                local sessionCount = 0
+
                 for _, session in pairs(dap.sessions()) do
                     if session.stopped_thread_id then
                         session:_step("continue")

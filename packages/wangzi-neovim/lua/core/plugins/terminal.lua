@@ -106,6 +106,13 @@ return {
                 desc = "GitUI",
             },
             {
+                "<leader>tc",
+                function()
+                    require("core.utils"):toggle_term("opencode")
+                end,
+                desc = "OpenCode",
+            },
+            {
                 "<leader>tw",
                 function()
                     require("core.utils"):toggle_term("rg")
