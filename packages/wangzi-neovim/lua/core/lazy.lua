@@ -73,7 +73,11 @@ require("lazy").setup({
             -- },
         },
     },
-
+    {
+        'kevinhwang91/promise-async',
+        dir = gen.promise_async,
+        name = "promise_async",
+    },
     {
         "kkharji/sqlite.lua",
         dir = gen.sqlite,

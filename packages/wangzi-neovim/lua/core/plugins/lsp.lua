@@ -156,7 +156,7 @@ return {
                 mode = "n",
                 desc = "Diagnostic",
             },
-            { "gT", "<cmd>Lspsaga goto_type_definition<CR>", mode = "n", desc = "Goto Type Definition" },
+            { "gT",         "<cmd>Lspsaga goto_type_definition<CR>", mode = "n",          desc = "Goto Type Definition" },
             {
                 "gh",
                 function()
@@ -168,15 +168,15 @@ return {
             },
             -- { "K", "<cmd>Lspsaga hover_doc<CR>", mode = "n", desc = "Hover" },
 
-            { "<leader>la", "<cmd>Lspsaga code_action<CR>", desc = "CodeActions" },
-            { "<leader>lr", "<cmd>Lspsaga rename<CR>",      desc = "Rename" },
+            { "<leader>la", "<cmd>Lspsaga code_action<CR>",          desc = "CodeActions" },
+            { "<leader>lr", "<cmd>Lspsaga rename<CR>",               desc = "Rename" },
             -- { "<leader>ld", "<cmd>Lspsaga peek_definition<CR>",      desc = "PreviewDefinition" },
             -- { "<leader>lD", "<cmd>Lspsaga peek_type_definition<CR>", desc = "PreviewDefinition" },
             -- { "<leader>lo", "<cmd>Lspsaga outline<CR>",              desc = "Outline" },
             -- { "<leader>lc", "<cmd>Lspsaga incoming_calls<CR>",       desc = "Incoming call" },
             -- { "<leader>lC", "<cmd>Lspsaga outgoing_calls<CR>",       desc = "Outgoing call" },
             -- { "<leader>lt", "<cmd>Lspsaga term_toggle<CR>",          desc = "Terminal" },
-            { "<leader>lh", "<cmd>Lspsaga finder<CR>",      desc = "finder" },
+            { "<leader>lh", "<cmd>Lspsaga finder<CR>",               desc = "finder" },
         },
     },
     {
@@ -543,15 +543,18 @@ return {
         name = "lsp_timeout",
         dir = gen.lsp_timeout,
         dependencies = { "nvim_lspconfig" },
+        enabled = false,
         init = function()
             vim.g.lspTimeoutConfig = {
-                stopTimeout  = 1000 * 60 * 5, -- ms, timeout before stopping all LSPs 
-                startTimeout = 1000 * 10,     -- ms, timeout before restart
+                stopTimeout  = 1000 * 60 * 60, -- ms, timeout before stopping all LSPs
+                startTimeout = 1000 * 1,       -- ms, timeout before restart
                 silent       = false,          -- true to suppress notifications
                 filetypes    = {
-                    ignore = {                -- filetypes to ignore; empty by default
-                                            -- lsp-timeout is disabled completely
-                    }                         -- for these filetypes
+                    ignore = {
+                        -- filetypes to ignore; empty by default
+                        -- lsp-timeout is disabled completely
+                        -- for these filetypes
+                    }
                 }
             }
         end

@@ -119,7 +119,6 @@ local function config()
         "gopls",
         "html",
         "ts_ls",
-        "jsonls",
         -- "eslint",
         "vue_ls",
         -- "tailwindcss",
@@ -141,6 +140,11 @@ local function config()
     for _, lsp in ipairs(servers) do
         setup_lsp(lsp)
     end
+
+    setup_lsp("jsonls", {
+        filetypes = { "json", "jsonc" },
+    })
+
     setup_lsp("lua_ls", {
         settings = {
             Lua = {

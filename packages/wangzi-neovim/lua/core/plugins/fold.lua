@@ -35,13 +35,7 @@ return {
         lazy = true,
         event = "LspAttach",
         module = "ufo",
-        dependencies = {
-            {
-                'kevinhwang91/promise-async',
-                dir = gen.promise_async,
-                name = "promise_async",
-            }
-        },
+        dependencies = { 'promise_async', },
         config = function()
             vim.o.foldmethod = "manual"
             require("ufo").setup({

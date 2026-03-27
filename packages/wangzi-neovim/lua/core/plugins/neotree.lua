@@ -332,7 +332,7 @@ return {
         {
             "<leader>e",
             function()
-                file = vim.fn.expand("%")
+                local file = vim.fn.expand("%")
                 if file ~= "" then
                     vim.cmd.Neotree("reveal_file=" .. file)
                 else
@@ -343,7 +343,6 @@ return {
         },
         { "<leader>Ef", "<cmd>Neotree filesystem<cr>",       desc = "Files" },
         { "<leader>EF", "<cmd>Neotree float<cr>",            desc = "Float" },
-        { "<leader>El", "<cmd>Neotree left<cr>",             desc = "Neotree left" },
         { "<leader>we", "<cmd>Neotree left<cr>",             desc = "Neotree left" },
         { "<leader>Eb", "<cmd>Neotree buffers<cr>",          desc = "Buffers" },
         { "<leader>Eg", "<cmd>Neotree git_status<cr>",       desc = "Git" },

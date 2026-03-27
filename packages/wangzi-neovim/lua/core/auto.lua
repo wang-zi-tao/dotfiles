@@ -38,13 +38,6 @@ autocmd("FileType", {
     end,
 })
 
-autocmd("BufWritePre", {
-    pattern = { "*.cpp", "*.h", "*.ts", "*.natvis", "*.qrc" },
-    callback = function()
-        vim.cmd [[%s/\s\+$//e]]
-    end,
-})
-
 vim.api.nvim_create_autocmd('BufWritePost', {
     pattern = '.nvim.lua',
     callback = function(ev)

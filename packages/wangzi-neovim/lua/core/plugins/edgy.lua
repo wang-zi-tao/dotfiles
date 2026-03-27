@@ -20,6 +20,15 @@ return {
                 ft = "neo-tree",
                 size = { height = 0.3 },
                 collapsed = true,
+                open = function()
+                    Snacks.picker.explorer()
+                end,
+            },
+            {
+                title = "Snacks Explorer",
+                ft = "snacks_picker_list",
+                size = { height = 0.3 },
+                collapsed = true,
                 filter = function(buf, win)
                     return vim.b[buf].neo_tree_source == "filesystem" and not isFloatWindow(win)
                 end,

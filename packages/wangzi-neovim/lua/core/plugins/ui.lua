@@ -49,6 +49,13 @@ return {
         lazy = true,
     },
     {
+        "grapp-dev/nui-components.nvim",
+  dependencies = {
+            "nui_nvim"
+        },
+        dir = gen.nui_components,
+    },
+    {
         "SmiteshP/nvim-navic",
         dir = gen.navic,
         name = "navic",

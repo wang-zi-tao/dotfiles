@@ -7,7 +7,9 @@ local function config()
         -- Rust
         -- b.formatting.rustfmt,
         -- C++
-        b.diagnostics.cmake_lint,
+        b.diagnostics.cmake_lint.with({
+            extra_args = { "--filter=-whitespace/tabs" },
+        }),
         null_ls.builtins.diagnostics.clazy,
         -- null_ls.builtins.diagnostics.cpplint,
         b.diagnostics.cppcheck.with({
@@ -83,7 +85,6 @@ local function config()
         -- null_ls.builtins.code_actions.refactoring,
         b.code_actions.statix,
         b.diagnostics.checkmake,
-        b.diagnostics.cmake_lint,
         -- null_ls.builtins.diagnostics.cpplint,
         -- mark
         b.diagnostics.stylelint,

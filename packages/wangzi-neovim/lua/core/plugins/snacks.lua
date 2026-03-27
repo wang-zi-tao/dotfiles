@@ -147,14 +147,30 @@ return {
                 Snacks.picker.buffers()
             end,
             desc = "Buffers",
-        }
+        },
+        {
+            "<leader>El",
+            function()
+                Snacks.explorer.open()
+            end,
+            desc = "Neotree left"
+        },
+        {
+            "<leader>w:",
+            function()
+                Snacks.scratch.open()
+            end,
+            desc = "Open scratch buffer",
+        },
     },
+    --- @type snacks.Config
     opts = {
         bigfile = {
             enabled = true,
         },
         explorer = {
             enabled = true,
+            replace_netrw = true,
         },
         picker = {
             db = vim.g.sqlite_clib_path,

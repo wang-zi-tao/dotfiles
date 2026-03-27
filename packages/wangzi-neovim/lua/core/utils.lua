@@ -2,6 +2,7 @@ local database = require("core.database")
 local Job = require("plenary.job")
 local async = require('plenary.async')
 local nio = require("nio")
+local nui_components = require("nui-components")
 
 local M = {}
 
@@ -56,22 +57,15 @@ function M.cached(key, callback)
     end
 end
 
+---@param key string
+---@param prompt string
+---@param default string
+---@param completion string
+---@param callback fun(value: string)
 function M.cachedinput(key, prompt, default, completion, callback)
-    local function ui_input()
-        vim.ui.input({
-            prompt = prompt,
-            default = default,
-            completion = completion,
-        }, function(value)
-            database.tables.caches:insert({
-                project = M.project_dir(),
-                key = key,
-                value = value,
-            })
-            callback(value)
-        end)
-    end
+    local n = nui_components
 
+    -- 获取历史缓存列表
     local list = database.tables.caches:get({
         select = { "distinct value" },
         where = {
@@ -80,21 +74,158 @@ function M.cachedinput(key, prompt, default, completion, callback)
         }
     })
 
-    if #list ~= 0 then
-        local itemStringList = {}
-        for _, item in pairs(list) do
-            table.insert(itemStringList, item.value)
-        end
-        vim.ui.select(itemStringList, { prompt = prompt }, function(item, index)
-            if index ~= nil then
-                callback(item)
-            else
-                ui_input()
-            end
-        end)
-    else
-        ui_input()
+    -- 准备所有历史选项
+    local all_options = {}
+    for _, item in pairs(list) do
+        table.insert(all_options, {
+            id = item.value,
+            value = item.value,
+            text = item.value,
+        })
     end
+
+    local has_history = #all_options > 0
+
+    -- 创建 Signal 管理状态
+    local signal = n.create_signal({
+        input_value = default or "",
+        filtered_options = all_options,
+        selected_value = nil,
+    })
+
+    -- 创建 Renderer
+    local renderer = n.create_renderer({
+        width = 60,
+        height = has_history and 22 or 8,
+        position = "50%",
+        relative = "editor",
+    })
+
+    renderer:add_mappings({ {
+        mode = { "n", "i" },
+        from = "<ESC>",
+        to = function() renderer:close() end,
+    } })
+
+    -- 过滤函数
+    ---@param query string
+    ---@return [string]
+    local function filter_options(query)
+        if not query or query == "" then
+            return all_options
+        end
+
+        query = query:lower()
+        local filtered = {}
+        for _, opt in ipairs(all_options) do
+            if opt.text:lower():find(query, 1, true) then
+                table.insert(filtered, opt)
+            end
+        end
+        return filtered
+    end
+
+    -- 提交处理
+    local function submit_value(value)
+        if value and value ~= "" then
+            database.tables.caches:insert({
+                project = M.project_dir(),
+                key = key,
+                value = value,
+            })
+            renderer:close()
+            callback(value)
+        end
+    end
+
+    -- 构建 UI
+    local body = function()
+        local components = {}
+
+        -- 标题
+        table.insert(components, n.paragraph({
+            lines = prompt,
+            align = "center",
+            padding = { bottom = 1 },
+            is_focusable = false,
+        }))
+
+        -- 过滤输入框（如果有历史记录）
+        table.insert(components, n.text_input({
+            border_label = "过滤历史记录",
+            placeholder = "输入以过滤列表...",
+            value = signal.input_value,
+            on_change = function(value)
+                signal.input_value = value
+                -- 实时过滤列表
+                local filtered = filter_options(value)
+                local new_options = {}
+                for _, item in ipairs(filtered) do
+                    table.insert(new_options, n.option(item.text, { id = item.id }))
+                end
+                signal.filtered_options = new_options
+            end,
+        }))
+
+        -- 动态列表
+        table.insert(components, n.select({
+            flex = 1,
+            autofocus = false,
+            border_label = "历史记录",
+            data = signal.filtered_options,
+            selected = signal.selected_value,
+            on_press = function(selected_node)
+                submit_value(selected_node.id)
+            end,
+        }))
+
+        table.insert(components, n.paragraph({
+            lines = "─ 新值 ─",
+            align = "center",
+            padding = { top = 1, bottom = 1 },
+        }))
+
+        -- 新值输入框
+        table.insert(components, n.text_input({
+            autofocus = not has_history,
+            border_label = "输入新值",
+            placeholder = "输入值后按 Enter 确认...",
+            value = default or "",
+            on_press = function(component)
+                local value = component:get_value()
+                submit_value(value)
+            end,
+        }))
+
+        -- 操作按钮
+        table.insert(components, n.columns({
+            flex = 0,
+            padding = { top = 1 },
+        }, {
+            n.gap({ flex = 1 }),
+            n.button({
+                label = "确认",
+                on_press = function()
+                    -- 如果有选中值，使用选中值；否则使用输入值
+                    local selected = signal.selected_value:get_value()
+                    local input = signal.input_value:get_value()
+                    submit_value(selected or input or "")
+                end,
+            }),
+            n.gap({ size = 2 }),
+            n.button({
+                label = "取消",
+                on_press = function()
+                    renderer:close()
+                end,
+            }),
+            n.gap({ flex = 1 }),
+        }))
+
+        return n.rows({}, unpack(components))
+    end
+
+    renderer:render(body)
 end
 
 ---@param arg string[]
@@ -463,6 +594,10 @@ function M.load_direnv()
     local env_process = nio.process.run({
         cmd = "direnv", args = { "exec", ".", "env" },
     })
+
+    if env_process == nil then
+        return nil
+    end
 
     if env_process.code ~= 0 then
         vim.notify("Failed to load direnv: " .. env_process.stderr.read(), vim.log.levels.ERROR)
