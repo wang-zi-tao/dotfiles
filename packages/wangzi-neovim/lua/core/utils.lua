@@ -61,35 +61,39 @@ end
 ---@param prompt string
 ---@param default string
 ---@param completion string
----@param callback fun(value: string)
+---@param callback fun(value: string|nil)
 function M.cachedinput(key, prompt, default, completion, callback)
     local n = nui_components
+    local project_dir = M.project_dir()
 
     -- 获取历史缓存列表
     local list = database.tables.caches:get({
         select = { "distinct value" },
         where = {
-            project = M.project_dir(),
+            project = project_dir,
             key = key,
         }
     })
 
     -- 准备所有历史选项
+    ---@type [string]
     local all_options = {}
     for _, item in pairs(list) do
-        table.insert(all_options, {
-            id = item.value,
-            value = item.value,
-            text = item.value,
-        })
+        table.insert(all_options, item.value)
+    end
+
+    local filtered_options = {}
+    for _, opt in ipairs(all_options) do
+        table.insert(filtered_options, n.option(opt, { id = opt }))
     end
 
     local has_history = #all_options > 0
+    local has_submit = false
 
     -- 创建 Signal 管理状态
     local signal = n.create_signal({
         input_value = default or "",
-        filtered_options = all_options,
+        filtered_options = filtered_options,
         selected_value = nil,
     })
 
@@ -101,11 +105,11 @@ function M.cachedinput(key, prompt, default, completion, callback)
         relative = "editor",
     })
 
-    renderer:add_mappings({ {
-        mode = { "n", "i" },
-        from = "<ESC>",
-        to = function() renderer:close() end,
-    } })
+    renderer:on_unmount(function()
+        if not has_submit then
+            callback(nil)
+        end
+    end)
 
     -- 过滤函数
     ---@param query string
@@ -118,7 +122,7 @@ function M.cachedinput(key, prompt, default, completion, callback)
         query = query:lower()
         local filtered = {}
         for _, opt in ipairs(all_options) do
-            if opt.text:lower():find(query, 1, true) then
+            if opt:lower():find(query, 1, true) then
                 table.insert(filtered, opt)
             end
         end
@@ -129,103 +133,83 @@ function M.cachedinput(key, prompt, default, completion, callback)
     local function submit_value(value)
         if value and value ~= "" then
             database.tables.caches:insert({
-                project = M.project_dir(),
+                project = project_dir,
                 key = key,
                 value = value,
             })
-            renderer:close()
-            callback(value)
         end
+        has_submit = true
+        renderer:close()
+        callback(value)
     end
 
     -- 构建 UI
     local body = function()
-        local components = {}
-
-        -- 标题
-        table.insert(components, n.paragraph({
-            lines = prompt,
-            align = "center",
-            padding = { bottom = 1 },
-            is_focusable = false,
-        }))
-
-        -- 过滤输入框（如果有历史记录）
-        table.insert(components, n.text_input({
-            border_label = "过滤历史记录",
-            placeholder = "输入以过滤列表...",
-            value = signal.input_value,
-            on_change = function(value)
-                signal.input_value = value
-                -- 实时过滤列表
-                local filtered = filter_options(value)
-                local new_options = {}
-                for _, item in ipairs(filtered) do
-                    table.insert(new_options, n.option(item.text, { id = item.id }))
+        return n.rows(
+            n.prompt({
+                prefix = prompt,
+                id = "input",
+                value = default or "",
+                autofocus = true,
+                on_change = function(value)
+                    signal.input_value = value
+                    -- 实时过滤列表
+                    local filtered = filter_options(value)
+                    local new_options = {}
+                    for _, item in ipairs(filtered) do
+                        table.insert(new_options, n.option(item, { id = item }))
+                    end
+                    signal.filtered_options = new_options
+                end,
+                on_submit = function(value)
+                    submit_value(value)
+                end,
+                mappings = function()
+                    return {
+                        {
+                            mode = { "n", "i", "v" },
+                            key = "<Up>",
+                            handler = function()
+                                local component = renderer:get_component_by_id("select")
+                                if component then
+                                    component:focus()
+                                    if #signal.filtered_options > 0 then
+                                        signal.selected_value = signal.filtered_options[#signal.filtered_options]
+                                    end
+                                end
+                            end,
+                        },
+                        {
+                            mode = { "n", "i", "v" },
+                            key = "<Down>",
+                            handler = function()
+                                local component = renderer:get_component_by_id("select")
+                                vim.print(component)
+                                if component then
+                                    component:focus()
+                                end
+                            end,
+                        }
+                    }
                 end
-                signal.filtered_options = new_options
-            end,
-        }))
-
-        -- 动态列表
-        table.insert(components, n.select({
-            flex = 1,
-            autofocus = false,
-            border_label = "历史记录",
-            data = signal.filtered_options,
-            selected = signal.selected_value,
-            on_press = function(selected_node)
-                submit_value(selected_node.id)
-            end,
-        }))
-
-        table.insert(components, n.paragraph({
-            lines = "─ 新值 ─",
-            align = "center",
-            padding = { top = 1, bottom = 1 },
-        }))
-
-        -- 新值输入框
-        table.insert(components, n.text_input({
-            autofocus = not has_history,
-            border_label = "输入新值",
-            placeholder = "输入值后按 Enter 确认...",
-            value = default or "",
-            on_press = function(component)
-                local value = component:get_value()
-                submit_value(value)
-            end,
-        }))
-
-        -- 操作按钮
-        table.insert(components, n.columns({
-            flex = 0,
-            padding = { top = 1 },
-        }, {
-            n.gap({ flex = 1 }),
-            n.button({
-                label = "确认",
-                on_press = function()
-                    -- 如果有选中值，使用选中值；否则使用输入值
-                    local selected = signal.selected_value:get_value()
-                    local input = signal.input_value:get_value()
-                    submit_value(selected or input or "")
-                end,
             }),
-            n.gap({ size = 2 }),
-            n.button({
-                label = "取消",
-                on_press = function()
-                    renderer:close()
+            n.select({
+                id = "select",
+                flex = 1,
+                autofocus = false,
+                border_label = "历史记录",
+                data = signal.filtered_options,
+                selected = signal.selected_value,
+                on_select = function(selects)
+                    signal.selected_value = selects
+                    submit_value(selects.id)
                 end,
-            }),
-            n.gap({ flex = 1 }),
-        }))
-
-        return n.rows({}, unpack(components))
+            })
+        )
     end
 
     renderer:render(body)
+    renderer:focus()
 end
 
 ---@param arg string[]
@@ -233,7 +217,7 @@ end
 ---@param prompt string
 ---@param default string
 ---@param completion string
----@param callback fun(value: string)
+---@param callback fun(value: string|nil)
 function M.argOrCachedInput(arg, key, prompt, default, completion, callback)
     if #arg > 0 then
         database.tables.caches:insert({
@@ -241,7 +225,7 @@ function M.argOrCachedInput(arg, key, prompt, default, completion, callback)
             key = key,
             value = arg,
         })
-        callback(arg)
+        callback(arg.text)
     else
         M.cachedinput(key, prompt, default, completion, callback)
     end
@@ -355,6 +339,7 @@ end
 ---@param prompt string
 ---@param default string
 ---@param completion string
+---@return string|nil
 function M.cached_input_sync(key, prompt, default, completion)
     local co = coroutine.running()
     vim.schedule(function()
