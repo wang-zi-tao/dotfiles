@@ -239,7 +239,7 @@
         name = "bigfile",
         dir = gen.bigfile,
         opts = {
-            filesize = 2,
+            filesize = 4,
             pattern = { "*" },
         },
     },

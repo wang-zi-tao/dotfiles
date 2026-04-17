@@ -167,6 +167,7 @@ return {
     opts = {
         bigfile = {
             enabled = true,
+            size = 4 * 1024 * 1024,
         },
         explorer = {
             enabled = true,
