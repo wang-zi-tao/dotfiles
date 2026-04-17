@@ -99,8 +99,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
         if vim.env.BOMB or 1 == vim.fn.has("win32") then
             o.bomb = true
         end
-        -- vim.cmd [[set bomb]]
-        
+        vim.cmd [[set bomb]]
     end,
 })
 
