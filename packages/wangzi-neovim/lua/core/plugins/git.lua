@@ -126,5 +126,24 @@ return {
                 graph_style = "unicode",
             }
         end
+    },
+    {
+        'SuperBo/fugit2.nvim',
+        dir = gen.fugit2,
+        name = "fugit2_nvim",
+        build = gen.fugit2 == nil,
+        opts = {
+            width = 100,
+            libgit2_path = vim.fn.has("win32") == 1 and "C:/ProgramData/chocolatey/lib/libgit2/tools/libgit2.dll" or nil,
+            external_diffview = true,
+        },
+        dependencies = {
+            'nui_nvim',
+            'nvim_web_devicons',
+            'plenary_nvim',
+        },
+        cmd = { 'Fugit2', 'Fugit2Diff', 'Fugit2Graph', 'Fugit2Rebase' },
+        keys = {
+        }
     }
 }
