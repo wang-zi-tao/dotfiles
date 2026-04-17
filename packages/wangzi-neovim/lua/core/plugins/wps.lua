@@ -89,7 +89,7 @@ local function config()
 
     vim.api.nvim_create_user_command("Msbuild", function(opts)
         utils.argOrCachedInput(opts.args, "target", "target", "", nil, function(target)
-            if target == "" then
+            if target == nil or target == "" then
                 require("toggleterm").exec("msbuild " ..
                     wps.path .. "/../debug/wps_build/WPSOffice.sln -m:32")
             else
@@ -101,7 +101,7 @@ local function config()
 
     vim.api.nvim_create_user_command("KrepoBuild", function(opts)
         utils.argOrCachedInput(opts.args, "target", "target", "", nil, function(target)
-            if target == "" then
+            if target == nil or target == "" then
                 require("toggleterm").exec("cd " .. wps.path .. "/../debug ; krepo-ng build; cd -")
             else
                 require("toggleterm").exec("cd " .. wps.path .. "/../debug ; krepo-ng build wps/" .. target)
