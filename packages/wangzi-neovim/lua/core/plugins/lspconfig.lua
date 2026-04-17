@@ -129,7 +129,6 @@ local function config()
         "nil_ls",
         "vala_ls",
         "wgsl_analyzer",
-        "csharp_ls",
         "cssls",
         "codeqlls",
         "nushell",
@@ -143,6 +142,10 @@ local function config()
 
     setup_lsp("jsonls", {
         filetypes = { "json", "jsonc" },
+    })
+
+    setup_lsp("csharp_ls", {
+        cmd = { "csharp-ls" },
     })
 
     setup_lsp("lua_ls", {
