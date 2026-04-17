@@ -70,15 +70,20 @@ return {
             local Terminal = require("toggleterm.terminal").Terminal
             toggleterm_nvim.gitui = Terminal:new({ cmd = "lazygit", hidden = true })
             toggleterm_nvim.rg = Terminal:new({ cmd = "nu", hidden = true })
-            toggleterm_nvim.opencode = Terminal:new({ 
-                cmd = "opencode --continue", 
-                hidden = true, 
+            toggleterm_nvim.opencode = Terminal:new({
+                cmd = "opencode --continue",
+                hidden = true,
                 on_open = function(_)
                     vim.o.mouse = ""
-                end, 
-                on_close = function ()
+                end,
+                on_close = function()
                     vim.o.mouse = "a"
-                end 
+                end,
+                env = {
+                    EXPERIMENTAL_HOT_RELOAD = "true",
+                    NVIM_SOCKET_PATH = vim.v.servername,
+                },
+
             })
             for i = 0, 9 do
                 toggleterm_nvim[i] = Terminal:new({ display_name = "terminal " .. i, cmd = "nu", hidden = true })
