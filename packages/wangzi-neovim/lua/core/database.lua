@@ -10,19 +10,25 @@ local M = {
     tbl = tbl,
     tables = {
         uri = vim.fn.stdpath("data") .. "/nvim.db",
+        ---@type sqlite_tbl
         projects = tbl("projects", {
             path = { "text", unique = true, primary = true },
+            last_open = { "datetime" }
         }),
+        ---@type sqlite_tbl
         caches = tbl("caches", {
             project = { "text" },
             key = { "text" },
             value = { "text" },
+            last_read = { "datetime" }
         }),
+        ---@type sqlite_tbl
         breakpoints = tbl("breakpoints", {
             file = { "text" },
             line = { "integer" },
             project = { "text" },
         }),
+        ---@type sqlite_tbl
         bookmarks = tbl("bookmarks", {
             project = { "text" },
             name = { "text" },
@@ -30,6 +36,7 @@ local M = {
     },
 }
 
+---@type sqlite_db
 local db = sqlite(M.tables)
 M.db = db
 
@@ -48,8 +55,13 @@ end
 
 function M.on_change_dir()
     if #M.tables.projects:get({ path = vim.fn.getcwd() }) == 0 then
-        M.tables.caches:insert({
-            project = M.project_dir(),
+        M.tables.projects:update({
+            where = {
+                path = M.project_dir(),
+            },
+            set = {
+                last_open = os.time()
+            }
         })
     end
 end

@@ -72,6 +72,9 @@ function M.cachedinput(key, prompt, default, completion, callback)
         where = {
             project = project_dir,
             key = key,
+        },
+        order_by = {
+            desc = "last_read"
         }
     })
 
@@ -131,11 +134,17 @@ function M.cachedinput(key, prompt, default, completion, callback)
 
     -- 提交处理
     local function submit_value(value)
+        local time = os.date()
         if value and value ~= "" then
-            database.tables.caches:insert({
-                project = project_dir,
-                key = key,
-                value = value,
+            database.tables.caches:update({
+                where = {
+                    project = project_dir,
+                    key = key,
+                    value = value,
+                },
+                set = {
+                    last_read = time,
+                }
             })
         end
         has_submit = true
@@ -184,7 +193,6 @@ function M.cachedinput(key, prompt, default, completion, callback)
                             key = "<Down>",
                             handler = function()
                                 local component = renderer:get_component_by_id("select")
-                                vim.print(component)
                                 if component then
                                     component:focus()
                                 end
@@ -366,7 +374,6 @@ function M.pick_file(opt)
                 local do_map = function()
                     actions.close(prompt_bufnr)
                     local selection = action_state.get_selected_entry()
-                    vim.print(selection)
                     local path = Path:new(selection[1])
                     if path:is_file() then
                         coroutine.resume(co, tostring(path))
