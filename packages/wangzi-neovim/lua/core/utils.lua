@@ -584,8 +584,13 @@ function M.load_direnv()
         return nil
     end
 
-    if env_process.code ~= 0 then
-        vim.notify("Failed to load direnv: " .. env_process.stderr.read(), vim.log.levels.ERROR)
+    local exitCode = env_process.result()
+    if exitCode ~= 0 then
+        local error = env_process.stderr.read()
+        vim.schedule(function()
+            vim.notify("Failed to load direnv (return code: " .. exitCode .. "): " .. error, vim.log.levels
+                .ERROR)
+        end)
         return nil
     end
 

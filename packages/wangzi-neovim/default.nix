@@ -125,6 +125,7 @@ let
       sha256 = "sha256-BmyKQL1Md976aUgPNVTmJ37nM5ofUFVFvlEi7QXvpWY=";
     };
     neogit = neogit;
+    fugit2 = fugit2-nvim;
 
     # AI
     copilot_vim = copilot-vim;
@@ -183,6 +184,11 @@ let
     lazydev = lazydev-nvim;
     cmake_tools = cmake-tools-nvim;
     overseer = overseer-nvim;
+    lsp_timeout = fetchgit {
+      url = "https://github.com/hinell/lsp-timeout.nvim";
+      rev = "6325906730330105a9adc41d0ceb8499b3072e2b";
+      sha256 = "sha256-Gxu/qtf5Aopog1kvJuW17+Nm3YvA54B2hKvJxtcKBLM=";
+    };
 
     vim_matchup = vim-matchup;
     better_escape_nvim = better-escape-nvim;
@@ -274,6 +280,11 @@ let
     noice_nvim = noice-nvim;
     nvim_window_picker = nvim-window-picker;
     nui_nvim = nui-nvim;
+    nui_components = fetchgit {
+      url = "https://github.com/grapp-dev/nui-components.nvim";
+      rev = "1654dd709f13874089eefc80d82e0eb667f7fdfb";
+      sha256 = "sha256-dq/HZ2EEbGu4uHEJQ4tJPSgIn72wga6Bf3ku3XvjKkY=";
+    };
     undotree = undotree;
     edgy = edgy-nvim;
     focus = focus-nvim;
@@ -309,10 +320,15 @@ let
 
     markdown_preview = if enable-markdown-preview then "markdown-preview-nvim" else false;
     render_markdown = render-markdown-nvim;
+    csvview_nvim = csvview-nvim;
 
     # debug
     mason_nvim = mason-nvim;
-    dap = nvim-dap;
+    dap = fetchgit {
+      url = "https://github.com/mfussenegger/nvim-dap";
+      rev = "45a69eba683a2c448dd9ecfc4de89511f0646b5f";
+      sha256 = "sha256-9NF0+QoHOEAg6pd+oRBxr3ExWLqbvRrIMoMSZvNdqX4=";
+    };
     dap_ui = nvim-dap-ui;
     dap_virtual_text = nvim-dap-virtual-text;
     persistent_breakpoints_nvim = fetchgit {
