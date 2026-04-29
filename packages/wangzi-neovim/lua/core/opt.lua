@@ -95,19 +95,29 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
         -- opt.shiftround = true
         opt.autoindent = true
         opt.expandtab = false
-
-        if vim.env.BOMB or 1 == vim.fn.has("win32") then
-            o.bomb = true
-        end
-        vim.cmd [[set bomb]]
     end,
 })
 
 vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
     pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "*.h", "*.hpp", "*.pch", "*.def" },
     callback = function()
+        local opt = vim.bo
         opt.filetype = "cpp"
+        if vim.env.BOMB or 1 == vim.fn.has("win32") then
+            o.bomb = true
+        end
     end,
+})
+
+vim.api.nvim_create_autocmd({ "BufNewFile" }, {
+    pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "CMakeLists.txt", "*.h", "*.hpp", "*.pch", "*.def" },
+    callback = function(args)
+        local opt = vim.bo
+        opt.filetype = "cpp"
+        if vim.env.BOMB or 1 == vim.fn.has("win32") then
+            vim.cmd [[set bomb]]
+        end
+    end
 })
 
 vim.api.nvim_create_autocmd("DirChanged", {

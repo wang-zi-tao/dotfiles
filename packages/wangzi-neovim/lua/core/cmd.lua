@@ -95,6 +95,28 @@ vim.api.nvim_create_user_command("ClearLineEnd", function()
     vim.cmd [[%s/\r//g]]
 end, { nargs = 0 })
 
+vim.api.nvim_create_user_command("FileFormatToDos", function()
+    local buf = vim.api.nvim_get_current_buf()
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    for i = 1, #lines do
+        lines[i] = lines[i]:gsub("\r$", "")
+    end
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+    vim.bo[buf].fileformat = "dos"
+end, { nargs = 0 })
+
+
+vim.api.nvim_create_user_command("FileFormatToUnix", function()
+    local buf = vim.api.nvim_get_current_buf()
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    for i = 1, #lines do
+        lines[i] = lines[i]:gsub("\r$", "")
+    end
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+    vim.bo[buf].fileformat = "unix"
+end, {})
+
+
 return {
     ClearTerm = ClearTerm,
     OpenInVS = OpenInVS,

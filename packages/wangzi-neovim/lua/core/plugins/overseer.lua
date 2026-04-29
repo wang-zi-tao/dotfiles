@@ -88,17 +88,33 @@ local function config()
             }
         },
         component_aliases = {
+            msvc_quickfix = {
+                "on_output_quickfix",
+                errorformat = [[ %#%f(%l\,%c): error C%n: %m [%.%#"]],
+                items_only = true,
+                open_on_match = true,
+                relative_file_root = ".",
+            },
+            msvc_link_quickfix = {
+                "on_output_quickfix",
+                errorformat = [[ %#%o : error LNK%n: %m]],
+                items_only = true,
+                open_on_match = true,
+                relative_file_root = ".",
+            },
             default = {
                 "on_exit_set_status",
                 { "on_complete_notify" },
                 "on_result_diagnostics_trouble",
                 "unique",
-                { "open_output",       on_complete = "failure", on_start = "never" }
+                { "open_output",       on_complete = "failure", on_start = "never" },
+                "msvc_quickfix",
+                "msvc_link_quickfix",
             },
         }
     })
 
-    require("overseer").register_template({
+    overseer.register_template({
         name = "Git checkout",
         params = function()
             local stdout = vim.system({ "git", "branch", "--format=%(refname:short)" }):wait().stdout or ""

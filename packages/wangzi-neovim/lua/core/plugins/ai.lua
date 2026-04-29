@@ -546,7 +546,7 @@ local function config_codecompanion()
                 },
             },
             inline = {
-                adapter = "deepseek_v3",
+                adapter = "deepseek_flash",
             },
         },
         adapters = {
@@ -558,11 +558,11 @@ local function config_codecompanion()
                     return require("codecompanion.adapters").extend("openai_compatible", config)
                 end,
                 deepseek = function()
-                    local config = get_api_config("deepseek")
+                    local config = get_api_config("deepseek-v4-pro")
                     return require("codecompanion.adapters").extend("deepseek", config)
                 end,
-                deepseek_v3 = function()
-                    local config = get_api_config("deepseek-v3")
+                deepseek_flash = function()
+                    local config = get_api_config("deepseek-v4-flash")
                     return require("codecompanion.adapters").extend("deepseek", config)
                 end,
                 kimi = function()

@@ -155,11 +155,24 @@ function M.cachedinput(key, prompt, default, completion, callback)
     -- 构建 UI
     local body = function()
         return n.rows(
+            n.select({
+                id = "select",
+                flex = 1,
+                autofocus = true,
+                border_label = "select",
+                data = signal.filtered_options,
+                selected = signal.selected_value,
+                on_select = function(selects)
+                    signal.selected_value = selects
+                    submit_value(selects.id)
+                end,
+            }),
             n.prompt({
                 prefix = prompt,
                 id = "input",
                 value = default or "",
-                autofocus = true,
+                autofocus = false,
+                border_label = "intput",
                 on_change = function(value)
                     signal.input_value = value
                     -- 实时过滤列表
@@ -200,18 +213,6 @@ function M.cachedinput(key, prompt, default, completion, callback)
                         }
                     }
                 end
-            }),
-            n.select({
-                id = "select",
-                flex = 1,
-                autofocus = false,
-                border_label = "历史记录",
-                data = signal.filtered_options,
-                selected = signal.selected_value,
-                on_select = function(selects)
-                    signal.selected_value = selects
-                    submit_value(selects.id)
-                end,
             })
         )
     end
@@ -624,9 +625,52 @@ end
 ---@param file2 string
 ---@return boolean
 function M.is_same_file(file1, file2)
-    local path1 = vim.fn.fnamemodify(file1, ":p")
-    local path2 = vim.fn.fnamemodify(file2, ":p")
+    local path1 = vim.fn.fnamemodify(file1, ":p:gs?\\\\?/?")
+    local path2 = vim.fn.fnamemodify(file2, ":p:gs?\\\\?/?")
     return path1 == path2
+end
+
+---功能: 获取当前buffer光标下的路径的文件
+---路径格式:
+---file
+---file:line
+---file:line:col
+---file(line,col)
+---@return {file: string, line: number|nil, column: number|nil}|nil
+function M.get_file_under_cursor()
+    local cword = vim.fn.expand("<cWORD>")
+    if not cword or cword == "" then
+        return nil
+    end
+
+    cword = cword:gsub("^[%s%(%[%{%<\"']+", ""):gsub("[%s%)%]%}%>\"']+$", "")
+
+    local file, line, col = cword:match("^([a-zA-Z]:[^:]+):(%d+):(%d+)$")
+    if file then
+        return { file = file, line = tonumber(line), column = tonumber(col) }
+    end
+
+    file, line = cword:match("^([a-zA-Z]:[^:]+):(%d+)$")
+    if file then
+        return { file = file, line = tonumber(line), column = nil }
+    end
+
+    file, line, col = cword:match("^([^:]+):(%d+):(%d+)$")
+    if file then
+        return { file = file, line = tonumber(line), column = tonumber(col) }
+    end
+
+    file, line = cword:match("^([^:]+):(%d+)$")
+    if file then
+        return { file = file, line = tonumber(line), column = nil }
+    end
+
+    file, line, col = cword:match("^(.+)%((%d+),(%d+)%)$")
+    if file then
+        return { file = file, line = tonumber(line), column = tonumber(col) }
+    end
+
+    return { file = cword, line = nil, column = nil }
 end
 
 return M
