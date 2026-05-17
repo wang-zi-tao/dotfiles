@@ -42,9 +42,11 @@ vim.api.nvim_create_autocmd('BufWritePost', {
     pattern = '.nvim.lua',
     callback = function(ev)
         local cwd_config = vim.fn.getcwd() .. '/.nvim.lua'
-        if utils.is_same_file(cwd_config, ev.file) then
-            dofile(ev.file)
+        if utils.is_same_file(cwd_config, ev.match) then
+            dofile(ev.match)
             vim.notify('Reloaded .nvim.lua configuration', vim.log.levels.INFO)
+        else
+            vim.notify("skip reloading " .. ev.match, vim.log.levels.INFO)
         end
     end,
     desc = 'Auto-reload .nvim.lua on save'
@@ -53,7 +55,7 @@ vim.api.nvim_create_autocmd('BufWritePost', {
 vim.api.nvim_create_autocmd('BufWritePost', {
     pattern = { ".envrc", "shell.nix", "flake.nix" },
     callback = function(ev)
-        local dir = vim.fn.fnamemodify(ev.file, ":h")
+        local dir = vim.fn.fnamemodify(ev.match, ":h")
         if utils.is_same_file(dir, vim.fn.getcwd()) then
             utils.apply_envrc()
         end

@@ -9,6 +9,7 @@ local function config()
     local dap_utils  = require("dap.utils")
     local util       = require("core.utils")
     local dap        = require("dap")
+    local overseer   = require("overseer")
     wps.path         = Path:new(require("null-ls.utils").root_pattern("Coding")(vim.fn.expand('%:p:h')))
     wps.qt_path      = wps.path:joinpath("../debug/3rd_build/qt5/source/qtbase/")
     wps.ohos_qt_path = wps.path:joinpath("../debug_ohos/3rd_build/qt5/source/qtbase/")
@@ -166,6 +167,32 @@ local function config()
         debug_wps("wpp")
         debug_wps("promecefpluginhost")
     end, { desc = "Attach to WPS process" })
+
+    overseer.register_template({
+        name = "build wps module",
+        params = function()
+            return {
+                targets = {
+                    desc = "cmake targets",
+                    type = "list",
+                    subtype = {
+                        type = "string"
+                    },
+                    delimiter = ",",
+                }
+            }
+        end,
+        builder = function(params)
+            local cmd = { "krepo-ng", "build" }
+            for _, target in ipairs(params) do
+                table.insert(cmd, target)
+            end
+            return {
+                cwd = "../debug",
+                cmd = cmd
+            }
+        end
+    })
 end
 
 config()
