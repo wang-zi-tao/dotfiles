@@ -112,6 +112,7 @@ in
 
     "rnix-lsp"
     nil
+    nixd
     "nixfmt"
     google-java-format
     stylua
@@ -177,6 +178,7 @@ in
     gh
 
     cargo-watch
+    cargo-expand
 
     lua-language-server
     nodejs
@@ -250,5 +252,18 @@ in
     dcu = "docker-compose up";
     dcud = "docker-compose up -d";
     diff = "nvr -s -d";
+  };
+
+  programs.mcp.servers = {
+    playwright = {
+      command = "${pkgs.playwright-mcp}/bin/mcp-server-playwright";
+    };
+    github = {
+      command = "${pkgs.github-mcp-server}/bin/github-mcp-server";
+      args = [ "stdio" ];
+    };
+    obsidian = {
+      command = "${pkgs.mcp-obsidian}/bin/mcpvault";
+    };
   };
 }

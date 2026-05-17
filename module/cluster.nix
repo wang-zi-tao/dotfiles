@@ -298,7 +298,7 @@ with builtins; {
           virtualisation.enable = true;
           buildNode.enable = true;
           ollama.enable = true;
-          k3s.enable = true;
+          # k3s.enable = true;
         };
         server_config = { container.enable = true; };
       in {
@@ -327,7 +327,7 @@ with builtins; {
           atuin.enable = true;
           cockpitServer.enable = true;
           prometheus.server = true;
-          k3s.enable = true;
+          # k3s.enable = true;
           k3s.kind = "server";
           k3s.taint = "master:NoSchedule";
           inVM = true;

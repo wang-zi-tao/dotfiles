@@ -13,7 +13,7 @@ in
     environment.systemPackages = [ config.services.nextcloud.occ ];
     services.nextcloud = {
       enable = true;
-      package = pkgs.nextcloud31;
+      package = pkgs.nextcloud32;
       hostName = networkConfig.publicIp;
       caching.redis = true;
       appstoreEnable = true;
@@ -26,7 +26,16 @@ in
       settings = {
         "overwritewebroot" = "/nextcloud";
       };
+
+      poolSettings = {
+        "pm" = "ondemand";
+        "pm.max_children" = 5;
+        "pm.process_idle_timeout" = "10s";
+        "pm.max_requests" = 500;
+        "php_admin_value[memory_limit]" = "256M";
+      };
     };
+
     sops.secrets."nextcloud/admin_password" = {
       owner = "nextcloud";
       mode = "0500";

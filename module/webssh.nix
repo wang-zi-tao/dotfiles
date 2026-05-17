@@ -14,8 +14,6 @@ let
     '';
   });
 in
-with lib;
-with builtins;
 {
   config = lib.mkIf nodeConfig.webssh.enable {
     systemd.services = {
@@ -53,7 +51,7 @@ with builtins;
             reverse_proxy @post http://localhost:64535
             reverse_proxy /static/* http://localhost:64535
             reverse_proxy /ws http://localhost:64535
-            # reverse_proxy http://localhost:64535
+            reverse_proxy http://localhost:64535
           '';
         };
       };

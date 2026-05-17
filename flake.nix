@@ -42,6 +42,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     kubenix.url = "github:hall/kubenix";
+    opencode.url = "github:anomalyco/opencode";
   };
   outputs =
     inputs@{
@@ -62,6 +63,7 @@
       nixfs,
       NixVirt,
       kubenix,
+      opencode,
       ...
     }:
     let
@@ -128,6 +130,7 @@
                     nixpkgs-old = import inputs.nixpkgs-old { inherit system overlays config; };
                     flake-inputs = inputs;
                     eza = eza.packages.${system}.default;
+                    opencode = opencode.packages.${system}.default;
                     scripts = builtins.mapAttrs (
                       name: kind: prev.writeScriptBin name (readFile (./scripts + "/${name}"))
                     ) (readDir ./scripts);
@@ -156,6 +159,7 @@
             statix
             nixos-generators
             nix
+            nixd
             (pkgs.wangzi-neovim.override {
               enable-all = true;
             })

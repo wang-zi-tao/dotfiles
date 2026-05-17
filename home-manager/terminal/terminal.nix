@@ -101,7 +101,6 @@
         '')
 
         (pkgs.writeShellScriptBin "iflow" ''npx -y "@iflow-ai/iflow-cli" $@'')
-        opencode
 
         neovim-remote
         config.neovim.pkg

@@ -48,4 +48,44 @@ pkgs: prev: {
     nativeBuildInputs = [ pkgs.bun ];
     buildInputs = [ pkgs.bun ];
   };
+
+  opencode-mem = pkgs.buildNpmPackage {
+    pname = "opencode-mem";
+    version = "v2.13.0";
+    src = pkgs.fetchgit {
+      url = "https://github.com/tickernelz/opencode-mem";
+      rev = "v2.13.0";
+      sha256 = "sha256-Xrf37Dury44kzACpVPf9WO3U8gwEx6/DKxbUFSoq4e0=";
+    };
+    npmDepsHash = "";
+
+    nativeBuildInputs = [ pkgs.bun ];
+    buildInputs = [ pkgs.bun ];
+  };
+
+  opencode-bunx = pkgs.writeShellScriptBin "opencode" ''
+    #!${pkgs.stdenv.shell}
+    exec ${pkgs.bun}/bin/bunx opencode-ai "$@"
+  '';
+
+  # opencode-bin = pkgs.stdenv.mkDerivation rec {
+  #   pname = "opencode-bin";
+  #   version = "v1.14.24";
+  #   src = pkgs.fetchurl {
+  #     url = "https://github.com/anomalyco/opencode/releases/download/${version}/opencode-linux-x64.tar.gz";
+  #     hash = "sha256-Lt/Be60+y6VK4dl1PO+eymhv3YoLD0t4X5IJ7g/IptI=";
+  #   };
+  #
+  #   nativeBuildInputs = with pkgs; [
+  #     bun
+  #     autoPatchelfHook
+  #     musl
+  #   ];
+  #
+  #   unpackPhase = ''
+  #     mkdir -p $out/bin
+  #     tar xf $src -C $out/bin
+  #   '';
+  #
+  # };
 }
