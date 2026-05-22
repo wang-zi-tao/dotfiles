@@ -673,4 +673,28 @@ function M.get_file_under_cursor()
     return { file = cword, line = nil, column = nil }
 end
 
+-- when opening files, do not use windows containing these filetypes or buftypes
+M.file_type_blacklist = {
+    "NvimTree",
+    "neo%-tree",
+    "dashboard",
+    "Outline",
+    "aerial",
+    "trouble",
+    "codecompanion",
+    "sagaoutline",
+    "Trouble",
+    "qf",
+    "toggleterm"
+
+}
+
+M.buffer_type_blacklist = {
+    "terminal",
+    "prompt",
+    "nofile",
+    "help",
+    "quickfix",
+}
+
 return M

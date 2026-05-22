@@ -151,7 +151,7 @@ return {
         {
             "<leader>El",
             function()
-                Snacks.explorer.open()
+                vim.cmd.Neotree("position=left")
             end,
             desc = "Neotree left"
         },
