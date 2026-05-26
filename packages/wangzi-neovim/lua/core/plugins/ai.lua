@@ -509,6 +509,21 @@ local function get_api_config(name)
     }
 end
 
+local function launch_codemem_serve()
+    local Job = require("plenary.job")
+    local task = Job:new({
+        command = "codemem",
+        args = { "serve" },
+        on_stderr = function(error, data, self)
+            vim.notify("codemem stderr: " .. data, "WARN")
+        end,
+        on_exit = function(self, code, signal)
+            vim.notify("codemem exit with code " .. code, "ERROR")
+        end
+    })
+    task:start()
+end
+
 local function config_codecompanion()
     local ollama_server = vim.env.OLLAMA_SERVER or "http://localhost:11434"
     local host = vim.env.HOST
@@ -642,6 +657,8 @@ return {
             })
             vim.keymap.set('i', '<C-\\>', 'copilot#Accept("\\<CR>")', { expr = true, replace_keycodes = false })
             vim.g.copilot_no_tab_map = true
+
+            launch_codemem_serve()
         end,
     },
     {
