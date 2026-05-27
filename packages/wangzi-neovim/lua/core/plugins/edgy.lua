@@ -16,15 +16,6 @@ return {
         },
         left = {
             {
-                title = "Neo-Tree",
-                ft = "neo-tree",
-                size = { height = 0.3 },
-                collapsed = true,
-                open = function()
-                    Snacks.picker.explorer()
-                end,
-            },
-            {
                 title = "Snacks Explorer",
                 ft = "snacks_picker_list",
                 size = { height = 0.3 },
@@ -32,22 +23,6 @@ return {
                 filter = function(buf, win)
                     return vim.b[buf].neo_tree_source == "filesystem" and not isFloatWindow(win)
                 end,
-            },
-            {
-                title = "Neo-Tree Git",
-                ft = "neo-tree",
-                filter = function(buf, win)
-                    return vim.b[buf].neo_tree_source == "git_status" and not isFloatWindow(win)
-                end,
-                open = "Neotree position=left git_status",
-            },
-            {
-                title = "Neo-Tree Buffers",
-                ft = "neo-tree",
-                filter = function(buf, win)
-                    return vim.b[buf].neo_tree_source == "buffers" and not isFloatWindow(win)
-                end,
-                open = "Neotree position=left buffers",
             },
             {
                 ft = "trouble",
@@ -93,22 +68,22 @@ return {
             },
         },
         keys = {
-          -- increase width
-          ["<c-Right>"] = function(win)
-            win:resize("width", 2)
-          end,
-          -- decrease width
-          ["<c-Left>"] = function(win)
-            win:resize("width", -2)
-          end,
-          -- increase height
-          ["<c-Up>"] = function(win)
-            win:resize("height", 2)
-          end,
-          -- decrease height
-          ["<c-Down>"] = function(win)
-            win:resize("height", -2)
-          end,
+            -- increase width
+            ["<c-Right>"] = function(win)
+                win:resize("width", 2)
+            end,
+            -- decrease width
+            ["<c-Left>"] = function(win)
+                win:resize("width", -2)
+            end,
+            -- increase height
+            ["<c-Up>"] = function(win)
+                win:resize("height", 2)
+            end,
+            -- decrease height
+            ["<c-Down>"] = function(win)
+                win:resize("height", -2)
+            end,
         },
     },
     keys = {

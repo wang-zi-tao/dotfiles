@@ -102,10 +102,6 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
     pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "*.h", "*.hpp", "*.pch", "*.def" },
     callback = function()
         local opt = vim.bo
-        opt.filetype = "cpp"
-        if vim.env.BOMB or 1 == vim.fn.has("win32") then
-            o.bomb = true
-        end
     end,
 })
 
@@ -116,6 +112,7 @@ vim.api.nvim_create_autocmd({ "BufNewFile" }, {
         opt.filetype = "cpp"
         if vim.env.BOMB or 1 == vim.fn.has("win32") then
             vim.cmd [[set bomb]]
+            vim.cmd [[set nofixeol]]
         end
     end
 })

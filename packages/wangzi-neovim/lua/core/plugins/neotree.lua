@@ -1,13 +1,15 @@
 local function config()
+    local utils = require("core.utils")
+    local theme = require("core.theme")
     require("neo-tree").setup({
-        popup_border_style = "",
-        close_if_last_window = false, -- Close Neo-tree if it is the last window left in the tab
+        close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
         popup_border_style = "",
         enable_git_status = true,
         enable_diagnostics = true,
-        open_files_do_not_replace_types = { "terminal", "trouble", "qf" }, -- when opening files, do not use windows containing these filetypes or buftypes
-        sort_case_insensitive = true,                                      -- used when sorting files and directories in the tree
-        sort_function = nil,                                               -- use a custom function for sorting files and directories in the tree
+        open_files_do_not_replace_types = utils.file_type_blacklist, -- when opening files, do not use windows containing these filetypes or buftypes
+        sort_case_insensitive = false,                               -- used when sorting files and directories in the tree
+        sort_function = nil,                                         -- use a custom function for sorting files and directories in the tree
+        add_blank_line_at_top = false,
         -- sort_function = function (a,b)
         --       if a.type == b.type then
         --           return a.path > b.path
@@ -27,6 +29,7 @@ local function config()
             separator = { left = "▏", right = "" },
             tabs_layout = "start",
             show_separator_on_edge = true,
+            truncation_character = "",
         },
         default_component_configs = {
             container = {
@@ -65,7 +68,7 @@ local function config()
                 highlight = "NeoTreeFileName",
             },
             git_status = {
-                symbols = require("core.theme").symbols.git,
+                symbols = theme.symbols.git,
             },
             -- If you don't want to use these columns, you can set `enabled = false` for each of them individually
             file_size = {
@@ -93,11 +96,17 @@ local function config()
         -- see `:h neo-tree-custom-commands-global`
         commands = {},
         window = {
-            position = "float",
-            width = 128,
+            position = "left",
+            width = 40,
             mapping_options = {
                 noremap = true,
                 nowait = true,
+            },
+            popup = {
+                size = {
+                    width = "50%",
+                    height = "80%",
+                }
             },
             mappings = {
                 -- ["<space>"] = {
@@ -332,12 +341,7 @@ return {
         {
             "<leader>e",
             function()
-                local file = vim.fn.expand("%")
-                if file ~= "" then
-                    vim.cmd.Neotree("reveal_file=" .. file)
-                else
-                    vim.cmd.Neotree()
-                end
+                vim.cmd.Neotree("position=float")
             end,
             desc = "File Tree",
         },
