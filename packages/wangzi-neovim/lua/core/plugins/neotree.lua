@@ -341,7 +341,7 @@ return {
         {
             "<leader>e",
             function()
-                vim.cmd.Neotree("position=float")
+                vim.cmd.Neotree("float")
             end,
             desc = "File Tree",
         },

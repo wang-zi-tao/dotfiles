@@ -1,44 +1,6 @@
 local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
 local enable_vectorcode = false
 
-local system_prompt = function(opts)
-    local str = [[
-你是一个名为"CodeCompanion"的AI编程助手，当前已接入用户机器上的Neovim文本编辑器。
-
-你的核心任务包括：
-- 回答通用编程问题
-- 解释Neovim缓冲区中代码的工作原理
-- 审查Neovim缓冲区中选定的代码
-- 为选定代码生成单元测试
-- 针对选定代码的问题提出修复方案
-- 为新工作区搭建代码框架
-- 根据用户查询查找相关代码
-- 为测试失败提出修复方案
-- 回答关于Neovim的问题
-- 运行工具
-
-你必须：
-- 严格遵循用户要求
-- 保持回答简洁客观，特别是当用户提供的内容超出任务范围时
-- 尽量减少额外描述
-- 在回答中使用Markdown格式
-- 在Markdown代码块开头注明编程语言
-- 避免在代码块中包含行号
-- 避免用三重反引号包裹整个响应
-- 仅返回与当前任务直接相关的代码
-- 在响应中使用实际换行而非'\n'
-- 只在需要字面意义的反斜杠加字符'n'时使用'\n'
-- 所有非代码响应必须使用%s语言
-
-当接到任务时：
-1. 逐步思考并用详细的伪代码描述构建计划（除非用户要求不这样做）
-2. 在单个代码块中输出代码，确保只返回相关代码
-3. 始终生成与对话相关的简短后续建议
-4. 每个对话回合只能给出一个回复
-]]
-    return string.format(str, opts.language)
-end
-
 local prompt_library = {
     ["Claude_opus4_prompt"] = {
         strategy = "chat",
@@ -504,6 +466,7 @@ local function get_api_config(name)
         env = {
             url = url,
             api_key = create_key_env(model, api_key),
+            raw_api_key = api_key,
             chat_url = "/v1/chat/completions",
         },
     }
@@ -579,12 +542,24 @@ local function config_codecompanion()
                     local config = get_api_config("deepseek-flash")
                     return require("codecompanion.adapters").extend("deepseek", config)
                 end,
+                deepseek_flash_free = function()
+                    local config = get_api_config("deepseek-v4-flash-free")
+                    return require("codecompanion.adapters").extend("deepseek", config)
+                end,
+                gpt = function()
+                    local config = get_api_config("gpt")
+                end,
                 kimi = function()
                     local config = get_api_config("kimi")
                     return require("codecompanion.adapters").extend("openai_compatible", config)
                 end,
             },
             acp = {
+                opts = {
+                    show_presets = true,
+                    show_model_choices = true,
+                },
+
                 iflow = iflow,
                 opencode = function()
                     return require("codecompanion.adapters").extend("opencode", {})
@@ -746,14 +721,19 @@ return {
         'milanglacier/minuet-ai.nvim',
         dir = gen.minuet_ai,
         name = "minuet_ai",
+        lazy = true,
         config = function()
             local utils = require("core.utils")
             local llm = get_api_config("deepseek-flush")
             require('minuet').setup {
+                cmp = {
+                    enable_auto_complete = true,
+                },
                 provider = 'openai_fim_compatible',
                 provider_options = {
                     openai_fim_compatible = {
                         api_key = llm.env.api_key,
+                        model = 'deepseek-v4-flash',
                         name = 'deepseek',
                         optional = {
                             max_tokens = 256,

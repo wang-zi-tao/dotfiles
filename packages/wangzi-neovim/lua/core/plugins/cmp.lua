@@ -88,6 +88,7 @@ local function config()
             ["<C-e>"] = cmp.mapping.abort(),
             ["<A-y>"] = require('minuet').make_cmp_map(),
             ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+            ["<C-y>"] = require('minuet').make_cmp_map(),
             ["<Tab>"] = cmp.mapping(function(fallback)
                 local luasnip = require("luasnip")
                 local succ, ret = pcall(function()
@@ -147,6 +148,9 @@ local function config()
                 compare.kind,
                 compare.length,
             }
+        },
+        performance = {
+            fetching_timeout = 2000,
         }
     })
 
@@ -196,6 +200,7 @@ return {
     config = config,
     event = { "VeryLazy" },
     dependencies = {
+        "minuet_ai",
         -- "friendly_snippets",
         -- "luasnip",
         {
@@ -302,16 +307,13 @@ return {
                 require("core.plugins.cmp_git")
             end,
         },
-        gen.cmp_tabnine
-        and {
+        {
             "tzachar/cmp-tabnine",
             dir = gen.cmp_tabnine,
             name = "cmp_tabnine",
             build = tabnine_build,
             module = "cmp_tabnine",
-            disable = gen.cmp_tabnine ~= false,
             lazy = true,
-            enabled = false,
             config = function()
                 require("cmp_tabnine").setup()
                 require("cmp_tabnine.config"):setup({
@@ -362,6 +364,6 @@ return {
                 })
             end,
         }
-        or {},
+        ,
     },
 }
