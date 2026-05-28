@@ -4,203 +4,205 @@
   lib,
   ...
 }:
+let
+  scripts = pkgs.fetchgit {
+    url = "https://github.com/nushell/nu_scripts";
+    rev = "c395baa5e0c7bb8376b84e13c55f4b8781a718d5";
+    sha256 = "sha256-emX5Uzy5zrFP7TOP780l8H0fXN7Jut/eape9i1IgD68=";
+  };
+in
 {
   config = {
-    programs.nushell =
-      let
-        scripts = pkgs.fetchgit {
-          url = "https://github.com/nushell/nu_scripts";
-          rev = "32cdc96414995e41de2a653719b7ae7375352eef";
-          sha256 = "sha256-vn/YosQZ4OkWQqG4etNwISjzGJfxMucgC3wMpMdUwUg=";
-        };
-      in
-      {
-        enable = true;
-        environmentVariables = builtins.removeAttrs config.home.sessionVariables [ "XDG_DATA_DIRS" ];
-        shellAliases = {
-          grep = "rg --color=auto";
-          xclip = "xclip -selection c";
-          s = "sudo su";
-          j = "joshuto";
+    programs.nushell = {
+      enable = true;
+      environmentVariables = builtins.removeAttrs config.home.sessionVariables [ "XDG_DATA_DIRS" ];
+      shellAliases = {
+        grep = "rg --color=auto";
+        xclip = "xclip -selection c";
+        s = "sudo su";
+        j = "joshuto";
 
-          gclone = "git clone";
+        gclone = "git clone";
 
-          powertop = "sudo powertop";
-          iotop = "sudo iotop";
-          iftop = "sudo iftop";
-          # nix-gc = "sudo nix-collect-garbage -d";
-          top = "htop";
-          htop = "htop";
-          ps = "procs";
+        powertop = "sudo powertop";
+        iotop = "sudo iotop";
+        iftop = "sudo iftop";
+        # nix-gc = "sudo nix-collect-garbage -d";
+        top = "htop";
+        htop = "htop";
+        ps = "procs";
 
-          # rm = "rmtrash -I";
-          # mv = "rsync -avP --delete-delay";
-          # mv-origin = "mv";
-          b = "bat";
-          cat = "bat";
-          less = "bat --theme=Coldark-Dark";
-          man = ''MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';
+        # rm = "rmtrash -I";
+        # mv = "rsync -avP --delete-delay";
+        # mv-origin = "mv";
+        b = "bat";
+        cat = "bat";
+        less = "bat --theme=Coldark-Dark";
+        man = ''MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';
 
-          l = "eza -la --icons always";
+        l = "eza -la --icons always";
 
-          rts = "rg -C 8 -g '*.{ts}'";
-          rkuip = "rg -C 8 -g '*.{kuip,ku}'";
+        rts = "rg -C 8 -g '*.{ts}'";
+        rkuip = "rg -C 8 -g '*.{kuip,ku}'";
 
-          du = "dust";
-          df = "duf";
+        du = "dust";
+        df = "duf";
 
-          mux = "tmuxinator";
-          tt = "tmux split -p 10";
-          tsh = "tmux split -h";
-          tsv = "tmux split -v";
+        mux = "tmuxinator";
+        tt = "tmux split -p 10";
+        tsh = "tmux split -h";
+        tsv = "tmux split -v";
 
-          sudo = "sudo ";
-          watch = "watch ";
+        sudo = "sudo ";
+        watch = "watch ";
 
-          nlocate = "nix-locate";
+        nlocate = "nix-locate";
 
-          ".." = "cd ..";
-        };
+        ".." = "cd ..";
+      };
 
-        configFile.text = with pkgs; ''
-          use ${scripts}/custom-completions/git/git-completions.nu *
-          use ${scripts}/custom-completions/make/make-completions.nu *
-          use ${scripts}/custom-completions/cargo/cargo-completions.nu *
-          use ${scripts}/custom-completions/nix/nix-completions.nu *
-          use ${scripts}/custom-completions/zellij/zellij-completions.nu *
-          use ${scripts}/custom-completions/virsh/virsh-completions.nu *
-          use ${scripts}/custom-completions/zoxide/zoxide-completions.nu *
-          use ${scripts}/custom-completions/ssh/ssh-completions.nu *
-          use ${scripts}/custom-completions/tar/tar-completions.nu *
-          use ${scripts}/custom-completions/rg/rg-completions.nu *
-          use ${scripts}/custom-completions/curl/curl-completions.nu *
-          use ${scripts}/custom-completions/docker/docker-completions.nu *
-          use ${scripts}/custom-completions/bat/bat-completions.nu *
+      configFile.text = with pkgs; ''
+        use ${scripts}/custom-completions/git/git-completions.nu *
+        use ${scripts}/custom-completions/make/make-completions.nu *
+        use ${scripts}/custom-completions/cargo/cargo-completions.nu *
+        use ${scripts}/custom-completions/nix/nix-completions.nu *
+        use ${scripts}/custom-completions/zellij/zellij-completions.nu *
+        use ${scripts}/custom-completions/virsh/virsh-completions.nu *
+        use ${scripts}/custom-completions/zoxide/zoxide-completions.nu *
+        use ${scripts}/custom-completions/ssh/ssh-completions.nu *
+        use ${scripts}/custom-completions/tar/tar-completions.nu *
+        use ${scripts}/custom-completions/rg/rg-completions.nu *
+        use ${scripts}/custom-completions/curl/curl-completions.nu *
+        use ${scripts}/custom-completions/docker/docker-completions.nu *
+        use ${scripts}/custom-completions/bat/bat-completions.nu *
 
-          use ${scripts}/aliases/git/git-aliases.nu *
+        use ${scripts}/aliases/git/git-aliases.nu *
 
-          source ${scripts}/themes/nu-themes/tokyo-moon.nu
+        source ${scripts}/themes/nu-themes/tokyo-moon.nu
 
-          # plugin add $nushellPlugins.units/bin/nu_plugin_units
-          plugin add ${nushellPlugins.polars}/bin/nu_plugin_polars
-          plugin add ${nushellPlugins.query}/bin/nu_plugin_query
-          # plugin add $nushellPlugins.net/bin/nu_plugin_net
-          plugin add ${nushellPlugins.highlight}/bin/nu_plugin_highlight
-          plugin add ${nushellPlugins.gstat}/bin/nu_plugin_gstat
-          plugin add ${nushellPlugins.formats}/bin/nu_plugin_formats
+        # plugin add $nushellPlugins.units/bin/nu_plugin_units
+        plugin add ${nushellPlugins.polars}/bin/nu_plugin_polars
+        plugin add ${nushellPlugins.query}/bin/nu_plugin_query
+        # plugin add $nushellPlugins.net/bin/nu_plugin_net
+        plugin add ${nushellPlugins.highlight}/bin/nu_plugin_highlight
+        plugin add ${nushellPlugins.gstat}/bin/nu_plugin_gstat
+        plugin add ${nushellPlugins.formats}/bin/nu_plugin_formats
 
-          if ("/run/secrets/env.json" | path exists) {
-            load-env ( open "/run/secrets/env.json" )
+        if ("/run/secrets/env.json" | path exists) {
+          load-env ( open "/run/secrets/env.json" )
+        }
+
+        $env.Path ++= [ ( $env.HOME + "/.local/bin" ), ( $env.HOME + "/.cargo/bin" ) ]
+        $env.config.show_banner = false
+
+        let carapace_completer = {|spans|
+          load-env {
+                  CARAPACE_SHELL_BUILTINS: (help commands | where category != "" | get name | each { split row " " | first } | uniq  | str join "\n")
+                  CARAPACE_SHELL_FUNCTIONS: (help commands | where category == "" | get name | each { split row " " | first } | uniq  | str join "\n")
           }
 
-          $env.Path ++= [ ( $env.HOME + "/.local/bin" ), ( $env.HOME + "/.cargo/bin" ) ]
-          $env.config.show_banner = false
+          # if the current command is an alias, get it's expansion
+          let expanded_alias = (scope aliases | where name == $spans.0 | $in.0?.expansion?)
 
-          let carapace_completer = {|spans|
-            load-env {
-                    CARAPACE_SHELL_BUILTINS: (help commands | where category != "" | get name | each { split row " " | first } | uniq  | str join "\n")
-                    CARAPACE_SHELL_FUNCTIONS: (help commands | where category == "" | get name | each { split row " " | first } | uniq  | str join "\n")
-            }
-
-            # if the current command is an alias, get it's expansion
-            let expanded_alias = (scope aliases | where name == $spans.0 | $in.0?.expansion?)
-
-            # overwrite
-            let spans = (if $expanded_alias != null  {
-              # put the first word of the expanded alias first in the span
-              $spans | skip 1 | prepend ($expanded_alias | split row " " | take 1)
-            } else {
-              $spans | skip 1 | prepend ($spans.0)
-            })
-
-            carapace $spans.0 nushell ...$spans
-            | from json
-          }
-
-          $env.config.completions.external.completer = $carapace_completer
-
-          $env.config.hooks.command_not_found = { |cmd_name|
-              let install = { |pkgs|
-                  $pkgs | each {|pkg| $"nix shell n#($pkg)" }
-              }
-              let run_once = { |pkgs|
-                  $pkgs | each {|pkg| $"nix shell n#($pkg) -c ($cmd_name)" }
-              }
-              let single_pkg = { |pkg|
-                  let lines = [
-                  $"The program '($cmd_name)' is currently not installed."
-                  ""
-                  "You can install it by typing:"
-                  (do $install [$pkg] | get 0)
-                  ""
-                  "Or run it once with:"
-                  (do $run_once [$pkg] | get 0)
-                  ]
-                  $lines | str join "\n"
-              }
-              let multiple_pkgs = { |pkgs|
-                  let lines = [
-                  $"The program '($cmd_name)' is currently not installed. It is provided by several packages."
-                  ""
-                  "You can install it by typing one of the following:"
-                  (do $install $pkgs | str join "\n")
-                  ""
-                  "Or run it once with:"
-                  (do $run_once $pkgs | str join "\n")
-                  ]
-                  $lines | str join "\n"
-              }
-              let pkgs = (nix-locate --minimal --no-group --type x --type s --whole-name --at-root $"/bin/($cmd_name)" | lines)
-              let len = ($pkgs | length)
-              let ret = match $len {
-                  0 => null,
-                  1 => (do $single_pkg ($pkgs | get 0)),
-                  _ => (do $multiple_pkgs $pkgs),
-              }
-              return $ret
-          }
-
-          def is_in_zellij [] {
-            return ( "ZELLIJ_PANE_ID" in $env )
-          }
-
-          def set_title [title:string] {
-            mut title = $title
-            if ($title | str length) > 15 {
-                $title = ($title | str substring 0..14) + "..."
-            }
-            if ( "ZELLIJ_PANE_ID" in $env ) {
-                zellij action rename-tab ($title)
-            }
-          }
-
-          $env.config = ($env.config | upsert hooks {
-              pre_prompt: [ { ||
-                if not ( "NVIM" in $env ) {
-                    set_title $"nu ($env.PWD | path basename)";
-                }
-              } ]
-              pre_execution: [ { || 
-                if not ( "NVIM" in $env ) {
-                  mut repl_commandline = (commandline)
-                  if ($repl_commandline | str starts-with "nvim") {
-                    $repl_commandline = $"nvim ($env.PWD | path basename)"
-                  }
-                  set_title ($repl_commandline)
-                }
-              } ]
+          # overwrite
+          let spans = (if $expanded_alias != null  {
+            # put the first word of the expanded alias first in the span
+            $spans | skip 1 | prepend ($expanded_alias | split row " " | take 1)
+          } else {
+            $spans | skip 1 | prepend ($spans.0)
           })
 
-          def nix-gc [] {
-            nix-collect-garbage -d
-            sudo nix-collect-garbage -d
-          }
+          carapace $spans.0 nushell ...$spans
+          | from json
+        }
 
-          def ns [package:string, ...$rest] {
-            ^nix shell $"nixpkgs#($package)" --command $package ...$rest
+        $env.config.completions.external.completer = $carapace_completer
+
+        $env.config.hooks.command_not_found = { |cmd_name|
+            let install = { |pkgs|
+                $pkgs | each {|pkg| $"nix shell n#($pkg)" }
+            }
+            let run_once = { |pkgs|
+                $pkgs | each {|pkg| $"nix shell n#($pkg) -c ($cmd_name)" }
+            }
+            let single_pkg = { |pkg|
+                let lines = [
+                $"The program '($cmd_name)' is currently not installed."
+                ""
+                "You can install it by typing:"
+                (do $install [$pkg] | get 0)
+                ""
+                "Or run it once with:"
+                (do $run_once [$pkg] | get 0)
+                ]
+                $lines | str join "\n"
+            }
+            let multiple_pkgs = { |pkgs|
+                let lines = [
+                $"The program '($cmd_name)' is currently not installed. It is provided by several packages."
+                ""
+                "You can install it by typing one of the following:"
+                (do $install $pkgs | str join "\n")
+                ""
+                "Or run it once with:"
+                (do $run_once $pkgs | str join "\n")
+                ]
+                $lines | str join "\n"
+            }
+            let pkgs = (nix-locate --minimal --no-group --type x --type s --whole-name --at-root $"/bin/($cmd_name)" | lines)
+            let len = ($pkgs | length)
+            let ret = match $len {
+                0 => null,
+                1 => (do $single_pkg ($pkgs | get 0)),
+                _ => (do $multiple_pkgs $pkgs),
+            }
+            return $ret
+        }
+
+        def is_in_zellij [] {
+          return ( "ZELLIJ_PANE_ID" in $env )
+        }
+
+        def set_title [title:string] {
+          mut title = $title
+          if ($title | str length) > 15 {
+              $title = ($title | str substring 0..14) + "..."
           }
-        '';
-      };
+          if ( "ZELLIJ_PANE_ID" in $env ) {
+              zellij action rename-tab ($title)
+          }
+        }
+
+        $env.config = ($env.config | upsert hooks {
+            pre_prompt: [ { ||
+              if not ( "NVIM" in $env ) {
+                  set_title $"nu ($env.PWD | path basename)";
+              }
+            } ]
+            pre_execution: [ { || 
+              if not ( "NVIM" in $env ) {
+                mut repl_commandline = (commandline)
+                if ($repl_commandline | str starts-with "nvim") {
+                  $repl_commandline = $"nvim ($env.PWD | path basename)"
+                }
+                set_title ($repl_commandline)
+              }
+            } ]
+        })
+
+        def nix-gc [] {
+          nix-collect-garbage -d
+          sudo nix-collect-garbage -d
+        }
+
+        def ns [package:string, ...$rest] {
+          ^nix shell $"nixpkgs#($package)" --command $package ...$rest
+        }
+      '';
+    };
+
+    home.file.".agent/skills/nushell".source = "${scripts}/";
+
     programs.direnv = {
       enable = true;
       enableNushellIntegration = true;

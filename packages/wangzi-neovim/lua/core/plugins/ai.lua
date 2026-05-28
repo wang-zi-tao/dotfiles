@@ -516,7 +516,6 @@ local function config_codecompanion()
         ollama_server = "http://wangzi-pc.wg:11434"
     end
 
-
     require("codecompanion").setup({
         display = {
             diff = {
@@ -558,11 +557,11 @@ local function config_codecompanion()
                     return require("codecompanion.adapters").extend("openai_compatible", config)
                 end,
                 deepseek = function()
-                    local config = get_api_config("deepseek-v4-pro")
+                    local config = get_api_config("deepseek")
                     return require("codecompanion.adapters").extend("deepseek", config)
                 end,
                 deepseek_flash = function()
-                    local config = get_api_config("deepseek-v4-flash")
+                    local config = get_api_config("deepseek-flash")
                     return require("codecompanion.adapters").extend("deepseek", config)
                 end,
                 kimi = function()
@@ -625,58 +624,13 @@ local function config_codecompanion()
     codecompanion_fidget():init()
 end
 
-local function config_cmp_ai()
-    local cmp_ai = require('cmp_ai.config')
-
-    cmp_ai:setup({
-        max_lines = 1000,
-        provider = 'Ollama',
-        provider_options = {
-            -- model = 'qwen2.5-coder:7b-base-q6_K',
-            model = 'deepseek-r1:7b',
-            auto_unload = false, -- Set to true to automatically unload the model when
-            -- exiting nvim.
-            prompt = function(prefix, suffix)
-                -- local retrieval_results = require("vectorcode").query(prefix .. " " .. suffix, {
-                --     n_query = 5,
-                -- })
-                local file_context = ""
-                -- for _, source in pairs(retrieval_results) do
-                --     -- This works for qwen2.5-coder.
-                --     file_context = file_context
-                --         .. "<|file_sep|>"
-                --         .. source.path
-                --         .. "\n"
-                --         .. source.document
-                --         .. "\n"
-                -- end
-                return file_context
-                    .. "<|fim_prefix|>"
-                    .. prefix
-                    .. "<|fim_suffix|>"
-                    .. suffix
-                    .. "<|fim_middle|>"
-            end
-        },
-        notify = true,
-        notify_callback = function(msg)
-            vim.notify(msg)
-        end,
-        run_on_every_keystroke = true,
-        ignored_file_types = {
-            -- default is not to ignore
-            -- uncomment to ignore in lua:
-            -- lua = true
-        },
-    })
-end
-
 return {
     found_vectorcode_command = found_vectorcode_command,
     enable_vectorcode = enable_vectorcode,
     {
         "github/copilot.vim",
         dir = gen.copilot_vim,
+        enabled = false,
         name = "copilot.vim",
         event = { "VeryLazy" },
         cmd = { "Copilot" },
@@ -772,15 +726,52 @@ return {
         },
     },
     {
-        "tzachar/cmp-ai",
-        name = "cmp_ai",
-        dir = gen.cmp_ai,
-        module = "cmp_ai",
-        lazy = true,
-        dependencies = {
-            "plenary_nvim",
-        },
-        config = config_cmp_ai
+        'milanglacier/minuet-ai.nvim',
+        dir = gen.minuet_ai,
+        name = "minuet_ai",
+        config = function()
+            local utils = require("core.utils")
+            local llm = get_api_config("deepseek-flush")
+            require('minuet').setup {
+                provider = 'openai_fim_compatible',
+                provider_options = {
+                    openai_fim_compatible = {
+                        api_key = llm.env.api_key,
+                        name = 'deepseek',
+                        optional = {
+                            max_tokens = 256,
+                            top_p = 0.9,
+                        },
+                    },
+                },
+                cmp = {
+                    enable_auto_complete = true,
+                },
+                virtualtext = {
+                    -- Specify the filetypes to enable automatic virtual text completion,
+                    -- e.g., { 'python', 'lua' }. Note that you can still invoke manual
+                    -- completion even if the filetype is not on your auto_trigger_ft list.
+                    auto_trigger_ft = { "*" },
+                    -- specify file types where automatic virtual text completion should be
+                    -- disabled. This option is useful when auto-completion is enabled for
+                    -- all file types i.e., when auto_trigger_ft = { '*' }
+                    auto_trigger_ignore_ft = utils.file_type_blacklist,
+                    keymap = {
+                        accept = "<A-a>",
+                        accept_line = "<A-s>",
+                        accept_n_lines = nil,
+                        -- Cycle to next completion item, or manually invoke completion
+                        next = nil,
+                        -- Cycle to prev completion item, or manually invoke completion
+                        prev = nil,
+                        dismiss = nil,
+                    },
+                    -- Whether show virtual text suggestion when the completion menu
+                    -- (nvim-cmp or blink-cmp) is visible.
+                    show_on_completion_menu = false,
+                },
+            }
+        end,
     },
     {
         "Davidyz/VectorCode",

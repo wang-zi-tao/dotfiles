@@ -36,74 +36,129 @@ in
         };
       };
 
-      # services.neo4j = {
-      #   enable = true;
-      #   config = {
-      #     "dbms.security.procedures.unrestricted" = "apoc.*";
-      #     "dbms.security.procedures.allowlist" = "apoc.*";
-      #     "apoc.import.file.enabled" = "true";
-      #     "dbms.security.auth_enabled" = "false";
-      #   };
-      #   directories.plugins = "${neo4j-plugins}";
-      # };
-      #
-      # services.postgresql = {
-      #   enable = true;
-      #   ensureDatabases = [ "mem0" ];
-      #   ensureUsers = [
-      #     {
-      #       name = "mem0";
-      #     }
-      #   ];
-      # };
-      #
-      # virtualisation.oci-containers.containers.mem0 = {
-      #   image = "mem0-selfhost:latest";
-      #   environment = {
-      #     NEO4J_URI = "bolt://host.docker.internal:7687";
-      #     POSTGRES_HOST = "host.docker.internal";
-      #     POSTGRES_PORT = "5432";
-      #     POSTGRES_DB = "mem0";
-      #     POSTGRES_USER = "mem0";
-      #   };
-      # };
-
       services.chromadb = {
         enable = true;
         port = 11437;
       };
-
-      # virtualisation.oci-containers.containers.openmemory-mcp = {
-      #   image = "mem0/openmemory-mcp";
-      #   environment = {
-      #     USER = "wangzi";
-      #     CHROMADB_HOST = "host.docker.internal";
-      #     CHROMADB_PORT = "11437";
-      #     LLM_PROVIDER = "ollama";
-      #     LLM_MODEL = "deepseek-r1-8b";
-      #     EMBEDDER_PROVIDER = "ollama";
-      #     EMBEDDER_MODEL = "nomic-embed-text";
-      #     OLLAMA_BASE_URL = "http://host.docker.internal:11434";
-      #   };
-      #   ports = [ "11436:11436" ];
-      #   volumes = [ "openmemory-mcp:/usr/src/openmemory" ];
-      # };
-
-      # virtualisation.oci-containers.containers.openmemory-ui = {
-      #   image = "mem0/openmemory-ui:latest";
-      #   ports = [ "11438:3000" ];
-      #   dependsOn = [ "openmemory-mcp" ];
-      #   environment = {
-      #     NEXT_PUBLIC_USER_ID = "wangzi";
-      #     NEXT_PUBLIC_API_URL = "http://host.docker.internal:11436";
-      #   };
-      # };
 
       services.nextjs-ollama-llm-ui = {
         enable = true;
         hostname = "0.0.0.0";
         port = 11435;
       };
+    })
+    (lib.mkIf config.cluster.nodeConfig.hermes.enable {
+      services.hermes-agent =
+        let
+          model = "deepseek/deepseek-v4-flash";
+        in
+        {
+          enable = true;
+          container = {
+            enable = false;
+            image = "nixos/nix";
+            extraVolumes = [ "/nix/var/nix/daemon-socket/socket:/nix/var/nix/daemon-socket/socket" ];
+          };
+          environmentFiles = [ config.sops.secrets."hermes-env".path ];
+          addToSystemPackages = true;
+          settings = {
+            model.default = model;
+            display = {
+              skin = "slate";
+            };
+            toolsets = [ "all" ];
+            terminal = {
+              backend = "local";
+              timeout = 180;
+            };
+            compression = {
+              enabled = true;
+              threshold = 0.85;
+              summary_model = model;
+            };
+            display = {
+              compact = false;
+              personality = "kawaii";
+            };
+            memory = {
+              memory_enabled = true;
+              user_profile_enabled = true;
+            };
+            agent = {
+              max_turns = 60;
+              verbose = false;
+            };
+            plugins.enabled = [
+              "disk-cleanup"
+              "hermes-lcm"
+              "rtk-rewrite"
+            ];
+            platforms = {
+              qqbot = {
+                enabled = true;
+              };
+            };
+          };
+          environment = {
+            "NIX_REMOTE" = "daemon";
+          };
+          mcpServers = {
+            nixos = {
+              command = "${pkgs.mcp-nixos}/bin/mcp-nixos";
+            };
+            neovim = {
+              command = "${pkgs.mcp-neovim-server}/bin/mcp-neovim-server";
+              env = {
+                "ALLOW_SHELL_COMMANDS" = "true";
+                "NVIM_SOCKET_PATH" = "/tmp/nvim";
+              };
+            };
+            github = {
+              url = "https://api.githubcopilot.com/mcp/";
+              headers = {
+                "Authorization" = "Bearer \${GITHUB_TOKEN}";
+              };
+            };
+          };
+          extraDependencyGroups = [ "exa" ];
+          extraPackages = [
+            pkgs.nix
+            pkgs.nushell
+          ];
+
+          extraPlugins = [
+            # (pkgs.fetchFromGitHub {
+            #   owner = "stephenschoettler";
+            #   repo = "hermes-lcm";
+            #   rev = "v0.7.0";
+            #   hash = "sha256-0D5htaT/Y7uhYfI0yV1L7tiPjGf4kOJDdTMsb96uvhk=";
+            # })
+          ];
+
+          extraPythonPackages = [
+            # (pkgs.python312Packages.buildPythonPackage {
+            #   pname = "rtk-hermes";
+            #   version = "1.0.0";
+            #   src = pkgs.fetchFromGitHub {
+            #     owner = "ogallotti";
+            #     repo = "rtk-hermes";
+            #     rev = "v1.0.0";
+            #     hash = "sha256-0D5htaT/Y7uhYfI0yV1L7tiPjGf4kOJDdTMsb96uvhk=";
+            #   };
+            #   format = "pyproject";
+            #   build-system = [ pkgs.python312Packages.setuptools ];
+            # })
+          ];
+        };
+
+      sops.secrets."hermes-env" = {
+        sopsFile = config.cluster.ssh.publicKeySops;
+      };
+
+      home.sessionVariables = {
+        HERMES_HOME = "/var/lib/hermes/.hermes";
+      };
+
     })
     {
       sops.secrets.ai = lib.mkIf sops-enable {

@@ -43,6 +43,7 @@
     };
     kubenix.url = "github:hall/kubenix";
     opencode.url = "github:anomalyco/opencode";
+    hermes-agent.url = "github:NousResearch/hermes-agent";
   };
   outputs =
     inputs@{
@@ -64,6 +65,7 @@
       NixVirt,
       kubenix,
       opencode,
+      hermes-agent,
       ...
     }:
     let
@@ -212,6 +214,7 @@
               disko.nixosModules.disko
               nixfs.nixosModules.nixfs
               NixVirt.nixosModules.default
+              hermes-agent.nixosModules.default
             ];
           }
           // inputs

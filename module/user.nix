@@ -43,6 +43,7 @@ in
         "audio"
         "libvirtd"
         "disk"
+        "hermes"
       ];
       hashedPassword = lib.mkDefault "$6$Rd67.bPCRXvMahE1$seiawpNy.1eV/CLVBY5qogsP5Z77BIGMW2FvNf51XWi0QU597YpbnfaNjTwQQxKA3mSwBV47dxlkJmqyX1y5x1";
     };

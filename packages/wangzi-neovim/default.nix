@@ -141,6 +141,7 @@ let
       sha256 = "sha256-XOnlLgK67mOzAdm+Y+8oR6TY9q7EvUT7MQfk3fLKAqM=";
     };
     mcp_hub = mcp-hub;
+    minuet_ai = minuet-ai-nvim;
 
     # LSP
     nvim_lspconfig = nvim-lspconfig;
@@ -209,7 +210,6 @@ let
     cmp_cmdline_history = cmp-cmdline-history;
     cmp_zsh = cmp-zsh;
     cmp_git = cmp-git;
-    cmp_ai = cmp-ai;
 
     nvim_autopairs = nvim-autopairs;
     dashboard_nvim = dashboard-nvim;

@@ -149,6 +149,12 @@ with builtins; {
                   default = null;
                 };
             };
+            hermes = {
+                enable = mkOption {
+                    type = bool;
+                    default = false;
+                };
+            };
           };
         }));
       };
@@ -306,6 +312,7 @@ with builtins; {
           users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
           # localIp = "192.168.32.1";
           wayland.enable = true;
+          hermes.enable = true;
         };
         wangzi-asus = desktop_config // {
           users.wangzi = ../home-manager/profiles/wangzi-asus.nix;

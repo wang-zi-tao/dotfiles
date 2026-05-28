@@ -33,7 +33,7 @@ local function config()
     cmp.setup({
         snippet = {
             expand = function(args)
-    			local luasnip = require("luasnip")
+                local luasnip = require("luasnip")
                 luasnip.lsp_expand(args.body)
             end,
         },
@@ -86,9 +86,10 @@ local function config()
             ["<C-k>"] = cmp.mapping.scroll_docs(1),
             ["<C-Space>"] = cmp.mapping.complete(),
             ["<C-e>"] = cmp.mapping.abort(),
+            ["<A-y>"] = require('minuet').make_cmp_map(),
             ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
             ["<Tab>"] = cmp.mapping(function(fallback)
-    			local luasnip = require("luasnip")
+                local luasnip = require("luasnip")
                 local succ, ret = pcall(function()
                     if cmp.visible() then
                         cmp.select_next_item()
@@ -105,7 +106,7 @@ local function config()
                 end
             end, { "i", "s" }),
             ["<S-Tab>"] = cmp.mapping(function(fallback)
-    			local luasnip = require("luasnip")
+                local luasnip = require("luasnip")
                 pcapll(function()
                     if cmp.visible() then
                         cmp.select_prev_item()
@@ -128,16 +129,18 @@ local function config()
             { name = "git" },
             { name = "crates" },
             { name = 'render-markdown' },
-            -- { name = "cmp_ai" },
+            { name = 'minuet' },
         }, {
             source_buffer_options,
         }),
+        performance = {
+            fetching_timeout = 2000,
+        },
         sorting = {
             comparators = {
                 compare.score,
                 compare.recently_used,
                 require("clangd_extensions.cmp_scores"),
-                require('cmp_ai.compare'),
                 require("cmp_buffer").compare_locality,
                 compare.offset,
                 compare.exact,

@@ -32,12 +32,6 @@ in
             "NVIM_SOCKET_PATH" = "/tmp/nvim";
           };
         };
-        context7 = {
-          url = "https://mcp.context7.com/mcp";
-          headers = {
-            "CONTEXT7_API_KEY" = "YOUR_API_KEY";
-          };
-        };
       };
     };
     xdg.configFile."mcphub/servers.json".text = builtins.toJSON {
