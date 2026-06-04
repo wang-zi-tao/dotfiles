@@ -12,10 +12,11 @@ load("core.auto")
 load("core.cmd")
 load("core.theme")
 load("core.database")
+load("core.agent")
 load("core.plugins.wps")
 
 local n = require("core.gen")
-if n.core ~= null then
+if n.core ~= nil then
     for _, file in ipairs(vim.fn.readdir(n.core .. "/skeleton")) do
         vim.api.nvim_create_autocmd({ "BufNewFile" }, {
             pattern = { file },

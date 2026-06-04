@@ -86,7 +86,6 @@ local function config()
             ["<C-k>"] = cmp.mapping.scroll_docs(1),
             ["<C-Space>"] = cmp.mapping.complete(),
             ["<C-e>"] = cmp.mapping.abort(),
-            ["<A-y>"] = require('minuet').make_cmp_map(),
             ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
             ["<C-y>"] = require('minuet').make_cmp_map(),
             ["<Tab>"] = cmp.mapping(function(fallback)

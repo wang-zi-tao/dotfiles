@@ -535,6 +535,8 @@ local function init()
         },
     }
     dap.configurations.typescript = dap.configurations.javascript
+
+    require("core.agent").dap_init()
 end
 
 return {
