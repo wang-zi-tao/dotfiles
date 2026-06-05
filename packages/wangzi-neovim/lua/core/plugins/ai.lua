@@ -428,8 +428,8 @@ return {
                 mode = { "n", "v" },
                 desc = "generate code"
             },
-            { "<leader>aa", [[<cmd>CodeCompanionActions<CR>]], mode = { "n", "v" }, desc = "AI Actions" },
-            { "<leader>at", "<cmd>CodeCompanionChat<CR>",      desc = "AI Chat" },
+            { "<leader>aa", [[<cmd>CodeCompanionChat adapter=opencode<CR>]], mode = { "n", "v" }, desc = "AI Agent" },
+            { "<leader>at", "<cmd>CodeCompanionChat adapter=deepseek<CR>",   desc = "AI Chat" },
         },
     },
     {

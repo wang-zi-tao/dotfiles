@@ -1,11 +1,46 @@
 --- 用于CodeCode Agent调用neovim的接口
 local M = {}
 
-function M.dap_init()
+function M.clean_table(tbl)
+    if type(tbl) ~= "table" then return tbl end
+    local clean = {}
+    for k, v in pairs(tbl) do
+        if type(v) == "table" then
+            clean[k] = M.clean_table(v)
+        elseif type(v) ~= "function" and type(v) ~= "thread" and type(v) ~= "userdata" then
+            clean[k] = v
+        end
+    end
+    return clean
+end
+
+---@param f function
+---@param task_id integer
+---@param channel_id integer
+---@param argsJson? string
+function M.run_async(f, channel_id, task_id, argsJson)
+    coroutine.wrap(function(f, channel_id, task_id, argsJson)
+        local succ, ret = pcall(function()
+            local args = argsJson and vim.json.decode(argsJson)
+            local ret = f(args)
+            return ret
+        end)
+
+        vim.rpcnotify(channel_id, "async_task_finish", {
+            task_id = task_id,
+            succ = succ,
+            ret = succ and ret,
+            error = not succ and ret,
+        })
+    end)(f, channel_id, task_id, argsJson)
+end
+
+function M.dap_subscribe(channel_id)
     local dap = require("dap")
+    local client_name = "agent_" .. channel_id
 
     ---@param session dap.Session
-    dap.listeners.after.event_stopped.agent = function(session, event)
+    dap.listeners.after.event_stopped[client_name] = function(session, event)
         local stacks = M.dap_get_stack()
         local stacks_top_10 = {}
         local stack_length = #stacks
@@ -14,7 +49,7 @@ function M.dap_init()
             table.insert(stacks_top_10, frame)
         end
 
-        vim.fn.rpcnotify(0, "dap_pause", {
+        vim.fn.rpcnotify(channel_id, "dap_pause", {
             session = session.id,
             config_name = session.config.name,
             stop_event = event,
@@ -23,8 +58,8 @@ function M.dap_init()
     end
 
     ---@param session dap.Session
-    dap.listeners.after.event_terminated.agent = function(session, event)
-        vim.fn.rpcnotify(0, "event_terminated", {
+    dap.listeners.after.event_terminated[client_name] = function(session, event)
+        vim.fn.rpcnotify(channel_id, "event_terminated", {
             session = session.id,
             config_name = session.config.name,
             event = event,
@@ -32,8 +67,8 @@ function M.dap_init()
     end
 
     ---@param session dap.Session
-    dap.listeners.after.event_exited.agent = function(session, event)
-        vim.fn.rpcnotify(0, "event_exited", {
+    dap.listeners.after.event_exited[client_name] = function(session, event)
+        vim.fn.rpcnotify(channel_id, "event_exited", {
             session = session.id,
             config_name = session.config.name,
             event = event,
@@ -108,7 +143,7 @@ function M.dap_start(opts)
     end
 
     dap.run(target)
-    return { ok = true, lang = lang, config_name = config_name, config = target }
+    return M.clean_table { ok = true, lang = lang, config_name = config_name, config = target }
 end
 
 --- 停止调试
@@ -168,7 +203,7 @@ function M.dap_get_stack()
         })
     end
 
-    return { thread_id = session.stopped_thread_id, frames = frames }
+    return M.clean_table { thread_id = session.stopped_thread_id, frames = frames }
 end
 
 --- 获取线程列表
@@ -423,7 +458,7 @@ function M.dap_get_configurations(opts)
         local configs = dap.configurations[lang]
         if configs then
             for _, cfg in ipairs(configs) do
-                table.insert(result, {
+                table.insert(result, M.clean_table {
                     lang = lang,
                     name = cfg.name,
                     type = cfg.type,
