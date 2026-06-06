@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  hermes-agent,
   ...
 }:
 let
@@ -36,16 +37,16 @@ in
         };
       };
 
-      services.chromadb = {
-        enable = true;
-        port = 11437;
-      };
+      # services.chromadb = {
+      #   enable = true;
+      #   port = 11437;
+      # };
 
-      services.nextjs-ollama-llm-ui = {
-        enable = true;
-        hostname = "0.0.0.0";
-        port = 11435;
-      };
+      # services.nextjs-ollama-llm-ui = {
+      #   enable = true;
+      #   hostname = "0.0.0.0";
+      #   port = 11435;
+      # };
     })
     (lib.mkIf config.cluster.nodeConfig.hermes.enable {
       services.hermes-agent =
@@ -54,6 +55,7 @@ in
         in
         {
           enable = true;
+          # package = hermes-agent.packages.${pkgs.stdenv.system}.full;
           container = {
             enable = false;
             image = "nixos/nix";
@@ -83,6 +85,7 @@ in
             memory = {
               memory_enabled = true;
               user_profile_enabled = true;
+              provider = "hindsight";
             };
             agent = {
               max_turns = 60;
@@ -94,9 +97,14 @@ in
               "rtk-rewrite"
             ];
             platforms = {
-              qqbot = {
-                enabled = true;
-              };
+              # qqbot = {
+              #   enabled = false;
+              # };
+            };
+            dashboard = {
+              enable = true;
+              host = "0.0.0.0";
+              port = 11436;
             };
           };
           environment = {
@@ -120,43 +128,35 @@ in
               };
             };
           };
-          extraDependencyGroups = [ "exa" ];
+
+          extraDependencyGroups = [
+            "exa"
+            "hindsight"
+          ];
+
           extraPackages = [
             pkgs.nix
             pkgs.nushell
           ];
 
           extraPlugins = [
-            # (pkgs.fetchFromGitHub {
-            #   owner = "stephenschoettler";
-            #   repo = "hermes-lcm";
-            #   rev = "v0.7.0";
-            #   hash = "sha256-0D5htaT/Y7uhYfI0yV1L7tiPjGf4kOJDdTMsb96uvhk=";
-            # })
+            pkgs.hermes-lcm
           ];
 
           extraPythonPackages = [
-            # (pkgs.python312Packages.buildPythonPackage {
-            #   pname = "rtk-hermes";
-            #   version = "1.0.0";
-            #   src = pkgs.fetchFromGitHub {
-            #     owner = "ogallotti";
-            #     repo = "rtk-hermes";
-            #     rev = "v1.0.0";
-            #     hash = "sha256-0D5htaT/Y7uhYfI0yV1L7tiPjGf4kOJDdTMsb96uvhk=";
-            #   };
-            #   format = "pyproject";
-            #   build-system = [ pkgs.python312Packages.setuptools ];
-            # })
+            pkgs.hermes-rtk
           ];
+
         };
 
       sops.secrets."hermes-env" = {
         sopsFile = config.cluster.ssh.publicKeySops;
       };
 
-      home.sessionVariables = {
+      environment.variables = {
         HERMES_HOME = "/var/lib/hermes/.hermes";
+        HERMES_TUI = "1";
+        HERMES_TUI_RESUME = "1";
       };
 
     })

@@ -197,6 +197,9 @@ in
       };
 
     home.sessionVariables = {
+      HERMES_HOME = "/var/lib/hermes/.hermes";
+      HERMES_TUI = "1";
+      HERMES_TUI_RESUME = "1";
       OPENCODE_ENABLE_EXA = "true";
       OPENCODE_EXPERIMENTAL_LSP_TOOL = "true";
     };

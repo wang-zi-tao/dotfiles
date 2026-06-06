@@ -68,24 +68,24 @@ pkgs: prev: {
     exec ${pkgs.bun}/bin/bunx opencode-ai "$@"
   '';
 
-  # opencode-bin = pkgs.stdenv.mkDerivation rec {
-  #   pname = "opencode-bin";
-  #   version = "v1.14.24";
-  #   src = pkgs.fetchurl {
-  #     url = "https://github.com/anomalyco/opencode/releases/download/${version}/opencode-linux-x64.tar.gz";
-  #     hash = "sha256-Lt/Be60+y6VK4dl1PO+eymhv3YoLD0t4X5IJ7g/IptI=";
-  #   };
-  #
-  #   nativeBuildInputs = with pkgs; [
-  #     bun
-  #     autoPatchelfHook
-  #     musl
-  #   ];
-  #
-  #   unpackPhase = ''
-  #     mkdir -p $out/bin
-  #     tar xf $src -C $out/bin
-  #   '';
-  #
-  # };
+  hermes-lcm = pkgs.fetchFromGitHub {
+    owner = "stephenschoettler";
+    repo = "hermes-lcm";
+    rev = "v0.7.0";
+    hash = "sha256-0D5htaT/Y7uhYfI0yV1L7tiPjGf4kOJDdTMsb96uvhk=";
+  };
+
+  hermes-rtk = pkgs.python312Packages.buildPythonPackage {
+    pname = "rtk-hermes";
+    version = "1.0.0";
+    src = pkgs.fetchFromGitHub {
+      owner = "ogallotti";
+      repo = "rtk-hermes";
+      rev = "v1.0.0";
+      hash = "sha256-0D5htaT/Y7uhYfI0yV1L7tiPjGf4kOJDdTMsb96uvhk=";
+    };
+    format = "pyproject";
+    build-system = [ pkgs.python312Packages.setuptools ];
+  };
+
 }

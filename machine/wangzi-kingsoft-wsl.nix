@@ -64,6 +64,9 @@ nixpkgs.lib.nixosSystem {
         security.sudo = {
           enable = true;
         };
+        security.sudo-rs = {
+          enable = true;
+        };
         virtualisation.docker = {
           enable = true;
         };

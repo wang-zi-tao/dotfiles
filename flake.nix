@@ -119,6 +119,7 @@
                 packages
                 nur.overlays.default
                 fenix.overlays.default
+                hermes-agent.overlays.default
                 # nixpkgs-wayland.overlay
                 (
                   final: prev:
