@@ -1,6 +1,14 @@
 --- 用于CodeCode Agent调用neovim的接口
 local M = {}
 
+M.nextId = 0
+
+function M.get_next_id()
+    local id = M.nextId
+    M.nextId = M.nextId + 1
+    return id
+end
+
 function M.clean_table(tbl)
     if type(tbl) ~= "table" then return tbl end
     local clean = {}
@@ -26,7 +34,7 @@ function M.run_async(f, channel_id, task_id, argsJson)
             return ret
         end)
 
-        vim.rpcnotify(channel_id, "async_task_finish", {
+        vim.rpcnotify(channel_id, "async_task_finish", M.clean_table {
             task_id = task_id,
             succ = succ,
             ret = succ and ret,
@@ -41,19 +49,13 @@ function M.dap_subscribe(channel_id)
 
     ---@param session dap.Session
     dap.listeners.after.event_stopped[client_name] = function(session, event)
-        local stacks = M.dap_get_stack()
-        local stacks_top_10 = {}
-        local stack_length = #stacks
-        for i, frame in ipairs(stacks.frames) do
-            if i < stack_length - 10 then break end
-            table.insert(stacks_top_10, frame)
-        end
-
-        vim.fn.rpcnotify(channel_id, "dap_pause", {
+        local stacks = M.dap_get_stack({ limit = 10 })
+        vim.fn.rpcnotify(channel_id, "dap_pause", M.clean_table {
             session = session.id,
+            thread_id = session.stopped_thread_id,
             config_name = session.config.name,
             stop_event = event,
-            stacks_top_10 = stacks_top_10
+            stacks_top_10 = stacks.frames,
         })
     end
 
@@ -146,6 +148,14 @@ function M.dap_start(opts)
     return M.clean_table { ok = true, lang = lang, config_name = config_name, config = target }
 end
 
+--- 继续运行
+---@return table
+function M.dap_continue()
+    local dap = require("dap")
+    dap.continue()
+    return { ok = true }
+end
+
 --- 停止调试
 ---@return table
 function M.dap_stop()
@@ -154,56 +164,199 @@ function M.dap_stop()
     return { ok = true }
 end
 
---- 进入函数
----@return table
-function M.dap_step_into()
-    local dap = require("dap")
-    dap.step_into()
-    return { ok = true }
-end
+-- ── 步进 + 等待停止 ──
 
---- 单步跳过
----@return table
-function M.dap_step_over()
+--- 执行步进并等待命中断点或退出，返回停止时的状态信息。
+--- 使用 coroutine.yield() 挂起，由 event_stopped/event_terminated 监听器通过 coroutine.resume() 唤醒。
+---@param step_fn function
+---@return table {status: string, reason?: string, thread_id?: number, frames?: table[]}
+local function step_and_wait(step_fn)
     local dap = require("dap")
-    dap.step_over()
-    return { ok = true }
-end
-
---- 跳出函数
----@return table
-function M.dap_step_out()
-    local dap = require("dap")
-    dap.step_out()
-    return { ok = true }
-end
-
---- 获取调用栈
----@return {thread_id: number, frames: table[]}
-function M.dap_get_stack()
-    local session = get_session()
-    local current_thread = session.stopped_thread_id
-    if not current_thread then
-        error("no current thread")
+    local session = dap.session()
+    if not session then
+        error("no debug session")
+    end
+    if not session.stopped_thread_id then
+        error("session is not stopped")
     end
 
-    local err, resp = session:request("stackTrace", { threadId = session.stopped_thread_id })
+    local co = coroutine.running()
+    if not co then
+        error("must be called within a coroutine")
+    end
+
+    local sid = session.id
+    local stopped_body = nil
+    local terminated = false
+    local done = false
+    local key = "agent_step_" .. sid .. "_" .. M.get_next_id()
+
+    -- 超时定时器（30 秒）
+    vim.defer_fn(function()
+        if not done then
+            done = true
+            coroutine.resume(co)
+        end
+    end, 30000)
+
+    -- stopped 监听器：命中断点/单步完成时唤醒
+    dap.listeners.after.event_stopped[key] = function(s, body)
+        if not done and s.id == sid then
+            done = true
+            stopped_body = body
+            coroutine.resume(co)
+        end
+    end
+
+    -- terminated 监听器：调试目标退出时唤醒
+    dap.listeners.after.event_terminated[key] = function(s)
+        if not done and s.id == sid then
+            done = true
+            terminated = true
+            coroutine.resume(co)
+        end
+    end
+
+    step_fn()
+
+    -- 挂起协程，等待事件或超时
+    coroutine.yield()
+
+    -- 清理
+    dap.listeners.after.event_stopped[key] = nil
+    dap.listeners.after.event_terminated[key] = nil
+
+    if terminated then
+        return { status = "terminated" }
+    end
+    if not stopped_body then
+        error("step timeout: no stop event within 30s")
+    end
+
+    local tid = stopped_body.threadId or session.stopped_thread_id
+    if not tid then
+        return { status = "stopped", reason = stopped_body.reason, description = stopped_body.description }
+    end
+
+    local frames, _ = M.build_frames(session, tid)
+
+    return {
+        status = "stopped",
+        reason = stopped_body.reason,
+        description = stopped_body.description,
+        allThreadsStopped = stopped_body.allThreadsStopped,
+        thread_id = tid,
+        frames = frames,
+    }
+end
+
+--- 进入函数（协程等待命中断点，返回停止位置信息）
+---@param opts? table nvim-dap step_into 选项
+---@return table
+function M.dap_step_into(opts)
+    return step_and_wait(function()
+        require("dap").step_into(opts)
+    end)
+end
+
+--- 单步跳过（协程等待命中断点，返回停止位置信息）
+---@param opts? table nvim-dap step_over 选项
+---@return table
+function M.dap_step_over(opts)
+    return step_and_wait(function()
+        require("dap").step_over(opts)
+    end)
+end
+
+--- 跳出函数（协程等待命中断点，返回停止位置信息）
+---@param opts? table nvim-dap step_out 选项
+---@return table
+function M.dap_step_out(opts)
+    return step_and_wait(function()
+        require("dap").step_out(opts)
+    end)
+end
+
+-- ── 会话/线程/监视 ──
+
+--- 获取单行源码（不影响前台界面，不创建/切换 buffer）
+---@param source_path string|nil
+---@param lnum integer
+---@return string?
+local function get_source_line(source_path, lnum)
+    if not source_path or lnum <= 0 then
+        return nil
+    end
+    local bufnr = vim.fn.bufnr(source_path, false)
+    if bufnr ~= -1 then
+        local lines = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, false)
+        return lines[1] and vim.trim(lines[1])
+    end
+    -- buffer 未加载，用 readfile 读取磁盘文件（不创建 buffer）
+    local ok, lines = pcall(vim.fn.readfile, source_path)
+    if ok and lines then
+        return lines[lnum] and vim.trim(lines[lnum])
+    end
+    return nil
+end
+
+--- 构建帧信息（含相对路径 + 源码行）
+---@param frame dap.StackFrame
+---@param cwd string
+---@return table
+local function build_frame(frame, cwd)
+    local source = frame.source and frame.source.path or nil
+    local source_rel = source
+    if source and cwd and vim.startswith(source, cwd) then
+        source_rel = "." .. source:sub(#cwd + 1)
+    end
+    return {
+        id = frame.id,
+        name = frame.name,
+        line = frame.line,
+        column = frame.column,
+        source = source_rel,
+        sourceLine = get_source_line(source, frame.line),
+    }
+end
+
+--- 构造 frames 列表（封装 stackTrace 请求 + build_frame）
+---@param session dap.Session
+---@param thread_id integer
+---@param limit? integer
+---@return table[], integer
+function M.build_frames(session, thread_id, limit)
+    local err, resp = session:request("stackTrace", { threadId = thread_id })
     if err or not resp then
         error("stackTrace error: " .. vim.inspect(err))
     end
 
+    local cwd = vim.fn.getcwd()
     local frames = {}
-    for _, frame in ipairs(resp.stackFrames or {}) do
-        table.insert(frames, {
-            id = frame.id,
-            name = frame.name,
-            line = frame.line,
-            column = frame.column,
-            source = frame.source and frame.source.path or nil,
-        })
+    local all = resp.stackFrames or {}
+    local n = limit or #all
+
+    for i, f in ipairs(all) do
+        if i > n then break end
+        table.insert(frames, build_frame(f, cwd))
     end
 
-    return M.clean_table { thread_id = session.stopped_thread_id, frames = frames }
+    return frames, #all
+end
+
+--- 获取调用栈
+---@param opts? {limit?: number, thread_id?: number}
+---@return {thread_id: number, frames: table[], totalFrames: number}
+function M.dap_get_stack(opts)
+    opts = opts or {}
+    local session = get_session()
+    local thread_id = opts.thread_id or session.stopped_thread_id
+    if not thread_id then
+        error("no current thread")
+    end
+
+    local frames, total = M.build_frames(session, thread_id, opts.limit)
+    return M.clean_table { thread_id = thread_id, frames = frames, totalFrames = total }
 end
 
 --- 获取线程列表
@@ -237,26 +390,13 @@ function M.dap_switch_thread(opts)
     end
 
     local session = get_session()
-    local err, resp = session:request("stackTrace", { threadId = thread_id })
-    if err or not resp then
-        error("switch_thread error: " .. vim.inspect(err))
-    end
-
-    local first = resp.stackFrames and resp.stackFrames[1]
+    local frames, _ = M.build_frames(session, thread_id, 1)
+    local first = frames[1]
     if not first then
         error("no frames for thread")
     end
 
-    return {
-        thread_id = thread_id,
-        frame = {
-            id = first.id,
-            name = first.name,
-            line = first.line,
-            column = first.column,
-            source = first.source and first.source.path or nil,
-        },
-    }
+    return M.clean_table { thread_id = thread_id, frame = first }
 end
 
 --- 获取所有调试会话
