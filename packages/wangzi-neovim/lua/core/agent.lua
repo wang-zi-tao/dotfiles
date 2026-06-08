@@ -238,7 +238,7 @@ local function step_and_wait(step_fn)
         return { status = "stopped", reason = stopped_body.reason, description = stopped_body.description }
     end
 
-    local frames, _ = M.build_frames(session, tid)
+    local frames, total = M.build_frames(session, tid, 4)
 
     return {
         status = "stopped",
@@ -247,6 +247,7 @@ local function step_and_wait(step_fn)
         allThreadsStopped = stopped_body.allThreadsStopped,
         thread_id = tid,
         frames = frames,
+        totalFrames = total
     }
 end
 
@@ -275,6 +276,53 @@ function M.dap_step_out(opts)
     return step_and_wait(function()
         require("dap").step_out(opts)
     end)
+end
+
+-- ── 运行到指定位置 ──
+
+--- 运行到指定位置（设临时断点 → 继续 → 命中后移除并返回状态）
+--- 复用 step_and_wait 处理协程等待，本函数只负责断点增删
+---@param opts {file?: string, line?: number}
+---@return table
+function M.dap_run_to_location(opts)
+    opts = opts or {}
+    local breakpoints = require("dap.breakpoints")
+    local session = get_session()
+
+    local bufnr = M.resolve_bufnr(opts.file)
+    local lnum = opts.line or vim.api.nvim_win_get_cursor(0)[1]
+
+    -- 保存该 buffer 的现有断点，添加临时断点
+    local existing = breakpoints.get(bufnr)
+    breakpoints.set({}, bufnr, lnum)
+
+    -- 委托 step_and_wait：同步临时断点到适配器后继续执行、等待停止
+    local result = step_and_wait(function()
+        session:set_breakpoints(breakpoints.get(bufnr), function()
+            require("dap").continue()
+        end)
+    end)
+
+    -- 命中后清理：移除临时断点，恢复原有断点
+    breakpoints.remove(bufnr, lnum)
+    for _, buf_bps in pairs(existing) do
+        for _, bp in pairs(buf_bps) do
+            breakpoints.set({
+                condition = bp.condition,
+                hit_condition = bp.hitCondition,
+                log_message = bp.logMessage,
+            }, bufnr, bp.line)
+        end
+    end
+    session:set_breakpoints(existing)
+
+    return result
+end
+
+--- 运行到当前光标位置
+---@return table
+function M.dap_run_to_cursor()
+    return M.dap_run_to_location({})
 end
 
 -- ── 会话/线程/监视 ──
@@ -390,13 +438,13 @@ function M.dap_switch_thread(opts)
     end
 
     local session = get_session()
-    local frames, _ = M.build_frames(session, thread_id, 1)
+    local frames, total = M.build_frames(session, thread_id, 1)
     local first = frames[1]
     if not first then
         error("no frames for thread")
     end
 
-    return M.clean_table { thread_id = thread_id, frame = first }
+    return M.clean_table { thread_id = thread_id, frame = first, totalFrames = total }
 end
 
 --- 获取所有调试会话
@@ -469,7 +517,7 @@ end
 --- 解析文件路径为 buffer number，失败则报错
 ---@param file? string
 ---@return integer
-local function resolve_bufnr(file)
+function M.resolve_bufnr(file)
     if file then
         local bufnr = vim.fn.bufnr(file, true) -- true = 必要时创建未加载的 buffer
         if bufnr == -1 then
@@ -499,7 +547,7 @@ function M.dap_add_breakpoint(opts)
         error("line is required")
     end
     local breakpoints = require("dap.breakpoints")
-    local bufnr = resolve_bufnr(opts.file)
+    local bufnr = M.resolve_bufnr(opts.file)
 
     breakpoints.toggle({
         condition = opts.condition,
@@ -523,7 +571,7 @@ end
 function M.dap_toggle_breakpoint(opts)
     opts = opts or {}
     local breakpoints = require("dap.breakpoints")
-    local bufnr = resolve_bufnr(opts.file)
+    local bufnr = M.resolve_bufnr(opts.file)
     local lnum = opts.line or vim.api.nvim_win_get_cursor(0)[1]
 
     breakpoints.toggle({
@@ -546,7 +594,7 @@ function M.dap_remove_breakpoint(opts)
         error("line is required")
     end
     local breakpoints = require("dap.breakpoints")
-    local bufnr = resolve_bufnr(opts.file)
+    local bufnr = M.resolve_bufnr(opts.file)
     local removed = breakpoints.remove(bufnr, opts.line)
 
     sync_breakpoints(bufnr)
