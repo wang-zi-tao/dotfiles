@@ -2,6 +2,7 @@
 local M = {}
 
 M.nextId = 0
+M.disableSessionEvent = {}
 
 function M.get_next_id()
     local id = M.nextId
@@ -49,10 +50,14 @@ function M.dap_subscribe(channel_id)
 
     ---@param session dap.Session
     dap.listeners.after.event_stopped[client_name] = function(session, event)
-        local stacks = M.dap_get_stack({ limit = 10 })
-        vim.fn.rpcnotify(channel_id, "dap_pause", M.clean_table {
+        if M.disableSessionEvent[session.id] then
+            return
+        end
+
+        local stacks = M.dap_get_stack({ limit = 10, thread_id = event.threadId })
+        vim.rpcnotify(channel_id, "dap_pause", M.clean_table {
             session = session.id,
-            thread_id = session.stopped_thread_id,
+            thread_id = event.threadId,
             config_name = session.config.name,
             stop_event = event,
             stacks_top_10 = stacks.frames,
@@ -61,7 +66,11 @@ function M.dap_subscribe(channel_id)
 
     ---@param session dap.Session
     dap.listeners.after.event_terminated[client_name] = function(session, event)
-        vim.fn.rpcnotify(channel_id, "event_terminated", {
+        if M.disableSessionEvent[session.id] then
+            return
+        end
+
+        vim.rpcnotify(channel_id, "event_terminated", {
             session = session.id,
             config_name = session.config.name,
             event = event,
@@ -70,7 +79,11 @@ function M.dap_subscribe(channel_id)
 
     ---@param session dap.Session
     dap.listeners.after.event_exited[client_name] = function(session, event)
-        vim.fn.rpcnotify(channel_id, "event_exited", {
+        if M.disableSessionEvent[session.id] then
+            return
+        end
+
+        vim.rpcnotify(channel_id, "event_exited", {
             session = session.id,
             config_name = session.config.name,
             event = event,
@@ -144,7 +157,9 @@ function M.dap_start(opts)
         target = vim.tbl_deep_extend("force", {}, target, opts.config)
     end
 
-    dap.run(target)
+    local ok = pcall(function()
+        dap.run(target)
+    end)
     return M.clean_table { ok = true, lang = lang, config_name = config_name, config = target }
 end
 
@@ -217,10 +232,12 @@ local function step_and_wait(step_fn)
         end
     end
 
+    M.disableSessionEvent[session.id] = true
     step_fn()
 
     -- 挂起协程，等待事件或超时
     coroutine.yield()
+    M.disableSessionEvent[session.id] = false
 
     -- 清理
     dap.listeners.after.event_stopped[key] = nil
@@ -421,6 +438,7 @@ function M.dap_get_threads()
         table.insert(threads, {
             id = thread.id,
             name = thread.name,
+            stopped = thread.stopped == true,
         })
     end
 
@@ -666,6 +684,20 @@ function M.dap_get_configurations(opts)
     end
 
     return { configurations = result }
+end
+
+---@param path string
+function M.reload_file(path)
+    -- Get the buffer number for the given path
+    local bufnr = vim.fn.bufnr(path)
+    if bufnr == -1 then
+        -- Buffer is not loaded, so nothing to reload
+        return
+    end
+    -- Reload the buffer from disk
+    vim.api.nvim_buf_call(bufnr, function()
+        vim.cmd('edit!')
+    end)
 end
 
 return M

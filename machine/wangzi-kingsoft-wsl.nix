@@ -56,7 +56,7 @@ nixpkgs.lib.nixosSystem {
         swapDevices = [
           {
             device = "/swapfile";
-            size = 1024 * 16;
+            size = 1024 * 8;
           }
         ];
         users.users.root.hashedPassword = "$6$EleVrSVkk8j6lvlN$5EPVW5nhguBtB7WFaLBWrJHCCT.7xj7.NNgMR9OVdf3ngH80miDyox3JXcuHEu65NTnbGtlCX14bzxg0F1po8.";

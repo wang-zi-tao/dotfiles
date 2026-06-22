@@ -243,7 +243,7 @@ local function config_codecompanion()
                     return require("codecompanion.adapters").extend("openai_compatible", config)
                 end,
                 deepseek = function()
-                    local config = get_api_config("deepseek")
+                    local config = get_api_config("deepseek-pro")
                     return require("codecompanion.adapters").extend("deepseek", config)
                 end,
                 deepseek_flash = function()

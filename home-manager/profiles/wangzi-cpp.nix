@@ -7,8 +7,8 @@
 {
   imports = [
     ../terminal/terminal.nix
-    ../develop/develop.nix
-    ../develop/cpp.nix
+    # ../develop/develop.nix
+    # ../develop/cpp.nix
     ../platform/wsl.nix
   ];
   home.stateVersion = "24.11";
