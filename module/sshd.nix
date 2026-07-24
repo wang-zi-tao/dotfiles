@@ -38,8 +38,7 @@ in
           PermitTunnel no
           X11Forwarding no
           # ForceCommand nix-store --serve --write
-          AuthorizedKeysFile ${lib.optionalString sops-enable config.sops.secrets.ssh-public-keys.path}
-
+          ${lib.optionalString sops-enable "AuthorizedKeysFile ${config.sops.secrets.ssh-public-keys.path}"}
         Match all
       '';
       ports = [

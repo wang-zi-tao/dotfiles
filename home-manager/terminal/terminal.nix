@@ -37,6 +37,10 @@
         type = bool;
         default = false;
       };
+      sops.enable = mkOption {
+        type = bool;
+        default = true;
+      };
     };
   config = {
     xdg = {

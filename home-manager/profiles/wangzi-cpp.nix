@@ -17,4 +17,5 @@
   neovim.full = true;
   programs.git.userName = pkgs.lib.mkForce "wangzitao";
   programs.git.userEmail = pkgs.lib.mkForce "wangzitao@kingsoft.com";
+  sops.enable = false;
 }

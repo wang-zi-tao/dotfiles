@@ -158,6 +158,32 @@ local function create_key_env(name, key)
     return api_key_name
 end
 
+local function get_al_api_config()
+    local json = getAiJson()
+
+    local configs = {}
+    for name, config in pairs(json) do
+        local config = json[name]
+        local api_key = config.key
+        local url = config.url
+        local model = config.model
+
+        configs[name] = {
+            schema = {
+                schema = { default = 0.0, },
+                model = { default = model, },
+            },
+            env = {
+                url = url,
+                api_key = create_key_env(model, api_key),
+                raw_api_key = api_key,
+                chat_url = "/v1/chat/completions",
+            },
+        }
+    end
+    return configs
+end
+
 local function get_api_config(name)
     local json = getAiJson()
     local config = json[name]
@@ -250,9 +276,21 @@ local function config_codecompanion()
                     local config = get_api_config("deepseek-flash")
                     return require("codecompanion.adapters").extend("deepseek", config)
                 end,
+                wps_deepseek = function()
+                    local config = get_api_config("wps-deepseek-pro")
+                    return require("codecompanion.adapters").extend("deepseek", config)
+                end,
+                wps_deepseek_flash = function()
+                    local config = get_api_config("wps-deepseek-flash")
+                    return require("codecompanion.adapters").extend("deepseek", config)
+                end,
+                wps_glm = function()
+                    local config = get_api_config("wps-glm")
+                    return require("codecompanion.adapters").extend("deepseek", config)
+                end,
                 deepseek_flash_free = function()
                     local config = get_api_config("deepseek-v4-flash-free")
-                    return require("codecompanion.adapters").extend("deepseek", config)
+                    return require("codecompanion.adapters").extend("openai_responses", config)
                 end,
                 gpt = function()
                     local config = get_api_config("gpt")
@@ -328,6 +366,23 @@ local function config_codecompanion()
     require("telescope").load_extension("codecompanion")
     codecompanion_fidget():init()
 end
+
+local opencode_cmd = { 'opencode', '-c', '--port' }
+---@type snacks.terminal.Opts
+local snacks_terminal_opts = {
+    win = {
+        position = 'right',
+        enter = true,
+        width = 0.25,
+        winbar = "",
+        wo = {
+            number = false,
+            relativenumber = false,
+            winbar = "",
+        }
+    },
+}
+
 
 return {
     found_vectorcode_command = found_vectorcode_command,
@@ -560,6 +615,86 @@ return {
                 },
                 cmd = gen.mcp_hub and gen.mcp_hub .. "/bin/mcp-hub",
             })
+        end,
+    },
+    {
+        "nickjvandyke/opencode.nvim",
+        name = "opencode",
+        dir = gen.opencode,
+        keys = {
+            {
+                "<leader>ao",
+                function()
+                    require("opencode").ask("@this: ")
+                end,
+                desc = "Ask OpenCode…"
+            },
+            {
+                "<leader>as",
+                function()
+                    require("opencode").select()
+                end,
+                desc = "Select OpenCode…"
+            },
+            {
+                "go",
+                function()
+                    return require("opencode").operator("@this ")
+                end,
+                expr = true,
+                desc = "Append range to OpenCode",
+                mode = { "n", "x" }
+            },
+            {
+                "<leader>ta",
+                function()
+                    vim.schedule(function()
+                        require('snacks.terminal').open(opencode_cmd, snacks_terminal_opts)
+                    end)
+                end,
+                expr = true,
+                desc = "toggle OpenCode",
+                mode = { "n", "x" }
+            },
+        },
+        config = function()
+            ---@type opencode.Opts
+            vim.g.opencode_opts = {
+                server = {
+                    -- Your configuration, if any; goto definition on the type for details
+                    start = function()
+                        require('snacks.terminal').open(opencode_cmd, snacks_terminal_opts)
+                    end,
+                    stop = function()
+                        local win = require('snacks.terminal').get(opencode_cmd, { create = false })
+                        if win then
+                            win:destroy()
+                        end
+                    end,
+                    toggle = function()
+                        local win = require('snacks.terminal').get(opencode_cmd, { create = false })
+                        if win then
+                            win:toggle()
+                        end
+                    end
+                },
+            }
+
+            vim.api.nvim_create_autocmd('User', {
+                pattern = { 'OpencodeEvent:tui.command.execute' },
+                callback = function(args)
+                    ---@type opencode.server.Event
+                    local event = args.data.event
+                    if event.properties.command == 'prompt.submit' then
+                        local win = require('snacks.terminal').get(opencode_cmd, { create = false })
+                        if win then
+                            win:show()
+                        end
+                    end
+                end,
+            })
+
+            vim.o.autoread = true -- Required for `vim.g.opencode_opts.events.reload`
         end,
     }
 }

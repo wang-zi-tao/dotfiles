@@ -154,11 +154,6 @@ in
       sops.secrets."hermes-env" = {
         sopsFile = config.cluster.ssh.publicKeySops;
       };
-
-      home.sessionVariables = {
-        HERMES_HOME = "/var/lib/hermes/.hermes";
-      };
-
     })
     {
       sops.secrets.ai = lib.mkIf sops-enable {

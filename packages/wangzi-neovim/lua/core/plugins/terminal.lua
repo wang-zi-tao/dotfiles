@@ -49,16 +49,6 @@ return {
             require("toggleterm").setup({
                 direction = "float",
                 shell = shell,
-                on_open = function(_)
-                    if vim.fn.has("win32") == 1 then
-                        vim.o.mouse = ""
-                    end
-                end,
-                on_close = function()
-                    if vim.fn.has("win32") == 1 then
-                        vim.o.mouse = "a"
-                    end
-                end,
                 float_opts = {
                     -- The border key is *almost* the same as 'nvim_open_win'
                     -- see :h nvim_open_win for details on borders however
@@ -81,26 +71,30 @@ return {
             toggleterm_nvim.gitui = Terminal:new({ cmd = "lazygit", hidden = true })
             toggleterm_nvim.rg = Terminal:new({ cmd = "nu", hidden = true })
             toggleterm_nvim.opencode = Terminal:new({
-                cmd = "opencode --continue",
+                cmd = "opencode --continue --port",
                 direction = "vertical",
                 display_name = "opencode",
-                on_open = function(_)
-                    if vim.fn.has("win32") == 1 then
-                        vim.o.mouse = ""
-                    end
+                hidden = true,
+                on_create = function(this)
+                    this:resize(60)
                 end,
-                on_close = function()
-                    if vim.fn.has("win32") == 1 then
-                        vim.o.mouse = "a"
-                    end
+                on_open = function(this)
+                    this:resize(60)
+                    -- if vim.fn.has("win32") == 1 then
+                    --     vim.o.mouse = ""
+                    -- end
                 end,
+                -- on_close = function()
+                --     if vim.fn.has("win32") == 1 then
+                --         vim.o.mouse = "a"
+                --     end
+                -- end,
                 env = {
                     EXPERIMENTAL_HOT_RELOAD = "true",
                     NVIM_SOCKET_PATH = vim.v.servername,
                 },
 
             })
-            toggleterm_nvim.opencode:resize(80)
             for i = 0, 9 do
                 toggleterm_nvim[i] = Terminal:new({ display_name = "terminal " .. i, cmd = "nu", hidden = true })
             end
@@ -136,13 +130,13 @@ return {
                 end,
                 desc = "GitUI",
             },
-            {
-                "<leader>ta",
-                function()
-                    require("core.utils").toggle_term("opencode")
-                end,
-                desc = "OpenCode Agent",
-            },
+            -- {
+            --     "<leader>ta",
+            --     function()
+            --         require("core.utils").toggle_term("opencode")
+            --     end,
+            --     desc = "OpenCode Agent",
+            -- },
             {
                 "<leader>tw",
                 function()
