@@ -73,12 +73,6 @@ return {
             toggleterm_nvim.opencode = Terminal:new({
                 cmd = "opencode --continue",
                 hidden = true,
-                on_open = function(_)
-                    vim.o.mouse = ""
-                end,
-                on_close = function()
-                    vim.o.mouse = "a"
-                end,
                 env = {
                     EXPERIMENTAL_HOT_RELOAD = "true",
                     NVIM_SOCKET_PATH = vim.v.servername,

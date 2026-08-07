@@ -169,7 +169,7 @@ if 0 == vim.fn.has("win32") then
         end
     end
 else
-    g.terminal_emulator = "powershell"
+    g.terminal_emulator = "nu"
     g.clipboard = {
         name = "wsl",
         copy = {
@@ -210,7 +210,12 @@ end
 -- vim.cmd([[ au TermOpen term://* setlocal nonumber norelativenumber | setfiletype terminal ]])
 vim.api.nvim_create_autocmd("TermOpen", {
     pattern = "term://*",
-    command = "setlocal nonumber norelativenumber | setfiletype terminal",
+    callback = function(args)
+        vim.cmd [[setlocal nonumber norelativenumber]]
+        vim.cmd [[setfiletype terminal]]
+        vim.opt.number = false
+        vim.opt.relativenumber = false
+    end,
 })
 vim.api.nvim_create_autocmd({ "BufWinEnter", "WinEnter" }, {
     pattern = "term://*",
