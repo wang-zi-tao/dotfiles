@@ -38,6 +38,7 @@ nixpkgs.lib.nixosSystem {
         ];
         nix.buildMachines = pkgs.lib.mkForce [ ];
         cluster.network.nodes."${hostname}" = { };
+        cluster.ssh.publicKeySops = ../secrets/public-key.yaml;
         cluster.nodes."${hostname}" = {
           users.wangzi = ../home-manager/profiles/wangzi-develop.nix;
           guiClient.enable = true;

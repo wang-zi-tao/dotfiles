@@ -5,6 +5,7 @@
   sops-nix,
   nixos-wsl,
   nixfs,
+  modules,
   ...
 }@inputs:
 let
@@ -15,11 +16,8 @@ in
 nixpkgs.lib.nixosSystem {
   inherit pkgs system;
   specialArgs = inputs;
-  modules = [
-    sops-nix.nixosModules.sops
-    home-manager.nixosModules.home-manager
+  modules = modules ++ [
     nixos-wsl.nixosModules.default
-    nixfs.nixosModules.nixfs
     (
       {
         pkgs,
@@ -30,7 +28,7 @@ nixpkgs.lib.nixosSystem {
       {
         wsl.enable = true;
         wsl.defaultUser = "wangzi";
-        wsl.nativeSystemd = true;
+        wsl.useWindowsDriver = true;
         imports = [ ../module/cluster.nix ];
         cluster.network.nodes."${hostname}" = { };
         cluster.nodes."${hostname}" = {
@@ -42,7 +40,7 @@ nixpkgs.lib.nixosSystem {
           virtualisation.enable = false;
           container.enable = true;
           inContainer = true;
-          sshd.enable = false;
+          sshd.enable = true;
         };
         sops.defaultSopsFile = "/";
         networking = {
@@ -56,7 +54,7 @@ nixpkgs.lib.nixosSystem {
         swapDevices = [
           {
             device = "/swapfile";
-            size = 1024 * 16;
+            size = 1024 * 8;
           }
         ];
         users.users.root.hashedPassword = "$6$EleVrSVkk8j6lvlN$5EPVW5nhguBtB7WFaLBWrJHCCT.7xj7.NNgMR9OVdf3ngH80miDyox3JXcuHEu65NTnbGtlCX14bzxg0F1po8.";

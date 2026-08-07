@@ -118,7 +118,7 @@ local function config()
         -- "rust_analyzer",
         "gopls",
         "html",
-        "ts_ls",
+        -- "ts_ls",  -- 见下方自定义配置
         -- "eslint",
         "vue_ls",
         -- "tailwindcss",
@@ -139,6 +139,39 @@ local function config()
     for _, lsp in ipairs(servers) do
         setup_lsp(lsp)
     end
+
+    -- ts_ls: TypeScript/JavaScript 格式化配置
+    -- 代码风格：4 空格缩进、分号、单引号、大括号内侧不留空格、左大括号不换行
+    setup_lsp("ts_ls", {
+        settings = {
+            javascript = {
+                format = {
+                    indentSize = 2,
+                    tabSize = 2,
+                    convertTabsToSpaces = true,
+                    semicolons = "insert",
+                    insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = false,
+                    insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces = false,
+                    insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces = false,
+                    placeOpenBraceOnNewLineForFunctions = false,
+                    placeOpenBraceOnNewLineForControlBlocks = false,
+                },
+            },
+            typescript = {
+                format = {
+                    indentSize = 2,
+                    tabSize = 2,
+                    convertTabsToSpaces = true,
+                    semicolons = "insert",
+                    insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = false,
+                    insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces = false,
+                    insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces = false,
+                    placeOpenBraceOnNewLineForFunctions = false,
+                    placeOpenBraceOnNewLineForControlBlocks = false,
+                },
+            },
+        },
+    })
 
     setup_lsp("jsonls", {
         filetypes = { "json", "jsonc" },

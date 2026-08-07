@@ -71,8 +71,24 @@ return {
             toggleterm_nvim.gitui = Terminal:new({ cmd = "lazygit", hidden = true })
             toggleterm_nvim.rg = Terminal:new({ cmd = "nu", hidden = true })
             toggleterm_nvim.opencode = Terminal:new({
-                cmd = "opencode --continue",
+                cmd = "opencode --continue --port",
+                direction = "vertical",
+                display_name = "opencode",
                 hidden = true,
+                on_create = function(this)
+                    this:resize(60)
+                end,
+                on_open = function(this)
+                    this:resize(60)
+                    -- if vim.fn.has("win32") == 1 then
+                    --     vim.o.mouse = ""
+                    -- end
+                end,
+                -- on_close = function()
+                --     if vim.fn.has("win32") == 1 then
+                --         vim.o.mouse = "a"
+                --     end
+                -- end,
                 env = {
                     EXPERIMENTAL_HOT_RELOAD = "true",
                     NVIM_SOCKET_PATH = vim.v.servername,
@@ -114,13 +130,13 @@ return {
                 end,
                 desc = "GitUI",
             },
-            {
-                "<leader>ta",
-                function()
-                    require("core.utils").toggle_term("opencode")
-                end,
-                desc = "OpenCode Agent",
-            },
+            -- {
+            --     "<leader>ta",
+            --     function()
+            --         require("core.utils").toggle_term("opencode")
+            --     end,
+            --     desc = "OpenCode Agent",
+            -- },
             {
                 "<leader>tw",
                 function()

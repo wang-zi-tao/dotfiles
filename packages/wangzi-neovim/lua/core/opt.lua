@@ -7,15 +7,15 @@ local o = vim.o
 
 opt.list = true
 -- opt.listchars:append "space:⋅"
-opt.listchars:append("eol:↴")
-opt.listchars:append("tab:  ")
+vim.opt.listchars:append("eol:↴")
+vim.opt.listchars:append("tab:  ")
 -- opt.listchars:append "multispace:|   "
-opt.listchars:append("trail:-")
+vim.opt.listchars:append("trail:-")
 
 opt.copyindent = true
 opt.preserveindent = true
 opt.swapfile = false
-opt.shortmess:append("A")
+vim.opt.shortmess:append("A")
 opt.backup = true
 opt.writebackup = true
 opt.backupcopy = "yes"
@@ -34,7 +34,7 @@ opt.number = true
 opt.numberwidth = 2
 opt.relativenumber = true
 opt.ruler = false
-opt.shortmess:append("sI")
+vim.opt.shortmess:append("sI")
 opt.signcolumn = "yes"
 opt.smartcase = true
 opt.smartindent = true
@@ -45,11 +45,11 @@ opt.title = true
 opt.termguicolors = true
 opt.undofile = true
 opt.updatetime = 250
-opt.whichwrap:append("<>[]hl")
+vim.opt.whichwrap:append("<>[]hl")
 opt.exrc = true
 opt.secure = true
 
-opt.tabstop = 4
+opt.tabstop = 2
 opt.softtabstop = -1
 opt.shiftwidth = 0
 opt.shiftround = true
@@ -73,16 +73,16 @@ opt.winborder = "rounded"
 --     end,
 -- })
 
-vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
-    pattern = { "*.*" },
-    callback = function()
-        opt.mouse = "a"
-        opt.number = true
-        opt.numberwidth = 2
-        opt.relativenumber = true
-        opt.signcolumn = "yes"
-    end,
-})
+-- vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+--     pattern = { "*.*" },
+--     callback = function()
+--         opt.mouse = "a"
+--         opt.number = true
+--         opt.numberwidth = 2
+--         opt.relativenumber = true
+--         opt.signcolumn = "yes"
+--     end,
+-- })
 
 vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
     pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "CMakeLists.txt", "*.h", "*.hpp", "*.pch", "*.def" },

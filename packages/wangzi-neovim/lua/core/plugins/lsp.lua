@@ -257,6 +257,17 @@ return {
                     -- See below for more information
                     repl_open_cmd = require("iron.view").bottom(40),
                 },
+                repl_definition = {
+                    rust = {
+                        command = { "evcxr", "--ide-mode" }
+                    },
+                    java = {
+                        command = { "jshell" }
+                    },
+                    typescript = {
+                        command = { "deno" }
+                    }
+                },
                 -- Iron doesn't set keymaps by default anymore.
                 -- You can set them here or manually add keymaps to the functions in iron.core
                 keymaps = {

@@ -129,10 +129,10 @@ return {
         lazy = true,
         event = "VeryLazy",
         keys = {
-            { "<c-h>", "<cmd>ZellijNavigateLeftTab<cr>",  { silent = true, desc = "navigate left or tab" } },
-            { "<c-j>", "<cmd>ZellijNavigateDown<cr>",     { silent = true, desc = "navigate down" } },
-            { "<c-k>", "<cmd>ZellijNavigateUp<cr>",       { silent = true, desc = "navigate up" } },
-            { "<c-l>", "<cmd>ZellijNavigateRightTab<cr>", { silent = true, desc = "navigate right or tab" } },
+            { "<C-h>", "<cmd>ZellijNavigateLeftTab<CR>",  { mode = { "n", "t" }, silent = true, desc = "navigate left or tab" } },
+            { "<C-j>", "<cmd>ZellijNavigateDown<CR>",     { mode = { "n", "t" }, silent = true, desc = "navigate down" } },
+            { "<C-k>", "<cmd>ZellijNavigateUp<CR>",       { mode = { "n", "t" }, silent = true, desc = "navigate up" } },
+            { "<C-l>", "<cmd>ZellijNavigateRightTab<CR>", { mode = { "n", "t" }, silent = true, desc = "navigate right or tab" } },
         },
         opts = {},
         init = function()
@@ -167,12 +167,33 @@ return {
             "FocusMaxOrEqual",
         },
         opts = {
-            excluded_filetypes = { "toggleterm", "notify", "markdown" },
             -- hybridnumber = true,
             treewidth = 30,
-            width = 96,
-            height = 30,
+            autoresize = {
+                minwidth = 20,
+                minheight = 20,
+                focusedwindow_minwidth = 48,
+                focusedwindow_minheight = 48,
+            }
         },
+        config = function(opts)
+            local ignore_filetypes = require("core.utils").file_type_blacklist
+            local augroup = vim.api.nvim_create_augroup('FocusDisable', { clear = true })
+            vim.api.nvim_create_autocmd('FileType', {
+                group = augroup,
+                callback = function(_)
+                    if vim.tbl_contains(ignore_filetypes, vim.bo.filetype) then
+                        vim.b.focus_disable = true
+                    else
+                        vim.b.focus_disable = false
+                    end
+                end,
+                desc = 'Disable focus autoresize for FileType',
+            })
+
+            require("focus").setup(vim.tbl_deep_extend("force", opts, {
+            }))
+        end,
         event = "VeryLazy",
         keys = {
             { "<leader>wh", "<cmd>FocusSplitLeft<CR>",          silent = true, desc = "Split left" },

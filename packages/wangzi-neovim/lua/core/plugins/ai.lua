@@ -1,336 +1,28 @@
 local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
 local enable_vectorcode = false
 
-local system_prompt = function(opts)
-    local str = [[
-你是一个名为"CodeCompanion"的AI编程助手，当前已接入用户机器上的Neovim文本编辑器。
-
-你的核心任务包括：
-- 回答通用编程问题
-- 解释Neovim缓冲区中代码的工作原理
-- 审查Neovim缓冲区中选定的代码
-- 为选定代码生成单元测试
-- 针对选定代码的问题提出修复方案
-- 为新工作区搭建代码框架
-- 根据用户查询查找相关代码
-- 为测试失败提出修复方案
-- 回答关于Neovim的问题
-- 运行工具
-
-你必须：
-- 严格遵循用户要求
-- 保持回答简洁客观，特别是当用户提供的内容超出任务范围时
-- 尽量减少额外描述
-- 在回答中使用Markdown格式
-- 在Markdown代码块开头注明编程语言
-- 避免在代码块中包含行号
-- 避免用三重反引号包裹整个响应
-- 仅返回与当前任务直接相关的代码
-- 在响应中使用实际换行而非'\n'
-- 只在需要字面意义的反斜杠加字符'n'时使用'\n'
-- 所有非代码响应必须使用%s语言
-
-当接到任务时：
-1. 逐步思考并用详细的伪代码描述构建计划（除非用户要求不这样做）
-2. 在单个代码块中输出代码，确保只返回相关代码
-3. 始终生成与对话相关的简短后续建议
-4. 每个对话回合只能给出一个回复
-]]
-    return string.format(str, opts.language)
-end
-
 local prompt_library = {
-    ["Claude_opus4_prompt"] = {
-        strategy = "chat",
-        description = "让Deepseekl拥有Deep Research turbo 能力的Prompt",
-        prompts = {
-            {
-                role = "system",
-                content = [[
-<identity>
-You are an expert software engineer and coding assistant with deep expertise across multiple programming paradigms, languages, and architectural patterns. Your responses should demonstrate the thoughtfulness and precision of a senior developer while remaining accessible and educational.
-</identity>
-
-<extended_thinking_protocol>
-Before providing any code or technical solution, you MUST engage in explicit reasoning using the following format:
-
-```thinking
-[Problem Analysis]
-- What is the core problem?
-- What are the constraints and requirements?
-- What edge cases should I consider?
-
-[Solution Design]
-- What approaches could work?
-- What are the tradeoffs?
-- Which approach is optimal and why?
-
-[Implementation Planning]
-- What components are needed?
-- How will they interact?
-- What patterns should I use?
-
-[Quality Considerations]
-- How can I ensure correctness?
-- What about performance?
-- How can I make it maintainable?
-```
-
-This thinking process should be visible to the user when tackling complex problems.
-</extended_thinking_protocol>
-
-<core_coding_principles>
-<code_quality>
-- Write production-ready code by default
-- Include comprehensive error handling
-- Add meaningful comments for complex logic
-- Follow language-specific best practices and idioms
-- Consider performance implications
-- Ensure code is testable and maintainable
-</code_quality>
-
-<problem_solving_approach>
-1. **Understand First**: Clarify requirements before coding
-2. **Design Before Implementation**: Think through the architecture
-3. **Iterative Refinement**: Start simple, then optimize
-4. **Edge Case Handling**: Always consider boundary conditions
-5. **Testing Mindset**: Write code with testing in mind
-</problem_solving_approach>
-
-<code_structure>
-- Use clear, self-documenting variable and function names
-- Maintain consistent formatting and style
-- Organize code logically with proper separation of concerns
-- Apply appropriate design patterns
-- Keep functions focused and cohesive
-</code_structure>
-</core_coding_principles>
-
-<language_specific_expertise>
-<python>
-- Use type hints for better code clarity
-- Leverage Python's idioms (list comprehensions, generators, etc.)
-- Follow PEP 8 style guide
-- Use appropriate data structures (defaultdict, Counter, etc.)
-- Handle exceptions pythonically
-</python>
-
-<javascript_typescript>
-- Prefer TypeScript for type safety when applicable
-- Use modern ES6+ features appropriately
-- Handle async operations properly
-- Consider browser compatibility when relevant
-- Follow established patterns (modules, classes, hooks)
-</javascript_typescript>
-
-<systems_languages>
-- Memory management considerations
-- Concurrency and thread safety
-- Performance optimization techniques
-- Low-level system interactions
-- Proper resource cleanup
-</systems_languages>
-
-<web_development>
-- Security best practices (XSS, CSRF, SQL injection prevention)
-- RESTful API design principles
-- Frontend performance optimization
-- Responsive design considerations
-- Accessibility standards
-</web_development>
-</language_specific_expertise>
-
-<output_format_guidelines>
-<code_presentation>
-```language
-// Clear section comments for complex code
-// Inline comments for non-obvious logic
-
-// Example structure:
-// 1. Imports/Dependencies
-// 2. Configuration/Constants
-// 3. Helper Functions
-// 4. Main Logic
-// 5. Error Handling
-// 6. Exports/Entry Points
-```
-</code_presentation>
-
-<complete_solutions>
-When providing code solutions:
-1. Include all necessary imports
-2. Provide complete, runnable code
-3. Add example usage
-4. Include test cases when appropriate
-5. Document any external dependencies
-6. Explain time and space complexity
-</complete_solutions>
-
-<progressive_enhancement>
-For complex problems:
-1. First: Basic working solution
-2. Then: Optimized version
-3. Finally: Production-ready implementation
-4. Alternative approaches if relevant
-</progressive_enhancement>
-</output_format_guidelines>
-
-<advanced_capabilities>
-<debugging_assistance>
-- Analyze error messages systematically
-- Identify root causes, not just symptoms
-- Suggest debugging strategies
-- Provide fix alternatives with tradeoffs
-</debugging_assistance>
-
-<code_review_mindset>
-- Point out potential issues proactively
-- Suggest improvements for readability
-- Identify security vulnerabilities
-- Recommend performance optimizations
-- Consider maintainability concerns
-</code_review_mindset>
-
-<architecture_design>
-- Apply SOLID principles
-- Consider scalability from the start
-- Design for testability
-- Plan for future extensions
-- Document architectural decisions
-</architecture_design>
-
-<optimization_strategies>
-- Profile before optimizing
-- Consider algorithmic improvements first
-- Balance readability with performance
-- Use appropriate data structures
-- Leverage built-in optimizations
-</optimization_strategies>
-</advanced_capabilities>
-
-<interaction_patterns>
-<clarification_seeking>
-When requirements are unclear:
-- Ask specific, targeted questions
-- Provide examples of what you need to know
-- Suggest reasonable defaults
-- Explain why the clarification matters
-</clarification_seeking>
-
-<teaching_mode>
-When explaining code:
-- Start with the high-level concept
-- Break down complex parts
-- Use analogies when helpful
-- Provide visual representations (ASCII diagrams)
-- Include references for deeper learning
-</teaching_mode>
-
-<iterative_development>
-- Encourage incremental improvements
-- Provide refactoring suggestions
-- Support learning through mistakes
-- Celebrate working solutions before optimizing
-</iterative_development>
-</interaction_patterns>
-
-<specialized_domains>
-<data_structures_algorithms>
-- Analyze time/space complexity
-- Choose optimal data structures
-- Implement efficient algorithms
-- Explain tradeoffs clearly
-</data_structures_algorithms>
-
-<system_design>
-- Design scalable architectures
-- Consider distributed systems challenges
-- Plan for fault tolerance
-- Address consistency and availability
-</system_design>
-
-<security_practices>
-- Input validation and sanitization
-- Authentication and authorization
-- Encryption and secure communication
-- Security testing approaches
-</security_practices>
-
-<performance_engineering>
-- Profiling and benchmarking
-- Caching strategies
-- Database optimization
-- Asynchronous processing
-</performance_engineering>
-</specialized_domains>
-
-<meta_instructions>
-<self_assessment>
-After each solution:
-- Verify correctness
-- Check for edge cases
-- Assess code quality
-- Consider alternatives
-- Identify potential improvements
-</self_assessment>
-
-<continuous_improvement>
-- Learn from user feedback
-- Adapt explanation depth to user level
-- Refine solutions based on constraints
-- Stay current with best practices
-</continuous_improvement>
-
-<ethical_coding>
-- Never write malicious code
-- Respect intellectual property
-- Consider accessibility and inclusion
-- Promote secure coding practices
-- Educate about potential misuse
-</ethical_coding>
-</meta_instructions>
-
-<response_priorities>
-1. **Correctness**: The code must work
-2. **Clarity**: The code must be understandable
-3. **Efficiency**: The code should perform well
-4. **Maintainability**: The code should be easy to modify
-5. **Elegance**: The code should be pleasant to read
-</response_priorities>
-                        ]],
-            },
-        },
-    }
 }
 
-local function iflow()
+local function hermes_acp()
     local helpers = require("codecompanion.adapters.acp.helpers")
-
     return {
-        name = "iflow",
-        formatted_name = "iFlow",
+        name = "hermes",
+        formatted_name = "Hermes",
         type = "acp",
         roles = {
             llm = "assistant",
             user = "user",
         },
-        opts = {
-            vision = true,
-            trim_tool_output = true,
-        },
         commands = {
             default = {
-                "iflow",
-                "--experimental-acp",
+                "hermes",
+                "acp"
             },
         },
         defaults = {
-            auth_method = "oauth-personal",
             mcpServers = {},
             timeout = 20000, -- 20 seconds
-        },
-        env = {
-            IFLOW_OAUTH_TOKEN = "IFLOW_OAUTH_TOKEN",
         },
         parameters = {
             protocolVersion = 1,
@@ -343,40 +35,17 @@ local function iflow()
             },
         },
         handlers = {
-            ---@param self CodeCompanion.ACPAdapter
-            ---@return boolean
             setup = function(self)
                 return true
             end,
-
-            ---Manually handle authentication using OAuth
-            ---@param self CodeCompanion.ACPAdapter
-            ---@return boolean
             auth = function(self)
-                -- Set iFlow OAuth token for the subprocess
-                local oauth_token = self.env_replaced.IFLOW_OAUTH_TOKEN
-                if oauth_token and oauth_token ~= "" then
-                    vim.env.IFLOW_OAUTH_TOKEN = oauth_token
-                    return true
-                end
-
                 return true
             end,
-
-            ---@param self CodeCompanion.ACPAdapter
-            ---@param messages table
-            ---@param capabilities table
-            ---@return table
             form_messages = function(self, messages, capabilities)
                 return helpers.form_messages(self, messages, capabilities)
             end,
-
-            ---Function to run when the request has completed. Useful to catch errors
-            ---@param self CodeCompanion.ACPAdapter
-            ---@param code number
-            ---@return nil
             on_exit = function(self, code) end,
-        }
+        },
     }
 end
 
@@ -489,6 +158,32 @@ local function create_key_env(name, key)
     return api_key_name
 end
 
+local function get_al_api_config()
+    local json = getAiJson()
+
+    local configs = {}
+    for name, config in pairs(json) do
+        local config = json[name]
+        local api_key = config.key
+        local url = config.url
+        local model = config.model
+
+        configs[name] = {
+            schema = {
+                schema = { default = 0.0, },
+                model = { default = model, },
+            },
+            env = {
+                url = url,
+                api_key = create_key_env(model, api_key),
+                raw_api_key = api_key,
+                chat_url = "/v1/chat/completions",
+            },
+        }
+    end
+    return configs
+end
+
 local function get_api_config(name)
     local json = getAiJson()
     local config = json[name]
@@ -504,9 +199,25 @@ local function get_api_config(name)
         env = {
             url = url,
             api_key = create_key_env(model, api_key),
+            raw_api_key = api_key,
             chat_url = "/v1/chat/completions",
         },
     }
+end
+
+local function launch_codemem_serve()
+    local Job = require("plenary.job")
+    local task = Job:new({
+        command = "codemem",
+        args = { "serve" },
+        on_stderr = function(error, data, self)
+            vim.notify("codemem stderr: " .. data, "WARN")
+        end,
+        on_exit = function(self, code, signal)
+            vim.notify("codemem exit with code " .. code, "ERROR")
+        end
+    })
+    task:start()
 end
 
 local function config_codecompanion()
@@ -526,6 +237,7 @@ local function config_codecompanion()
         opts = {
             language = "Chinese",
             send_code = true,
+            log_level = "TRACE",
             -- system_prompt = system_prompt,
         },
         strategies = {
@@ -557,12 +269,31 @@ local function config_codecompanion()
                     return require("codecompanion.adapters").extend("openai_compatible", config)
                 end,
                 deepseek = function()
-                    local config = get_api_config("deepseek")
+                    local config = get_api_config("deepseek-pro")
                     return require("codecompanion.adapters").extend("deepseek", config)
                 end,
                 deepseek_flash = function()
                     local config = get_api_config("deepseek-flash")
                     return require("codecompanion.adapters").extend("deepseek", config)
+                end,
+                wps_deepseek = function()
+                    local config = get_api_config("wps-deepseek-pro")
+                    return require("codecompanion.adapters").extend("deepseek", config)
+                end,
+                wps_deepseek_flash = function()
+                    local config = get_api_config("wps-deepseek-flash")
+                    return require("codecompanion.adapters").extend("deepseek", config)
+                end,
+                wps_glm = function()
+                    local config = get_api_config("wps-glm")
+                    return require("codecompanion.adapters").extend("deepseek", config)
+                end,
+                deepseek_flash_free = function()
+                    local config = get_api_config("deepseek-v4-flash-free")
+                    return require("codecompanion.adapters").extend("openai_responses", config)
+                end,
+                gpt = function()
+                    local config = get_api_config("gpt")
                 end,
                 kimi = function()
                     local config = get_api_config("kimi")
@@ -570,9 +301,21 @@ local function config_codecompanion()
                 end,
             },
             acp = {
-                iflow = iflow,
+                opts = {
+                    show_presets = true,
+                    show_model_choices = true,
+                },
+
+                hermes_acp = hermes_acp,
+
                 opencode = function()
-                    return require("codecompanion.adapters").extend("opencode", {})
+                    return require("codecompanion.adapters").extend("opencode", {
+
+                        opts = {
+                            vision = true,
+                            trim_tool_output = true,
+                        },
+                    })
                 end,
             }
         },
@@ -624,6 +367,23 @@ local function config_codecompanion()
     codecompanion_fidget():init()
 end
 
+local opencode_cmd = { 'opencode', '-c', '--port' }
+---@type snacks.terminal.Opts
+local snacks_terminal_opts = {
+    win = {
+        position = 'right',
+        enter = true,
+        width = 0.25,
+        winbar = "",
+        wo = {
+            number = false,
+            relativenumber = false,
+            winbar = "",
+        }
+    },
+}
+
+
 return {
     found_vectorcode_command = found_vectorcode_command,
     enable_vectorcode = enable_vectorcode,
@@ -642,6 +402,8 @@ return {
             })
             vim.keymap.set('i', '<C-\\>', 'copilot#Accept("\\<CR>")', { expr = true, replace_keycodes = false })
             vim.g.copilot_no_tab_map = true
+
+            launch_codemem_serve()
         end,
     },
     {
@@ -721,22 +483,24 @@ return {
                 mode = { "n", "v" },
                 desc = "generate code"
             },
-            { "<leader>aa", [[<cmd>CodeCompanionActions<CR>]], mode = { "n", "v" }, desc = "AI Actions" },
-            { "<leader>at", "<cmd>CodeCompanionChat<CR>",      desc = "AI Chat" },
+            { "<leader>aa", [[<cmd>CodeCompanionChat adapter=opencode<CR>]], mode = { "n", "v" }, desc = "AI Agent" },
+            { "<leader>at", "<cmd>CodeCompanionChat adapter=deepseek<CR>",   desc = "AI Chat" },
         },
     },
     {
         'milanglacier/minuet-ai.nvim',
         dir = gen.minuet_ai,
         name = "minuet_ai",
+        lazy = true,
         config = function()
             local utils = require("core.utils")
-            local llm = get_api_config("deepseek-flush")
+            local llm = get_api_config("deepseek-flash")
             require('minuet').setup {
                 provider = 'openai_fim_compatible',
                 provider_options = {
                     openai_fim_compatible = {
                         api_key = llm.env.api_key,
+                        model = 'deepseek-v4-flash',
                         name = 'deepseek',
                         optional = {
                             max_tokens = 256,
@@ -851,6 +615,86 @@ return {
                 },
                 cmd = gen.mcp_hub and gen.mcp_hub .. "/bin/mcp-hub",
             })
+        end,
+    },
+    {
+        "nickjvandyke/opencode.nvim",
+        name = "opencode",
+        dir = gen.opencode,
+        keys = {
+            {
+                "<leader>ao",
+                function()
+                    require("opencode").ask("@this: ")
+                end,
+                desc = "Ask OpenCode…"
+            },
+            {
+                "<leader>as",
+                function()
+                    require("opencode").select()
+                end,
+                desc = "Select OpenCode…"
+            },
+            {
+                "go",
+                function()
+                    return require("opencode").operator("@this ")
+                end,
+                expr = true,
+                desc = "Append range to OpenCode",
+                mode = { "n", "x" }
+            },
+            {
+                "<leader>ta",
+                function()
+                    vim.schedule(function()
+                        require('snacks.terminal').toggle(opencode_cmd, snacks_terminal_opts)
+                    end)
+                end,
+                expr = true,
+                desc = "toggle OpenCode",
+                mode = { "n", "x" }
+            },
+        },
+        config = function()
+            ---@type opencode.Opts
+            vim.g.opencode_opts = {
+                server = {
+                    -- Your configuration, if any; goto definition on the type for details
+                    start = function()
+                        require('snacks.terminal').open(opencode_cmd, snacks_terminal_opts)
+                    end,
+                    stop = function()
+                        local win = require('snacks.terminal').get(opencode_cmd, { create = false })
+                        if win then
+                            win:destroy()
+                        end
+                    end,
+                    toggle = function()
+                        local win = require('snacks.terminal').get(opencode_cmd, { create = false })
+                        if win then
+                            win:toggle()
+                        end
+                    end
+                },
+            }
+
+            vim.api.nvim_create_autocmd('User', {
+                pattern = { 'OpencodeEvent:tui.command.execute' },
+                callback = function(args)
+                    ---@type opencode.server.Event
+                    local event = args.data.event
+                    if event.properties.command == 'prompt.submit' then
+                        local win = require('snacks.terminal').get(opencode_cmd, { create = false })
+                        if win then
+                            win:show()
+                        end
+                    end
+                end,
+            })
+
+            vim.o.autoread = true -- Required for `vim.g.opencode_opts.events.reload`
         end,
     }
 }
