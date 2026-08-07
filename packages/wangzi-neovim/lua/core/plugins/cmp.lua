@@ -312,6 +312,7 @@ return {
             name = "cmp_tabnine",
             build = tabnine_build,
             module = "cmp_tabnine",
+            disabled = true,
             lazy = true,
             config = function()
                 require("cmp_tabnine").setup()

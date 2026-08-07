@@ -45,7 +45,7 @@ return {
             function()
                 pcall(require("core.utils").add_mark)
                 Snacks.picker.grep({
-                    ignored = true,
+                    ignored = false,
                     dirs = { require("core.utils").pwd or "." },
                 })
             end,
@@ -56,13 +56,13 @@ return {
             "<leader>fW",
             function()
                 pcall(require("core.utils").add_mark)
-                Snacks.picker.grep_word({
+                Snacks.picker.grep({
                     ignored = true,
                     dirs = { require("core.utils").pwd or "." },
                 })
             end,
             mode = { "n" },
-            desc = "Grep word",
+            desc = "Grep with gitignore",
         },
         {
             "<leader>fd",

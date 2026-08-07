@@ -146,8 +146,8 @@ local function config()
         settings = {
             javascript = {
                 format = {
-                    indentSize = 4,
-                    tabSize = 4,
+                    indentSize = 2,
+                    tabSize = 2,
                     convertTabsToSpaces = true,
                     semicolons = "insert",
                     insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = false,
@@ -159,8 +159,8 @@ local function config()
             },
             typescript = {
                 format = {
-                    indentSize = 4,
-                    tabSize = 4,
+                    indentSize = 2,
+                    tabSize = 2,
                     convertTabsToSpaces = true,
                     semicolons = "insert",
                     insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = false,

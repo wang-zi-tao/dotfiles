@@ -649,7 +649,7 @@ return {
                 "<leader>ta",
                 function()
                     vim.schedule(function()
-                        require('snacks.terminal').open(opencode_cmd, snacks_terminal_opts)
+                        require('snacks.terminal').toggle(opencode_cmd, snacks_terminal_opts)
                     end)
                 end,
                 expr = true,

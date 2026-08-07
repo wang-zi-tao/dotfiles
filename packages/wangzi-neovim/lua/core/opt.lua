@@ -49,7 +49,7 @@ vim.opt.whichwrap:append("<>[]hl")
 opt.exrc = true
 opt.secure = true
 
-opt.tabstop = 4
+opt.tabstop = 2
 opt.softtabstop = -1
 opt.shiftwidth = 0
 opt.shiftround = true
