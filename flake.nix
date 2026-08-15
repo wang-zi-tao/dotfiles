@@ -1,10 +1,10 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-old.url = "github:nixos/nixpkgs/release-24.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     master.url = "github:nixos/nixpkgs";
-    home-manager.url = "github:nix-community/home-manager/release-25.11";
+    home-manager.url = "github:nix-community/home-manager/master";
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
@@ -19,7 +19,7 @@
       inputs.home-manager.follows = "home-manager";
     };
     nix-darwin = {
-      url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+      url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nur.url = "github:nix-community/NUR";
@@ -42,8 +42,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     kubenix.url = "github:hall/kubenix";
-    opencode.url = "github:anomalyco/opencode";
     hermes-agent.url = "github:NousResearch/hermes-agent";
+    llm-agents.url = "github:numtide/llm-agents.nix";
   };
   outputs =
     inputs@{
@@ -64,8 +64,6 @@
       nixfs,
       NixVirt,
       kubenix,
-      opencode,
-      hermes-agent,
       ...
     }:
     let
@@ -119,7 +117,8 @@
                 packages
                 nur.overlays.default
                 fenix.overlays.default
-                hermes-agent.overlays.default
+                inputs.hermes-agent.overlays.default
+                inputs.llm-agents.overlays.shared-nixpkgs
                 # nixpkgs-wayland.overlay
                 (
                   final: prev:
@@ -133,7 +132,6 @@
                     nixpkgs-old = import inputs.nixpkgs-old { inherit system overlays config; };
                     flake-inputs = inputs;
                     eza = eza.packages.${system}.default;
-                    opencode = opencode.packages.${system}.default;
                     scripts = builtins.mapAttrs (
                       name: kind: prev.writeScriptBin name (readFile (./scripts + "/${name}"))
                     ) (readDir ./scripts);
@@ -215,7 +213,7 @@
               disko.nixosModules.disko
               nixfs.nixosModules.nixfs
               NixVirt.nixosModules.default
-              hermes-agent.nixosModules.default
+              inputs.hermes-agent.nixosModules.default
             ];
           }
           // inputs

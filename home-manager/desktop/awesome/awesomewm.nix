@@ -205,7 +205,7 @@ with builtins;
         '';
     };
     systemd.user.services.close-screen = makeService {
-      ExecStart = "${pkgs.xorg.xset}/bin/xset s ${toString (config.desktop.close-screen-timeout * 60)}";
+      ExecStart = "${pkgs.xset}/bin/xset s ${toString (config.desktop.close-screen-timeout * 60)}";
     };
     systemd.user.services.lock = makeService {
       ExecStart =

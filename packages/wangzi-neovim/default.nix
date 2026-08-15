@@ -128,6 +128,7 @@ let
     fugit2 = fugit2-nvim;
 
     # AI
+    opencode = opencode-nvim;
     copilot_vim = copilot-vim;
     codecompanion = codecompanion-nvim;
     vectorcode = fetchgit {

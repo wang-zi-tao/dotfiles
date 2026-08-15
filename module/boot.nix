@@ -49,7 +49,6 @@ in
         acpi_call
       ];
 
-      kernelPackages = pkgs.linuxKernel.packages.linux_6_19;
     };
     services.logind.settings.Login.HandleLidSwitch = "ignore";
     services.upower.ignoreLid = true;
@@ -80,7 +79,6 @@ in
       enable = true;
     };
 
-    systemd.coredump.enable = true;
     boot.extraSystemdUnitPaths = [ "/etc/systemd-mutable/system" ];
     systemd.oomd = {
       enable = true;

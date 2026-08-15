@@ -180,7 +180,7 @@ in
         };
       };
       services.xserver = {
-        modules = with pkgs.xorg; [
+        modules = with pkgs; [
           xf86videonv
           xf86inputlibinput
           xf86videovesa

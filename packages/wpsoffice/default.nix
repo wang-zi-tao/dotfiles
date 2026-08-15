@@ -1,23 +1,73 @@
-{ lib, stdenv, fetchurl, autoPatchelfHook, dpkg, wrapGAppsHook3, libsForQt5, xorg
-, alsa-lib, atk, bzip2, cairo, cups, dbus, expat, mesa
-, fontconfig, freetype, gdk-pixbuf, glib, gperftools, gtk2-x11, libICE, libpng12
-, libSM, libtool, libuuid, libX11, libxcb, libXcomposite, libXcursor, libXdamage
-, libXext, libXfixes, libXi, libxml2, libXrandr, libXrender, libXScrnSaver
-, libXtst, nspr, nss, curl, pango, sqlite, unixODBC, xz, zlib, libcxx
-, libusb1, SDL2, libudev-zero }:
+{
+  lib,
+  stdenv,
+  fetchurl,
+  autoPatchelfHook,
+  dpkg,
+  wrapGAppsHook3,
+  qt5,
+  alsa-lib,
+  atk,
+  bzip2,
+  cairo,
+  cups,
+  dbus,
+  expat,
+  mesa,
+  fontconfig,
+  freetype,
+  gdk-pixbuf,
+  glib,
+  gperftools,
+  gtk2-x11,
+  libICE,
+  libpng12,
+  libSM,
+  libtool,
+  libuuid,
+  libX11,
+  libxcb,
+  libXcomposite,
+  libXcursor,
+  libXdamage,
+  libXext,
+  libXfixes,
+  libXi,
+  libxml2,
+  libXrandr,
+  libXrender,
+  libXScrnSaver,
+  libXtst,
+  nspr,
+  nss,
+  curl,
+  pango,
+  sqlite,
+  unixODBC,
+  xz,
+  zlib,
+  libcxx,
+  libusb1,
+  SDL2,
+  libXv,
+  libudev-zero,
+}:
 stdenv.mkDerivation rec {
   pname = "wpsoffice";
   version = "12.1.0.17900";
   src = fetchurl {
-    url =
-      "http://47.83.14.140/s/mmC7LFp6qZXXmat/download/wps-office_12.1.0.17900_amd64.deb";
+    url = "http://47.83.14.140/s/mmC7LFp6qZXXmat/download/wps-office_12.1.0.17900_amd64.deb";
     sha256 = "sha256-RnJvu3J0N9z2Vt1w2rzBmLTUzizd06j53rBOSZyxwpg=";
   };
   unpackCmd = "dpkg -x $src .";
   sourceRoot = ".";
 
-  nativeBuildInputs =
-    [ autoPatchelfHook dpkg wrapGAppsHook3 libsForQt5.qt5.wrapQtAppsHook ];
+  nativeBuildInputs = [
+    autoPatchelfHook
+    dpkg
+    wrapGAppsHook3
+    qt5.wrapQtAppsHook
+  ];
 
   meta = with lib; {
     description = "Office suite, formerly Kingsoft Office";
@@ -25,7 +75,10 @@ stdenv.mkDerivation rec {
     platforms = [ "x86_64-linux" ];
     hydraPlatforms = [ ];
     license = licenses.unfreeRedistributable;
-    maintainers = with maintainers; [ mlatus th0rgal ];
+    maintainers = with maintainers; [
+      mlatus
+      th0rgal
+    ];
   };
 
   # dontPatchELF = true;
@@ -57,7 +110,7 @@ stdenv.mkDerivation rec {
     "libswresample.so.4"
   ];
 
-  buildInputs = with xorg; [
+  buildInputs = [
     alsa-lib
     atk
     bzip2
@@ -96,7 +149,7 @@ stdenv.mkDerivation rec {
     curl
     pango
     # nixpkgs-old.qt4
-    libsForQt5.qt5.qtbase
+    qt5.qtbase
     sqlite
     unixODBC
     zlib

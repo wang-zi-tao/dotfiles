@@ -43,16 +43,15 @@
   home.packages =
     with pkgs;
     [
-      google-chrome
 
       libinput
       seatd
       udev
       alsa-lib
       vulkan-loader
-      xorg.libXcursor
-      xorg.libXrandr
-      xorg.libXi # To use x11 feature
+      libXcursor
+      libXrandr
+      libXi # To use x11 feature
       libxkbcommon
       dbus.lib
       fontconfig.lib
@@ -62,27 +61,29 @@
       gtk3.debug
       pango
       gdk-pixbuf
-      xorg.libX11
+      libX11
       cairo
       graphene
-      xorg.libxcb
-      libsForQt5.qt5.qtbase
+      libxcb
+      qt5.qtbase
       harfbuzz
       gvfs
       obsidian
+      llm-agents.hermes-desktop
+      llm-agents.hermes-one
     ]
     ++ [
 
       mpdris2
       libmpc
-      mpv
+      # mpv
       scrot
       polkit_gnome
       inotify-tools
 
       # xiezuo
-      wpsoffice
-      qq
+      # wpsoffice
+      # qq
 
       # libreoffice
       # gimp
@@ -135,7 +136,6 @@
 
       baobab
       cheese
-      gnome-nettool
       dconf
       dconf-editor
       gnome-tweaks

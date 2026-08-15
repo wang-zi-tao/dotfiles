@@ -5,8 +5,8 @@
   autoPatchelfHook,
   dpkg,
   wrapGAppsHook3,
-  libsForQt5,
-  xorg,
+  qt5,
+  libxshmfence,
   alsa-lib,
   cups,
   libXdamage,
@@ -29,7 +29,7 @@ stdenv.mkDerivation rec {
     autoPatchelfHook
     dpkg
     wrapGAppsHook3
-    libsForQt5.qt5.wrapQtAppsHook
+    qt5.wrapQtAppsHook
   ];
 
   meta = with lib; {
@@ -42,18 +42,16 @@ stdenv.mkDerivation rec {
   dontPatchELF = true;
   noAuditTmpdir = true;
   autoPatchelfIgnoreMissingDeps = [ "libFcitxQt5DBusAddons.so.1" ];
-  buildInputs = with xorg; [
+  buildInputs = [
     alsa-lib
     libXdamage
     nspr
     cups.lib
     libcxx
     libxshmfence
-    # libsForQt5.fcitx-qt5
+    # fcitx-qt5
     mesa
   ];
-  # libPath = with xorg;
-  #   lib.makeLibraryPath buildInputs;
   installPhase =
     let
       steam-run = (steam.override { extraPkgs = p: buildInputs; }).run;

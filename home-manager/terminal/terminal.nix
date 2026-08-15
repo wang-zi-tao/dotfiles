@@ -129,7 +129,7 @@
         pistol
         ps
         ripgrep
-        silver-searcher
+        silver-searcher-ng
         sd
         trash-cli
         wget
@@ -139,7 +139,6 @@
         xclip
         pfetch
         watchexec
-        neofetch
         gzip
         openssh
         perl

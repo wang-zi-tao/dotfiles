@@ -36,7 +36,7 @@ in
           # enableNvidia = config.services.xserver.enable;
         };
         docker = {
-          enable = true;
+          enable = false;
           enableOnBoot = lib.mkDefault false;
           # enableNvidia = config.services.xserver.enable;
         };

@@ -55,7 +55,7 @@ in
         in
         {
           enable = true;
-          # package = hermes-agent.packages.${pkgs.stdenv.system}.full;
+          package = hermes-agent.packages.${pkgs.stdenv.system}.default;
           container = {
             enable = false;
             image = "nixos/nix";
@@ -97,9 +97,9 @@ in
               "rtk-rewrite"
             ];
             platforms = {
-              # qqbot = {
-              #   enabled = false;
-              # };
+              qqbot = {
+                enabled = true;
+              };
             };
             dashboard = {
               enable = true;

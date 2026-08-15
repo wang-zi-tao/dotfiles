@@ -18,6 +18,10 @@ in
       mcp-nixos
       unstable.mcp-language-server
       uv
+
+      llm-agents.dsh
+      pnpm
+      nodejs
     ];
     programs.mcp = {
       enable = true;
@@ -42,7 +46,7 @@ in
       enable = true;
       enableMcpIntegration = true;
       # https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/op/opencode/package.nix
-      # package = pkgs.opencode-bunx;
+      package = pkgs.llm-agents.opencode;
       agents = {
         code-reviewer = ''
           # Code Reviewer Agent
@@ -84,10 +88,11 @@ in
           lsp = "allow";
         };
         plugin = [
-          "oh-my-opencode-slim@latest"
           "oh-my-openagent@latest"
-          "opencode-mem@latest"
+          # pkgs.llm-agents.oh-my-opencode
           "@simonwjackson/opencode-direnv"
+          "@tarquinen/opencode-dcp@latest"
+          "@cortexkit/aft-opencode@latest"
         ];
       };
     };
@@ -135,6 +140,38 @@ in
       builtins.toJSON {
         "$schema" =
           "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
+        git_master = {
+          commit_footer = true;
+          include_co_authored_by = true;
+          git_env_prefix = "GIT_MASTER=1";
+        };
+        team_mode = {
+          enabled = true;
+          max_parallel_members = 4;
+          tmux_visualization = false;
+        };
+        codegraph = {
+          daemon = true;
+        };
+        sisyphus_agent = {
+          default_builder_enabled = true;
+        };
+        background_task = {
+          defaultConcurrency = 16;
+        };
+        experimental = {
+          task_system = true;
+          aggressive_truncation = true;
+        };
+        hashline_edit = false;
+        disabled_tools = [
+          "lsp_goto_definition"
+          "lsp_find_references"
+          "lsp_symbols"
+          "lsp_diagnostics"
+          "lsp_prepare_rename"
+          "lsp_rename"
+        ];
         agents = {
           sisyphus = {
             model = deepseek;
@@ -156,16 +193,16 @@ in
             model = kimi;
           };
           prometheus = {
-            model = deepseek-flash;
+            model = deepseek;
           };
           metis = {
             model = deepseek;
           };
           momus = {
-            model = gpt5mini;
+            model = deepseek-flash;
           };
           atlas = {
-            model = gpt5mini;
+            model = deepseek-flash;
           };
           sisyphus-junior = {
             model = deepseek-flash;
@@ -185,13 +222,13 @@ in
             model = minimax;
           };
           unspecified-low = {
-            model = gpt5mini;
+            model = deepseek-flash;
           };
           unspecified-high = {
             model = deepseek;
           };
           writing = {
-            model = deepseek-flash;
+            model = deepseek;
           };
         };
       };

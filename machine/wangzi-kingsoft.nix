@@ -143,7 +143,7 @@ nixpkgs.lib.nixosSystem {
           bluetooth.enable = true;
         };
         services.xserver = {
-          modules = with pkgs.xorg; [
+          modules = with pkgs; [
             xf86videoamdgpu
             xf86inputlibinput
             xf86videodummy

@@ -115,7 +115,7 @@ with lib;
     };
     services.playerctld.enable = true;
     home.file.".xinitrc-vgl".text = ''
-      ${pkgs.xorg.xrdb}/bin/xrdb ~/.Xresources
+      ${pkgs.xrdb}/bin/xrdb ~/.Xresources
       exec ${pkgs.slock}/bin/slock
     '';
     home.file.".config/mimeapps.list".source = ./mineapps.list;

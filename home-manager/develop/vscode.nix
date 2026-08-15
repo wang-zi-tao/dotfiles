@@ -1,7 +1,7 @@
 { pkgs, ... }:
 {
   programs.vscode = {
-    enable = true;
+    enable = false;
     profiles.default.extensions = with pkgs.vscode-extensions; [
       # markdowm
       yzhang.markdown-all-in-one
@@ -19,7 +19,7 @@
       # python
       ms-toolsai.jupyter
       ms-python.python
-      ms-python.vscode-pylance
+      # ms-python.vscode-pylance
       # rust
       rust-lang.rust-analyzer
       # haskell

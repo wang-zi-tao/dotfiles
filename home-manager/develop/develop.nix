@@ -145,12 +145,12 @@ in
     "/nixfs/flake/str/nixpkgs#jdt-language-server/bin/jdtls"
     "haskellPackages.haskell-debug-adapter"
     "haskellPackages.haskell-language-server"
-    "nodePackages.typescript-language-server"
-    "nodePackages.yaml-language-server"
-    "nodePackages.prettier"
+    "typescript-language-server"
+    "yaml-language-server"
+    "prettier"
     "luajitPackages.luacheck"
     "luajitPackages.luarocks"
-    "nodePackages.pyright"
+    "pyright"
 
     gpu-viewer
     hotspot
@@ -182,7 +182,7 @@ in
 
     lua-language-server
     nodejs
-    nodePackages.typescript
+    typescript
 
     lua5_4
 

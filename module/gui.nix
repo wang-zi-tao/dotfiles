@@ -23,7 +23,7 @@
             bindTcp = "0.0.0.0:10000";
           };
           xkb.options = "ctrl:nocaps";
-          modules = with pkgs.xorg; [
+          modules = with pkgs; [
             libXv
             libXtst
             libxcb
@@ -74,7 +74,7 @@
               enable = true;
               bindTcp = "0.0.0.0:10000";
             };
-            # modules = with pkgs.xorg; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
+            # modules = with pkgs; [ libXv libXtst libxcb xcbutilkeysyms xhost xbacklight ];
             # extraConfig = '' '';
           };
         };
@@ -192,18 +192,17 @@
         environment.systemPackages = with pkgs; [
           appimage-run
           mesa-demos
-          xorg.xhost
-          xorg.xbacklight
+          xhost
+          xbacklight
           vulkan-tools
 
           libGLU
           libjpeg
-          xorg.libXv
-          xorg.libXtst
-          xorg.libxcb
-          xorg.xcbutilkeysyms
-          mesa.opencl
-          xorg.libXxf86vm
+          libXv
+          libXtst
+          libxcb
+          xcbutilkeysyms
+          libXxf86vm
           glfw
           alsa-lib
 

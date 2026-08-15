@@ -20,9 +20,10 @@
     };
     systemd.coredump = {
       enable = true;
-      extraConfig = ''
-        Storage=journal
-      '';
+      settings.Coredump = {
+        Storage = "external";
+        Compress = "yes";
+      };
     };
   };
 }

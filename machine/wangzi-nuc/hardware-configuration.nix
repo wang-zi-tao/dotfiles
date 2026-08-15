@@ -102,19 +102,20 @@
       extraPackages32 = with pkgs.pkgsi686Linux; [ mesa ];
       extraPackages = with pkgs; [
         mesa
+        intel-media-driver
         vpl-gpu-rt
       ];
     };
   };
 
   services.xserver = {
-    modules = with pkgs.xorg; [
+    modules = with pkgs; [
       xf86videoamdgpu
       xf86inputlibinput
       xf86videodummy
       xf86videovesa
     ];
-    videoDrivers = [ "modestting" ];
+    videoDrivers = [ "modesetting" ];
   };
 
   environment.etc."sysconfig/lm_sensors".text = ''
