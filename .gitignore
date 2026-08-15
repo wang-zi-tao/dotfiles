@@ -18,3 +18,4 @@ dnSpy*
 virtualmachines/*
 windows
 chroma.log
+node_modules

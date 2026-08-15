@@ -120,7 +120,7 @@
       # dolphin
 
       endeavour
-      # google-chrome
+      google-chrome
       gpaste
       sushi
       nautilus

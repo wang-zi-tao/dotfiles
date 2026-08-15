@@ -10,6 +10,8 @@ This is a personal NixOS configuration repository for managing multiple systems 
 
 ### Installation Script (install.bash)
 The `install.bash` script provides a unified interface for all Nix operations:
+- pkgs等编译相关自命令不需要root权限。
+- 部署、构建系统等操作需要root权限。
 
 ```bash
 # Basic usage: ./install.bash <command> [args]
@@ -26,7 +28,7 @@ The `install.bash` script provides a unified interface for all Nix operations:
 ./install.bash pkgs-run <package-name>   # Run package executable
 
 # System management
-./install.bash nixos                     # Build and switch current system
+./install.bash nixos                     # Build and switch current system **需要root权限**
 ./install.bash system <profile>          # Build system configuration
 ./install.bash home-manager <profile>    # Build and activate home-manager
 ./install.bash nix-on-droid <profile>    # Build and activate nix-on-droid

@@ -13,13 +13,15 @@ let
   minimax = "opencode/minimax-m2.5-free";
 in
 {
+  imports = [
+    ./dsh/dsh.nix
+  ];
   config = {
     home.packages = with pkgs; [
       mcp-nixos
       unstable.mcp-language-server
       uv
 
-      llm-agents.dsh
       pnpm
       nodejs
     ];
@@ -83,6 +85,16 @@ in
             };
           };
         };
+        mcp = {
+          context7 = {
+            type = "remote";
+            url = "https://mcp.context7.com/mcp";
+            enabled = true;
+            headers = {
+              Authorization = "Bearer {file:/run/secrets/apikey/context7}";
+            };
+          };
+        };
         permission = {
           websearch = "allow";
           lsp = "allow";
@@ -93,6 +105,13 @@ in
           "@simonwjackson/opencode-direnv"
           "@tarquinen/opencode-dcp@latest"
           "@cortexkit/aft-opencode@latest"
+          [
+            "@vectorize-io/opencode-hindsight"
+            {
+              hindsightApiUrl = "http://127.0.0.1:11438";
+              hindsightApiToken = "{file:/run/secrets/hindsight/apikey}";
+            }
+          ]
         ];
       };
     };
@@ -106,33 +125,6 @@ in
         "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/dev/assets/oh-my-opencode-slim.schema.json";
       agents = {
       };
-    };
-
-    home.file.".config/opencode/opencode-mem.json".text = builtins.toJSON {
-      "embeddingModel" = "Xenova/nomic-embed-text-v1";
-      "webServerEnabled" = true;
-      "webServerPort" = 4747;
-      "showAutoCaptureToasts" = true;
-      "showUserProfileToasts" = true;
-      "showErrorToasts" = true;
-      "userProfileAnalysisInterval" = 10;
-      "maxMemories" = 10;
-
-      "compaction" = {
-        "enabled" = true;
-        "memoryLimit" = 10;
-      };
-      "chatMessage" = {
-        "enabled" = true;
-        "maxMemories" = 3;
-        "excludeCurrentSession" = true;
-        "injectOn" = "first";
-      };
-
-      "memoryProvider" = "openai-chat";
-      "memoryModel" = "minimax-m2.5-free";
-      "memoryApiUrl" = "https://opencode.ai/zen/v1/chat/completions";
-      "memoryApiKey" = "file:///run/secrets/apikey/zen";
     };
 
     home.file.".config/opencode/oh-my-openagent.json".text =
@@ -163,7 +155,7 @@ in
           task_system = true;
           aggressive_truncation = true;
         };
-        hashline_edit = false;
+        hashline_edit = true;
         disabled_tools = [
           "lsp_goto_definition"
           "lsp_find_references"
@@ -171,6 +163,9 @@ in
           "lsp_diagnostics"
           "lsp_prepare_rename"
           "lsp_rename"
+        ];
+        disabled_mcps = [
+          "context7"
         ];
         agents = {
           sisyphus = {

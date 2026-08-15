@@ -1,0 +1,22 @@
+{
+  "name": "鲸鱼娘",
+  "affinity": {
+    "points": 15,
+    "lastPetAt": 0,
+    "lastFeedAt": 0,
+    "pets": 0,
+    "feeds": 0,
+    "turns": 15
+  },
+  "treats": {
+    "treats": 20,
+    "lastTreatGrantAt": 1786805415136,
+    "turnsAtLastTreatGrant": 15
+  },
+  "display": {
+    "visible": true,
+    "size": 160,
+    "right": 24,
+    "bottom": 20
+  }
+}

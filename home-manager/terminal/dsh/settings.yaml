@@ -1,0 +1,12 @@
+ui-onboarding:
+  welcomeNoticeVersion: 2026-08-13.1
+agent-default-model:
+  provider: deepseek-official
+  model: deepseek-v4-pro
+  reasoningEffort: high
+agent-presets:
+  default: anchored-standard
+ui-theme:
+  preference: dark
+skin-background:
+  backgroundOpacity: 40

@@ -1,4 +1,11 @@
-pkgs: prev: {
+pkgs: prev:
+let
+  # Hindsight 0.9.x needs 2026-era python deps (fastapi>=0.120, transformers 5.x,
+  # litellm 1.9x, …) that the repo's 2025 base nixpkgs is too old for, so the
+  # whole hindsight stack builds against nixpkgs-unstable.
+  py = pkgs.python314Packages;
+in
+rec {
   mcp-neovim-server = pkgs.buildNpmPackage {
     pname = "mcp-neovim-server";
     version = "9076bb";
@@ -86,6 +93,106 @@ pkgs: prev: {
     };
     format = "pyproject";
     build-system = [ pkgs.python312Packages.setuptools ];
+  };
+
+  # ── Hindsight memory server (https://github.com/vectorize-io/hindsight) ──
+  # `hindsight-api` == `hindsight-api-slim` minus the provider SDKs we never use
+  # (claude-code/anthropic/cohere/bedrock/object-storage/file-parsing/flashrank/
+  # mlx/onnx are lazily imported and skipped), plus the local embeddings/reranker
+  # stack (torch + sentence-transformers). The database is a NixOS-managed
+  # PostgreSQL (see module/ai.nix) — pg0-embedded is deliberately omitted because
+  # its bundled postgres needs system libs/zoneinfo that aren't present on NixOS.
+  hindsight-api = py.buildPythonPackage rec {
+    pname = "hindsight-api-slim";
+    version = "0.9.1";
+    pyproject = true;
+    src = pkgs.fetchurl {
+      # Exact URL (fetchPypi builds the wrong one: the sdist filename uses
+      # underscores `hindsight_api_slim`, not the hyphenated project name).
+      url = "https://files.pythonhosted.org/packages/bd/98/e405ff40dde49769ca8f959f9ff452b28c28d34590da2c7ff016fd29d0ae/hindsight_api_slim-0.9.1.tar.gz";
+      hash = "sha256-4sw3i+r63JaoRughtYiUhHAWt5GS4a0O+zm4QgJlrR0=";
+    };
+    build-system = [ py.hatchling ];
+    # Nix hand-picks versions instead of pip-resolving, and we intentionally
+    # dropped the lazily-imported provider SDKs, so reconcile the wheel's
+    # Requires-Dist metadata with what is actually in the closure:
+    #   - remove the SDKs we don't ship (and psycopg2-binary → we ship psycopg2),
+    #   - relax version pins that nixpkgs satisfies only approximately
+    #     (greenlet<3.4 is an arm64-wheel-availability pin; litellm/otel floors
+    #     are newer than nixpkgs but their APIs are compatible for our providers).
+    pythonRelaxDeps = true;
+    pythonRemoveDeps = [
+      "anthropic"
+      "boto3"
+      "claude-agent-sdk"
+      "cohere"
+      "markitdown"
+      "obstore"
+      "psycopg2-binary"
+    ];
+    dependencies = [
+      # base
+      py.aiohttp
+      py.alembic
+      py.asyncpg
+      py.authlib
+      py.croniter
+      py.cryptography
+      py.dateparser
+      py.fastapi
+      py.httpx
+      py.jinja2
+      py.email-validator
+      py.python-multipart
+      py.uvicorn
+      py.fastapi-cli
+      py.fastmcp
+      py.filelock
+      py.google-auth
+      py.google-genai
+      py.greenlet
+      py.json-repair
+      py.langchain-core
+      py.langchain-text-splitters
+      py.langsmith
+      py.litellm
+      py.openai
+      py.opentelemetry-api
+      py.opentelemetry-exporter-otlp-proto-http
+      py.opentelemetry-exporter-prometheus
+      py.opentelemetry-instrumentation-fastapi
+      py.opentelemetry-sdk
+      py.opentelemetry-semantic-conventions
+      py.orjson
+      py.pgvector
+      py.pillow
+      py.protobuf
+      py.psycopg2
+      py.pyasn1
+      py.pydantic
+      py.pygments
+      py.pyjwt
+      py.python-dateutil
+      py.python-dotenv
+      py.rich
+      py.sqlalchemy
+      py.tiktoken
+      py.tornado
+      py.typer
+      py.urllib3
+      py.uvloop
+      py.wsproto
+      # local embeddings/reranker
+      py.einops
+      py.huggingface-hub
+      py.numpy
+      py.safetensors
+      py.sentence-transformers
+      py.tokenizers
+      py.torch
+      py.transformers
+    ];
+    meta.mainProgram = "hindsight-api";
   };
 
 }
