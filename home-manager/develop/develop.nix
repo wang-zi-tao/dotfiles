@@ -198,9 +198,12 @@ in
 
     renderdoc
 
+    codegraph
+    vectorcode
+
     # unstable.tracy
 
-    (python3.withPackages (
+    (python314.withPackages (
       ps: with ps; [
         debugpy
         numpy
@@ -258,12 +261,18 @@ in
     playwright = {
       command = "${pkgs.playwright-mcp}/bin/mcp-server-playwright";
     };
-    github = {
-      command = "${pkgs.github-mcp-server}/bin/github-mcp-server";
-      args = [ "stdio" ];
+    # github = {
+    #   command = "${pkgs.github-mcp-server}/bin/github-mcp-server";
+    #   args = [ "stdio" ];
+    # };
+    # obsidian = {
+    #   command = "${pkgs.mcp-obsidian}/bin/mcpvault";
+    # };
+    codegraph = {
+      command = "${pkgs.unstable.codegraph}/bin/codegraph";
     };
-    obsidian = {
-      command = "${pkgs.mcp-obsidian}/bin/mcpvault";
+    vectorcode = {
+      command = "${pkgs.vectorcode}/bin/vectorcode-mcp-server";
     };
   };
 }

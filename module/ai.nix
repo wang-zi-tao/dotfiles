@@ -31,8 +31,8 @@ in
         host = "0.0.0.0";
         port = 11434;
         loadModels = [
-          "deepseek-r1:8b"
           "embeddinggemma"
+          "qwen3-embedding:0.6b"
         ];
         environmentVariables = {
           # HTTP_PROXY = "http://aliyun-hk.wg:8889";
@@ -42,7 +42,7 @@ in
 
       # services.chromadb = {
       #   enable = true;
-      #   port = 11437;
+      #   port = 11439;
       # };
 
       # services.nextjs-ollama-llm-ui = {
@@ -279,6 +279,12 @@ in
       sops.secrets."hindsight/apikey" = lib.mkIf sops-enable {
         sopsFile = config.cluster.ssh.publicKeySops;
         mode = "0555";
+      };
+      sops.templates."dsh-env" = {
+        content = ''
+          DEEPSEEK_API_KEY=${config.sops.placeholder."apikey/deepseek"}
+        '';
+        mode = "0400";
       };
     }
   ];

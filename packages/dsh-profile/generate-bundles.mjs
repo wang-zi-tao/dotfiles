@@ -1,5 +1,5 @@
-import { cpSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import {cpSync, readFileSync, rmSync, writeFileSync} from "node:fs";
+import {join} from "node:path";
 
 const [, , manifestPath, modulesDir, ...pluginPaths] = process.argv;
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
@@ -18,14 +18,13 @@ for (const pluginPath of pluginPaths) {
     throw new Error("Plugin at " + pluginPath + " is missing a package name");
   }
 
-  const version =
-    typeof pluginManifest.version === "string" ? pluginManifest.version : "0.0.0";
+  const version = "file:" + pluginPath;
   const target = join(modulesDir, packageName);
 
   // Recreate the target so cpSync always materializes the plugin at target
   // rather than nesting it when the target directory already exists.
-  rmSync(target, { recursive: true, force: true });
-  cpSync(pluginPath, target, { recursive: true });
+  rmSync(target, {recursive: true, force: true});
+  cpSync(pluginPath, target, {recursive: true});
 
   dependencies[packageName] = version;
 }
@@ -37,7 +36,7 @@ manifest.dependencies = dependencies;
 // dsh.bundle patch, in dependency order.
 const bundles = [
   "@deepseek-ai/dsh-base",
-  "@deepseek-ai/dsh-web-app",
+  ...(manifest.dsh?.profile?.bundles || [])
 ];
 
 for (const packageName of Object.keys(manifest.dependencies ?? {})) {

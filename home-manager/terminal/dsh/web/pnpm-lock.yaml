@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@deepseek-ai/dsh-lsp':
+        specifier: github:omdsh-dev/dsh-lsp
+        version: https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac
       '@linxin666/dsh-client-ui-skin-blue-fantasy':
         specifier: ^0.1.12
         version: 0.1.12
@@ -26,8 +29,19 @@ importers:
       '@omdsh-dev/dsh-genui':
         specifier: github:omdsh-dev/dsh-genui
         version: https://codeload.github.com/omdsh-dev/dsh-genui/tar.gz/0e756efb7671e6b8413dde3d8e199c68fa89cbeb
+      dsh-at-file:
+        specifier: github:omdsh-dev/dsh-at-file
+        version: https://codeload.github.com/omdsh-dev/dsh-at-file/tar.gz/2c5653ebc3240626cdad41a9c01d15d22471aed2(react@18.3.1)
 
 packages:
+
+  '@deepseek-ai/dsh-lsp@https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac':
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac}
+    version: 0.0.1
+    engines: {node: ^22.19.0 || >=24.0.0}
+    peerDependencies:
+      '@deepseek-ai/cordis': ^4.0.1
+      '@deepseek-ai/dsh-tools': '>=0.0.1-rc.1 <0.2.0'
 
   '@linxin666/dsh-client-ui-skin-blue-fantasy@0.1.12':
     resolution: {integrity: sha512-bRl+QBegf+FsclbLdnq0XNJtt8XK5eEzRGPtUZU1SIM20Cf3vaurU/yVAixwArpu1JH/8DlRD13ALWebZE8X2Q==}
@@ -96,6 +110,57 @@ packages:
   cosmokit@1.8.1:
     resolution: {integrity: sha512-PDBv4l90xZKrUsZ0vtoycgZpO/j4iFsqJXrAxsyBDsnQRI7ZMJXIjgDJsKNjd5L8jnVnnlrDCdhkFbTncgCVjQ==}
 
+  dsh-at-file@https://codeload.github.com/omdsh-dev/dsh-at-file/tar.gz/2c5653ebc3240626cdad41a9c01d15d22471aed2:
+    resolution: {gitHosted: true, integrity: sha512-ewO/a9BCXibm1pGWngpgjcr3b0U7DBkXd4lQOpCk3Sg4XCdHyZxzqA4wisChcn1Kx7TOwKKr9/8hdgUxv+tMcQ==, tarball: https://codeload.github.com/omdsh-dev/dsh-at-file/tar.gz/2c5653ebc3240626cdad41a9c01d15d22471aed2}
+    version: 0.6.1
+    peerDependencies:
+      '@deepseek-ai/cordis': ^4.0.1-rc.1
+      '@deepseek-ai/dsh-agent': '*'
+      '@deepseek-ai/dsh-api-remotes': '*'
+      '@deepseek-ai/dsh-client-connection': '*'
+      '@deepseek-ai/dsh-client-locale': '*'
+      '@deepseek-ai/dsh-client-runtime': '*'
+      '@deepseek-ai/dsh-client-ui-conversation': '*'
+      '@deepseek-ai/dsh-client-ui-input-trigger': '*'
+      '@deepseek-ai/dsh-client-ui-settings': '*'
+      '@deepseek-ai/dsh-client-ui-slots': '*'
+      '@deepseek-ai/dsh-llm': '*'
+      '@deepseek-ai/dsh-settings': '*'
+      '@deepseek-ai/dsh-typert-protocol': '*'
+      '@deepseek-ai/dsh-typert-registry': '*'
+      react: ^18.2.0
+    peerDependenciesMeta:
+      '@deepseek-ai/cordis':
+        optional: true
+      '@deepseek-ai/dsh-agent':
+        optional: true
+      '@deepseek-ai/dsh-api-remotes':
+        optional: true
+      '@deepseek-ai/dsh-client-connection':
+        optional: true
+      '@deepseek-ai/dsh-client-locale':
+        optional: true
+      '@deepseek-ai/dsh-client-runtime':
+        optional: true
+      '@deepseek-ai/dsh-client-ui-conversation':
+        optional: true
+      '@deepseek-ai/dsh-client-ui-input-trigger':
+        optional: true
+      '@deepseek-ai/dsh-client-ui-settings':
+        optional: true
+      '@deepseek-ai/dsh-client-ui-slots':
+        optional: true
+      '@deepseek-ai/dsh-llm':
+        optional: true
+      '@deepseek-ai/dsh-settings':
+        optional: true
+      '@deepseek-ai/dsh-typert-protocol':
+        optional: true
+      '@deepseek-ai/dsh-typert-registry':
+        optional: true
+      react:
+        optional: true
+
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -110,7 +175,12 @@ packages:
   schemastery@3.18.0:
     resolution: {integrity: sha512-Jw2uxjoyyqc/yeurmChUEc/jbi8GsrdXV/KmqRUDZXJAXAmrJiPsz8vKa17l/VckyzljHZ9oGaul443CQiXxtA==}
 
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+
 snapshots:
+
+  '@deepseek-ai/dsh-lsp@https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac': {}
 
   '@linxin666/dsh-client-ui-skin-blue-fantasy@0.1.12': {}
 
@@ -138,6 +208,12 @@ snapshots:
 
   cosmokit@1.8.1: {}
 
+  dsh-at-file@https://codeload.github.com/omdsh-dev/dsh-at-file/tar.gz/2c5653ebc3240626cdad41a9c01d15d22471aed2(react@18.3.1):
+    dependencies:
+      zod: 4.4.3
+    optionalDependencies:
+      react: 18.3.1
+
   js-tokens@4.0.0: {}
 
   loose-envify@1.4.0:
@@ -152,3 +228,5 @@ snapshots:
     dependencies:
       '@standard-schema/spec': 1.1.0
       cosmokit: 1.8.1
+
+  zod@4.4.3: {}

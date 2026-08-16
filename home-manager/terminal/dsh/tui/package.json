@@ -1,0 +1,11 @@
+{
+  "name": "dsh-profile-tui",
+  "private": true,
+  "dependencies": {
+    "@deepseek-ai/dsh-lsp": "github:omdsh-dev/dsh-lsp",
+    "@deepseek-harness-tui/dsh-tui": "^0.6.1",
+    "@linxin666/dsh-liangshen": "^0.1.15",
+    "@loserfox/distill": "github:LoserFox/distill",
+    "dsh-at-file": "github:omdsh-dev/dsh-at-file"
+  }
+}

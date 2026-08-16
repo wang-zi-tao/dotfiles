@@ -12,9 +12,10 @@
 {
   src,
   hash,
-  name ? [],
-  plugins ? [],
-  cordis_patch ? [],
+  name ? [ ],
+  plugins ? [ ],
+  cordis_patch ? [ ],
+  package,
 }:
 
 let
@@ -53,6 +54,10 @@ stdenvNoCC.mkDerivation {
     mkdir -p "$out"
     cp -r package.json pnpm-lock.yaml pnpm-workspace.yaml node_modules "$out"/
     ln -s ${cordis_patch_yaml} $out/cordis.patch.yml
+
+    rm -rf "$out/node_modules/@deepseek-ai"
+    ln -s ${package}/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai \
+        "$out/node_modules/"
 
     node ${./generate-bundles.mjs} "$out/package.json" "$out/node_modules" ${pluginArgs}
 

@@ -18,7 +18,6 @@ in
   ];
   config = {
     home.packages = with pkgs; [
-      mcp-nixos
       unstable.mcp-language-server
       uv
 
@@ -29,7 +28,7 @@ in
       enable = true;
       servers = {
         nixos = {
-          command = "mcp-nixos";
+          command = "${pkgs.mcp-nixos}/bin/mcp-nixos";
         };
         neovim = {
           command = "${pkgs.mcp-neovim-server}/bin/mcp-neovim-server";
@@ -142,9 +141,6 @@ in
           max_parallel_members = 4;
           tmux_visualization = false;
         };
-        codegraph = {
-          daemon = true;
-        };
         sisyphus_agent = {
           default_builder_enabled = true;
         };
@@ -166,6 +162,7 @@ in
         ];
         disabled_mcps = [
           "context7"
+          "codegraph"
         ];
         agents = {
           sisyphus = {
@@ -227,6 +224,22 @@ in
           };
         };
       };
+
+    home.file.".config/vectorcode/config.json5".text = builtins.toJSON {
+      # db_url = "http://127.0.0.1:11439";
+      # port = 11439;
+      reranker_params = {
+        model_name_or_path = "qwen3-embedding:0.6b";
+      };
+      embedding_function = "OllamaEmbeddingFunction";
+      embedding_params = {
+        url = "http://127.0.0.1:11434/api/embeddings";
+        model_name = "qwen3-embedding:0.6b";
+        timeout = 128;
+      };
+    };
+
+    home.file.".agents/skills".source = ../../skills;
 
     home.sessionVariables = {
       HERMES_HOME = "/var/lib/hermes/.hermes";

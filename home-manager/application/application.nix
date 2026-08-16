@@ -9,6 +9,7 @@
     ./firefox.nix
     ./alacritty.nix
     ./dconf.nix
+    ./obsidian.nix
   ];
   lazyPackage = with pkgs; [
     blender
@@ -68,7 +69,6 @@
       qt5.qtbase
       harfbuzz
       gvfs
-      obsidian
       llm-agents.hermes-desktop
       llm-agents.hermes-one
     ]

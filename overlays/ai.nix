@@ -195,4 +195,8 @@ rec {
     meta.mainProgram = "hindsight-api";
   };
 
+
+  mcp-nixos =  pkgs.writeShellScriptBin "mcp-nixos" ''
+    exec ${prev.mcp-nixos}/bin/mcp-nixos "$@" 2> /dev/null
+  '';
 }
