@@ -32,9 +32,8 @@ stdenvNoCC.mkDerivation {
 
   installPhase = ''
     runHook preInstall
-    local packageOut="$out/lib/node_modules/dsh-hindsight"
-    mkdir -p "$packageOut"
-    cp -r lib cordis.patch.yml package.json package-lock.json README.md ARCHITECTURE.md "$out"
+    mkdir -p "$out/lib"
+    cp -r lib cordis.patch.yml package.json package-lock.json README.md ARCHITECTURE.md "$out/lib"
     runHook postInstall
   '';
 

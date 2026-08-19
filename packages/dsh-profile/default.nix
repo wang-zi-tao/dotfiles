@@ -51,15 +51,16 @@ stdenvNoCC.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p "$out"
-    cp -r package.json pnpm-lock.yaml pnpm-workspace.yaml node_modules "$out"/
+    mkdir -p "$out/lib"
+    cp -r package.json pnpm-lock.yaml pnpm-workspace.yaml "$out"
+    cp -r node_modules $out/lib
     ln -s ${cordis_patch_yaml} $out/cordis.patch.yml
 
-    rm -rf "$out/node_modules/@deepseek-ai"
-    ln -s ${package}/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai \
-        "$out/node_modules/"
+    rm -rf "$out/lib/node_modules/@deepseek-ai"
+    node ${./generate-bundles.mjs} "$out/package.json" "$out/lib/node_modules" ${pluginArgs}
 
-    node ${./generate-bundles.mjs} "$out/package.json" "$out/node_modules" ${pluginArgs}
+    cp -rsf ${package}/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai \
+        "$out/lib/node_modules/"
 
     runHook postInstall
   '';

@@ -4,6 +4,74 @@ let
   # litellm 1.9x, …) that the repo's 2025 base nixpkgs is too old for, so the
   # whole hindsight stack builds against nixpkgs-unstable.
   py = pkgs.python314Packages;
+  fetchPnpmPackage =
+    {
+      src,
+      pname,
+      version,
+      hash,
+    }:
+    pkgs.fetchPnpmDeps {
+      pname = "${pname}-deps";
+      src = src;
+      # First build fails with a hash mismatch; fill in the printed sha256 here.
+      hash = hash;
+      fetcherVersion = 4;
+      nativeBuildInputs = [ pkgs.git ];
+    };
+
+  buildDshNpmPackage =
+    args:
+    pkgs.buildNpmPackage (
+      args
+      // {
+        installPhase = ''
+          mkdir -p "$out/lib"
+          cp -r * "$out/lib/"
+        '';
+      }
+    );
+
+  buildDshPnpmPackage =
+    {
+      src,
+      pname,
+      version,
+      hash,
+      ...
+    }@args:
+    pkgs.stdenvNoCC.mkDerivation (
+      args
+      // {
+        nativeBuildInputs = [
+          pkgs.nodejs
+          pkgs.pnpm
+          pkgs.pnpmConfigHook
+          pkgs.git
+          pkgs.pnpmConfigHook
+          pkgs.pnpmBuildHook
+          pkgs.npmHooks.npmInstallHook
+        ];
+        pnpmDeps = fetchPnpmPackage {
+          inherit
+            src
+            pname
+            version
+            hash
+            ;
+        };
+
+        installPhase = ''
+          mkdir -p "$out/lib"
+          cp ./* "$out/lib" -r
+        '';
+      }
+    );
+  dsh-client-ui = pkgs.fetchgit {
+    url = "https://github.com/zhu1090093659/dsh-web-ui/";
+    rev = "b391cc6cc97f6ba3c1dc743b5383519abeb106c4";
+    sha256 = "sha256-bjWDb1IuTUOc+2toj3auBuEv6ywxoTZJBWwKQo6z0AE=";
+  };
 in
 rec {
   mcp-neovim-server = pkgs.buildNpmPackage {
@@ -93,6 +161,63 @@ rec {
     };
     format = "pyproject";
     build-system = [ pkgs.python312Packages.setuptools ];
+  };
+
+  dsh-lsp = buildDshNpmPackage rec {
+    pname = "dsh-lsp";
+    version = "6634206";
+    src = pkgs.fetchgit {
+      url = "https://github.com/omdsh-dev/dsh-lsp";
+      rev = version;
+      sha256 = "sha256-LJ/TKgn9Xrv6GWYSonkOakQG00h1/D613FePeJXRm6A=";
+    };
+    npmDepsHash = "sha256-sjRCXM9y4sSN6XO9rugquc3bTFfHK/ryU4i0qB3dYfc=";
+  };
+
+  dsh-agent-teams = buildDshPnpmPackage rec {
+    pname = "dsh-agent-teams";
+    version = "763d88";
+    src = pkgs.fetchgit {
+      url = "https://github.com/NanmiCoder/dsh-agent-teams";
+      rev = version;
+      sha256 = "sha256-oZEIHa6gUIz5q+jI7b5SkTVkBVOSbbuuwZATwsY5X0U=";
+    };
+    hash = "sha256-xv7QD/ecCYbwr8KBJSUet0M3ZmdHyBjE9/DxBtbAEjk=";
+  };
+
+  dsh-genui = buildDshPnpmPackage rec {
+    pname = "dsh-genui";
+    version = "2187fa4";
+    src = pkgs.fetchgit {
+      url = "https://github.com/omdsh-dev/dsh-genui";
+      rev = version;
+      sha256 = "sha256-FU0VrkilMivm2rHzLGvXl57KKNYHc8ROnUgQvYNrZgI=";
+    };
+    hash = "sha256-8GaDJuO8z1RJNCJQ8xFy2ofwaWGYCcqUtfEoHKV6t24=";
+  };
+
+  dsh-at-file = buildDshPnpmPackage rec {
+    pname = "dsh-at-file";
+    version = "898369e";
+    src = pkgs.fetchgit {
+      url = "https://github.com/omdsh-dev/dsh-at-file";
+      rev = version;
+      sha256 = "sha256-G3XbsI9BaEnBUmYEXkqGxQi78OHrF6wxnK3CPEnJ1pU=";
+    };
+    hash = "sha256-2clqQROcu+50l48Dxp/eO/BpvtTxK2Sd2YoqNOtyOxE=";
+    nativeBuildInputs = with pkgs; [
+      esbuild
+    ];
+  };
+
+  dsh-client-ui-all = buildDshPnpmPackage {
+    pname = "dsh-client-ui-all";
+    version = "763d88";
+    src = dsh-client-ui;
+    hash = "sha256-ob/DC7I2q88s6o6ZCdj0QUy8krOyrU4JGIYHHRVsYf4=";
+    preFixup = ''
+      cp ./packages $out/ -r
+    '';
   };
 
   # ── Hindsight memory server (https://github.com/vectorize-io/hindsight) ──
@@ -195,8 +320,7 @@ rec {
     meta.mainProgram = "hindsight-api";
   };
 
-
-  mcp-nixos =  pkgs.writeShellScriptBin "mcp-nixos" ''
+  mcp-nixos = pkgs.writeShellScriptBin "mcp-nixos" ''
     exec ${prev.mcp-nixos}/bin/mcp-nixos "$@" 2> /dev/null
   '';
 }

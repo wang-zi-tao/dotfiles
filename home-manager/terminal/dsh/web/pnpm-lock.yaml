@@ -8,21 +8,18 @@ importers:
 
   .:
     dependencies:
-      '@deepseek-ai/dsh-lsp':
-        specifier: github:omdsh-dev/dsh-lsp
-        version: https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac
       '@linxin666/dsh-client-ui-skin-blue-fantasy':
-        specifier: ^0.1.12
-        version: 0.1.12
+        specifier: ^0.1.18
+        version: 0.1.18
       '@linxin666/dsh-client-ui-task-board':
-        specifier: ^0.1.12
-        version: 0.1.12(react@18.3.1)
+        specifier: ^0.1.18
+        version: 0.1.18(react@18.3.1)
       '@linxin666/dsh-liangshen':
-        specifier: ^0.1.15
-        version: 0.1.15
+        specifier: ^0.1.18
+        version: 0.1.18
       '@linxin666/dsh-tool-describe-image':
-        specifier: ^0.1.12
-        version: 0.1.12(react@18.3.1)
+        specifier: ^0.1.18
+        version: 0.1.18(react@18.3.1)
       '@loserfox/distill':
         specifier: github:LoserFox/distill
         version: https://codeload.github.com/LoserFox/distill/tar.gz/d2aaa395adeffe88e429be796c12d829752cbad1
@@ -35,44 +32,22 @@ importers:
 
 packages:
 
-  '@deepseek-ai/dsh-lsp@https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac}
-    version: 0.0.1
-    engines: {node: ^22.19.0 || >=24.0.0}
-    peerDependencies:
-      '@deepseek-ai/cordis': ^4.0.1
-      '@deepseek-ai/dsh-tools': '>=0.0.1-rc.1 <0.2.0'
+  '@linxin666/dsh-client-ui-skin-blue-fantasy@0.1.18':
+    resolution: {integrity: sha512-JS+76psl4s8vNpVokNH8KUTD79Rxk1Bua9VyY/BiMtAQf58gq3GO1vOy7wmpGgBZqXn0JBKa3NBsJdYnp+S/xg==}
 
-  '@linxin666/dsh-client-ui-skin-blue-fantasy@0.1.12':
-    resolution: {integrity: sha512-bRl+QBegf+FsclbLdnq0XNJtt8XK5eEzRGPtUZU1SIM20Cf3vaurU/yVAixwArpu1JH/8DlRD13ALWebZE8X2Q==}
-
-  '@linxin666/dsh-client-ui-task-board@0.1.12':
-    resolution: {integrity: sha512-ru6uGKASYrQJcQJs9hH0WoqC0i0yPKzbiXgykFt0sRp0Qn1NCJ1247bTpkOlDhtdkE2CYDxRF6WI6BFuOhtF7w==}
+  '@linxin666/dsh-client-ui-task-board@0.1.18':
+    resolution: {integrity: sha512-vtAn0MNBJ/3D5hBi9x04J4Zw+ppNipp4njTX3RBGPSng3+W4ZlGmrhVnFNcE5fsjgKNSK/Eq8El0PITxe0TY3Q==}
     peerDependencies:
-      '@deepseek-ai/dsh-client-connection': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-client-runtime': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-client-ui-settings': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-settings': ^0.1.0-rc.6
       react: ^18.2.0
 
-  '@linxin666/dsh-liangshen@0.1.15':
-    resolution: {integrity: sha512-i4sdrbVXUFo9Id7Bo21p9/HdsrwSAhVJWVs2f0TEh3EfL10r/rIyu8MNMpsHKGoT65wdnkSPhDQ8mCM8XvpF7w==}
+  '@linxin666/dsh-liangshen@0.1.18':
+    resolution: {integrity: sha512-1Ook3i3qUBqhzXev0hQZm1o3N3OOUON+xQ0krfq/Ll2Gfvp/INZ1GJAHRBVEizge9jdBcnWySS9oB/+LxprsMw==}
     engines: {node: ^22.19.0 || >=24.0.0}
 
-  '@linxin666/dsh-tool-describe-image@0.1.12':
-    resolution: {integrity: sha512-O1llo0/za1ghaw8eMxb24O0KrDdkejxIVYfeqGyZ6QGbgj7dXfUOdp+WKyk0IWaqwC3ruSL47pJqEl85cTQXeg==}
+  '@linxin666/dsh-tool-describe-image@0.1.18':
+    resolution: {integrity: sha512-KjF3oMsnWnXD6ZRlRiQteux6uxIAq7ODBmqPtGJaVM88oUpegb9nCmrlrKUHGX2/6wKpyS9pLQqRiPQLCvVjjg==}
     engines: {node: ^22.19.0 || >=24.0.0}
     peerDependencies:
-      '@deepseek-ai/dsh-attachment': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-client-locale': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-client-runtime': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-client-ui-conversation': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-client-ui-settings': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-client-ui-slots': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-credentials': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-launch-environment': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-settings': ^0.1.0-rc.6
-      '@deepseek-ai/dsh-tools': ^0.1.0-rc.6
       react: ^18.2.0
 
   '@loserfox/distill@https://codeload.github.com/LoserFox/distill/tar.gz/d2aaa395adeffe88e429be796c12d829752cbad1':
@@ -180,20 +155,18 @@ packages:
 
 snapshots:
 
-  '@deepseek-ai/dsh-lsp@https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac': {}
+  '@linxin666/dsh-client-ui-skin-blue-fantasy@0.1.18': {}
 
-  '@linxin666/dsh-client-ui-skin-blue-fantasy@0.1.12': {}
-
-  '@linxin666/dsh-client-ui-task-board@0.1.12(react@18.3.1)':
+  '@linxin666/dsh-client-ui-task-board@0.1.18(react@18.3.1)':
     dependencies:
       react: 18.3.1
       schemastery: 3.18.0
 
-  '@linxin666/dsh-liangshen@0.1.15':
+  '@linxin666/dsh-liangshen@0.1.18':
     dependencies:
       schemastery: 3.18.0
 
-  '@linxin666/dsh-tool-describe-image@0.1.12(react@18.3.1)':
+  '@linxin666/dsh-tool-describe-image@0.1.18(react@18.3.1)':
     dependencies:
       react: 18.3.1
       schemastery: 3.18.0

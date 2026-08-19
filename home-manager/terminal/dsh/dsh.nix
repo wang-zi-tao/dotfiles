@@ -10,6 +10,17 @@ let
   dsh-unwrapped = pkgs.llm-agents.dsh;
   cordis_patch = [
     {
+      id = "agent-teams";
+      name = "@nanmicoder/dsh-agent-teams";
+      config = {
+        stateDir = ".agent-teams";
+        memberProvider = "fork";
+        # memberModel = "deepseek-v4-flash";
+        memberMaxDepth = 1;
+        maxMembers = 8;
+      };
+    }
+    {
       id = "hindsight";
       name = "dsh-hindsight";
       config = {
@@ -28,10 +39,10 @@ let
       };
     }
   ];
-  plugins = with pkgs; [ dsh-hindsight ];
+  plugins = with pkgs; [ dsh-hindsight dsh-agent-teams dsh-lsp ];
   profile-web = pkgs.dsh-profile {
     name = "web";
-    hash = "sha256-EC+p6NEc8wYcYMktZVFdvZpljZsyPu2V1OZtD3OZw60=";
+    hash = "sha256-sa7gN5xyShfLHQp7lQxsIW3blWCNFMGe6dSkNadK2Co=";
     plugins = plugins;
     src = ./web;
     package = dsh-unwrapped;
@@ -39,7 +50,7 @@ let
   };
   profile-tui = pkgs.dsh-profile {
     name = "tui";
-    hash = "sha256-YLD4/dgddUU9MRgxPOFG/lvTgetM6v11ioAvztaVM8g=";
+    hash = "sha256-CvndI3jy79eNl70867yQKXMjwMgAKlWV4GGCsvuzGtY=";
     plugins = plugins;
     src = ./tui;
     package = dsh-unwrapped;
@@ -77,12 +88,12 @@ in
       ".dsh/profiles/web/pnpm-lock.yaml".source = "${profile-web}/pnpm-lock.yaml";
       ".dsh/profiles/web/pnpm-workspace.yaml".source = "${profile-web}/pnpm-workspace.yaml";
       ".dsh/profiles/web/cordis.patch.yml".source = "${profile-web}/cordis.patch.yml";
-      ".dsh/profiles/web/node_modules".source = "${profile-web}/node_modules";
+      ".dsh/profiles/web/node_modules".source = "${profile-web}/lib/node_modules";
       ".dsh/profiles/tui/package.json".source = "${profile-tui}/package.json";
       ".dsh/profiles/tui/pnpm-lock.yaml".source = "${profile-tui}/pnpm-lock.yaml";
       ".dsh/profiles/tui/pnpm-workspace.yaml".source = "${profile-tui}/pnpm-workspace.yaml";
       ".dsh/profiles/tui/cordis.patch.yml".source = "${profile-tui}/cordis.patch.yml";
-      ".dsh/profiles/tui/node_modules".source = "${profile-tui}/node_modules";
+      ".dsh/profiles/tui/node_modules".source = "${profile-tui}/lib/node_modules";
       ".dsh/pet.json".source = ./pet.json;
       ".dsh/cordis.patch.yml".source = (pkgs.formats.yaml { }).generate "cordis.patch.yml" ([
         {
@@ -99,7 +110,6 @@ in
                 };
               };
             }
-
             {
               id = "skills-nix";
               name = "@deepseek-ai/dsh-skill-filesystem";

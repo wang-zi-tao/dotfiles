@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@deepseek-ai/dsh-lsp':
-        specifier: github:omdsh-dev/dsh-lsp
-        version: https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac
       '@deepseek-harness-tui/dsh-tui':
         specifier: ^0.6.1
         version: 0.6.1
@@ -22,7 +19,7 @@ importers:
         version: https://codeload.github.com/LoserFox/distill/tar.gz/d2aaa395adeffe88e429be796c12d829752cbad1(@deepseek-ai/schemastery@3.18.1)
       dsh-at-file:
         specifier: github:omdsh-dev/dsh-at-file
-        version: https://codeload.github.com/omdsh-dev/dsh-at-file/tar.gz/2c5653ebc3240626cdad41a9c01d15d22471aed2
+        version: https://codeload.github.com/omdsh-dev/dsh-at-file/tar.gz/2c5653ebc3240626cdad41a9c01d15d22471aed2(@deepseek-ai/dsh-llm@0.1.0-rc.6)
 
 packages:
 
@@ -110,14 +107,6 @@ packages:
       '@deepseek-ai/dsh-brand': ^0.1.0-rc.6
       '@deepseek-ai/dsh-invariants': ^0.1.0-rc.6
       '@deepseek-ai/dsh-timeout': ^0.1.0-rc.6
-
-  '@deepseek-ai/dsh-lsp@https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac}
-    version: 0.0.1
-    engines: {node: ^22.19.0 || >=24.0.0}
-    peerDependencies:
-      '@deepseek-ai/cordis': ^4.0.1
-      '@deepseek-ai/dsh-tools': '>=0.0.1-rc.1 <0.2.0'
 
   '@deepseek-ai/dsh-persona@0.1.0-rc.6':
     resolution: {integrity: sha512-rY5AVVopkS9vJl+hGHGQP0nSwzxawubRvEKo4JZmGK7bKZlvevRvj8bd2wLNhTx54jppz+u0iEUq/fqG5k9Mvg==}
@@ -634,8 +623,6 @@ snapshots:
     dependencies:
       '@deepseek-ai/schemastery': 3.18.1
 
-  '@deepseek-ai/dsh-lsp@https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac': {}
-
   '@deepseek-ai/dsh-persona@0.1.0-rc.6(@deepseek-ai/dsh-system-prompt@0.1.0-rc.6(@deepseek-ai/dsh-llm@0.1.0-rc.6))':
     dependencies:
       '@deepseek-ai/dsh-system-prompt': 0.1.0-rc.6(@deepseek-ai/dsh-llm@0.1.0-rc.6)
@@ -837,9 +824,11 @@ snapshots:
 
   cosmokit@1.8.1: {}
 
-  dsh-at-file@https://codeload.github.com/omdsh-dev/dsh-at-file/tar.gz/2c5653ebc3240626cdad41a9c01d15d22471aed2:
+  dsh-at-file@https://codeload.github.com/omdsh-dev/dsh-at-file/tar.gz/2c5653ebc3240626cdad41a9c01d15d22471aed2(@deepseek-ai/dsh-llm@0.1.0-rc.6):
     dependencies:
       zod: 4.4.3
+    optionalDependencies:
+      '@deepseek-ai/dsh-llm': 0.1.0-rc.6
 
   dsh-working-activity@0.2.4(@deepseek-ai/dsh-agent@0.1.0-rc.6(@deepseek-ai/dsh-llm@0.1.0-rc.6)(@deepseek-ai/dsh-session@0.1.0-rc.6(@deepseek-ai/dsh-llm@0.1.0-rc.6))(@deepseek-ai/dsh-system-prompt@0.1.0-rc.6(@deepseek-ai/dsh-llm@0.1.0-rc.6)))(@deepseek-ai/dsh-session@0.1.0-rc.6(@deepseek-ai/dsh-llm@0.1.0-rc.6))(@deepseek-ai/dsh-system-prompt@0.1.0-rc.6(@deepseek-ai/dsh-llm@0.1.0-rc.6))(react@19.2.8):
     dependencies:

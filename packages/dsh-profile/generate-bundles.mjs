@@ -9,7 +9,8 @@ const dependencies = manifest.dependencies ?? {};
 // node_modules arguments. Each path must be a package root containing a
 // package.json; we copy it into node_modules/<name> and register it as a
 // dependency so the bundle scan below can pick up its dsh.bundle.patch.
-for (const pluginPath of pluginPaths) {
+for (const packagePath of pluginPaths) {
+  const pluginPath = join(packagePath, "lib")
   const pluginManifestPath = join(pluginPath, "package.json");
   const pluginManifest = JSON.parse(readFileSync(pluginManifestPath, "utf8"));
   const packageName = pluginManifest.name;

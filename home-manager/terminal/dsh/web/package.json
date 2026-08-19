@@ -2,11 +2,10 @@
   "name": "dsh-profile-web",
   "private": true,
   "dependencies": {
-    "@deepseek-ai/dsh-lsp": "github:omdsh-dev/dsh-lsp",
-    "@linxin666/dsh-client-ui-skin-blue-fantasy": "^0.1.12",
-    "@linxin666/dsh-client-ui-task-board": "^0.1.12",
-    "@linxin666/dsh-liangshen": "^0.1.15",
-    "@linxin666/dsh-tool-describe-image": "^0.1.12",
+    "@linxin666/dsh-client-ui-skin-blue-fantasy": "^0.1.18",
+    "@linxin666/dsh-client-ui-task-board": "^0.1.18",
+    "@linxin666/dsh-liangshen": "^0.1.18",
+    "@linxin666/dsh-tool-describe-image": "^0.1.18",
     "@loserfox/distill": "github:LoserFox/distill",
     "@omdsh-dev/dsh-genui": "github:omdsh-dev/dsh-genui",
     "dsh-at-file": "github:omdsh-dev/dsh-at-file"
