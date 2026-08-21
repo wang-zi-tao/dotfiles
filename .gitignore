@@ -19,3 +19,4 @@ virtualmachines/*
 windows
 chroma.log
 node_modules
+lib
