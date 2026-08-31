@@ -197,7 +197,8 @@ local function init()
   local get_program = util.get_program
   local get_coredmp = util.get_coredmp
 
-  local vsdbg_symbolSearchPath = "srv*D:/symbols*http://localhost:8001"
+  local vsdbg_symbolSearchPath = "srv*D:\\symbols*http://localhost:8001"
+  -- local vsdbg_symbolSearchPath = "srv*http://localhost:8001"
   local vsdbg_config = {
     type = "cppvsdbg",
     clientID = 'vscode',

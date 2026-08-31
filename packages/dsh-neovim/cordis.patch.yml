@@ -1,0 +1,22 @@
+# dsh-neovim bundle patch.
+#
+# Insert one host-side plugin row. The Neovim RPC connection is a
+# one-per-process resource shared by every agent session, exactly like the
+# bash executor, so the row belongs in the host composition (the profile
+# bundle), not in one agent preset.
+#
+# The row config is only the starting point. The plugin merges built-in
+# defaults < row config, so a later profile `cordis.patch.yml` can override the
+# whole row config by id (remember: dsh patches replace the whole config, not
+# deep-merge).
+
+- insert:
+    - id: neovim
+      name: 'dsh-neovim'
+      config:
+        # Neovim RPC address. Omitted: $NVIM_LISTEN_ADDRESS, then $NVIM,
+        # then \\.\pipe\nvim on Windows, then $XDG_RUNTIME_DIR/nvim.$USER.
+        socket: ''
+        # Lua module hosting the `core.agent` debugger bridge
+        # (dap_subscribe / dap_* / reload_file / run_async).
+        luaModule: 'core.agent'

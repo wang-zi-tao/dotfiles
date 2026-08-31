@@ -152,8 +152,8 @@ return {
     keys = {
         { "<leader>to", "<cmd>OverseerToggle<cr>",       desc = "Toggle Overseer" },
         { "<leader>tr", "<cmd>OverseerRun<cr>",          desc = "Run Task" },
-        { "<leader>tc", "<cmd>OverseerClose<cr>",        desc = "Close Task" },
-        { "<leader>tl", "<cmd>OverseerLoadBundle<cr>",   desc = "Load Task" },
-        { "<leader>td", "<cmd>OverseerDeleteBundle<cr>", desc = "Delete Task" },
+        -- { "<leader>tc", "<cmd>OverseerClose<cr>",        desc = "Close Task" },
+        -- { "<leader>tl", "<cmd>OverseerLoadBundle<cr>",   desc = "Load Task" },
+        -- { "<leader>td", "<cmd>OverseerDeleteBundle<cr>", desc = "Delete Task" },
     }
 }

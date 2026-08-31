@@ -1,6 +1,6 @@
 ---
 name: dotfiles
-description: 关于此操作系统的一切服务, 软件和配置文件的集中式管理, 配置脚本.
+description: 关于此操作系统的一切服务, 软件和配置文件的集中式管理, 配置脚本. 包括AI agent的一切配置, skills, 插件
 ---
 # 要求
 ## windows
@@ -16,11 +16,17 @@ hermes -p system_manager -q "your request"
 # 配置仓库
 
 ## dotfiles 仓库
-主dotfiles仓库, 主要用于nixos linux系统的配置
+主dotfiles仓库, 主要用于nixos linux系统的配置, 以及多系统之间共享的文件
 - 位置: `DOTFILE`环境变量
 
 ### neovim配置
 - 位置: `$DOTFILE/packages/wangzi-neovim/`
+
+### skills
+- 位置: `$DOTFILE/skills/`
+
+### deepseek-harness 插件
+- 位置: `$DOTFILE/packages/`
 
 ## dotfiles-windows 仓库
 windows下的dotfiles仓库
