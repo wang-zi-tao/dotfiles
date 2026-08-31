@@ -1,0 +1,81 @@
+# dsh-lsp bundle patch.
+#
+# Insert one host-side plugin row. The LSP server subprocesses and the shared
+# language-server registry belong on the host plane: they are one-per-process
+# resources (each language server is a long-lived subprocess), and the tool /
+# command surface is global, exactly like the bash executor.
+#
+# The row config is only the starting point. The plugin merges built-in
+# defaults < row config, so a later profile `cordis.patch.yml` can override the
+# whole row config by id (remember: dsh patches replace the whole config, not
+# deep-merge).
+
+- insert:
+    - id: lsp
+      name: 'dsh-lsp'
+      config:
+        lazyStart: true
+        maxLocations: 100
+        maxResultChars: 16000
+        timeoutMs: 60000
+        servers:
+          - id: clangd
+            command: clangd
+            args:
+              - '--background-index'
+              - '--clang-tidy'
+              - '--compile-commands-dir=.'
+              - '--log=error'
+            extensions: [c, cc, cpp, cxx, 'c++', h, hpp, hh, hxx, 'h++', inl]
+            languageId: cpp
+            rootMarkers:
+              - compile_commands.json
+              - compile_flags.txt
+              - .clangd
+              - wps_3rdparty_list.cmake
+          - id: rust-analyzer
+            command: rust-analyzer
+            args: []
+            extensions: [rs]
+            languageId: rust
+            rootMarkers:
+              - Cargo.toml
+              - Cargo.lock
+              - rust-project.json
+          - id: gopls
+            command: gopls
+            args: []
+            extensions: [go]
+            languageId: go
+            rootMarkers:
+              - go.mod
+              - go.work
+          - id: pyright
+            command: pyright
+            args: ['--stdio']
+            extensions: [py, pyi]
+            languageId: python
+            rootMarkers:
+              - pyproject.toml
+              - setup.py
+              - setup.cfg
+              - requirements.txt
+              - .python-version
+          - id: typescript-language-server
+            command: typescript-language-server
+            args: ['--stdio']
+            extensions: [ts, tsx, js, jsx, mjs, cjs]
+            languageId: typescript
+            rootMarkers:
+              - package.json
+              - tsconfig.json
+              - jsconfig.json
+          - id: lua-language-server
+            command: lua-language-server
+            args: []
+            extensions: [lua]
+            languageId: lua
+            rootMarkers:
+              - .luarc.json
+              - .luarc.jsonc
+              - .stylua.toml

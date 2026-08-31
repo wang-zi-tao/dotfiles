@@ -1,0 +1,43 @@
+{
+  "name": "dsh-lsp",
+  "version": "0.1.0",
+  "description": "LSP semantic code navigation for DeepSeek Harness: one lsp tool (definition/references/implementation/typeDefinition/hover/workspaceSymbol/documentSymbol/diagnostics + aggregated explore) and one /lsp command over managed clangd / rust-analyzer / gopls / pyright / ... language-server subprocesses.",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "ARCHITECTURE.md"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "tsc -p tsconfig.test.json && node --test build/test/*.test.js",
+    "check": "npm run build && npm test"
+  },
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "dependencies": {
+    "vscode-languageserver-protocol": "^3.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.3"
+  }
+}
