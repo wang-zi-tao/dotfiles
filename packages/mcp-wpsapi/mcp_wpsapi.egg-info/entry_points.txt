@@ -1,2 +1,0 @@
-[console_scripts]
-mcp-wpsapi = mcp_wpsapi.server:main

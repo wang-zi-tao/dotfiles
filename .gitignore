@@ -20,3 +20,11 @@ windows
 chroma.log
 node_modules
 lib
+
+# Python build artifacts
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Temporary edit scripts
+_edit*.ps1
