@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+mcp_wpsapi/__init__.py
+mcp_wpsapi/__main__.py
+mcp_wpsapi/com_session.py
+mcp_wpsapi/eval_engine.py
+mcp_wpsapi/serialize.py
+mcp_wpsapi/server.py
+mcp_wpsapi.egg-info/PKG-INFO
+mcp_wpsapi.egg-info/SOURCES.txt
+mcp_wpsapi.egg-info/dependency_links.txt
+mcp_wpsapi.egg-info/entry_points.txt
+mcp_wpsapi.egg-info/requires.txt
+mcp_wpsapi.egg-info/top_level.txt

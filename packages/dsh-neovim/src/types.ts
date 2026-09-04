@@ -1,92 +1,32 @@
 /**
  * Internal vocabulary for dsh-neovim.
  *
- * The plugin is self-contained: it defines structural types for the small
- * surface of the harness it consumes (`ctx.tools`, `ctx.commands`, `ctx.on`,
- * `ctx.agents`, `ctx.effect`) instead of importing the harness packages, so it
- * builds with only `neovim` as a runtime dependency (the same dependency-light
- * pattern as `dsh-hindsight` / `dsh-lsp`).
+ * The plugin imports the real types from the official `@deepseek-ai/*` packages
+ * instead of defining structural types for the harness surface it consumes
+ * (`ctx.tools`, `ctx.commands`, `ctx.on`, `ctx.agents`, `ctx.effect`). The
+ * plugin still builds with only `neovim` as a runtime dependency: every import
+ * here is type-only and erased at compile time, with one runtime exception —
+ * `createUserMessage` from `@deepseek-ai/dsh-llm`, used by `apply()` for DAP
+ * event injection, which is why dsh-llm sits in `dependencies`.
  */
 
-// ---------------------------------------------------------------------------
-// Harness structural contracts (what apply() actually consumes)
-// ---------------------------------------------------------------------------
+import type { Context, Logger } from '@deepseek-ai/cordis'
+import type { ToolDefinition, ToolRunContext, ToolExecution } from '@deepseek-ai/dsh-tools'
+import type { CommandDefinition, CommandInvocation, CommandResult } from '@deepseek-ai/dsh-commands'
+import type { Agent } from '@deepseek-ai/dsh-agent'
+import type { Session } from '@deepseek-ai/dsh-session'
 
-export interface SessionLike {
-  id: string
-  header?: { cwd?: string; origin?: string }
-}
-
-/**
- * The slice of a harness Agent that dsh-neovim touches: injected context
- * delivery (DAP events) and session identity (the dapSessions registry).
- */
-export interface AgentLike {
-  session?: SessionLike
-  /** Queue model-facing context for the next pre-step without waking the driver. */
-  inject(message: InjectedUserMessage): void
-}
-
-export interface InjectedUserMessage {
-  content: string
-  source: { kind: 'plugin'; plugin: string }
-}
-
-export interface ToolRunContext {
-  signal?: AbortSignal
-  agent?: AgentLike
-}
-
-export interface ToolDefinition {
-  name: string
-  description: string
-  parameters: Record<string, unknown>
-  output: {
-    schema: Record<string, unknown>
-    render(args: unknown, value: any): Array<{ type: 'text'; text: string }>
-  }
-  execute(args: unknown, exec: ToolRunContext): Promise<unknown>
-}
-
-export interface CommandInvocation {
-  agent: unknown
-  rawInput: string
-  signal: AbortSignal
-}
-
-export type CommandResult =
-  | { kind: 'success'; text: string }
-  | { kind: 'error'; text: string }
-
-export interface CommandDefinition {
-  name: string
-  description: string
-  input?: { hint: string; images?: boolean }
-  handler(invocation: CommandInvocation): CommandResult | Promise<CommandResult>
-}
-
-/** The frozen `tools/result` execution view (observe-only). */
-export interface ToolResultExecution {
-  readonly name?: string
-  readonly arguments?: unknown
-}
-
-export interface DshContext {
-  tools: { register(definition: ToolDefinition): () => void }
-  commands: { register(definition: CommandDefinition): () => void }
-  agents: {
-    list(): AgentLike[]
-  }
-  on(name: string, listener: (...args: any[]) => unknown): () => void
-  effect<T>(callback: () => void | (() => void), label?: string): () => void
-  logger?: ((name: string) => LoggerLike) | LoggerLike
-}
-
-export interface LoggerLike {
-  debug(message: string): void
-  info(message: string): void
-  warn(message: string): void
-  error(message: string): void
+export type {
+  Context,
+  Logger,
+  ToolDefinition,
+  ToolRunContext,
+  ToolExecution,
+  CommandDefinition,
+  CommandInvocation,
+  CommandResult,
+  Agent,
+  Session,
 }
 
 // ---------------------------------------------------------------------------

@@ -1,10 +1,12 @@
 /**
  * Internal vocabulary for dsh-lsp.
  *
- * The plugin is self-contained: it defines structural types for the small
- * surface of the harness it consumes (`ctx.tools`, `ctx.commands`,
- * `ctx.subprocess`, `ctx.effect`) instead of importing the harness packages,
- * so it builds with only `vscode-languageserver-protocol` as a runtime
- * dependency (the same dependency-free pattern as `dsh-hindsight`).
+ * The harness-facing types come from the official `@deepseek-ai/dsh-*`
+ * packages: cordis `Context`/`Logger`, dsh-tools
+ * `ToolDefinition`/`ToolRunContext`, dsh-commands
+ * `CommandDefinition`/`CommandInvocation`/`CommandResult`, and dsh-session
+ * `Session`. The one custom seam kept is `ctx.subprocess`, which the official
+ * `Context` does not carry; `DshContext` intersects it onto `Context`.
+ * Runtime dependencies remain limited to `vscode-languageserver-protocol`.
  */
 export {};

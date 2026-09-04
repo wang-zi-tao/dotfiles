@@ -5,8 +5,8 @@
  *
  *   - `ctx.tools.register` exposes vim command / Lua execution / Lua
  *     evaluation plus the full nvim-dap toolset (`dap_start`, steps,
- *     breakpoints, watches, threads, sessions, configurations) through the
- *     user's Neovim `core.agent` Lua bridge.
+ *     breakpoints, watches, threads, sessions, configurations, disassembly)
+ *     through the user's Neovim `core.agent` Lua bridge.
  *   - `nvim.subscribe` (`dap_pause` / `event_terminated` / `event_exited`)
  *     drives debugger event injection: formatted `<dap-event>` context is
  *     delivered with `agent.inject()` to every session that has used a DAP
@@ -24,22 +24,24 @@
  */
 import { resolveConfig, resolveSocket } from './config.js';
 import { probeSocket, tryConnectNvim } from './neovim.js';
-import { fmtBreakpoints, fmtConfigs, fmtFrame, fmtSessions, fmtStack, fmtThreads, } from './format.js';
+import { fmtBreakpoints, fmtConfigs, fmtDisasm, fmtFrame, fmtSessions, fmtStack, fmtThreads, } from './format.js';
+import { createUserMessage } from '@deepseek-ai/dsh-llm';
 export const name = 'dsh-neovim';
 export const inject = ['tools', 'commands', 'agents'];
 export { resolveConfig, resolveSocket };
 export { Neovim, probeSocket, tryConnectNvim } from './neovim.js';
 function makeLogger(ctx) {
     try {
-        if (typeof ctx?.logger === 'function')
+        if (typeof ctx.logger === 'function')
             return ctx.logger('neovim');
-        if (ctx?.logger)
-            return ctx.logger;
     }
     catch {
         /* fall through */
     }
-    return { debug() { }, info() { }, warn() { }, error() { } };
+    // Fallback for hosts where ctx.logger is not the callable service; only the
+    // four severity methods are structurally used, so the cast through unknown is
+    // fine here (Logger is a class type with private members).
+    return { name: 'neovim', debug() { }, info() { }, warn() { }, error() { } };
 }
 function errText(error) {
     return error instanceof Error ? error.message : String(error);
@@ -50,6 +52,7 @@ function objectSchema(properties, required = []) {
 }
 const STRING = (description) => ({ type: 'string', description });
 const INTEGER = (description) => ({ type: 'integer', description });
+const BOOLEAN = (description) => ({ type: 'boolean', description });
 const OBJECT = (description) => ({
     type: 'object',
     additionalProperties: true,
@@ -71,7 +74,7 @@ export function apply(ctx, rawConfig = {}) {
             if (!id || !dapSessions.has(String(id)))
                 continue;
             try {
-                agent.inject({ content: text, source: { kind: 'plugin', plugin: name } });
+                agent.inject(createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'plugin', plugin: name } }));
             }
             catch (error) {
                 // The agent went away between list() and inject(); drop the stale entry.
@@ -168,9 +171,9 @@ export function apply(ctx, rawConfig = {}) {
         if (id)
             dapSessions.add(String(id));
     }
-    async function dapStep(action, luaFn, exec) {
+    async function dapStep(action, luaFn, args, exec) {
         markSession(exec);
-        const ret = await dapCall(`require("${config.luaModule}").${luaFn}()`);
+        const ret = await dapCall(`require("${config.luaModule}").${luaFn}(args)`, { args });
         if (ret.status === 'terminated')
             return '调试目标已退出';
         let out = `## 调试器已暂停 (${action})\n`;
@@ -204,13 +207,13 @@ export function apply(ctx, rawConfig = {}) {
         },
         {
             name: 'nvim_lua_eval',
-            description: '在 Neovim 中求值 Lua 表达式并返回结果',
+            description: '在 Neovim 中异步求值 Lua 表达式并返回结果. 常用lua模块:[core.agent: 各种给agent提供的工具函数和集成式调试器辅助函数, dap: 调试器, overseer: 编译等运行器], 常用vim函数:[vim.inspect: lua值转字符串, vim.fn: 各种neovim内置函数]',
             parameters: objectSchema({
                 cmd: STRING("Lua 表达式，如 'vim.o.tabstop'、'vim.api.nvim_get_current_buf()'"),
             }, ['cmd']),
             async run(args) {
                 const nv = await ensureNvim();
-                const ret = await nv.luaEval(args.cmd);
+                const ret = await nv.luaAsyncEval(args.cmd, config.luaModule);
                 return JSON.stringify(ret);
             },
         },
@@ -225,6 +228,23 @@ export function apply(ctx, rawConfig = {}) {
                 const val = ret.result ?? '(nil)';
                 const typ = ret.type ?? '?';
                 return `**${typ}**: ${val}${ret.variablesReference ? ` (variablesReference: ${ret.variablesReference})` : ''}`;
+            },
+        },
+        {
+            name: 'nvim_dap_disasm',
+            description: '反汇编当前调试位置（围绕当前帧指令指针 PC 前后各 16 条指令），或用 memory_reference 反汇编任意地址的机器码',
+            parameters: objectSchema({
+                memory_reference: STRING('显式反汇编起始地址（缺省用当前帧的 instructionPointerReference）'),
+                before: INTEGER('PC 之前的指令条数（默认 16）'),
+                after: INTEGER('PC 之后的指令条数（默认 16）'),
+                instruction_count: INTEGER('覆盖总指令条数（默认 before+1+after）'),
+                instruction_offset: INTEGER('覆盖起始偏移（默认 -before）'),
+                resolve_symbols: BOOLEAN('是否请求解析符号'),
+            }),
+            async run(args, exec) {
+                markSession(exec);
+                const ret = await dapCall(`require("${config.luaModule}").dap_disasm(args)`, { args });
+                return fmtDisasm(ret);
             },
         },
         {
@@ -250,7 +270,7 @@ export function apply(ctx, rawConfig = {}) {
             name: 'nvim_dap_continue',
             description: '继续执行。协程阻塞等待命中断点后返回停止位置',
             parameters: objectSchema({}),
-            run: (_args, exec) => dapStep('continue', 'dap_continue', exec),
+            run: (_args, exec) => dapStep('continue', 'dap_continue', {}, exec),
         },
         {
             name: 'nvim_dap_stop',
@@ -264,26 +284,37 @@ export function apply(ctx, rawConfig = {}) {
         {
             name: 'nvim_dap_step_into',
             description: '步入当前函数。协程阻塞等待命中断点后返回停止位置',
-            parameters: objectSchema({}),
-            run: (_args, exec) => dapStep('step into', 'dap_step_into', exec),
+            parameters: objectSchema({
+                thread_id: INTEGER('线程 ID（可选，默认当前线程）'),
+                single_thread: BOOLEAN('仅单步当前线程（默认 false）'),
+                granularity: { type: 'string', enum: ['statement', 'line', 'instruction'], description: '粒度: statement（语句）、line（行）、instruction（指令），默认 statement' },
+            }),
+            run: (args, exec) => dapStep('step into', 'dap_step_into', args, exec),
         },
         {
             name: 'nvim_dap_step_over',
             description: '步过当前行。协程阻塞等待命中断点后返回停止位置',
-            parameters: objectSchema({}),
-            run: (_args, exec) => dapStep('step over', 'dap_step_over', exec),
+            parameters: objectSchema({
+                thread_id: INTEGER('线程 ID（可选，默认当前线程）'),
+                single_thread: BOOLEAN('仅单步当前线程（默认 false）'),
+                granularity: { type: 'string', enum: ['statement', 'line', 'instruction'], description: '粒度: statement（语句）、line（行）、instruction（指令），默认 statement' },
+            }),
+            run: (args, exec) => dapStep('step over', 'dap_step_over', args, exec),
         },
         {
             name: 'nvim_dap_step_out',
             description: '步出当前函数。协程阻塞等待命中断点后返回停止位置',
-            parameters: objectSchema({}),
-            run: (_args, exec) => dapStep('step out', 'dap_step_out', exec),
+            parameters: objectSchema({
+                thread_id: INTEGER('线程 ID（可选，默认当前线程）'),
+                single_thread: BOOLEAN('仅单步当前线程（默认 false）'),
+            }),
+            run: (args, exec) => dapStep('step out', 'dap_step_out', args, exec),
         },
         {
             name: 'nvim_dap_run_to_cursor',
             description: '运行到当前光标位置。设临时断点→继续执行→命中后移除并返回停止状态',
             parameters: objectSchema({}),
-            run: (_args, exec) => dapStep('run to cursor', 'dap_run_to_cursor', exec),
+            run: (_args, exec) => dapStep('run to cursor', 'dap_run_to_cursor', {}, exec),
         },
         {
             name: 'nvim_dap_run_to_location',
@@ -383,6 +414,21 @@ export function apply(ctx, rawConfig = {}) {
             },
         },
         {
+            name: 'nvim_dap_add_function_breakpoint',
+            description: '添加函数断点（按函数名，无需指定文件和行号）',
+            parameters: objectSchema({ func: STRING('函数名') }, ['func']),
+            async run(args, exec) {
+                markSession(exec);
+                const ret = await dapCall(`require("${config.luaModule}").dap_add_function_breakpoint(args)`, { args });
+                const bps = ret?.breakpoints;
+                if (bps && bps.length > 0) {
+                    const b = bps[0];
+                    return `函数断点已添加: **${args.func}**${b.verified ? ' (已验证)' : ` (未验证: ${b.message || '?'})`}`;
+                }
+                return `函数断点已添加: **${args.func}**`;
+            },
+        },
+        {
             name: 'nvim_dap_toggle_breakpoint',
             description: '切换断点（有则删、无则加）',
             parameters: objectSchema({
@@ -428,6 +474,45 @@ export function apply(ctx, rawConfig = {}) {
             async run() {
                 await dapCall(`require("${config.luaModule}").dap_clear_breakpoints()`);
                 return '所有断点已清除';
+            },
+        },
+        {
+            name: 'nvim_dap_request',
+            description: '发送任意 DAP 请求到调试适配器。若请求不被支持，返回适配器能力列表；若参数错误，提示查询 DAP 协议文档。' +
+                '常用命令: evaluate, stackTrace, threads, scopes, variables, disassemble, setBreakpoints, setFunctionBreakpoints, setExceptionBreakpoints, source, modules, loadedSources, goto, stepIn, stepOut, next, continue, pause, terminate, restart, initialize, launch, attach 等',
+            parameters: objectSchema({
+                command: STRING('DAP 请求命令名（如 "evaluate"、"stackTrace"、"threads"、"disassemble"、"setFunctionBreakpoints"）'),
+                arguments: OBJECT('请求参数（JSON 对象），如 {"expression": "x", "frameId": 0}'),
+            }, ['command']),
+            async run(args, exec) {
+                markSession(exec);
+                const ret = await dapCall(`require("${config.luaModule}").dap_request(args)`, { args });
+                if (ret.error) {
+                    let out = `**DAP 请求错误:** ${ret.error}
+
+`;
+                    if (ret.hint)
+                        out += `${ret.hint}
+
+`;
+                    if (ret.capabilities) {
+                        out += `**适配器支持的能力:**
+`;
+                        const caps = ret.capabilities;
+                        const supported = Object.entries(caps).filter(([, v]) => v);
+                        if (supported.length === 0) {
+                            out += `(无能力信息)
+`;
+                        }
+                        else {
+                            for (const [k] of supported)
+                                out += `- ${k}
+`;
+                        }
+                    }
+                    return out;
+                }
+                return JSON.stringify(ret, null, 2);
             },
         },
         {

@@ -24,7 +24,7 @@ import type {
   CommandResult,
   DshContext,
   ExploreResult,
-  LoggerLike,
+  Logger,
   LspLocation,
   LspQueryResult,
   QueryArgs,
@@ -43,14 +43,16 @@ export type { LspConfig, ServerSpec, QueryOperation, LspLocation, ExploreResult 
 
 const TOOL_SECTION_ORDER = 136
 
-function makeLogger(ctx: DshContext): LoggerLike {
+function makeLogger(ctx: DshContext): Logger {
+  // ctx.logger is the official LoggerService, always present and callable.
   try {
-    if (typeof ctx?.logger === 'function') return ctx.logger('lsp')
-    if (ctx?.logger) return ctx.logger
+    return ctx.logger('lsp')
   } catch {
-    /* fall through */
+    /* fall through to a no-op facade */
   }
-  return { debug() {}, info() {}, warn() {}, error() {} }
+  // Logger is a class type (private `service`/`_method`); the no-op facade
+  // only needs its public severity methods, so cast through unknown.
+  return { name: 'lsp', debug() {}, info() {}, warn() {}, error() {} } as unknown as Logger
 }
 
 function requireString(args: any, key: string): string {
@@ -422,7 +424,7 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
         },
         required: ['ok', 'kind', 'text'],
       },
-      render: (_args, value) => [{ type: 'text', text: value.text }],
+      render: (_args, value) => [{ type: 'text', text: String((value as { text?: string } | null)?.text ?? '') }],
     },
     async execute(rawArgs, exec) {
       const args = rawArgs as unknown as QueryArgs

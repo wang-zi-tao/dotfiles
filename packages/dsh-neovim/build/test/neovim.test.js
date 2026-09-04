@@ -118,6 +118,28 @@ test('run neovim command lua args', async (t) => {
     const result = await nv.luaEval('a*b', { a: 2, b: 3 });
     assert.equal(result, 6);
 });
+test('run neovim command lua complex args round-trip', async (t) => {
+    const nv = requireNvim(t);
+    if (!nv)
+        return;
+    const args = {
+        s: 'he said "hi" \\\n\ttab',
+        n: 1.5,
+        bool: true,
+        arr: [1, 'two', false],
+        obj: { a: 1, 'k with space': 'v', nested: { x: [true] } },
+    };
+    const command = '{s=s, n=n, bool=bool, arr=arr, obj=obj}';
+    const result = await nv.luaEval(command, args);
+    assert.deepEqual(result, args);
+});
+test('jsonToLuaCode encodes null and undefined as nil', (t) => {
+    const nv = requireNvim(t);
+    if (!nv)
+        return;
+    assert.equal(nv.jsonToLuaCode(null), 'nil');
+    assert.equal(nv.jsonToLuaCode(undefined), 'nil');
+});
 test('run neovim command lua in sync', async (t) => {
     const nv = requireNvim(t);
     if (!nv)

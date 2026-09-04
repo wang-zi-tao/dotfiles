@@ -124,11 +124,78 @@ export class Neovim {
     }
   }
 
+  /**
+   * Serialize a JSON value (tool argument) into a Lua expression that
+   * reconstructs it, safe to inline into a `lua` command line. Handles null,
+   * booleans, finite numbers, strings, arrays and plain objects; nested
+   * structures recurse. Throws on values JSON cannot represent.
+   */
+  jsonToLuaCode(json: any): string {
+    if (json === null || json === undefined) return 'nil'
+    switch (typeof json) {
+      case 'boolean':
+        return json ? 'true' : 'false'
+      case 'number': {
+        if (!Number.isFinite(json)) {
+          throw new Error('cannot encode non-finite number as Lua: ' + json)
+        }
+        return String(json)
+      }
+      case 'string':
+        return this.luaStringLiteral(json)
+      case 'object': {
+        if (Array.isArray(json)) {
+          const items = json.map((item) => this.jsonToLuaCode(item))
+          return '{' + items.join(',') + '}'
+        }
+        const fields: string[] = []
+        for (const [key, value] of Object.entries(json)) {
+          fields.push(`[${this.luaStringLiteral(key)}]=${this.jsonToLuaCode(value)}`)
+        }
+        return '{' + fields.join(',') + '}'
+      }
+      default:
+        throw new Error('cannot encode value of type ' + typeof json + ' as Lua')
+    }
+  }
+
+  /** Quote a string as a double-quoted Lua literal, escaping control chars. */
+  private luaStringLiteral(value: string): string {
+    let out = '"'
+    for (const char of value) {
+      const code = char.codePointAt(0)!
+      switch (char) {
+        case '\\':
+          out += '\\\\'
+          break
+        case '"':
+          out += '\\"'
+          break
+        case '\n':
+          out += '\\n'
+          break
+        case '\r':
+          out += '\\r'
+          break
+        case '\t':
+          out += '\\t'
+          break
+        default:
+          if (code < 0x20 || code === 0x7f) {
+            out += '\\' + code.toString().padStart(3, '0')
+          } else {
+            out += char
+          }
+      }
+    }
+    return out + '"'
+  }
+
   private encodeLuaArgs(command: string, args?: LuaArgs): string {
     if (args) {
       const argsExpr: string[] = []
       for (const [key, value] of Object.entries(args)) {
-        argsExpr.push(`${key}=${JSON.stringify(value)};`)
+        argsExpr.push(`${key}=${this.jsonToLuaCode(value)};`)
       }
       command = `( function() ${argsExpr.join('')} return ${command} end )()`
     }
@@ -152,11 +219,11 @@ export class Neovim {
 
     return this.client.channelId.then((channel_id) => {
       const script =
-        `lua require("${luaModule}").run_async(function() return ` +
+        `require("${luaModule}").run_async(function() return ` +
         `${this.encodeLuaArgs(command, args)} end, ${channel_id}, ${task_id})`
       return new Promise((resolve, reject) => {
         this.asyncTaskCallbacks.set(task_id, [resolve, reject])
-        this.client.commandOutput(script).catch((error) => {
+        this.client.executeLua(script).catch((error) => {
           if (this.asyncTaskCallbacks.delete(task_id)) reject(error)
         })
       })

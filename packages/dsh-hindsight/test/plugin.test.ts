@@ -2,7 +2,24 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { apply, inject, name } from '../src/index.js'
 import type { ToolDefinition } from '../src/index.js'
-import type { SessionEventLike, SessionLike } from '../src/transcript.js'
+import type { Context } from '@deepseek-ai/cordis'
+import type { ToolRunContext } from '@deepseek-ai/dsh-tools'
+
+interface SessionEventLike {
+  type: string
+  seq: number
+  time: number
+  data: any
+}
+
+interface SessionLike {
+  id: string
+  events: readonly SessionEventLike[]
+  header?: {
+    cwd?: string
+    origin?: string
+  }
+}
 
 const envKeys = [
   'HINDSIGHT_API_URL',
@@ -146,7 +163,7 @@ test('plugin registers hooks, tools, and prefetches recall on turn/end', withCle
   const originalFetch = globalThis.fetch
   globalThis.fetch = fakeFetch(calls)
   try {
-    apply(ctx, {
+    apply(ctx as unknown as Context, {
       apiUrl: 'http://hindsight.test',
       bankId: 'test-bank',
       timeoutMs: 1000,
@@ -196,7 +213,7 @@ test('plugin registers hooks, tools, and prefetches recall on turn/end', withCle
 
     const statusTool = ctx.tools.registered.find(def => def.name === 'hindsight_status')
     assert.ok(statusTool)
-    const status = await statusTool.execute({}, {}) as { ok: boolean; bankId: string }
+    const status = await statusTool.execute({}, {} as ToolRunContext) as { ok: boolean; bankId: string }
     assert.equal(status.ok, true)
     assert.equal(status.bankId, 'test-bank')
   } finally {
@@ -210,7 +227,7 @@ test('memoryMode=context hides tools but still injects auto-recall', withCleanEn
   const originalFetch = globalThis.fetch
   globalThis.fetch = fakeFetch(calls)
   try {
-    apply(ctx, { apiUrl: 'http://hindsight.test', memoryMode: 'context', timeoutMs: 1000 })
+    apply(ctx as unknown as Context, { apiUrl: 'http://hindsight.test', memoryMode: 'context', timeoutMs: 1000 })
     assert.deepEqual(ctx.tools.registered, [])
     assert.equal(ctx.systemPrompt.sections.length, 0)
 

@@ -8,6 +8,7 @@
  */
 
 import type { HindsightConfig } from './config.js'
+import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
 
 export interface TurnMessage {
   role: 'user' | 'assistant'
@@ -21,22 +22,6 @@ export interface TurnRecord {
   text: string
   query: string
   startedAt: string
-}
-
-export interface SessionEventLike {
-  type: string
-  seq: number
-  time: number
-  data: any
-}
-
-export interface SessionLike {
-  id: string
-  events: readonly SessionEventLike[]
-  header?: {
-    cwd?: string
-    origin?: string
-  }
 }
 
 interface ContentBlockLike {
@@ -77,11 +62,15 @@ function clip(text: string, maxChars: number): string {
   return `${text.slice(0, maxChars - 20)}\n…[truncated]`
 }
 
+function eventsForTurn(events: readonly SessionEvent[], turn: number): SessionEvent[] {
+  return events.filter(event => ('turn' in event.data) ? Number(event.data.turn) === Number(turn) : false)
+}
+
 /**
  * Build one retainable turn record from the session event log.
  */
-export function buildTurnRecord(session: SessionLike, turn: number, config: HindsightConfig): TurnRecord | null {
-  const events = (session?.events ?? []).filter(event => Number(event?.data?.turn) === Number(turn))
+export function buildTurnRecord(session: Session, turn: number, config: HindsightConfig): TurnRecord | null {
+  const events = eventsForTurn(session?.events ?? [], turn)
   const messages: TurnMessage[] = []
   let query = ''
   let totalChars = 0
@@ -142,8 +131,8 @@ export function buildTurnRecord(session: SessionLike, turn: number, config: Hind
 }
 
 /** Extract the user query that should drive the next-turn recall. */
-export function turnQuery(session: SessionLike, turn: number, config: HindsightConfig): string {
-  const events = (session?.events ?? []).filter(event => Number(event?.data?.turn) === Number(turn))
+export function turnQuery(session: Session, turn: number, config: HindsightConfig): string {
+  const events = eventsForTurn(session?.events ?? [], turn)
   for (const event of events) {
     if (event.type !== 'user/message') continue
     if (event.data?.source?.kind !== 'user') continue

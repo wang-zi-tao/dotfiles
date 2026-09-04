@@ -146,7 +146,7 @@ return {
             local Job = require("plenary.job")
             --wt -w 0 sp -s 0.25 nu -c $"$env.NVIM = '($env.NVIM)'; dsh.cmd --profile tui"
             Job:new({
-              command = "wt",
+              command = [[C:\Users\wps\AppData\Local\Microsoft\WindowsApps\wt.exe]],
               args = { "-w", "0", "sp", "-s", "0.25",
                 "nu", "-c",
                 "with-env { NVIM: '" .. vim.v.servername .. "' } { dsh.cmd --profile tui }" },

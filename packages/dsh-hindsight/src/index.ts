@@ -24,7 +24,11 @@ import type { HindsightConfig } from './config.js'
 import { HindsightClient } from './client.js'
 import type { RecallResult, RetainItem, RetainResponse } from './client.js'
 import { buildTurnRecord } from './transcript.js'
-import type { SessionEventLike, SessionLike, TurnRecord } from './transcript.js'
+import type { TurnRecord } from './transcript.js'
+import type { ToolDefinition, ToolRunContext } from '@deepseek-ai/dsh-tools'
+import type { PromptSection, PromptContext } from '@deepseek-ai/dsh-system-prompt'
+import type { Logger, Context } from '@deepseek-ai/cordis'
+import type { Session, SessionEvent, JsonValue } from '@deepseek-ai/dsh-session'
 
 export const name = 'dsh-hindsight'
 export const inject = ['tools', 'systemPrompt']
@@ -41,56 +45,9 @@ export type {
   RetainResponse,
 } from './client.js'
 export { buildTurnRecord } from './transcript.js'
-export type { SessionEventLike, SessionLike, TurnMessage, TurnRecord } from './transcript.js'
-
-export interface ToolRunContext {
-  signal?: AbortSignal
-  agent?: {
-    session?: SessionLike
-  }
-}
-
-export interface ToolDefinition {
-  name: string
-  description: string
-  parameters: Record<string, unknown>
-  output: {
-    schema: Record<string, unknown>
-    render(args: unknown, value: any): Array<{ type: 'text'; text: string }>
-  }
-  execute(args: unknown, exec: ToolRunContext): Promise<unknown>
-}
-
-interface PromptSection {
-  name: string
-  order: number
-  text: string
-}
-
-interface PromptContext {
-  name: string
-  order: number
-  text: string | ((context: { agent?: { session?: SessionLike } }) => string)
-}
-
-interface LoggerLike {
-  debug(message: string): void
-  info(message: string): void
-  warn(message: string): void
-  error(message: string): void
-}
-
-interface DshContext {
-  tools: {
-    register(definition: ToolDefinition): () => void
-  }
-  systemPrompt: {
-    section(section: PromptSection): () => void
-    context(context: PromptContext): () => void
-  }
-  on(name: string, listener: (...args: any[]) => unknown, options?: { global?: boolean }): () => void
-  logger?: LoggerLike | ((name: string) => LoggerLike)
-}
+export type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
+export type { ToolDefinition } from '@deepseek-ai/dsh-tools'
+export type { TurnMessage, TurnRecord } from './transcript.js'
 
 interface SessionState {
   buffer: TurnRecord[]
@@ -108,22 +65,23 @@ const RECALL_PREAMBLE = [
   'Use this to answer questions about the user and prior sessions. Do not call tools to look up information that is already present here.',
 ].join('\n')
 
-function makeLogger(ctx: DshContext): LoggerLike {
+function makeLogger(ctx: Context): Logger {
   try {
     if (typeof ctx?.logger === 'function') return ctx.logger('hindsight')
-    if (ctx?.logger) return ctx.logger
+    if (ctx?.logger) return ctx.logger as unknown as Logger
   } catch {
     // fall through
   }
   return {
+    name: 'hindsight',
     debug() {},
     info() {},
     warn() {},
     error() {},
-  }
+  } as unknown as Logger
 }
 
-function logFailure(logger: LoggerLike, action: string, error: unknown): void {
+function logFailure(logger: Logger, action: string, error: unknown): void {
   const message = error instanceof Error ? error.message : String(error)
   try {
     logger.warn(`${action} failed: ${message}`)
@@ -206,7 +164,7 @@ function agentMetadata(exec: ToolRunContext | undefined): Record<string, string>
   return metadata
 }
 
-function retainItem(record: TurnRecord, session: SessionLike, config: HindsightConfig): RetainItem {
+function retainItem(record: TurnRecord, session: Session, config: HindsightConfig): RetainItem {
   const item: RetainItem = {
     content: record.text,
     timestamp: record.startedAt,
@@ -242,9 +200,10 @@ function recallResultsToValue(results: RecallResult[] | undefined): Array<Record
   return list
 }
 
-function recallValueToText(value: { message: string; results?: Array<{ text: string }> }): string {
-  const lines = [value.message]
-  for (const result of value.results ?? []) lines.push(`- ${result.text}`)
+function recallValueToText(value: JsonValue): string {
+  const record = (value ?? {}) as { message?: JsonValue; results?: Array<{ text?: JsonValue }> } | null
+  const lines = [String(record?.message ?? '')]
+  for (const result of record?.results ?? []) lines.push(`- ${String(result?.text ?? '')}`)
   return lines.filter(Boolean).join('\n')
 }
 
@@ -337,7 +296,7 @@ function toolDefinitions(client: HindsightClient, config: HindsightConfig): Tool
         },
         required: ['ok', 'message', 'bankId', 'itemsCount'],
       },
-      render: (_args, value) => [{ type: 'text', text: value.message }],
+      render: (_args, value) => [{ type: 'text', text: String((value as { message?: string } | null)?.message ?? '') }],
     },
     async execute(args, exec) {
       const content = requireString(args, 'content')
@@ -479,7 +438,7 @@ function toolDefinitions(client: HindsightClient, config: HindsightConfig): Tool
         },
         required: ['ok', 'message', 'text'],
       },
-      render: (_args, value) => [{ type: 'text', text: value.text }],
+      render: (_args, value) => [{ type: 'text', text: String((value as { text?: string } | null)?.text ?? '') }],
     },
     async execute(args, exec) {
       const query = requireString(args, 'query')
@@ -530,7 +489,7 @@ function toolDefinitions(client: HindsightClient, config: HindsightConfig): Tool
           },
           required: ['ok', 'message', 'apiUrl', 'bankId', 'version'],
         },
-        render: (_args, value) => [{ type: 'text', text: value.message }],
+        render: (_args, value) => [{ type: 'text', text: String((value as { message?: string } | null)?.message ?? '') }],
       },
       async execute(_args, exec) {
         try {
@@ -556,7 +515,7 @@ function toolDefinitions(client: HindsightClient, config: HindsightConfig): Tool
 /**
  * The plugin entrypoint.
  */
-export function apply(ctx: DshContext, rawConfig: HindsightConfig | Record<string, unknown> = {}): void {
+export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, unknown> = {}): void {
   const config = resolveConfig(rawConfig as Record<string, unknown>)
   const logger = makeLogger(ctx)
   const client = new HindsightClient({
@@ -579,7 +538,7 @@ export function apply(ctx: DshContext, rawConfig: HindsightConfig | Record<strin
     return state
   }
 
-  async function flushRetain(session: SessionLike, state: SessionState): Promise<void> {
+  async function flushRetain(session: Session, state: SessionState): Promise<void> {
     const records = state.buffer.slice()
     if (records.length === 0) return
     const items = records.map(record => retainItem(record, session, config))
@@ -588,13 +547,13 @@ export function apply(ctx: DshContext, rawConfig: HindsightConfig | Record<strin
     logger.debug(`hindsight retained ${items.length} turn(s) for session ${session.id}`)
   }
 
-  async function refreshRecall(session: SessionLike, query: string): Promise<void> {
+  async function refreshRecall(session: Session, query: string): Promise<void> {
     if (!config.autoRecall || config.memoryMode === 'tools') {
-      recallCache.delete(session.id)
+      recallCache.delete(String(session.id))
       return
     }
     if (!query) {
-      recallCache.delete(session.id)
+      recallCache.delete(String(session.id))
       return
     }
     try {
@@ -608,7 +567,7 @@ export function apply(ctx: DshContext, rawConfig: HindsightConfig | Record<strin
           tagsMatch: config.recallTagsMatch,
           timeoutMs: config.timeoutMs,
         })
-        recallCache.set(session.id, { text: String(response.text ?? '').trim(), count: 0 })
+        recallCache.set(String(session.id), { text: String(response.text ?? '').trim(), count: 0 })
       } else {
         const response = await client.recall({
           bankId: config.bankId,
@@ -626,26 +585,26 @@ export function apply(ctx: DshContext, rawConfig: HindsightConfig | Record<strin
           .filter(Boolean)
           .map(result => `- ${result}`)
           .join('\n')
-        recallCache.set(session.id, { text, count: results.length })
+        recallCache.set(String(session.id), { text, count: results.length })
       }
     } catch (error) {
-      recallCache.delete(session.id)
+      recallCache.delete(String(session.id))
       logFailure(logger, 'hindsight recall prefetch', error)
     }
   }
 
-  function handleCompletedTurn(session: SessionLike, event: SessionEventLike): void {
-    const turn = event?.data?.turn
-    if (turn === undefined) return
-    const reasonKind = event?.data?.reason?.kind
+  function handleCompletedTurn(session: Session, event: SessionEvent): void {
+    if (event?.type !== 'turn/end') return
+    const turn = event.data.turn
+    const reasonKind = event.data.reason.kind
     if (!config.retainTurnKinds.includes(reasonKind)) return
     if (config.skipSubagents && session?.header?.origin === 'subagent') return
-    if (disposedSessions.has(session.id)) return
+    if (disposedSessions.has(String(session.id))) return
 
-    const record = buildTurnRecord(session, Number(turn), config)
+    const record = buildTurnRecord(session, turn, config)
     if (!record) return
 
-    const state = stateFor(session.id)
+    const state = stateFor(String(session.id))
     state.chain = state.chain
       .then(async () => {
         if (config.autoRetain) {
@@ -664,11 +623,11 @@ export function apply(ctx: DshContext, rawConfig: HindsightConfig | Record<strin
       .catch(error => logFailure(logger, `hindsight turn hook for session ${session.id}`, error))
   }
 
-  function disposeSession(session: SessionLike): void {
-    disposedSessions.add(session.id)
-    recallCache.delete(session.id)
-    const state = states.get(session.id)
-    states.delete(session.id)
+  function disposeSession(session: Session): void {
+    disposedSessions.add(String(session.id))
+    recallCache.delete(String(session.id))
+    const state = states.get(String(session.id))
+    states.delete(String(session.id))
     if (!state || state.buffer.length === 0 || !config.autoRetain) return
     // Best-effort final flush. It runs off the reply/teardown path.
     state.chain = state.chain
@@ -676,7 +635,7 @@ export function apply(ctx: DshContext, rawConfig: HindsightConfig | Record<strin
       .catch(error => logFailure(logger, `hindsight final flush for session ${session.id}`, error))
   }
 
-  ctx.on('session/event', (session: SessionLike, event: SessionEventLike) => {
+  ctx.on('session/event', (session: Session, event: SessionEvent) => {
     if (event?.type === 'turn/end') {
       try {
         handleCompletedTurn(session, event)
@@ -686,7 +645,7 @@ export function apply(ctx: DshContext, rawConfig: HindsightConfig | Record<strin
     }
   }, { global: true })
 
-  ctx.on('session/disposed', (session: SessionLike) => {
+  ctx.on('session/disposed', (session: Session) => {
     try {
       disposeSession(session)
     } catch (error) {
@@ -721,7 +680,7 @@ export function apply(ctx: DshContext, rawConfig: HindsightConfig | Record<strin
       const session = assemblyContext?.agent?.session
       if (!session) return ''
       if (config.skipSubagents && session.header?.origin === 'subagent') return ''
-      const cached = recallCache.get(session.id)
+      const cached = recallCache.get(String(session.id))
       if (!cached?.text) return ''
       const preamble = config.recallPromptPreamble || RECALL_PREAMBLE
       return `${preamble}\n\n${cached.text}`

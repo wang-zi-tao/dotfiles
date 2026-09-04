@@ -1,0 +1,5 @@
+mcp>=1.0.0
+fastmcp>=2.0.0
+
+[:platform_system == "Windows"]
+pywin32>=306

@@ -70,3 +70,22 @@ export function fmtThreads(data) {
     }
     return out;
 }
+/** Render a disassembly result as an aligned asm block, PC line marked with ►. */
+export function fmtDisasm(data) {
+    const ins = data.instructions || [];
+    if (ins.length === 0)
+        return '(no disassembly)';
+    const addrW = Math.max(0, ...ins.map((it) => (it.address || '').length));
+    const bytesW = Math.max(0, ...ins.map((it) => (it.instructionBytes || '').length));
+    const pcIndex = data.pc_index;
+    let out = '```asm\n';
+    for (let i = 0; i < ins.length; i++) {
+        const it = ins[i];
+        const mark = i + 1 === pcIndex ? '►' : ' ';
+        const addr = (it.address || '').padEnd(addrW);
+        const bytes = (it.instructionBytes || '').padEnd(bytesW);
+        out += `${mark} ${addr}  ${bytes}  ${it.instruction || ''}\n`;
+    }
+    out += '```';
+    return out;
+}
