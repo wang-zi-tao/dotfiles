@@ -26,16 +26,16 @@ export { findRoot, RootResolver } from './root.js';
 export { pathToFileUri, fileUriToPath, toLspPosition, fromLspPosition } from './protocol.js';
 const TOOL_SECTION_ORDER = 136;
 function makeLogger(ctx) {
+    // ctx.logger is the official LoggerService, always present and callable.
     try {
-        if (typeof ctx?.logger === 'function')
-            return ctx.logger('lsp');
-        if (ctx?.logger)
-            return ctx.logger;
+        return ctx.logger('lsp');
     }
     catch {
-        /* fall through */
+        /* fall through to a no-op facade */
     }
-    return { debug() { }, info() { }, warn() { }, error() { } };
+    // Logger is a class type (private `service`/`_method`); the no-op facade
+    // only needs its public severity methods, so cast through unknown.
+    return { name: 'lsp', debug() { }, info() { }, warn() { }, error() { } };
 }
 function requireString(args, key) {
     const value = args?.[key];
@@ -399,7 +399,7 @@ export function apply(ctx, rawConfig = {}) {
                 },
                 required: ['ok', 'kind', 'text'],
             },
-            render: (_args, value) => [{ type: 'text', text: value.text }],
+            render: (_args, value) => [{ type: 'text', text: String(value?.text ?? '') }],
         },
         async execute(rawArgs, exec) {
             const args = rawArgs;

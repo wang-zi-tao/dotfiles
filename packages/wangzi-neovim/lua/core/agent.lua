@@ -23,6 +23,20 @@ function M.clean_table(tbl)
     return clean
 end
 
+--- 兼容 opts 的两种传入形态（防御性，防止旧调用方用 {args={...}} 包装）：
+---   平铺  : dap_switch_thread({ thread_id = 44772 })
+---   嵌套  : dap_switch_thread({ args = { thread_id = 44772 } })
+--- TS 侧 encodeLuaArgs 现会内联成平铺的 `local args={...}`，此函数仅作向后兼容兜底。
+--- 注意：所有 dap_* 函数均不使用顶层 args 字段，故只要 opts.args 为 table 即可安全解包。
+---@param opts table|nil
+---@return table|nil
+local function unwrap_opts(opts)
+    if type(opts) == "table" and type(opts.args) == "table" then
+        return opts.args
+    end
+    return opts
+end
+
 ---@param f function
 ---@param task_id integer
 ---@param channel_id integer
@@ -93,7 +107,7 @@ end
 
 --- 获取当前调试 session，若不存在则报错
 ---@return dap.Session
-local function get_session()
+function M.get_session()
     local dap = require("dap")
     local session = dap.session()
     if not session then
@@ -106,7 +120,7 @@ end
 ---@param expr string
 ---@return dap.EvaluateResponse
 function M.dap_eval(expr)
-    local session = get_session()
+    local session = M.get_session()
     local err, result = session:request("evaluate", {
         expression = expr,
         context = "repl",
@@ -119,13 +133,87 @@ function M.dap_eval(expr)
     return result
 end
 
+-- ── 反汇编 ──
+
+--- 反汇编（Disassembly）：基于 DAP "disassemble" 请求，围绕当前帧指令指针（PC）反汇编机器码。
+--- 参考 https://github.com/Jorenar/nvim-dap-disasm
+--- 默认在 PC 前/后各取 16 条指令（共 33 条），可通过 before/after 调整；
+--- 也可用 memory_reference 显式指定任意地址进行反汇编。
+---@param opts? {
+---    memory_reference?: string, -- 显式反汇编起始地址（缺省用当前帧的 instructionPointerReference）
+---    before?: number,           -- PC 之前指令条数（默认 16）
+---    after?: number,            -- PC 之后指令条数（默认 16）
+---    instruction_count?: number,-- 覆盖总指令条数（默认 before+1+after）
+---    instruction_offset?: number,-- 覆盖起始偏移（默认 -before）
+---    resolve_symbols?: boolean, -- 是否请求解析符号
+--- }
+---@return {memory_reference: string, instruction_count: number, instruction_offset: number, pc_index?: number, instructions: table[], lines: string[]}
+function M.dap_disasm(opts)
+    opts = unwrap_opts(opts) or {}
+    local session = M.get_session()
+
+    -- 反汇编起始地址：优先显式 memory_reference，否则用当前帧的 instructionPointerReference
+    local pc = opts.memory_reference
+    if not pc and session.current_frame then
+        pc = session.current_frame.instructionPointerReference
+    end
+    if not pc then
+        error("no instruction pointer reference (session is running or no current frame)")
+    end
+
+    local function get_num(v, def)
+        if type(v) == "number" and v >= 0 then
+            return v
+        end
+        return def
+    end
+
+    local before = get_num(opts.before, 16)
+    local after = get_num(opts.after, 16)
+    local instruction_count = get_num(opts.instruction_count, before + 1 + after)
+    local instruction_offset = opts.instruction_offset
+    if type(instruction_offset) ~= "number" then
+        instruction_offset = -before
+    end
+
+    local err, resp = session:request("disassemble", {
+        memoryReference = pc,
+        instructionCount = instruction_count,
+        instructionOffset = instruction_offset,
+        resolveSymbols = opts.resolve_symbols or nil,
+    })
+    if err or not resp then
+        error("disassemble error: " .. vim.inspect(err))
+    end
+
+    local instructions = resp.instructions or {}
+    local pc_index
+    local lines = {}
+    for i, ins in ipairs(instructions) do
+        if ins.address == pc then
+            pc_index = i
+        end
+        table.insert(lines, string.format("%s:\t%s\t%s",
+            ins.address or "", ins.instructionBytes or "??", ins.instruction or "??"))
+    end
+
+    return M.clean_table {
+        memory_reference = pc,
+        instruction_count = instruction_count,
+        instruction_offset = instruction_offset,
+        pc_index = pc_index,
+        instructions = instructions,
+        lines = lines,
+    }
+end
+
 --- 启动调试（自定义参数会深度合并到预注册配置上）
 --- 例如: dap_start({ config_name="cppdbg", config={ program="/path/to/exe", args={"--flag"} } })
 ---        dap_start({ config_name="cppdbg", config={ pid=12345, request="attach" } })
 ---@param opts {lang?: string, config_name: string, config?: table}
 ---@return table
 function M.dap_start(opts)
-    opts = opts or {}
+    opts = unwrap_opts(opts) or {}
     local dap = require("dap")
     local lang = opts.lang or "cpp"
     local config_name = opts.config_name
@@ -163,12 +251,12 @@ function M.dap_start(opts)
     return M.clean_table { ok = true, lang = lang, config_name = config_name, config = target }
 end
 
---- 继续运行
+--- 继续运行（协程阻塞等待命中断点，返回停止位置信息）
 ---@return table
 function M.dap_continue()
-    local dap = require("dap")
-    dap.continue()
-    return { ok = true }
+    return step_and_wait(function()
+        require("dap").continue()
+    end)
 end
 
 --- 停止调试
@@ -269,27 +357,30 @@ local function step_and_wait(step_fn)
 end
 
 --- 进入函数（协程等待命中断点，返回停止位置信息）
----@param opts? table nvim-dap step_into 选项
+---@param opts? {thread_id?: integer, single_thread?: boolean, granularity?: '"statement"|"line"|"instruction"'}
 ---@return table
 function M.dap_step_into(opts)
+    opts = unwrap_opts(opts) or {}
     return step_and_wait(function()
         require("dap").step_into(opts)
     end)
 end
 
 --- 单步跳过（协程等待命中断点，返回停止位置信息）
----@param opts? table nvim-dap step_over 选项
+---@param opts? {thread_id?: integer, single_thread?: boolean, granularity?: '"statement"|"line"|"instruction"'}
 ---@return table
 function M.dap_step_over(opts)
+    opts = unwrap_opts(opts) or {}
     return step_and_wait(function()
         require("dap").step_over(opts)
     end)
 end
 
 --- 跳出函数（协程等待命中断点，返回停止位置信息）
----@param opts? table nvim-dap step_out 选项
+---@param opts? {thread_id?: integer, single_thread?: boolean}
 ---@return table
 function M.dap_step_out(opts)
+    opts = unwrap_opts(opts) or {}
     return step_and_wait(function()
         require("dap").step_out(opts)
     end)
@@ -302,9 +393,9 @@ end
 ---@param opts {file?: string, line?: number}
 ---@return table
 function M.dap_run_to_location(opts)
-    opts = opts or {}
+    opts = unwrap_opts(opts) or {}
     local breakpoints = require("dap.breakpoints")
-    local session = get_session()
+    local session = M.get_session()
 
     local bufnr = M.resolve_bufnr(opts.file)
     local lnum = opts.line or vim.api.nvim_win_get_cursor(0)[1]
@@ -413,8 +504,8 @@ end
 ---@param opts? {limit?: number, thread_id?: number}
 ---@return {thread_id: number, frames: table[], totalFrames: number}
 function M.dap_get_stack(opts)
-    opts = opts or {}
-    local session = get_session()
+    opts = unwrap_opts(opts) or {}
+    local session = M.get_session()
     local thread_id = opts.thread_id or session.stopped_thread_id
     if not thread_id then
         error("no current thread")
@@ -427,7 +518,7 @@ end
 --- 获取线程列表
 ---@return table {threads: table[]}
 function M.dap_get_threads()
-    local session = get_session()
+    local session = M.get_session()
     local err, resp = session:request("threads", {})
     if err or not resp then
         error("threads error: " .. vim.inspect(err))
@@ -449,13 +540,13 @@ end
 ---@param opts {thread_id: number}
 ---@return table
 function M.dap_switch_thread(opts)
-    opts = opts or {}
+    opts = unwrap_opts(opts) or {}
     local thread_id = tonumber(opts.thread_id)
     if not thread_id then
         error("thread_id must be a valid number")
     end
 
-    local session = get_session()
+    local session = M.get_session()
     local frames, total = M.build_frames(session, thread_id, 1)
     local first = frames[1]
     if not first then
@@ -485,7 +576,7 @@ end
 ---@param opts {session_name: string}
 ---@return table
 function M.dap_switch_session(opts)
-    opts = opts or {}
+    opts = unwrap_opts(opts) or {}
     local target_name = opts.session_name
     if not target_name or target_name == "" then
         error("session_name is required")
@@ -518,7 +609,7 @@ end
 ---@param opts {expr: string}
 ---@return table
 function M.dap_add_watch(opts)
-    opts = opts or {}
+    opts = unwrap_opts(opts) or {}
     local expr = opts.expr
     if not expr or expr == "" then
         error("expr is required")
@@ -560,7 +651,7 @@ end
 ---@param opts {file?: string, line: number, condition?: string, hit_condition?: string, log_message?: string}
 ---@return table
 function M.dap_add_breakpoint(opts)
-    opts = opts or {}
+    opts = unwrap_opts(opts) or {}
     if not opts.line then
         error("line is required")
     end
@@ -583,11 +674,83 @@ function M.dap_add_breakpoint(opts)
     }
 end
 
+--- 添加函数断点
+---@param opts {func: string}
+---@return table
+function M.dap_add_function_breakpoint(opts)
+    opts = unwrap_opts(opts) or {}
+    local func = opts.func
+    if not func or func == "" then
+        error("func is required")
+    end
+    local session = M.get_session()
+    local err, result = session:request("setFunctionBreakpoints", {
+      breakpoints = {{name = func}}
+    })
+    if err or not result then
+        error("dap_add_function_breakpoint error: " .. vim.inspect(err))
+    end
+    return result
+end
+
+--- 通用 DAP 请求：调用任意 DAP 命令。
+--- 若失败原因是适配器不支持该请求，返回适配器能力列表。
+--- 若参数错误，提示如何查询请求参数类型。
+---@param opts {command: string, arguments?: table}
+---@return table
+function M.dap_request(opts)
+    opts = unwrap_opts(opts) or {}
+    local command = opts.command
+    if not command or command == "" then
+        error("command is required")
+    end
+    local session = M.get_session()
+    local arguments = opts.arguments or {}
+    local err, result = session:request(command, arguments)
+    if err then
+        local err_msg = type(err) == "table" and (err.message or vim.inspect(err)) or tostring(err)
+        local err_lower = err_msg:lower()
+
+        -- 不支持该请求 → 返回适配器能力列表
+        if err_lower:match("not supported")
+            or err_lower:match("unsupported")
+            or err_lower:match("unknown command")
+            or err_lower:match("not found")
+            or err_lower:match("unrecognized") then
+            return M.clean_table {
+                error = err_msg,
+                hint = "This request is not supported by the debug adapter. See capabilities for supported features.",
+                capabilities = session.capabilities,
+            }
+        end
+
+        -- 参数错误 → 提示查询方法
+        if err_lower:match("invalid")
+            or err_lower:match("missing")
+            or err_lower:match("required")
+            or err_lower:match("parameter")
+            or err_lower:match("argument")
+            or err_lower:match("type") then
+            return M.clean_table {
+                error = err_msg,
+                hint = "Parameter error. To query the expected parameter types for the '"
+                    .. command
+                    .. "' request, check the Debug Adapter Protocol specification "
+                    .. "(https://microsoft.github.io/debug-adapter-protocol/specification) "
+                    .. "or use nvim_dap_eval / nvim_dap_get_stack to inspect the current debug state.",
+            }
+        end
+
+        error("dap_request error: " .. vim.inspect(err))
+    end
+    return M.clean_table(result)
+end
+
 --- 切换断点（有则删、无则加）
 ---@param opts {file?: string, line?: number, condition?: string, hit_condition?: string, log_message?: string}
 ---@return table
 function M.dap_toggle_breakpoint(opts)
-    opts = opts or {}
+    opts = unwrap_opts(opts) or {}
     local breakpoints = require("dap.breakpoints")
     local bufnr = M.resolve_bufnr(opts.file)
     local lnum = opts.line or vim.api.nvim_win_get_cursor(0)[1]
@@ -607,7 +770,7 @@ end
 ---@param opts {file?: string, line: number}
 ---@return table
 function M.dap_remove_breakpoint(opts)
-    opts = opts or {}
+    opts = unwrap_opts(opts) or {}
     if not opts.line then
         error("line is required")
     end
@@ -655,7 +818,7 @@ end
 ---@param opts? {lang?: string}
 ---@return table {configurations: {lang: string, name: string, type: string?, request: string?, cwd?: string}[]}
 function M.dap_get_configurations(opts)
-    opts = opts or {}
+    opts = unwrap_opts(opts) or {}
     local dap = require("dap")
     local result = {}
 

@@ -1,15 +1,32 @@
 /**
  * Internal vocabulary for dsh-lsp.
  *
- * The plugin is self-contained: it defines structural types for the small
- * surface of the harness it consumes (`ctx.tools`, `ctx.commands`,
- * `ctx.subprocess`, `ctx.effect`) instead of importing the harness packages,
- * so it builds with only `vscode-languageserver-protocol` as a runtime
- * dependency (the same dependency-free pattern as `dsh-hindsight`).
+ * The harness-facing types come from the official `@deepseek-ai/dsh-*`
+ * packages: cordis `Context`/`Logger`, dsh-tools
+ * `ToolDefinition`/`ToolRunContext`, dsh-commands
+ * `CommandDefinition`/`CommandInvocation`/`CommandResult`, and dsh-session
+ * `Session`. The one custom seam kept is `ctx.subprocess`, which the official
+ * `Context` does not carry; `DshContext` intersects it onto `Context`.
+ * Runtime dependencies remain limited to `vscode-languageserver-protocol`.
  */
 
+import type { Context, Logger } from '@deepseek-ai/cordis'
+import type { ToolDefinition, ToolRunContext } from '@deepseek-ai/dsh-tools'
+import type { CommandDefinition, CommandInvocation, CommandResult } from '@deepseek-ai/dsh-commands'
+import type { Session } from '@deepseek-ai/dsh-session'
+
+export type {
+  Logger,
+  ToolDefinition,
+  ToolRunContext,
+  CommandDefinition,
+  CommandInvocation,
+  CommandResult,
+  Session,
+}
+
 // ---------------------------------------------------------------------------
-// Harness structural contracts (what apply() actually consumes)
+// Harness contracts: official types plus the dsh-lsp subprocess seam
 // ---------------------------------------------------------------------------
 
 export interface SubprocessOutcome {
@@ -55,60 +72,16 @@ export interface SubprocessRuntime {
   spawn(spec: SubprocessSpawnSpec): SubprocessHandle
 }
 
-export interface ToolRunContext {
-  signal?: AbortSignal
-  agent?: {
-    session?: SessionLike
-  }
-}
+/** Logger facade alias kept for registry/client consumers. */
+export type LoggerLike = Logger
 
-export interface ToolDefinition {
-  name: string
-  description: string
-  parameters: Record<string, unknown>
-  output: {
-    schema: Record<string, unknown>
-    render(args: unknown, value: any): Array<{ type: 'text'; text: string }>
-  }
-  execute(args: unknown, exec: ToolRunContext): Promise<unknown>
-}
-
-export interface CommandInvocation {
-  agent: unknown
-  rawInput: string
-  signal: AbortSignal
-}
-
-export type CommandResult =
-  | { kind: 'success'; text: string }
-  | { kind: 'error'; text: string }
-
-export interface CommandDefinition {
-  name: string
-  description: string
-  input?: { hint: string; images?: boolean }
-  handler(invocation: CommandInvocation): CommandResult | Promise<CommandResult>
-}
-
-export interface SessionLike {
-  id: string
-  header?: { cwd?: string }
-}
-
-export interface DshContext {
-  tools: { register(definition: ToolDefinition): () => void }
-  commands: { register(definition: CommandDefinition): () => void }
-  subprocess: SubprocessRuntime
-  effect<T>(callback: () => void | (() => void), label?: string): () => void
-  logger?: ((name: string) => LoggerLike) | LoggerLike
-}
-
-export interface LoggerLike {
-  debug(message: string): void
-  info(message: string): void
-  warn(message: string): void
-  error(message: string): void
-}
+/**
+ * dsh-lsp's harness context: the official Cordis `Context` (which carries
+ * `tools`, `commands`, `effect`, `logger`, `on` through the official
+ * augmentations) plus the custom `subprocess` seam, which the official
+ * `Context` does not provide.
+ */
+export type DshContext = Context & { subprocess: SubprocessRuntime }
 
 // ---------------------------------------------------------------------------
 // Configuration

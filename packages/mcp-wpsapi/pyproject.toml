@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-wpsapi"
+version = "0.1.0"
+description = "MCP server: drive WPS Office / Microsoft Office via Python COM API, with batch eval_python."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0",
+    "fastmcp>=2.0.0",
+    "pywin32>=306; platform_system == 'Windows'",
+]
+
+[project.scripts]
+mcp-wpsapi = "mcp_wpsapi.server:main"
+
+[tool.setuptools]
+packages = ["mcp_wpsapi"]

@@ -70,8 +70,8 @@ return {
       local Terminal = require("toggleterm.terminal").Terminal
       toggleterm_nvim.gitui = Terminal:new({ cmd = "lazygit", hidden = true })
       toggleterm_nvim.rg = Terminal:new({ cmd = "nu", hidden = true })
-      toggleterm_nvim.dsh = Terminal:new({
-        cmd = "dsh --profile tui -c",
+      toggleterm_nvim.opencode = Terminal:new({
+        cmd = "opencode --continue --port",
         direction = "vertical",
         display_name = "opencode",
         hidden = true,
@@ -80,23 +80,15 @@ return {
         end,
         on_open = function(this)
           this:resize(60)
-          -- if vim.fn.has("win32") == 1 then
-          --     vim.o.mouse = ""
-          -- end
         end,
-        -- on_close = function()
-        --     if vim.fn.has("win32") == 1 then
-        --         vim.o.mouse = "a"
-        --     end
-        -- end,
         env = {
           EXPERIMENTAL_HOT_RELOAD = "true",
           NVIM_SOCKET_PATH = vim.v.servername,
         },
 
       })
-      toggleterm_nvim.opencode = Terminal:new({
-        cmd = "opencode --continue --port",
+      toggleterm_nvim.dsh = Terminal:new({
+        cmd = "dsh --profile tui -c",
         direction = "vertical",
         display_name = "opencode",
         hidden = true,
@@ -156,9 +148,32 @@ return {
         desc = "GitUI",
       },
       {
-        "<leader>ta",
+        "<leader>td",
         function()
-          require("core.utils").toggle_term("dsh")
+          local Job = require("plenary.job")
+          local nu_command = "with-env { NVIM: '" .. vim.v.servername .. "' } { dsh.cmd --profile tui }"
+          if vim.fn.has("win32") == 1 then
+            --wt -w 0 sp -s 0.25 nu -c $"$env.NVIM = '($env.NVIM)'; dsh.cmd --profile tui"
+            Job:new({
+              command = [[C:\Users\wps\AppData\Local\Microsoft\WindowsApps\wt.exe]],
+              args = { "-w", "0", "sp", "-s", "0.25",
+                "nu", "-c",
+                nu_command },
+            }):start()
+          elseif vim.env["ZELLIJ"] ~= nil then
+            coroutine.wrap(function()
+              local job = Job:new({
+                command = [[zellij]],
+                args = { "run", "-c", "-d", "right", "-cwd", vim.fn.getcwd(), "--", "nu", "-c", nu_command },
+              })
+
+              job:start()
+              job:sync()
+              local pane_id = job:result()[0]
+            end)()
+          else
+            require("core.utils").toggle_term("dsh")
+          end
         end,
         desc = "Deepseek Harness",
       },

@@ -197,7 +197,8 @@ local function init()
   local get_program = util.get_program
   local get_coredmp = util.get_coredmp
 
-  local vsdbg_symbolSearchPath = "srv*D:/symbols*http://localhost:8001"
+  local vsdbg_symbolSearchPath = "srv*D:\\symbols*http://localhost:8001"
+  -- local vsdbg_symbolSearchPath = "srv*http://localhost:8001"
   local vsdbg_config = {
     type = "cppvsdbg",
     clientID = 'vscode',
@@ -548,6 +549,7 @@ return {
       { "<leader>du", group = "Debugger UI" },
       { "<leader>df", group = "Debugger UI Float" },
       { "<leader>ds", group = "Debugger Telescope" },
+      { "<leader>dB", group = "Debugger Breakpoints" },
     })
     init()
   end,
@@ -874,6 +876,26 @@ return {
       mode = "n",
       desc = "Run",
     },
+    {
+      "<leader>dBf",
+      function()
+        coroutine.wrap(function()
+          local dap = require("dap")
+          local session = dap.session()
+          if not session then
+            error("no debug session")
+          end
+          local func = require("core.utils").cached_input_sync("function_breakpoint", "function", "", "")
+          local err, result = session:request("setFunctionBreakpoints", {
+            breakpoints = { { name = func } }
+          })
+          if err or not result then
+            error("dap_add_function_breakpoint error: " .. vim.inspect(err))
+          end
+        end)()
+      end,
+      desc = "Function BreakPoint",
+    },
   },
   dependencies = {
     {
@@ -1065,7 +1087,7 @@ return {
           desc = "Conditional BreakPoint",
         },
         {
-          "<leader>dB",
+          "<leader>dBc",
           function()
             require("persistent-breakpoints.api").clear_all_breakpoints()
           end,
