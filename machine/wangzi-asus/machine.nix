@@ -40,7 +40,7 @@ nixpkgs.lib.nixosSystem {
           };
           timeout = 1;
         };
-        # boot.kernelPackages = pkgs.linuxKernel.packages.linux_xanmod;
+        boot.kernelPackages = pkgs.linuxKernel.packages.linux_7_1;
         boot.initrd.availableKernelModules = [
           "xhci_pci"
           "ahci"
@@ -110,7 +110,7 @@ nixpkgs.lib.nixosSystem {
               PCIE_ASPM_ON_BAT = "powersupersave";
             };
           };
-          ollama.acceleration = "cuda";
+          ollama.package = pkgs.ollama-cuda;
         };
 
       }

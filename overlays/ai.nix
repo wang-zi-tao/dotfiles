@@ -4,6 +4,7 @@ let
   # litellm 1.9x, …) that the repo's 2025 base nixpkgs is too old for, so the
   # whole hindsight stack builds against nixpkgs-unstable.
   py = pkgs.python314Packages;
+  lib = pkgs.lib;
   fetchPnpmPackage =
     {
       src,
@@ -38,8 +39,13 @@ let
       pname,
       version,
       hash,
+      pnpmWorkspaces ? [ ],
+      pnpmInstallFlags ? [ ],
       ...
     }@args:
+    let
+      filterFlags = lib.map (package: "--filter=${package}") pnpmWorkspaces;
+    in
     pkgs.stdenvNoCC.mkDerivation (
       args
       // {
@@ -204,7 +210,7 @@ rec {
       rev = version;
       sha256 = "sha256-G3XbsI9BaEnBUmYEXkqGxQi78OHrF6wxnK3CPEnJ1pU=";
     };
-    hash = "sha256-2clqQROcu+50l48Dxp/eO/BpvtTxK2Sd2YoqNOtyOxE=";
+    hash = "sha256-pTHoDj3MwGC4snJ5J8eKW0slfMdcEhvgmLgD+Kqa8eM=";
     nativeBuildInputs = with pkgs; [
       esbuild
     ];
@@ -218,6 +224,28 @@ rec {
     preFixup = ''
       cp ./packages $out/ -r
     '';
+  };
+
+  dsh-tui = buildDshPnpmPackage rec {
+    pname = "dsh-tui";
+    version = "f7db605";
+    src = pkgs.fetchgit {
+      url = "https://github.com/ccch1mneyyy/dsh-TUI";
+      rev = version;
+      sha256 = "sha256-Dx1nMu/onJZlqiN56M0hq/5r0ggNC59xmjVV98TtSnA=";
+    };
+    hash = "sha256-U4c5/enAwPbJypxngBwtMy1IY+7xdw1MEB+vJA0MZZo=";
+  };
+
+  dsh-memory-evolve = buildDshPnpmPackage rec {
+    pname = "dsh-memory-evolve";
+    version = "1e6e7eb";
+    src = pkgs.fetchgit {
+      url = "https://github.com/csyangwen/dsh-memory-evolve";
+      rev = version;
+      sha256 = "sha256-fNFBsveLlLKMSOoIZvVu2u9Dcp3xjX+SRcrpLTbX2vQ=";
+    };
+    hash = "sha256-dIp6CNh1Kn4aqJWku1G/FUdn/u+epzhqlqwnAkB2uW0=";
   };
 
   # ── Hindsight memory server (https://github.com/vectorize-io/hindsight) ──

@@ -4,7 +4,7 @@ packages:
 nodeLinker: hoisted
 autoInstallPeers: false
 minimumReleaseAgeExclude:
-  - '@linxin666/dsh-liangshen@0.1.15'
+  - "@linxin666/dsh-liangshen@0.1.15"
 allowBuilds:
   node-pty: true
-  '@deepseek-ai/dsh-lsp@https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac': true
+  "@deepseek-ai/dsh-lsp@https://codeload.github.com/omdsh-dev/dsh-lsp/tar.gz/6634206ad3bbb3498a37dd45278ecfb7c1081fac": true

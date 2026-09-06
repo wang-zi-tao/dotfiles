@@ -68,6 +68,10 @@ opt.foldenable = true
 
 opt.winborder = "rounded"
 
+if vim.fn.executable("nu") == 1 then
+  vim.o.shell = "nu"
+end
+
 -- vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
 --     callback = function()
 --     end,
@@ -85,150 +89,150 @@ opt.winborder = "rounded"
 -- })
 
 vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
-    pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "CMakeLists.txt", "*.h", "*.hpp", "*.pch", "*.def" },
-    callback = function()
-        local opt = vim.bo
-        opt.tabstop = 4
-        opt.softtabstop = 0
-        opt.shiftwidth = 4
-        vim.cmd([[set softtabstop=0 noexpandtab]])
-        -- opt.shiftround = true
-        opt.autoindent = true
-        opt.expandtab = false
-    end,
+  pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "CMakeLists.txt", "*.h", "*.hpp", "*.pch", "*.def" },
+  callback = function()
+    local opt = vim.bo
+    opt.tabstop = 4
+    opt.softtabstop = 0
+    opt.shiftwidth = 4
+    vim.cmd([[set softtabstop=0 noexpandtab]])
+    -- opt.shiftround = true
+    opt.autoindent = true
+    opt.expandtab = false
+  end,
 })
 
 vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
-    pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "*.h", "*.hpp", "*.pch", "*.def" },
-    callback = function()
-        local opt = vim.bo
-    end,
+  pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "*.h", "*.hpp", "*.pch", "*.def" },
+  callback = function()
+    local opt = vim.bo
+  end,
 })
 
 vim.api.nvim_create_autocmd({ "BufNewFile" }, {
-    pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "CMakeLists.txt", "*.h", "*.hpp", "*.pch", "*.def" },
-    callback = function(args)
-        local opt = vim.bo
-        opt.filetype = "cpp"
-        if vim.env.BOMB or 1 == vim.fn.has("win32") then
-            vim.cmd [[set bomb]]
-            vim.cmd [[set nofixeol]]
-        end
+  pattern = { "*.cpp", "*.c", "*.cc", "*.inl", "CMakeLists.txt", "*.h", "*.hpp", "*.pch", "*.def" },
+  callback = function(args)
+    local opt = vim.bo
+    opt.filetype = "cpp"
+    if vim.env.BOMB or 1 == vim.fn.has("win32") then
+      vim.cmd [[set bomb]]
+      vim.cmd [[set nofixeol]]
     end
+  end
 })
 
 vim.api.nvim_create_autocmd("DirChanged", {
-    pattern = "*",
-    callback = function()
-        require("core.utils").load_nvim_lua_file(vim.fn.getcwd())
-    end,
+  pattern = "*",
+  callback = function()
+    require("core.utils").load_nvim_lua_file(vim.fn.getcwd())
+  end,
 })
 
 if 0 == vim.fn.has("win32") then
-    if vim.env.WSL_DISTRO_NAME then
-        g.clipboard = {
-            name = "wsl",
-            copy = {
-                ["+"] = "win32yank.exe -i",
-                ["*"] = "win32yank.exe -i",
-            },
-            paste = {
-                ["+"] = "win32yank.exe -o",
-                ["*"] = "win32yank.exe -o",
-            },
-            cache_enabled = 1,
-        }
-    else
-        -- Check for Wayland first, then fall back to X11
-        if vim.env.WAYLAND_DISPLAY then
-            g.clipboard = {
-                name = "wl-clipboard",
-                copy = {
-                    ["+"] = "wl-copy --type text/plain",
-                    ["*"] = "wl-copy --type text/plain --primary",
-                },
-                paste = {
-                    ["+"] = "wl-paste --no-newline",
-                    ["*"] = "wl-paste --no-newline --primary",
-                },
-                cache_enabled = 1,
-            }
-        else
-            g.clipboard = {
-                name = "xclip",
-                copy = {
-                    ["+"] = "xclip -selection clipboard",
-                    ["*"] = "xclip -selection clipboard",
-                },
-                paste = {
-                    ["+"] = "xclip -selection clipboard -o",
-                    ["*"] = "xclip -selection clipboard -o",
-                },
-                cache_enabled = 1,
-            }
-        end
-    end
-else
-    g.terminal_emulator = "nu"
+  if vim.env.WSL_DISTRO_NAME then
     g.clipboard = {
-        name = "wsl",
+      name = "wsl",
+      copy = {
+        ["+"] = "win32yank.exe -i",
+        ["*"] = "win32yank.exe -i",
+      },
+      paste = {
+        ["+"] = "win32yank.exe -o",
+        ["*"] = "win32yank.exe -o",
+      },
+      cache_enabled = 1,
+    }
+  else
+    -- Check for Wayland first, then fall back to X11
+    if vim.env.WAYLAND_DISPLAY then
+      g.clipboard = {
+        name = "wl-clipboard",
         copy = {
-            ["+"] = "win32yank.exe -i",
-            ["*"] = "win32yank.exe -i",
+          ["+"] = "wl-copy --type text/plain",
+          ["*"] = "wl-copy --type text/plain --primary",
         },
         paste = {
-            ["+"] = "win32yank.exe -o",
-            ["*"] = "win32yank.exe -o",
+          ["+"] = "wl-paste --no-newline",
+          ["*"] = "wl-paste --no-newline --primary",
         },
         cache_enabled = 1,
-    }
+      }
+    else
+      g.clipboard = {
+        name = "xclip",
+        copy = {
+          ["+"] = "xclip -selection clipboard",
+          ["*"] = "xclip -selection clipboard",
+        },
+        paste = {
+          ["+"] = "xclip -selection clipboard -o",
+          ["*"] = "xclip -selection clipboard -o",
+        },
+        cache_enabled = 1,
+      }
+    end
+  end
+else
+  g.terminal_emulator = "nu"
+  g.clipboard = {
+    name = "wsl",
+    copy = {
+      ["+"] = "win32yank.exe -i",
+      ["*"] = "win32yank.exe -i",
+    },
+    paste = {
+      ["+"] = "win32yank.exe -o",
+      ["*"] = "win32yank.exe -o",
+    },
+    cache_enabled = 1,
+  }
 end
 local disabled_built_ins = {
-    -- "2html_plugin",
-    "filetype",
-    "getscript",
-    "getscriptPlugin",
-    "gzip",
-    "logipat",
-    "netrw",
-    "netrwPlugin",
-    "netrwSettings",
-    "netrwFileHandlers",
-    "matchit",
-    "tar",
-    "tarPlugin",
-    "rrhelper",
-    "spellfile_plugin",
-    "vimball",
-    "vimballPlugin",
-    "zip",
-    "zipPlugin",
+  -- "2html_plugin",
+  "filetype",
+  "getscript",
+  "getscriptPlugin",
+  "gzip",
+  "logipat",
+  "netrw",
+  "netrwPlugin",
+  "netrwSettings",
+  "netrwFileHandlers",
+  "matchit",
+  "tar",
+  "tarPlugin",
+  "rrhelper",
+  "spellfile_plugin",
+  "vimball",
+  "vimballPlugin",
+  "zip",
+  "zipPlugin",
 }
 for _, plugin in pairs(disabled_built_ins) do
-    vim.g["loaded_" .. plugin] = 1
+  vim.g["loaded_" .. plugin] = 1
 end
 -- vim.cmd([[ au TermOpen term://* setlocal nonumber norelativenumber | setfiletype terminal ]])
 vim.api.nvim_create_autocmd("TermOpen", {
-    pattern = "term://*",
-    callback = function(args)
-        vim.cmd [[setlocal nonumber norelativenumber]]
-        vim.cmd [[setfiletype terminal]]
-        vim.opt.number = false
-        vim.opt.relativenumber = false
-    end,
+  pattern = "term://*",
+  callback = function(args)
+    vim.cmd [[setlocal nonumber norelativenumber]]
+    vim.cmd [[setfiletype terminal]]
+    vim.opt.number = false
+    vim.opt.relativenumber = false
+  end,
 })
 vim.api.nvim_create_autocmd({ "BufWinEnter", "WinEnter" }, {
-    pattern = "term://*",
-    command = "startinsert",
+  pattern = "term://*",
+  command = "startinsert",
 })
 
 vim.api.nvim_create_autocmd("DirChanged", {
-    pattern = "*",
-    callback = function()
-        pcall(function()
-            vim.opt.titlestring = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
-        end)
-    end,
+  pattern = "*",
+  callback = function()
+    pcall(function()
+      vim.opt.titlestring = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+    end)
+  end,
 })
 
 vim.opt.titlestring = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
@@ -249,19 +253,19 @@ endfunc
 require("core.theme").define_sign()
 
 vim.diagnostic.config({
-    virtual_text = {
-        source = "if_many",
-        prefix = "",
-    },
-    update_in_insert = false,
-    underline = true,
-    severity_sort = true,
-    float = {
-        border = "rounded",
-        source = "always",
-        header = "",
-        prefix = "",
-    },
+  virtual_text = {
+    source = "if_many",
+    prefix = "",
+  },
+  update_in_insert = false,
+  underline = true,
+  severity_sort = true,
+  float = {
+    border = "rounded",
+    source = "always",
+    header = "",
+    prefix = "",
+  },
 })
 
 -- vim.api.nvim_create_autocmd("CursorHold", {
@@ -272,24 +276,24 @@ vim.diagnostic.config({
 --
 
 if vim.fn.has("win32") == 1 then
-    local pid = vim.fn.getpid()
-    require("plenary.job"):new({
-        command = "wmic",
-        args = { "where", "ProcessId=" .. pid, "call", "setpriority", "AboveNormal" }
-    }):start()
-    require("plenary.job"):new({
-        command = "wmic",
-        args = { "where", "Name like '%%nvim.exe%%'", "call", "setpriority", "AboveNormal" }
-    }):start()
-    require("plenary.job"):new({
-        command = "wmic",
-        args = { "where", "Name like '%%WindowsTerminal.exe%%'", "call", "setpriority", "AboveNormal" }
-    }):start()
+  local pid = vim.fn.getpid()
+  require("plenary.job"):new({
+    command = "wmic",
+    args = { "where", "ProcessId=" .. pid, "call", "setpriority", "AboveNormal" }
+  }):start()
+  require("plenary.job"):new({
+    command = "wmic",
+    args = { "where", "Name like '%%nvim.exe%%'", "call", "setpriority", "AboveNormal" }
+  }):start()
+  require("plenary.job"):new({
+    command = "wmic",
+    args = { "where", "Name like '%%WindowsTerminal.exe%%'", "call", "setpriority", "AboveNormal" }
+  }):start()
 end
 
 local current_path = os.getenv("PATH") or ""
 local node_bin_path = vim.fn.getcwd() .. "/node_modules/.bin"
 if vim.fn.isdirectory(node_bin_path) == 1 and not string.find(current_path, node_bin_path, 1, true) then
-    utils.append_env("PATH", node_bin_path)
-    print("Added node_modules/.bin to PATH")
+  utils.append_env("PATH", node_bin_path)
+  print("Added node_modules/.bin to PATH")
 end

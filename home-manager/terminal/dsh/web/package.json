@@ -2,13 +2,14 @@
   "name": "dsh-profile-web",
   "private": true,
   "dependencies": {
-    "@linxin666/dsh-client-ui-skin-blue-fantasy": "^0.1.18",
-    "@linxin666/dsh-client-ui-task-board": "^0.1.18",
-    "@linxin666/dsh-liangshen": "^0.1.18",
-    "@linxin666/dsh-tool-describe-image": "^0.1.18",
-    "@loserfox/distill": "github:LoserFox/distill",
+    "@dsh-external/dsh-visualize": "github:Nagi-ovo/dsh-visualize",
+    "@linxin666/dsh-client-ui-skin-blue-fantasy": "latest",
+    "@linxin666/dsh-client-ui-skin-center": "latest",
+    "@linxin666/dsh-liangshen": "latest",
     "@omdsh-dev/dsh-genui": "github:omdsh-dev/dsh-genui",
-    "dsh-at-file": "github:omdsh-dev/dsh-at-file"
+    "@vlln/dsh-navbar": "github:vlln/dsh-navbar",
+    "dsh-at-file": "github:omdsh-dev/dsh-at-file",
+    "dsh-memory-evolve": "github:csyangwen/dsh-memory-evolve"
   },
   "dsh": {
     "profile": {

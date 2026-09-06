@@ -471,17 +471,7 @@ return {
     cmd = { "CodeCompanion", "CodeCompanionActions", "CodeCompanionChat" },
     module = "codecompanion",
     keys = {
-      {
-        "<leader>ac",
-        function()
-          require("core.utils").cachedinput("prompt", "prompt", "", nil, function(input)
-            vim.cmd.CodeCompanion(input)
-          end)
-        end,
-        mode = { "n", "v" },
-        desc = "generate code"
-      },
-      { "<leader>aa", [[<cmd>CodeCompanionChat adapter=opencode<CR>]], mode = { "n", "v" }, desc = "AI Agent" },
+      { "<leader>ac", [[<cmd>CodeCompanionChat adapter=opencode<CR>]], mode = { "n", "v" }, desc = "AI Agent" },
       { "<leader>at", "<cmd>CodeCompanionChat adapter=deepseek<CR>",   desc = "AI Chat" },
     },
   },
@@ -644,7 +634,7 @@ return {
         mode = { "n", "x" }
       },
       {
-        "<leader>ta",
+        "<leader>tA",
         function()
           vim.schedule(function()
             require('snacks.terminal').toggle(opencode_cmd, snacks_terminal_opts)

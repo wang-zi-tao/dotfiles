@@ -15,7 +15,7 @@ let
       config = {
         stateDir = ".agent-teams";
         memberProvider = "fork";
-        # memberModel = "deepseek-v4-flash";
+        memberModel = "deepseek-v4-flash";
         memberMaxDepth = 1;
         maxMembers = 8;
       };
@@ -29,20 +29,15 @@ let
         apiKey = "!!js require('fs').readFileSync('/run/secrets/hindsight/apikey').trim()";
       };
     }
-    {
-      id = "dsh-tool-describe-image";
-      name = "@linxin666/dsh-tool-describe-image";
-      config = {
-        baseURL = "https://api.moonshot.cn/v1";
-        model = "kimi-k2.5";
-        apiKey = "!!js require('fs').readFileSync('/run/secrets/apikey/moonshotai-cn').trim()";
-      };
-    }
   ];
-  plugins = with pkgs; [ dsh-hindsight dsh-agent-teams dsh-lsp ];
+  plugins = with pkgs; [
+    dsh-hindsight
+    dsh-agent-teams
+    dsh-lsp
+  ];
   profile-web = pkgs.dsh-profile {
     name = "web";
-    hash = "sha256-sa7gN5xyShfLHQp7lQxsIW3blWCNFMGe6dSkNadK2Co=";
+    hash = "sha256-IKObHmI0S/lsmsjyVGQvTdjxkiTLW04qoi5fVsDDcAQ=";
     plugins = plugins;
     src = ./web;
     package = dsh-unwrapped;
@@ -50,7 +45,7 @@ let
   };
   profile-tui = pkgs.dsh-profile {
     name = "tui";
-    hash = "sha256-CvndI3jy79eNl70867yQKXMjwMgAKlWV4GGCsvuzGtY=";
+    hash = "sha256-2Qzoby1/ldwUPe53kBpCv3kLDq8y8y9eGru2TjMtZog=";
     plugins = plugins;
     src = ./tui;
     package = dsh-unwrapped;

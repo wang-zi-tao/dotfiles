@@ -2,9 +2,9 @@
   "name": "dsh-profile-tui",
   "private": true,
   "dependencies": {
-    "@deepseek-harness-tui/dsh-tui": "^0.6.1",
+    "@deepseek-harness-tui/dsh-tui": "^0.9.3",
     "@linxin666/dsh-liangshen": "^0.1.15",
-    "@loserfox/distill": "github:LoserFox/distill",
-    "dsh-at-file": "github:omdsh-dev/dsh-at-file"
+    "dsh-at-file": "github:omdsh-dev/dsh-at-file",
+    "dsh-memory-evolve": "github:csyangwen/dsh-memory-evolve"
   }
 }
