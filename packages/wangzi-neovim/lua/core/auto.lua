@@ -74,3 +74,15 @@ end
 --         vim.cmd [[SessionManager save_current_session]]
 --     end
 -- end)
+
+local gen = require("core.gen")
+if gen.core ~= nil then
+    for _, file in ipairs(vim.fn.readdir(gen.core .. "/skeleton")) do
+        vim.api.nvim_create_autocmd({ "BufNewFile" }, {
+            pattern = { file },
+            callback = function()
+                vim.cmd("0r '" .. file .. "'")
+            end,
+        })
+    end
+end

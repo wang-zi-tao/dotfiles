@@ -78,7 +78,6 @@ export function apply(ctx, rawConfig = {}) {
             }
             catch (error) {
                 // The agent went away between list() and inject(); drop the stale entry.
-                dapSessions.delete(String(id));
                 logger.error(`dap event delivery failed for session ${id}: ${errText(error)}`);
             }
         }
@@ -171,10 +170,12 @@ export function apply(ctx, rawConfig = {}) {
         if (id)
             dapSessions.add(String(id));
     }
-    async function dapStep(action, luaFn, args, exec) {
+    async function dapStep(luaFn, args, exec) {
         markSession(exec);
-        const ret = await dapCall(`require("${config.luaModule}").${luaFn}(args)`, { args });
-        if (ret.status === 'terminated')
+        return await dapCall(`require("${config.luaModule}").${luaFn}(args)`, { args });
+    }
+    function fmtStep(action, ret) {
+        if (!ret || ret.status === 'terminated')
             return '调试目标已退出';
         let out = `## 调试器已暂停 (${action})\n`;
         out += `**原因:** ${ret.reason || '?'}\n`;
@@ -188,20 +189,29 @@ export function apply(ctx, rawConfig = {}) {
         {
             name: 'nvim_command',
             description: "执行 Vim 命令",
-            parameters: objectSchema({ cmd: STRING("Vim 命令，如 'w'、'bp'、'set tabstop=4'") }, ['cmd']),
+            parameters: objectSchema({
+                cmd: STRING("Vim 命令，如 'w'、'bp'、'set tabstop=4'"),
+            }, ['cmd']),
             async run(args) {
                 const nv = await ensureNvim();
-                const ret = await nv.command(args.cmd);
-                return String(ret ?? '(ok)');
+                return (await nv.command(args.cmd)) ?? null;
+            },
+            format(result) {
+                return String(result ?? '(ok)');
             },
         },
         {
             name: 'nvim_lua_command',
             description: '在 Neovim 中执行 Lua 语句（无返回值）',
-            parameters: objectSchema({ cmd: STRING("Lua 语句，如 'vim.opt.tabstop = 4'") }, ['cmd']),
+            parameters: objectSchema({
+                cmd: STRING("Lua 语句，如 'vim.opt.tabstop = 4'"),
+            }, ['cmd']),
             async run(args) {
                 const nv = await ensureNvim();
                 await nv.lua(args.cmd);
+                return { ok: true };
+            },
+            format() {
                 return '(ok)';
             },
         },
@@ -213,21 +223,28 @@ export function apply(ctx, rawConfig = {}) {
             }, ['cmd']),
             async run(args) {
                 const nv = await ensureNvim();
-                const ret = await nv.luaAsyncEval(args.cmd, config.luaModule);
-                return JSON.stringify(ret);
+                return await nv.luaAsyncEval(args.cmd, config.luaModule);
+            },
+            format(result) {
+                return JSON.stringify(result);
             },
         },
         {
             name: 'nvim_dap_eval',
             description: '在当前调试会话中求值表达式',
-            parameters: objectSchema({ expr: STRING('要求值的表达式') }, ['expr']),
+            parameters: objectSchema({
+                expr: STRING('要求值的表达式'),
+            }, ['expr']),
             async run(args) {
                 const ret = await dapCall(`require("${config.luaModule}").dap_eval(expr)`, { expr: args.expr });
                 if (!ret)
                     throw new Error('evaluate failed');
-                const val = ret.result ?? '(nil)';
-                const typ = ret.type ?? '?';
-                return `**${typ}**: ${val}${ret.variablesReference ? ` (variablesReference: ${ret.variablesReference})` : ''}`;
+                return ret;
+            },
+            format(result) {
+                const val = result.result ?? '(nil)';
+                const typ = result.type ?? '?';
+                return `**${typ}**: ${val}${result.variablesReference ? ` (variablesReference: ${result.variablesReference})` : ''}`;
             },
         },
         {
@@ -243,9 +260,9 @@ export function apply(ctx, rawConfig = {}) {
             }),
             async run(args, exec) {
                 markSession(exec);
-                const ret = await dapCall(`require("${config.luaModule}").dap_disasm(args)`, { args });
-                return fmtDisasm(ret);
+                return await dapCall(`require("${config.luaModule}").dap_disasm(args)`, { args });
             },
+            format: fmtDisasm,
         },
         {
             name: 'nvim_dap_start',
@@ -258,8 +275,11 @@ export function apply(ctx, rawConfig = {}) {
             async run(args, exec) {
                 const ret = await dapCall(`require("${config.luaModule}").dap_start(args)`, { args });
                 markSession(exec);
-                const cfg = ret.config || {};
-                return (`调试会话已启动: **${ret.config_name || args.config_name}** (${ret.lang || args.lang || 'cpp'})\n` +
+                return ret;
+            },
+            format(result, args) {
+                const cfg = result.config || {};
+                return (`调试会话已启动: **${result.config_name || args.config_name}** (${result.lang || args.lang || 'cpp'})\n` +
                     `- request: ${cfg.request || '?'}\n` +
                     `- type: ${cfg.type || '?'}\n` +
                     `${cfg.program ? `- program: ${cfg.program}\n` : ''}` +
@@ -269,8 +289,11 @@ export function apply(ctx, rawConfig = {}) {
         {
             name: 'nvim_dap_continue',
             description: '继续执行。协程阻塞等待命中断点后返回停止位置',
-            parameters: objectSchema({}),
-            run: (_args, exec) => dapStep('continue', 'dap_continue', {}, exec),
+            parameters: objectSchema({
+                timeout_ms: INTEGER('等待命中的超时毫秒数（默认 30000）'),
+            }),
+            run: (args, exec) => dapStep('dap_continue', args, exec),
+            format: (result) => fmtStep('continue', result),
         },
         {
             name: 'nvim_dap_stop',
@@ -278,6 +301,9 @@ export function apply(ctx, rawConfig = {}) {
             parameters: objectSchema({}),
             async run() {
                 await dapCall(`require("${config.luaModule}").dap_stop()`);
+                return { ok: true };
+            },
+            format() {
                 return '调试会话已终止';
             },
         },
@@ -289,7 +315,8 @@ export function apply(ctx, rawConfig = {}) {
                 single_thread: BOOLEAN('仅单步当前线程（默认 false）'),
                 granularity: { type: 'string', enum: ['statement', 'line', 'instruction'], description: '粒度: statement（语句）、line（行）、instruction（指令），默认 statement' },
             }),
-            run: (args, exec) => dapStep('step into', 'dap_step_into', args, exec),
+            run: (args, exec) => dapStep('dap_step_into', args, exec),
+            format: (result) => fmtStep('step into', result),
         },
         {
             name: 'nvim_dap_step_over',
@@ -299,7 +326,8 @@ export function apply(ctx, rawConfig = {}) {
                 single_thread: BOOLEAN('仅单步当前线程（默认 false）'),
                 granularity: { type: 'string', enum: ['statement', 'line', 'instruction'], description: '粒度: statement（语句）、line（行）、instruction（指令），默认 statement' },
             }),
-            run: (args, exec) => dapStep('step over', 'dap_step_over', args, exec),
+            run: (args, exec) => dapStep('dap_step_over', args, exec),
+            format: (result) => fmtStep('step over', result),
         },
         {
             name: 'nvim_dap_step_out',
@@ -308,13 +336,15 @@ export function apply(ctx, rawConfig = {}) {
                 thread_id: INTEGER('线程 ID（可选，默认当前线程）'),
                 single_thread: BOOLEAN('仅单步当前线程（默认 false）'),
             }),
-            run: (args, exec) => dapStep('step out', 'dap_step_out', args, exec),
+            run: (args, exec) => dapStep('dap_step_out', args, exec),
+            format: (result) => fmtStep('step out', result),
         },
         {
             name: 'nvim_dap_run_to_cursor',
             description: '运行到当前光标位置。设临时断点→继续执行→命中后移除并返回停止状态',
             parameters: objectSchema({}),
-            run: (_args, exec) => dapStep('run to cursor', 'dap_run_to_cursor', {}, exec),
+            run: (_args, exec) => dapStep('dap_run_to_cursor', {}, exec),
+            format: (result) => fmtStep('run to cursor', result),
         },
         {
             name: 'nvim_dap_run_to_location',
@@ -325,14 +355,9 @@ export function apply(ctx, rawConfig = {}) {
             }),
             async run(args, exec) {
                 markSession(exec);
-                const ret = await dapCall(`require("${config.luaModule}").dap_run_to_location(args)`, { args });
-                if (ret.status === 'terminated')
-                    return '调试目标已退出';
-                let out = `## 调试器已暂停 (run to location)\n`;
-                out += `**原因:** ${ret.reason || '?'}\n`;
-                out += fmtStack({ frames: ret.frames || [], thread_id: ret.thread_id });
-                return out;
+                return await dapCall(`require("${config.luaModule}").dap_run_to_location(args)`, { args });
             },
+            format: (result) => fmtStep('run to location', result),
         },
         {
             name: 'nvim_dap_get_stack',
@@ -341,7 +366,72 @@ export function apply(ctx, rawConfig = {}) {
             async run(_args, exec) {
                 const ret = await dapCall(`require("${config.luaModule}").dap_get_stack()`);
                 markSession(exec);
-                return fmtStack(ret);
+                return ret;
+            },
+            format: fmtStack,
+        },
+        {
+            name: 'nvim_dap_wait_stop',
+            description: '轮询等待调试会话停止（帧名变化），不依赖协程阻塞。vsdbg attach 会话 step 后 stackTrace 易被取消时使用',
+            parameters: objectSchema({
+                timeout_ms: INTEGER('超时毫秒数（默认 30000）'),
+                poll_ms: INTEGER('轮询间隔毫秒数（默认 200）'),
+            }),
+            async run(args, exec) {
+                markSession(exec);
+                return await dapCall(`require("${config.luaModule}").dap_wait_stop(args)`, { args });
+            },
+            format(result) {
+                if (!result || result.status === 'timeout')
+                    return '等待超时（未检测到帧变化）';
+                return `已检测到停止: thread ${result.thread_id ?? '?'}\n当前帧: **${result.frame_name ?? '?'}**`;
+            },
+        },
+        {
+            name: 'nvim_dap_frame_vars',
+            description: '一次调用内完成 stackTrace→定位帧→scopes→variables 收集帧变量（规避 vsdbg frameId 跨调用失效）。frame_match 按帧名子串匹配第一帧',
+            parameters: objectSchema({
+                thread_id: INTEGER('线程 ID'),
+                frame_match: STRING('帧名匹配模式（帧名包含该子串的第一帧）'),
+                var_names: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: '需要收集的变量名列表（省略则收集该帧全部 Locals 变量）',
+                },
+            }, ['thread_id', 'frame_match']),
+            async run(args, exec) {
+                markSession(exec);
+                return await dapCall(`require("${config.luaModule}").dap_frame_vars(thread_id, frame_match, var_names)`, {
+                    thread_id: args.thread_id,
+                    frame_match: args.frame_match,
+                    var_names: args.var_names ?? null,
+                });
+            },
+            format(result) {
+                if (result === null || result === undefined)
+                    return '(未找到匹配帧或请求失败)';
+                const entries = Object.entries(result);
+                if (entries.length === 0)
+                    return '(未收集到变量)';
+                return entries.map(([name, value]) => `- **${name}** = ${String(value)}`).join('\n');
+            },
+        },
+        {
+            name: 'nvim_dap_read_register',
+            description: '读取寄存器值：scopes→Registers→CPU 分组→variables 展开查找寄存器（vsdbg evaluate 读寄存器受限时使用）',
+            parameters: objectSchema({
+                frame_id: INTEGER('帧 ID（来自 stackTrace，如 nvim_dap_get_stack 的 frames[].id）'),
+                reg_name: STRING('寄存器名（大写，如 "RSP"/"RIP"/"RAX"/"RDI"/"RBP"）'),
+            }, ['frame_id', 'reg_name']),
+            async run(args, exec) {
+                markSession(exec);
+                return await dapCall(`require("${config.luaModule}").dap_read_register(frame_id, reg_name)`, { frame_id: args.frame_id, reg_name: args.reg_name });
+            },
+            format(result, args) {
+                const value = String(result ?? '');
+                if (!value)
+                    return `未找到寄存器 **${args.reg_name}**`;
+                return `**${args.reg_name}** = ${value}`;
             },
         },
         {
@@ -349,19 +439,22 @@ export function apply(ctx, rawConfig = {}) {
             description: '获取所有线程',
             parameters: objectSchema({}),
             async run() {
-                const ret = await dapCall(`require("${config.luaModule}").dap_get_threads()`);
-                return fmtThreads(ret);
+                return await dapCall(`require("${config.luaModule}").dap_get_threads()`);
             },
+            format: fmtThreads,
         },
         {
             name: 'nvim_dap_switch_thread',
             description: '切换到指定线程',
-            parameters: objectSchema({ thread_id: INTEGER('线程 ID') }, ['thread_id']),
+            parameters: objectSchema({
+                thread_id: INTEGER('线程 ID'),
+            }, ['thread_id']),
             async run(args, exec) {
                 markSession(exec);
-                const ret = await dapCall(`require("${config.luaModule}").dap_switch_thread(args)`, { args });
-                const f = ret.frame;
-                return `已切换到线程 ${ret.thread_id}\n当前帧: ${fmtFrame(f)}`;
+                return await dapCall(`require("${config.luaModule}").dap_switch_thread(args)`, { args });
+            },
+            format(result) {
+                return `已切换到线程 ${result.thread_id}\n当前帧: ${fmtFrame(result.frame)}`;
             },
         },
         {
@@ -369,28 +462,36 @@ export function apply(ctx, rawConfig = {}) {
             description: '列出所有活跃调试会话',
             parameters: objectSchema({}),
             async run() {
-                const ret = await dapCall(`require("${config.luaModule}").dap_get_sessions()`);
-                return fmtSessions(ret);
+                return await dapCall(`require("${config.luaModule}").dap_get_sessions()`);
             },
+            format: fmtSessions,
         },
         {
             name: 'nvim_dap_switch_session',
             description: '按名称切换调试会话',
-            parameters: objectSchema({ session_name: STRING('会话名称') }, ['session_name']),
+            parameters: objectSchema({
+                session_name: STRING('会话名称'),
+            }, ['session_name']),
             async run(args, exec) {
                 markSession(exec);
-                const ret = await dapCall(`require("${config.luaModule}").dap_switch_session(args)`, { args });
-                const s = ret.session;
+                return await dapCall(`require("${config.luaModule}").dap_switch_session(args)`, { args });
+            },
+            format(result) {
+                const s = result.session;
                 return `已切换到会话: **${s.name}** (id: ${s.id}, type: ${s.type || '?'})`;
             },
         },
         {
             name: 'nvim_dap_add_watch',
             description: '添加监视表达式到调试 UI',
-            parameters: objectSchema({ expr: STRING('监视表达式') }, ['expr']),
+            parameters: objectSchema({
+                expr: STRING('监视表达式'),
+            }, ['expr']),
             async run(args) {
-                const ret = await dapCall(`require("${config.luaModule}").dap_add_watch(args)`, { args });
-                return `已添加监视: **${ret.expression || args.expr}**`;
+                return await dapCall(`require("${config.luaModule}").dap_add_watch(args)`, { args });
+            },
+            format(result, args) {
+                return `已添加监视: **${result.expression || args.expr}**`;
             },
         },
         {
@@ -405,22 +506,28 @@ export function apply(ctx, rawConfig = {}) {
             }, ['line']),
             async run(args, exec) {
                 markSession(exec);
-                const ret = await dapCall(`require("${config.luaModule}").dap_add_breakpoint(args)`, { args });
-                const file = ret.file ? ret.file.replace(/^.*[\\/]/, '') : '?';
-                let out = `断点已添加: ${file}:${ret.line}`;
-                if (ret.condition)
-                    out += ` (条件: ${ret.condition})`;
+                return await dapCall(`require("${config.luaModule}").dap_add_breakpoint(args)`, { args });
+            },
+            format(result) {
+                const file = result.file ? result.file.replace(/^.*[\\/]/, '') : '?';
+                let out = `断点已添加: ${file}:${result.line}`;
+                if (result.condition)
+                    out += ` (条件: ${result.condition})`;
                 return out;
             },
         },
         {
             name: 'nvim_dap_add_function_breakpoint',
             description: '添加函数断点（按函数名，无需指定文件和行号）',
-            parameters: objectSchema({ func: STRING('函数名') }, ['func']),
+            parameters: objectSchema({
+                func: STRING('函数名'),
+            }, ['func']),
             async run(args, exec) {
                 markSession(exec);
-                const ret = await dapCall(`require("${config.luaModule}").dap_add_function_breakpoint(args)`, { args });
-                const bps = ret?.breakpoints;
+                return await dapCall(`require("${config.luaModule}").dap_add_function_breakpoint(args)`, { args });
+            },
+            format(result, args) {
+                const bps = result?.breakpoints;
                 if (bps && bps.length > 0) {
                     const b = bps[0];
                     return `函数断点已添加: **${args.func}**${b.verified ? ' (已验证)' : ` (未验证: ${b.message || '?'})`}`;
@@ -440,9 +547,11 @@ export function apply(ctx, rawConfig = {}) {
             }),
             async run(args, exec) {
                 markSession(exec);
-                const ret = await dapCall(`require("${config.luaModule}").dap_toggle_breakpoint(args)`, { args });
-                const file = ret.file ? ret.file.replace(/^.*[\\/]/, '') : '?';
-                return `断点已切换: ${file}:${ret.line}`;
+                return await dapCall(`require("${config.luaModule}").dap_toggle_breakpoint(args)`, { args });
+            },
+            format(result) {
+                const file = result.file ? result.file.replace(/^.*[\\/]/, '') : '?';
+                return `断点已切换: ${file}:${result.line}`;
             },
         },
         {
@@ -453,9 +562,11 @@ export function apply(ctx, rawConfig = {}) {
                 line: INTEGER('行号（1-based）'),
             }, ['line']),
             async run(args) {
-                const ret = await dapCall(`require("${config.luaModule}").dap_remove_breakpoint(args)`, { args });
-                const file = ret.file ? ret.file.replace(/^.*[\\/]/, '') : '?';
-                return `断点已删除: ${file}:${ret.line}${ret.removed ? '' : ' (该位置无断点)'}`;
+                return await dapCall(`require("${config.luaModule}").dap_remove_breakpoint(args)`, { args });
+            },
+            format(result) {
+                const file = result.file ? result.file.replace(/^.*[\\/]/, '') : '?';
+                return `断点已删除: ${file}:${result.line}${result.removed ? '' : ' (该位置无断点)'}`;
             },
         },
         {
@@ -463,9 +574,9 @@ export function apply(ctx, rawConfig = {}) {
             description: '列出所有断点及其属性',
             parameters: objectSchema({}),
             async run() {
-                const ret = await dapCall(`require("${config.luaModule}").dap_list_breakpoints()`);
-                return fmtBreakpoints(ret);
+                return await dapCall(`require("${config.luaModule}").dap_list_breakpoints()`);
             },
+            format: fmtBreakpoints,
         },
         {
             name: 'nvim_dap_clear_breakpoints',
@@ -473,6 +584,9 @@ export function apply(ctx, rawConfig = {}) {
             parameters: objectSchema({}),
             async run() {
                 await dapCall(`require("${config.luaModule}").dap_clear_breakpoints()`);
+                return { ok: true };
+            },
+            format() {
                 return '所有断点已清除';
             },
         },
@@ -486,19 +600,21 @@ export function apply(ctx, rawConfig = {}) {
             }, ['command']),
             async run(args, exec) {
                 markSession(exec);
-                const ret = await dapCall(`require("${config.luaModule}").dap_request(args)`, { args });
-                if (ret.error) {
-                    let out = `**DAP 请求错误:** ${ret.error}
+                return await dapCall(`require("${config.luaModule}").dap_request(args)`, { args });
+            },
+            format(result) {
+                if (result.error) {
+                    let out = `**DAP 请求错误:** ${result.error}
 
 `;
-                    if (ret.hint)
-                        out += `${ret.hint}
+                    if (result.hint)
+                        out += `${result.hint}
 
 `;
-                    if (ret.capabilities) {
+                    if (result.capabilities) {
                         out += `**适配器支持的能力:**
 `;
-                        const caps = ret.capabilities;
+                        const caps = result.capabilities;
                         const supported = Object.entries(caps).filter(([, v]) => v);
                         if (supported.length === 0) {
                             out += `(无能力信息)
@@ -512,30 +628,47 @@ export function apply(ctx, rawConfig = {}) {
                     }
                     return out;
                 }
-                return JSON.stringify(ret, null, 2);
+                return JSON.stringify(result, null, 2);
             },
         },
         {
             name: 'nvim_dap_get_configurations',
             description: '列出可用的调试配置（可按语言筛选）',
-            parameters: objectSchema({ lang: STRING('按语言筛选（如 cpp、python），省略则列出全部') }),
+            parameters: objectSchema({
+                lang: STRING('按语言筛选（如 cpp、python），省略则列出全部'),
+            }),
             async run(args) {
-                const ret = await dapCall(`require("${config.luaModule}").dap_get_configurations(args)`, { args });
-                return fmtConfigs(ret);
+                return await dapCall(`require("${config.luaModule}").dap_get_configurations(args)`, { args });
             },
+            format: fmtConfigs,
         },
     ];
     for (const spec of specs) {
         const definition = {
             name: spec.name,
             description: spec.description,
-            parameters: spec.parameters,
+            parameters: {
+                ...spec.parameters,
+                properties: {
+                    ...spec.parameters,
+                    output_json: BOOLEAN('是否以 JSON 格式输出结果（默认 false）'),
+                },
+            },
             output: {
-                schema: { type: 'string' },
-                render: (_args, value) => [{ type: 'text', text: String(value) }],
+                // 工具原始结果形态不定（字符串或任意 JSON 值）；dsh 原生以 canonical JSON 值
+                // 承载 execute 的返回值，展示形式由 render 按 output_json 决定。
+                schema: { description: '工具原始结果（任意 JSON 值）或 markdown 文本' },
+                render: (args, value) => {
+                    const { output_json: wantJson, ...rest } = (args ?? {});
+                    const text = wantJson ? JSON.stringify(value, null, 2) : spec.format(value, rest);
+                    return [{ type: 'text', text }];
+                },
             },
             async execute(args, exec) {
-                return await spec.run(args, exec);
+                // output_json is a presentation switch, not a Neovim-facing argument:
+                // strip it before forwarding the remaining arguments downstream.
+                const { output_json: _omitted, ...rest } = (args ?? {});
+                return await spec.run(rest, exec);
             },
         };
         ctx.tools.register(definition);

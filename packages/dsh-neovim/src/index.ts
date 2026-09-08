@@ -107,7 +107,13 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
       const id = agent.session?.id
       if (!id || !dapSessions.has(String(id))) continue
       try {
-        agent.inject(createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'plugin', plugin: name } }))
+        const message = createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'plugin', plugin: name } })
+        // inject() never wakes an idle driver: a stopped agent would leave the
+        // event pending in the inbox forever, so wake it with a follow-up turn.
+        if (agent.status === 'idle') 
+          agent.followup(message)
+        else 
+          agent.inject(message)
       } catch (error) {
         // The agent went away between list() and inject(); drop the stale entry.
         logger.error(`dap event delivery failed for session ${id}: ${errText(error)}`)
@@ -329,8 +335,10 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     {
       name: 'nvim_dap_continue',
       description: '继续执行。协程阻塞等待命中断点后返回停止位置',
-      parameters: objectSchema({}),
-      run: (_args, exec) => dapStep('dap_continue', {}, exec),
+      parameters: objectSchema({
+        timeout_ms: INTEGER('等待命中的超时毫秒数（默认 30000）'),
+      }),
+      run: (args, exec) => dapStep('dap_continue', args, exec),
       format: (result) => fmtStep('continue', result),
     },
     {
@@ -407,6 +415,72 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
         return ret
       },
       format: fmtStack,
+    },
+    {
+      name: 'nvim_dap_wait_stop',
+      description: '轮询等待调试会话停止（帧名变化），不依赖协程阻塞。vsdbg attach 会话 step 后 stackTrace 易被取消时使用',
+      parameters: objectSchema({
+        timeout_ms: INTEGER('超时毫秒数（默认 30000）'),
+        poll_ms: INTEGER('轮询间隔毫秒数（默认 200）'),
+      }),
+      async run(args, exec) {
+        markSession(exec)
+        return await dapCall(`require("${config.luaModule}").dap_wait_stop(args)`, { args })
+      },
+      format(result) {
+        if (!result || result.status === 'timeout') return '等待超时（未检测到帧变化）'
+        return `已检测到停止: thread ${result.thread_id ?? '?'}\n当前帧: **${result.frame_name ?? '?'}**`
+      },
+    },
+    {
+      name: 'nvim_dap_frame_vars',
+      description: '一次调用内完成 stackTrace→定位帧→scopes→variables 收集帧变量（规避 vsdbg frameId 跨调用失效）。frame_match 按帧名子串匹配第一帧',
+      parameters: objectSchema({
+        thread_id: INTEGER('线程 ID'),
+        frame_match: STRING('帧名匹配模式（帧名包含该子串的第一帧）'),
+        var_names: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '需要收集的变量名列表（省略则收集该帧全部 Locals 变量）',
+        },
+      }, ['thread_id', 'frame_match']),
+      async run(args, exec) {
+        markSession(exec)
+        return await dapCall(
+          `require("${config.luaModule}").dap_frame_vars(thread_id, frame_match, var_names)`,
+          {
+            thread_id: args.thread_id as number,
+            frame_match: args.frame_match as string,
+            var_names: (args.var_names as string[] | undefined) ?? null,
+          }
+        )
+      },
+      format(result) {
+        if (result === null || result === undefined) return '(未找到匹配帧或请求失败)'
+        const entries = Object.entries(result as Record<string, unknown>)
+        if (entries.length === 0) return '(未收集到变量)'
+        return entries.map(([name, value]) => `- **${name}** = ${String(value)}`).join('\n')
+      },
+    },
+    {
+      name: 'nvim_dap_read_register',
+      description: '读取寄存器值：scopes→Registers→CPU 分组→variables 展开查找寄存器（vsdbg evaluate 读寄存器受限时使用）',
+      parameters: objectSchema({
+        frame_id: INTEGER('帧 ID（来自 stackTrace，如 nvim_dap_get_stack 的 frames[].id）'),
+        reg_name: STRING('寄存器名（大写，如 "RSP"/"RIP"/"RAX"/"RDI"/"RBP"）'),
+      }, ['frame_id', 'reg_name']),
+      async run(args, exec) {
+        markSession(exec)
+        return await dapCall(
+          `require("${config.luaModule}").dap_read_register(frame_id, reg_name)`,
+          { frame_id: args.frame_id as number, reg_name: args.reg_name as string }
+        )
+      },
+      format(result, args) {
+        const value = String(result ?? '')
+        if (!value) return `未找到寄存器 **${args.reg_name}**`
+        return `**${args.reg_name}** = ${value}`
+      },
     },
     {
       name: 'nvim_dap_get_threads',

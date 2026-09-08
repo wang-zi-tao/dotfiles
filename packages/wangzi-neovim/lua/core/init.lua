@@ -15,14 +15,3 @@ load("core.database")
 load("core.agent")
 load("core.plugins.wps")
 
-local n = require("core.gen")
-if n.core ~= nil then
-    for _, file in ipairs(vim.fn.readdir(n.core .. "/skeleton")) do
-        vim.api.nvim_create_autocmd({ "BufNewFile" }, {
-            pattern = { file },
-            callback = function()
-                vim.cmd("0r '" .. file .. "'")
-            end,
-        })
-    end
-end
