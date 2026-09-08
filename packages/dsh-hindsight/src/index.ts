@@ -62,7 +62,6 @@ interface RecallCacheEntry {
 const TOOL_SECTION_ORDER = 135
 const RECALL_PREAMBLE = [
   '# Hindsight Memory (persistent cross-session context)',
-  'Use this to answer questions about the user and prior sessions. Do not call tools to look up information that is already present here.',
 ].join('\n')
 
 function makeLogger(ctx: Context): Logger {
@@ -169,6 +168,8 @@ function retainItem(record: TurnRecord, session: Session, config: HindsightConfi
     content: record.text,
     timestamp: record.startedAt,
     context: config.retainContext,
+    update_mode: "append",
+    document_id: session.id.toString(),
     metadata: {
       source: 'dsh-hindsight',
       sessionId: String(session.id),
@@ -683,7 +684,7 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
       const cached = recallCache.get(String(session.id))
       if (!cached?.text) return ''
       const preamble = config.recallPromptPreamble || RECALL_PREAMBLE
-      return `${preamble}\n\n${cached.text}`
+      return `<hindsight-recall>\n${preamble}\n\n${cached.text}\n<hindsight-recall/>`
     },
   })
 

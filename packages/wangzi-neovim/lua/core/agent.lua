@@ -37,6 +37,13 @@ local function unwrap_opts(opts)
     return opts
 end
 
+function M.rpcnotify(channel_id, method, argument) 
+  local ok, err = pcall(vim.rpcnotify,  channel_id, method, argument)
+  if not ok then
+    error("rpcnotify error: " .. tostring(err))
+  end
+end
+
 ---@param f function
 ---@param task_id integer
 ---@param channel_id integer
@@ -49,7 +56,7 @@ function M.run_async(f, channel_id, task_id, argsJson)
             return ret
         end)
 
-        vim.rpcnotify(channel_id, "async_task_finish", M.clean_table {
+        M.rpcnotify(channel_id, "async_task_finish", M.clean_table {
             task_id = task_id,
             succ = succ,
             ret = succ and ret,
@@ -69,7 +76,7 @@ function M.dap_subscribe(channel_id)
         end
 
         local stacks = M.dap_get_stack({ limit = 10, thread_id = event.threadId })
-        vim.rpcnotify(channel_id, "dap_pause", M.clean_table {
+        M.rpcnotify(channel_id, "dap_pause", M.clean_table {
             session = session.id,
             thread_id = event.threadId,
             config_name = session.config.name,
@@ -84,7 +91,7 @@ function M.dap_subscribe(channel_id)
             return
         end
 
-        vim.rpcnotify(channel_id, "event_terminated", {
+        M.rpcnotify(channel_id, "event_terminated", M.clean_table {
             session = session.id,
             config_name = session.config.name,
             event = event,
@@ -97,7 +104,7 @@ function M.dap_subscribe(channel_id)
             return
         end
 
-        vim.rpcnotify(channel_id, "event_exited", {
+        M.rpcnotify(channel_id, "event_exited",  M.clean_table{
             session = session.id,
             config_name = session.config.name,
             event = event,
@@ -343,7 +350,7 @@ local function step_and_wait(step_fn)
         return { status = "stopped", reason = stopped_body.reason, description = stopped_body.description }
     end
 
-    local frames, total = M.build_frames(session, tid, 4)
+    local frames, total, error = M.build_frames(session, tid, 4)
 
     return {
         status = "stopped",
@@ -352,6 +359,7 @@ local function step_and_wait(step_fn)
         allThreadsStopped = stopped_body.allThreadsStopped,
         thread_id = tid,
         frames = frames,
+        error = error,
         totalFrames = total
     }
 end
@@ -480,11 +488,11 @@ end
 ---@param session dap.Session
 ---@param thread_id integer
 ---@param limit? integer
----@return table[], integer
+---@return table[]|nil, integer, dap.ErrorResponse|nil
 function M.build_frames(session, thread_id, limit)
     local err, resp = session:request("stackTrace", { threadId = thread_id })
     if err or not resp then
-        error("stackTrace error: " .. vim.inspect(err))
+      return nil, 0, err
     end
 
     local cwd = vim.fn.getcwd()
@@ -497,7 +505,7 @@ function M.build_frames(session, thread_id, limit)
         table.insert(frames, build_frame(f, cwd))
     end
 
-    return frames, #all
+    return frames, #all, nil
 end
 
 --- 获取调用栈
@@ -511,8 +519,8 @@ function M.dap_get_stack(opts)
         error("no current thread")
     end
 
-    local frames, total = M.build_frames(session, thread_id, opts.limit)
-    return M.clean_table { thread_id = thread_id, frames = frames, totalFrames = total }
+    local frames, total, error = M.build_frames(session, thread_id, opts.limit)
+    return M.clean_table { thread_id = thread_id, frames = frames, error =error, totalFrames = total }
 end
 
 --- 获取线程列表
@@ -547,13 +555,18 @@ function M.dap_switch_thread(opts)
     end
 
     local session = M.get_session()
-    local frames, total = M.build_frames(session, thread_id, 1)
-    local first = frames[1]
+    local frames, total, err = M.build_frames(session, thread_id, 1)
+    local first = frames and frames[1]
     if not first then
         error("no frames for thread")
     end
 
-    return M.clean_table { thread_id = thread_id, frame = first, totalFrames = total }
+    return  {
+      thread_id = thread_id,
+      frame = first,
+      error = err,
+      totalFrames = total
+    }
 end
 
 --- 获取所有调试会话
@@ -717,7 +730,7 @@ function M.dap_request(opts)
             or err_lower:match("unknown command")
             or err_lower:match("not found")
             or err_lower:match("unrecognized") then
-            return M.clean_table {
+            return  {
                 error = err_msg,
                 hint = "This request is not supported by the debug adapter. See capabilities for supported features.",
                 capabilities = session.capabilities,
@@ -731,7 +744,7 @@ function M.dap_request(opts)
             or err_lower:match("parameter")
             or err_lower:match("argument")
             or err_lower:match("type") then
-            return M.clean_table {
+            return  {
                 error = err_msg,
                 hint = "Parameter error. To query the expected parameter types for the '"
                     .. command
@@ -743,7 +756,7 @@ function M.dap_request(opts)
 
         error("dap_request error: " .. vim.inspect(err))
     end
-    return M.clean_table(result)
+    return (result)
 end
 
 --- 切换断点（有则删、无则加）
@@ -827,7 +840,7 @@ function M.dap_get_configurations(opts)
         local configs = dap.configurations[lang]
         if configs then
             for _, cfg in ipairs(configs) do
-                table.insert(result, M.clean_table {
+                table.insert(result,  {
                     lang = lang,
                     name = cfg.name,
                     type = cfg.type,
