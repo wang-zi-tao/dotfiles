@@ -5,6 +5,8 @@ local function load(module)
     end
 end
 
+vim.g.lua_hotreload = false
+
 load("core.opt")
 load("core.map")
 load("core.env")
@@ -14,4 +16,4 @@ load("core.theme")
 load("core.database")
 load("core.agent")
 load("core.plugins.wps")
-
+load("core.hotreload")

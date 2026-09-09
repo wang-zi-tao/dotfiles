@@ -1,4 +1,4 @@
-local M = {}
+local M = require("core.hotreload").init_module()
 M.bg = function(group, col)
     cmd("hi " .. group .. " guibg=" .. col)
 end

@@ -17,7 +17,7 @@ import { resolve } from 'node:path'
 
 export type MemoryMode = 'hybrid' | 'context' | 'tools'
 export type RecallBudget = 'low' | 'mid' | 'high'
-export type RecallPrefetch = 'recall' | 'reflect'
+// RecallPrefetch removed in v0.2.0; autoRecall now uses recall API via agent/pre-step
 export type TagsMatch = 'any' | 'all' | 'any_strict' | 'all_strict'
 export type RetainUpdateMode = null | 'append' | 'replace'
 
@@ -27,12 +27,12 @@ export interface HindsightConfig {
   bankId: string
   budget: RecallBudget
   timeoutMs: number
+  logDir: string
   memoryMode: MemoryMode
   statusToolEnabled: boolean
 
   autoRecall: boolean
-  recallPrefetch: RecallPrefetch
-  recallOrder: number
+  recallTimeoutMs: number
   recallMaxInputChars: number
   recallMaxTokens: number
   recallTypes: string[]
@@ -66,15 +66,18 @@ export const DEFAULTS: Readonly<HindsightConfig> = Object.freeze({
   bankId: 'dsh',
   budget: 'mid',
   timeoutMs: 120000,
+  logDir: '~/.dsh/logs/dsh-hindsight',
   memoryMode: 'hybrid',
   statusToolEnabled: true,
 
   autoRecall: true,
-  recallPrefetch: 'recall',
-  recallOrder: 500,
+  recallTimeoutMs: 6000,
   recallMaxInputChars: 800,
   recallMaxTokens: 4096,
-  recallTypes: ['observation'],
+  // Retained memories are classified as 'experience'; restricting the default to
+  // 'observation' only (or the server-side default) would miss most of the bank.
+  // Search all three main fact types so autoRecall has something to inject.
+  recallTypes: ['experience', 'observation', 'world'],
   recallTags: [],
   recallTagsMatch: 'any',
   recallPromptPreamble: '',
@@ -94,12 +97,11 @@ export const DEFAULTS: Readonly<HindsightConfig> = Object.freeze({
   retainDocumentId: null,
   retainUpdateMode: null,
   includeToolResults: false,
-  skipSubagents: true,
+  skipSubagents: false,
 })
 
 const BUDGETS = new Set<string>(['low', 'mid', 'high'])
 const MEMORY_MODES = new Set<string>(['hybrid', 'context', 'tools'])
-const PREFETCH_MODES = new Set<string>(['recall', 'reflect'])
 const TAG_MATCHES = new Set<string>(['any', 'all', 'any_strict', 'all_strict'])
 const UPDATE_MODES = new Set<RetainUpdateMode>([null, 'append', 'replace'])
 
@@ -110,10 +112,10 @@ const ALIASES: Record<string, string> = {
   bank: 'bankId',
   recall_budget: 'budget',
   timeout: 'timeoutMs',
+  log_dir: 'logDir',
   memory_mode: 'memoryMode',
   auto_recall: 'autoRecall',
-  recall_prefetch_method: 'recallPrefetch',
-  recall_order: 'recallOrder',
+  recall_timeout_ms: 'recallTimeoutMs',
   recall_max_input_chars: 'recallMaxInputChars',
   recall_max_tokens: 'recallMaxTokens',
   recall_types: 'recallTypes',
@@ -150,7 +152,7 @@ const BOOLEAN_KEYS = new Set<keyof HindsightConfig>([
 
 const INTEGER_KEYS: Partial<Record<keyof HindsightConfig, number>> = {
   timeoutMs: 1,
-  recallOrder: Number.NEGATIVE_INFINITY,
+  recallTimeoutMs: 100,
   recallMaxInputChars: 0,
   recallMaxTokens: 1,
   retainEveryNTurns: 1,
@@ -194,7 +196,7 @@ function normalizeRaw(raw: RawConfig): RawConfig {
   return out
 }
 
-function readConfigFile(path: unknown, env: ProcessEnv): RawConfig {
+function readConfigFile(path: unknown, env: NodeJS.ProcessEnv): RawConfig {
   const configured = path ?? env.HINDSIGHT_CONFIG
   if (!configured) return {}
   const filename = resolve(String(configured))
@@ -234,7 +236,7 @@ function parseBoolean(value: unknown, fallback: boolean): boolean {
  * @param raw - raw Cordis row config
  * @param env - environment (test seam)
  */
-export function resolveConfig(raw: RawConfig = {}, env: ProcessEnv = process.env): HindsightConfig {
+export function resolveConfig(raw: RawConfig = {}, env: NodeJS.ProcessEnv = process.env): HindsightConfig {
   const file = readConfigFile(raw.configFile, env)
   const config = {
     ...DEFAULTS,
@@ -250,6 +252,7 @@ export function resolveConfig(raw: RawConfig = {}, env: ProcessEnv = process.env
     ['bankId', env.HINDSIGHT_BANK_ID],
     ['budget', env.HINDSIGHT_BUDGET],
     ['timeoutMs', env.HINDSIGHT_TIMEOUT],
+    ['logDir', env.HINDSIGHT_LOG_DIR],
     ['memoryMode', env.HINDSIGHT_MEMORY_MODE],
     ['retainTags', env.HINDSIGHT_RETAIN_TAGS],
     ['recallTags', env.HINDSIGHT_RECALL_TAGS],
@@ -273,7 +276,6 @@ export function resolveConfig(raw: RawConfig = {}, env: ProcessEnv = process.env
 
   if (!BUDGETS.has(String(draft.budget))) fail(`invalid budget ${JSON.stringify(draft.budget)}; expected low, mid or high`)
   if (!MEMORY_MODES.has(String(draft.memoryMode))) fail(`invalid memoryMode ${JSON.stringify(draft.memoryMode)}; expected hybrid, context or tools`)
-  if (!PREFETCH_MODES.has(String(draft.recallPrefetch))) fail(`invalid recallPrefetch ${JSON.stringify(draft.recallPrefetch)}; expected recall or reflect`)
   if (!TAG_MATCHES.has(String(draft.recallTagsMatch))) fail(`invalid recallTagsMatch ${JSON.stringify(draft.recallTagsMatch)}`)
   if (!UPDATE_MODES.has(draft.retainUpdateMode as RetainUpdateMode)) {
     fail(`invalid retainUpdateMode ${JSON.stringify(draft.retainUpdateMode)}; expected null, append or replace`)
@@ -285,8 +287,6 @@ export function resolveConfig(raw: RawConfig = {}, env: ProcessEnv = process.env
   for (const [key, minimum] of Object.entries(INTEGER_KEYS) as Array<[keyof HindsightConfig, number]>) {
     draft[key] = parseInteger(String(key), draft[key], DEFAULTS[key] as number, minimum)
   }
-  if (!Number.isFinite(Number(draft.recallOrder))) fail('recallOrder must be a finite number')
-
   const result = draft as unknown as HindsightConfig
   result.recallTypes = normalizeStringList(result.recallTypes)
   result.recallTags = normalizeTags(result.recallTags)
@@ -295,10 +295,11 @@ export function resolveConfig(raw: RawConfig = {}, env: ProcessEnv = process.env
   result.retainUserPrefix = String(result.retainUserPrefix ?? 'User')
   result.retainAssistantPrefix = String(result.retainAssistantPrefix ?? 'Assistant')
   result.recallPromptPreamble = String(result.recallPromptPreamble ?? '')
-  result.retainDocumentId = draft.retainDocumentId === '' || draft.retainDocumentId === undefined
+  result.retainDocumentId = draft.retainDocumentId == null || draft.retainDocumentId === ''
     ? null
     : String(draft.retainDocumentId)
   result.retainUpdateMode = draft.retainUpdateMode === '' ? null : draft.retainUpdateMode as RetainUpdateMode
+  result.logDir = draft.logDir == null || draft.logDir === '' ? '' : String(draft.logDir).trim()
   result.retainTurnKinds = normalizeStringList(result.retainTurnKinds)
   if (result.retainTurnKinds.length === 0) fail('retainTurnKinds must not be empty')
 

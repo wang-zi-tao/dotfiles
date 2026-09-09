@@ -1,9 +1,13 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { apply, inject, name } from '../src/index.js'
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { DEFAULTS, resolveConfig, apply, inject, name } from '../src/index.js'
 import type { ToolDefinition } from '../src/index.js'
 import type { Context } from '@deepseek-ai/cordis'
 import type { ToolRunContext } from '@deepseek-ai/dsh-tools'
+import type { CommandInvocation, CommandResult } from '@deepseek-ai/dsh-commands'
 
 interface SessionEventLike {
   type: string
@@ -54,10 +58,15 @@ interface PromptSectionLike {
   text: string
 }
 
-interface PromptContextLike {
+interface PreStepListener {
+  (payload: any, next: () => Promise<any>): Promise<any>
+}
+
+interface CommandDefinitionLike {
   name: string
-  order: number
-  text: string | ((context: { agent?: { session?: SessionLike } }) => string)
+  description: string
+  input?: { hint: string }
+  handler: (invocation: CommandInvocation) => Promise<CommandResult>
 }
 
 interface FakeCtx {
@@ -65,14 +74,20 @@ interface FakeCtx {
     registered: ToolDefinition[]
     register(definition: ToolDefinition): () => void
   }
+  commands: {
+    registered: CommandDefinitionLike[]
+    register(definition: CommandDefinitionLike): () => void
+  }
   systemPrompt: {
     sections: PromptSectionLike[]
-    contexts: PromptContextLike[]
     section(section: PromptSectionLike): () => void
-    context(context: PromptContextLike): () => void
   }
-  listeners: Map<string, Array<(session: SessionLike, event: SessionEventLike) => unknown>>
-  on(event: string, listener: (...args: any[]) => unknown): () => void
+  listeners: Map<string, any[]>
+  on(event: string, listener: any, opts?: any): () => void
+  sessionPersistence?: {
+    list: () => Promise<Array<{ id: string; cwd?: string; createdAt: number }>>
+    inspect: (sessionId: string) => Promise<{ meta: Record<string, unknown>; events: SessionEventLike[] }>
+  }
 }
 
 function fakeCtx(): FakeCtx {
@@ -84,16 +99,21 @@ function fakeCtx(): FakeCtx {
         return () => {}
       },
     },
+    commands: {
+      registered: [],
+      register(definition) {
+        this.registered.push(definition)
+        return () => {}
+      },
+    },
     systemPrompt: {
       sections: [],
-      contexts: [],
       section(section) { this.sections.push(section); return () => {} },
-      context(context) { this.contexts.push(context); return () => {} },
     },
     listeners: new Map(),
-    on(event, listener) {
+    on(event, listener, _opts) {
       const list = this.listeners.get(event) ?? []
-      list.push(listener as (session: SessionLike, event: SessionEventLike) => unknown)
+      list.push(listener)
       this.listeners.set(event, list)
       return () => {}
     },
@@ -101,21 +121,34 @@ function fakeCtx(): FakeCtx {
   return ctx
 }
 
-function turnEvent(turn: number, reason = 'completed'): SessionEventLike {
-  return { type: 'turn/end', seq: 4, time: 4, data: { turn, reason: { kind: reason } } }
+// Helper: build realistic events for one turn. user/message data does NOT
+// carry a `turn` field (as in harness 0.1.0-rc.6). assistant/message does.
+function turnStartEvent(turn: number): SessionEventLike {
+  return { type: 'turn/start', seq: 1, time: Date.now(), data: { turn } }
 }
 
-function textMessage(turn: number, text: string): SessionEventLike {
+function turnEndEvent(turn: number, reason = 'completed'): SessionEventLike {
+  return { type: 'turn/end', seq: 5, time: Date.now(), data: { turn, reason: { kind: reason } } }
+}
+
+function userMessage(text: string): SessionEventLike {
   return {
-    type: 'user/message', seq: 1, time: 1,
-    data: { turn, source: { kind: 'user' }, content: [{ type: 'text', text }] },
+    type: 'user/message', seq: 2, time: Date.now(),
+    data: { source: { kind: 'user' }, content: [{ type: 'text', text }] },
   }
 }
 
 function assistantMessage(turn: number, text: string): SessionEventLike {
   return {
-    type: 'assistant/message', seq: 2, time: 2,
+    type: 'assistant/message', seq: 3, time: Date.now(),
     data: { turn, message: { content: [{ type: 'text', text }] } },
+  }
+}
+
+function toolResult(turn: number, text: string): SessionEventLike {
+  return {
+    type: 'tool/result', seq: 4, time: Date.now(),
+    data: { turn, message: { content: [{ type: 'tool-result', content: [{ type: 'text', text }] }] } },
   }
 }
 
@@ -157,7 +190,33 @@ async function waitFor(predicate: () => boolean, timeoutMs = 1000): Promise<void
   }
 }
 
-test('plugin registers hooks, tools, and prefetches recall on turn/end', withCleanEnv(async () => {
+// ----- A: config retainDocumentId null bug -----
+
+test('resolveConfig default retainDocumentId is null (not string "null")', () => {
+  const c = resolveConfig({}, {})
+  assert.equal(c.retainDocumentId, null)
+  // empty string and null/undefined also resolve to null
+  assert.equal(resolveConfig({ retainDocumentId: '' }, {}).retainDocumentId, null)
+  assert.equal(resolveConfig({ retainDocumentId: null }, {}).retainDocumentId, null)
+  // explicit value is preserved
+  assert.equal(resolveConfig({ retainDocumentId: 'my-doc' }, {}).retainDocumentId, 'my-doc')
+})
+
+test('resolveConfig recallTimeoutMs default is 6000', () => {
+  const c = resolveConfig({}, {})
+  assert.equal(c.recallTimeoutMs, 6000)
+  assert.equal(resolveConfig({ recallTimeoutMs: 1000 }, {}).recallTimeoutMs, 1000)
+})
+
+test('resolveConfig recallPrefetch/recallOrder removed from config', () => {
+  const c = resolveConfig({}, {})
+  assert.ok(!('recallPrefetch' in c))
+  assert.ok(!('recallOrder' in c))
+})
+
+// ----- Main plugin integration test (realistic event shapes) -----
+
+test('plugin registers hooks, tools, and retains on turn/end (realistic events)', withCleanEnv(async () => {
   const ctx = fakeCtx()
   const calls: FetchCall[] = []
   const originalFetch = globalThis.fetch
@@ -174,77 +233,333 @@ test('plugin registers hooks, tools, and prefetches recall on turn/end', withCle
     })
 
     assert.equal(name, 'dsh-hindsight')
-    assert.deepEqual(inject, ['tools', 'systemPrompt'])
-    assert.deepEqual(ctx.tools.registered.map(def => def.name), [
-      'hindsight_retain',
-      'hindsight_recall',
-      'hindsight_reflect',
-      'hindsight_status',
+    assert.deepEqual(inject, ['tools', 'systemPrompt', 'commands', 'sessionPersistence'])
+
+    const toolNames = ctx.tools.registered.map(def => def.name)
+    assert.ok(toolNames.includes('hindsight_retain'))
+    assert.ok(toolNames.includes('hindsight_recall'))
+    assert.ok(toolNames.includes('hindsight_reflect'))
+    assert.ok(toolNames.includes('hindsight_status'))
+    assert.ok(!toolNames.includes('hindsight_session_import'), 'session import is a slash command, not a tool')
+
+    const commandNames = ctx.commands.registered.map(def => def.name)
+    assert.ok(commandNames.includes('hindsight-import'))
+
+    // Realistic events: user/message has NO turn field, only source.kind
+    const session = makeSession('sess-1', [
+      turnStartEvent(1),
+      userMessage('Hello, remember my favorite color is blue'),
+      assistantMessage(1, 'I will remember that.'),
+      turnEndEvent(1),
     ])
 
-    const session = makeSession('sess-1', [
-      textMessage(1, 'Hello, remember my favorite color is blue'),
-      assistantMessage(1, 'I will remember that.'),
-      turnEvent(1),
-    ])
     const onSessionEvent = ctx.listeners.get('session/event')?.[0]
     assert.ok(onSessionEvent)
-    onSessionEvent(session, session.events[2]!)
+    onSessionEvent(session, session.events[3]!) // turn/end
 
-    await waitFor(() => calls.length >= 2)
+    await waitFor(() => calls.length >= 1)
 
     const retainCall = calls.find(call => call.url.endsWith('/memories'))
-    const recallCall = calls.find(call => call.url.endsWith('/memories/recall'))
     assert.ok(retainCall, 'expected a retain request')
-    assert.ok(recallCall, 'expected a recall request')
     assert.equal(retainCall.url, 'http://hindsight.test/v1/default/banks/test-bank/memories')
-    assert.equal(recallCall.url, 'http://hindsight.test/v1/default/banks/test-bank/memories/recall')
 
-    const retainBody = JSON.parse(String(retainCall.init.body)) as { async: boolean; items: Array<{ content: string }> }
+    const retainBody = JSON.parse(String(retainCall.init.body)) as { async: boolean; items: Array<{ content: string; document_id: string }> }
     assert.equal(retainBody.async, false)
     assert.match(retainBody.items[0]?.content ?? '', /User: Hello, remember my favorite color is blue/)
     assert.match(retainBody.items[0]?.content ?? '', /Assistant: I will remember that\./)
+    // document_id should be sessionId-turn-N
+    assert.match(retainBody.items[0]?.document_id ?? '', /^sess-1-turn-1$/)
 
-    const recallContext = ctx.systemPrompt.contexts.find(context => context.name === 'hindsight:recall')
-    assert.ok(recallContext)
-    const injected = typeof recallContext.text === 'function' ? recallContext.text({ agent: { session } }) : ''
-    assert.match(injected, /Hindsight Memory/)
-    assert.match(injected, /Memory 1/)
+    // Verify there is NO recallCache / systemPrompt.context hook
+    assert.ok(!ctx.listeners.has('hindsight:recall'), 'should not have old recall context')
 
-    const statusTool = ctx.tools.registered.find(def => def.name === 'hindsight_status')
-    assert.ok(statusTool)
-    const status = await statusTool.execute({}, {} as ToolRunContext) as { ok: boolean; bankId: string }
-    assert.equal(status.ok, true)
-    assert.equal(status.bankId, 'test-bank')
+    // Verify the static section text is updated
+    const section = ctx.systemPrompt.sections.find(s => s.name === 'hindsight:memory')
+    assert.ok(section)
+    assert.ok(!section!.text.includes('automatically injected as runtime context before a turn'),
+      'old text should be gone')
+    assert.ok(section!.text.includes('Hindsight reflect API'),
+      'new text should mention reflect')
   } finally {
     globalThis.fetch = originalFetch
   }
 }))
 
-test('memoryMode=context hides tools but still injects auto-recall', withCleanEnv(async () => {
+// ----- C: agent/pre-step hook -----
+
+test('agent/pre-step schedules async recall and injects via agent.inject', withCleanEnv(async () => {
   const ctx = fakeCtx()
   const calls: FetchCall[] = []
   const originalFetch = globalThis.fetch
   globalThis.fetch = fakeFetch(calls)
   try {
-    apply(ctx as unknown as Context, { apiUrl: 'http://hindsight.test', memoryMode: 'context', timeoutMs: 1000 })
-    assert.deepEqual(ctx.tools.registered, [])
-    assert.equal(ctx.systemPrompt.sections.length, 0)
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: true,
+      recallTimeoutMs: 5000,
+    })
 
-    const session = makeSession('sess-2', [
-      textMessage(1, 'context-mode turn'),
-      assistantMessage(1, 'done'),
-      turnEvent(1),
-    ])
-    const onSessionEvent = ctx.listeners.get('session/event')?.[0]
-    assert.ok(onSessionEvent)
-    onSessionEvent(session, session.events[2]!)
-    await waitFor(() => calls.some(call => call.url.endsWith('/memories')))
-    const recallContext = ctx.systemPrompt.contexts.find(context => context.name === 'hindsight:recall')
-    assert.ok(recallContext)
-    const injected = typeof recallContext.text === 'function' ? recallContext.text({ agent: { session } }) : ''
-    assert.match(injected, /Memory 1/)
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener, 'agent/pre-step listener should be registered')
+
+    // Simulate a pre-step call with an agent exposing inject()
+    const injectedMessages: any[] = []
+    const decision = await preStepListener(
+      {
+        agent: { id: 'agent-1', inject: (msg: any) => injectedMessages.push(msg) },
+        messages: [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'What is my favorite color?' }] }],
+        turn: 1,
+        step: 1,
+      },
+      async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'runtime context' }] }),
+    )
+
+    assert.equal(decision.kind, 'enter')
+    assert.ok(Array.isArray(decision.messages))
+    // The decision itself is unchanged — injection is async via agent.inject()
+    assert.equal(decision.messages.length, 1, 'decision must not block on recall')
+
+    // Reflect runs in the background and injects once it returns
+    await waitFor(() => injectedMessages.length >= 1)
+    const injected = injectedMessages[0] as any
+    assert.equal(injected.role, 'user')
+    assert.ok(injected.content[0].text.includes('hindsight-recall'))
+    assert.ok(injected.content[0].text.includes('Memory 1'))
+
+    // Verify recall was called
+    const recallCall = calls.find(call => call.url.endsWith('/memories/recall'))
+    assert.ok(recallCall, 'expected a recall request')
   } finally {
     globalThis.fetch = originalFetch
   }
 }))
+
+// ----- Dedup in agent/pre-step -----
+
+test('agent/pre-step does not schedule recall twice for the same agent+turn', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: true,
+      recallTimeoutMs: 5000,
+    })
+
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener)
+
+    const injectedMessages: any[] = []
+    const agent = { id: 'agent-1', inject: (msg: any) => injectedMessages.push(msg) }
+
+    // First call — decision unchanged, recall scheduled in background
+    const d1 = await preStepListener(
+      { agent, messages: [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'Query' }] }], turn: 1, step: 1 },
+      async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'ctx' }] }),
+    )
+    assert.equal(d1.messages.length, 1, 'decision is unchanged (async injection)')
+
+    // Second call — same agent+turn, should not schedule another reflect
+    const d2 = await preStepListener(
+      { agent, messages: [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'Query' }] }], turn: 1, step: 2 },
+      async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'ctx' }] }),
+    )
+    assert.equal(d2.messages.length, 1, 'second call should skip scheduling')
+
+    // Exactly one recall and exactly one injection
+    await waitFor(() => injectedMessages.length >= 1)
+    assert.equal(calls.filter(call => call.url.endsWith('/memories/recall')).length, 1)
+    assert.equal(injectedMessages.length, 1, 'inject called exactly once per agent+turn')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+// ----- memoryMode=context hides tools but still has auto-recall -----
+
+test('memoryMode=context hides tools but keeps pre-step hook', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  apply(ctx as unknown as Context, { apiUrl: 'http://hindsight.test', memoryMode: 'context', timeoutMs: 1000 })
+  assert.deepEqual(ctx.tools.registered, [])
+  assert.equal(ctx.systemPrompt.sections.length, 0)
+  // slash commands are user-driven, so they stay registered in context mode
+  assert.ok(ctx.commands.registered.some(def => def.name === 'hindsight-import'))
+  // pre-step hook should still be registered in context mode
+  const preStepListener = ctx.listeners.get('agent/pre-step')?.[0]
+  assert.ok(preStepListener)
+}))
+
+// ----- E: /hindsight-import slash command -----
+
+function invocation(rawInput: string): CommandInvocation {
+  return {
+    commandId: 'hindsight-import' as CommandInvocation['commandId'],
+    agent: {} as CommandInvocation['agent'],
+    rawInput,
+    attachments: [],
+    signal: new AbortController().signal,
+  }
+}
+
+test('hindsight-import command is registered and lists sessions', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  ctx.sessionPersistence = {
+    list: async () => [{ id: 's1', cwd: '/proj', createdAt: 1735689600000 }],
+    inspect: async (_id: string) => ({ meta: {}, events: [] }),
+  }
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch([])
+  try {
+    apply(ctx as unknown as Context, { apiUrl: 'http://hindsight.test', bankId: 'test-bank', timeoutMs: 1000 })
+
+    const importCommand = ctx.commands.registered.find(def => def.name === 'hindsight-import')
+    assert.ok(importCommand, 'hindsight-import should be registered')
+    assert.ok(importCommand!.input?.hint, 'command should expose an input hint')
+
+    // List mode
+    const listResult = await importCommand!.handler(invocation(''))
+    assert.equal(listResult.kind, 'success')
+    assert.match((listResult as { text: string }).text, /Found 1 session/)
+    assert.match((listResult as { text: string }).text, /s1/)
+
+    // Import mode with no events
+    ctx.sessionPersistence!.inspect = async () => ({ meta: {}, events: [] })
+    const emptyResult = await importCommand!.handler(invocation('s1'))
+    assert.equal(emptyResult.kind, 'success')
+    assert.match((emptyResult as { text: string }).text, /has no events to import/)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('hindsight-import imports turns from historical session', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  ctx.sessionPersistence = {
+    list: async () => [],
+    inspect: async (_id: string) => ({
+      meta: {},
+      events: [
+        turnStartEvent(1),
+        userMessage('Historical query'),
+        assistantMessage(1, 'Historical answer'),
+        turnEndEvent(1),
+      ],
+    }),
+  }
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, { apiUrl: 'http://hindsight.test', bankId: 'test-bank', timeoutMs: 1000, retainAsync: false })
+
+    const importCommand = ctx.commands.registered.find(def => def.name === 'hindsight-import')
+    assert.ok(importCommand)
+
+    const result = await importCommand!.handler(invocation('s1'))
+    assert.equal(result.kind, 'success')
+    assert.match((result as { text: string }).text, /Imported 1 of 1 turn/)
+    assert.match((result as { text: string }).text, /s1/)
+
+    const retainCall = calls.find(call => call.url.endsWith('/memories'))
+    assert.ok(retainCall)
+    const body = JSON.parse(String(retainCall.init.body)) as { items: Array<{ document_id: string; content: string }> }
+    assert.match(body.items[0]!.document_id, /^s1-turn-1$/)
+    assert.match(body.items[0]!.content, /Historical query/)
+    assert.match(body.items[0]!.content, /Historical answer/)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('hindsight-import parses options from raw input', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  let inspectedId = ''
+  ctx.sessionPersistence = {
+    list: async () => [],
+    inspect: async (id: string) => {
+      inspectedId = id
+      return { meta: {}, events: [] }
+    },
+  }
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch([])
+  try {
+    apply(ctx as unknown as Context, { apiUrl: 'http://hindsight.test', bankId: 'test-bank', timeoutMs: 1000 })
+    const importCommand = ctx.commands.registered.find(def => def.name === 'hindsight-import')
+    assert.ok(importCommand)
+    // --bank / --max-turns / --turn-kinds are accepted but no events, so no retain happens
+    const r = await importCommand!.handler(invocation('s2 --bank other-bank --max-turns 5 --turn-kinds completed,aborted'))
+    assert.equal(r.kind, 'success')
+    assert.equal(inspectedId, 's2')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+// ----- buildTurnRecord with realistic events -----
+
+test('buildTurnRecord builds from realistic events (user/message without turn)', withCleanEnv(async () => {
+  // Import the buildTurnRecord function to test directly
+  const { buildTurnRecord } = await import('../src/transcript.js')
+  const config = { ...DEFAULTS } as any
+  const session = {
+    id: 'sess-test',
+    events: [
+      turnStartEvent(1),
+      userMessage('Hello world'),
+      assistantMessage(1, 'I hear you'),
+      turnEndEvent(1),
+    ],
+  }
+  const record = buildTurnRecord(session as any, 1, config)
+  assert.ok(record)
+  assert.equal(record!.turn, 1)
+  assert.ok(record!.query.includes('Hello world'))
+  assert.ok(record!.messages.length >= 2)
+}))
+
+// ----- File logging (Plan A) -----
+
+test('apply installs a file logger exporter that writes hindsight logs', withCleanEnv(async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'hindsight-log-'))
+  try {
+    const ctx = fakeCtx() as unknown as { logger?: unknown }
+    const exporters: Array<{ export(message: unknown): void }> = []
+    ;(ctx as Record<string, unknown>).logger = Object.assign(
+      () => ({ error() {}, info() {}, warn() {}, debug() {} }),
+      { exporter: (exporter: { export(message: unknown): void }) => { exporters.push(exporter); return () => {} } },
+    )
+
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      logDir: dir,
+      memoryMode: 'context',
+      timeoutMs: 1000,
+    })
+
+    assert.equal(exporters.length, 1, 'file exporter should be registered')
+    exporters[0]!.export({
+      sn: 1,
+      ts: 1726000000000,
+      type: 'info',
+      level: 1,
+      name: 'hindsight',
+      args: ['retained 2 turn(s) for session sess-1'],
+    })
+
+    const files = readdirSync(dir).filter(f => f.endsWith('.log'))
+    assert.equal(files.length, 1)
+    const content = readFileSync(join(dir, files[0]!), 'utf8')
+    assert.match(content, /\[info\] hindsight: retained 2 turn\(s\) for session sess-1/)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+}))
+

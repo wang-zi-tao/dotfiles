@@ -4,7 +4,7 @@ local async = require('plenary.async')
 local nio = require("nio")
 local nui_components = require("nui-components")
 
-local M = {}
+local M = require("core.hotreload").init_module()
 
 M.try = function(f)
   local ok, err = pcall(f)

@@ -5,10 +5,14 @@ Hindsight long-term memory plugin for [DeepSeek Harness](https://github.com/deep
 
 - **automatic retention** — completed turns are extracted from the dsh session
   event log and sent to the Hindsight bank in the background;
-- **automatic recall** — the recall result is primed at `turn/end` and injected
-  on the next turn as ordered dynamic context (`systemPrompt.context`);
+- **automatic recall** — on each `agent/pre-step` the Hindsight reflect API
+  synthesizes relevant memories in the background and queues the result via
+  `agent.inject()` for the next step boundary (fail-open, non-blocking, with a
+  configurable timeout);
 - **explicit tools** — `hindsight_retain`, `hindsight_recall`,
   `hindsight_reflect`, and `hindsight_status`;
+- **slash command** — `/hindsight-import` imports turns from a historical dsh
+  session into the memory bank (list sessions with no arguments);
 - **configurable endpoint and bank** — via the Cordis row config and
   `HINDSIGHT_*` environment variables.
 
@@ -112,10 +116,10 @@ back to the plugin defaults.
     retainTags: [source:dsh-hindsight]
 
     autoRecall: true
-    recallPrefetch: recall   # recall | reflect
+    recallTimeoutMs: 6000
     recallMaxTokens: 4096
     recallMaxInputChars: 800
-    recallTypes: [observation]
+    recallTypes: [experience, observation, world]
 ```
 
 Prefer `HINDSIGHT_API_KEY` over putting credentials in YAML.
@@ -135,23 +139,31 @@ existing Hermes-style `config.json` works as a starting point.
 | `hindsight_reflect` | LLM synthesis across stored memories |
 | `hindsight_status` | Check the server, API version, and active bank |
 
+## Slash commands
+
+| Command | Purpose |
+| --- | --- |
+| `/hindsight-import` | Import turns from a historical dsh session into memory; no arguments lists importable sessions. Options: `[sessionId] [--bank <id>] [--max-turns <n>] [--turn-kinds <a,b>]` |
+
 ## Hooks
 
 | Hook | Use |
 | --- | --- |
 | `ctx.tools.register` | Register the four model-facing tools |
-| `ctx.systemPrompt.context` (`hindsight:recall`) | Inject the cached next-turn recall result |
-| `session/event` (`turn/end`, `{ global: true }`) | Buffer/retain completed turns and prime recall |
+| `ctx.commands.register` | Register the `/hindsight-import` slash command |
+| `agent/pre-step` (`{ global: true }`) | Schedule a background reflect and queue the synthesized memory via `agent.inject()` for the next step boundary (non-blocking) |
+| `session/event` (`turn/end`, `{ global: true }`) | Buffer/retain completed turns |
 | `session/disposed` (`{ global: true }`) | Best-effort flush of buffered turns and state cleanup |
 
 Subagent sessions are skipped by default (`skipSubagents: true`).
 
 ## Notes
 
-- With `retainDocumentId: null` (default) every retained turn is an
-  independent document, so older Hindsight servers never overwrite prior
-  turns. Set `retainDocumentId` plus `retainUpdateMode: append` when grouping
-  a whole session into one document is desired.
+- With `retainDocumentId: null` (default) every retained turn gets a
+  per-turn document id (`{sessionId}-turn-{turn}`), so older Hindsight
+  servers never overwrite prior turns. Set `retainDocumentId` plus
+  `retainUpdateMode: append` when grouping a whole session into one document
+  is desired.
 - Auto-retain only runs for turn end reasons listed in `retainTurnKinds`
   (default `[completed]`). Tool failures and cancellations are not written as
   memories.
