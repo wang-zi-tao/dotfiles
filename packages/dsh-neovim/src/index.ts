@@ -31,9 +31,9 @@ import {
   fmtBreakpoints,
   fmtConfigs,
   fmtDisasm,
-  fmtFrame,
   fmtSessions,
   fmtStack,
+  fmtSwitchThread,
   fmtThreads,
 } from './format.js'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
@@ -205,7 +205,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
   // ------------------------------------------------------------------
   async function dapCall(code: string, args?: LuaArgs): Promise<any> {
     const nv = await ensureNvim()
-    return await nv.luaAsyncEval(code, config.luaModule, args)
+    return await nv.luaAsyncEval(code, config.luaModule, args) || null
   }
 
   function markSession(exec: ToolRunContext | undefined): void {
@@ -246,9 +246,9 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_lua_command',
-      description: '在 Neovim 中执行 Lua 语句（无返回值）',
+      description: '在 Neovim 中执行 Lua 语句（无返回值，等价 `lua <cmd>`）。cmd 必须是语句：裸表达式（如 `1+1`、`vim.o.tabstop`）不是合法语句，请改用 nvim_lua_eval。',
       parameters: objectSchema({
-        cmd: STRING("Lua 语句，如 'vim.opt.tabstop = 4'"),
+        cmd: STRING('Lua 语句（非表达式），如 "vim.opt.tabstop = 4"；裸表达式请用 nvim_lua_eval'),
       }, ['cmd']),
       async run(args) {
         const nv = await ensureNvim()
@@ -261,9 +261,9 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_lua_eval',
-      description: '在 Neovim 中异步求值 Lua 表达式并返回结果. 常用lua模块:[core.agent: 各种给agent提供的工具函数和集成式调试器辅助函数, dap: 调试器, overseer: 编译等运行器], 常用vim函数:[vim.inspect: lua值转字符串, vim.fn: 各种neovim内置函数]',
+      description: '在 Neovim 中异步求值 Lua 表达式并返回结果。cmd 必须是 Lua 表达式：内部按 require("<luaModule>").run_async(function() return <cmd> end, ...) 求值，直接写语句会报 Error loading lua: [string "<nvim>"]:1: unexpected symbol near ...；多条语句请包成 (function() ... end)()，只执行语句且不需要返回值请用 nvim_lua_command。常用lua模块:[core.agent: 各种给agent提供的工具函数和集成式调试器辅助函数, dap: 调试器, overseer: 编译等运行器], 常用vim函数:[vim.inspect: lua值转字符串, vim.fn: 各种neovim内置函数]',
       parameters: objectSchema({
-        cmd: STRING("Lua 表达式，如 'vim.o.tabstop'、'vim.api.nvim_get_current_buf()'"),
+        cmd: STRING('Lua 表达式，如 "vim.o.tabstop"、"vim.api.nvim_get_current_buf()"；多条语句用 "(function() ... end)()"'),
       }, ['cmd']),
       async run(args) {
         const nv = await ensureNvim()
@@ -604,7 +604,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
         return await dapCall(`require("${config.luaModule}").dap_switch_thread(args)`, { args })
       },
       format(result) {
-        return `已切换到线程 ${result.thread_id}\n当前帧: ${fmtFrame(result.frame)}`
+        return fmtSwitchThread(result)
       },
     },
     {
@@ -815,8 +815,9 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
       async execute(args, exec) {
         // output_json is a presentation switch, not a Neovim-facing argument:
         // strip it before forwarding the remaining arguments downstream.
-        const { output_json: _omitted, ...rest } = (args ?? {}) as Record<string, unknown>
-        return await spec.run(rest, exec)
+        const { output_json, ...rest } = (args ?? {}) as Record<string, unknown>
+        let ret = await spec.run(rest, exec)
+        return ret || null
       },
     }
     ctx.tools.register(definition)

@@ -3,7 +3,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fmtDisasm } from '../src/format.js';
+import { fmtDisasm, fmtSwitchThread } from '../src/format.js';
 const SAMPLE = {
     pc_index: 2,
     instructions: [
@@ -38,4 +38,26 @@ test('fmtDisasm has no ► marker when pc_index is absent', () => {
 test('fmtDisasm returns "(no disassembly)" for empty instruction list', () => {
     assert.equal(fmtDisasm({ instructions: [] }), '(no disassembly)');
     assert.equal(fmtDisasm({}), '(no disassembly)');
+});
+test('fmtSwitchThread lists the new thread and its frames', () => {
+    const out = fmtSwitchThread({
+        thread_id: 1234,
+        thread_name: 'worker-3',
+        totalFrames: 42,
+        frames: [
+            { name: 'foo', source: './a.cpp', line: 10, column: 3, sourceLine: 'int foo()' },
+            { name: 'bar', line: 99 },
+        ],
+    });
+    assert.equal(out.split('\n')[0], '已切换到线程 1234 (worker-3) — 共 42 帧，显示前 2 帧');
+    assert.ok(out.includes('\n0 | foo | ./a.cpp:10:3'));
+    assert.ok(out.includes('\n1 | bar | line 99'));
+});
+test('fmtSwitchThread tolerates a legacy single-frame payload', () => {
+    const out = fmtSwitchThread({ thread_id: 7, frame: { name: 'main', source: './m.cpp', line: 1 } });
+    assert.ok(out.startsWith('已切换到线程 7\n'));
+    assert.ok(out.includes('0 | main | ./m.cpp:1'));
+});
+test('fmtSwitchThread returns "(no frames)" when there are none', () => {
+    assert.equal(fmtSwitchThread({ thread_id: 1, frames: [] }), '已切换到线程 1\n(no frames)');
 });
