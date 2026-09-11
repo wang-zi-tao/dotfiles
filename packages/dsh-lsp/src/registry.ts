@@ -12,7 +12,8 @@ import { extname, isAbsolute, resolve } from 'node:path'
 
 import { LspClient } from './client.js'
 import { RootResolver } from './root.js'
-import type { LspConfig, LoggerLike, ServerSpec, ServerStatus, SubprocessRuntime } from './types.js'
+import { toDiagnosticEntries } from './protocol.js'
+import type { DiagnosticEntry, LspConfig, LoggerLike, ServerSpec, ServerStatus, SubprocessRuntime } from './types.js'
 
 function extensionOf(filePath: string): string {
   const ext = extname(filePath)
@@ -83,6 +84,48 @@ export class ServerRegistry {
     const startDir = this.startDirFor(filePath, cwd)
     const client = await this.getClient(spec, startDir, signal)
     return { spec, client, root: client.root ?? startDir }
+  }
+
+  /**
+   * Whether the file's server is already running (no spawn side effects).
+   * Lets a read hook synchronously didOpen warm servers without paying a cold
+   * start on every read of an unvisited file.
+   */
+  serverRunning(filePath: string): boolean {
+    try {
+      const spec = this.serverForFile(filePath)
+      const client = this.clients.get(spec.id)
+      return client !== undefined && client.state === 'running'
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Open a file on its server (didOpen from disk). Used by the read hook so a
+   * file the AI just read is immediately queryable. Returns false when the file
+   * has no server or the server could not be reached; never throws.
+   */
+  async openFile(filePath: string, cwd: string | undefined, signal?: AbortSignal): Promise<boolean> {
+    try {
+      const { client } = await this.resolve(filePath, cwd, signal)
+      client.open(filePath)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Refresh the server's copy of a file from disk and pull its diagnostics.
+   * Used by the write hook: after the AI writes a file, the server must see the
+   * new text before a pull-diagnostics run reflects it.
+   */
+  async diagnosticsFor(filePath: string, cwd: string | undefined, signal?: AbortSignal): Promise<DiagnosticEntry[]> {
+    const { client } = await this.resolve(filePath, cwd, signal)
+    client.refreshDocument(filePath)
+    const raw = await client.diagnostics(filePath, signal)
+    return toDiagnosticEntries(raw)
   }
 
   /** Resolve a server by id for `/lsp start <id>` (no file to route by). */

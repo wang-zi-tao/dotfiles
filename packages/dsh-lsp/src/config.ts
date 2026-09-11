@@ -11,12 +11,15 @@
  * row config), rather than mis-routing queries at runtime.
  */
 
-import type { LspConfig, ServerSpec } from './types.js'
+import type { DiagnosticSeverity, LspConfig, ServerSpec } from './types.js'
 
 export const DEFAULT_MAX_LOCATIONS = 100
 export const DEFAULT_MAX_RESULT_CHARS = 16000
 export const DEFAULT_TIMEOUT_MS = 60000
 export const DEFAULT_LOG_DIR = '~/.dsh/logs/dsh-lsp'
+export const DEFAULT_SYNC_LOAD_ON_READ = true
+export const DEFAULT_DIAGNOSTICS_ON_WRITE = true
+export const DEFAULT_DIAGNOSTICS_MIN_SEVERITY = 'warning'
 
 /**
  * The built-in server table, optimized for C/C++ (clangd) and Rust
@@ -102,6 +105,20 @@ function parseInteger(key: string, value: unknown, fallback: number, minimum: nu
   return integer
 }
 
+function parseSeverity(value: unknown, fallback: DiagnosticSeverity): DiagnosticSeverity {
+  if (value === undefined || value === null || value === '') return fallback
+  const normalized = String(value).trim().toLowerCase()
+  const map: Record<string, DiagnosticSeverity> = {
+    error: 'error',
+    warning: 'warning',
+    warn: 'warning',
+    information: 'information',
+    info: 'information',
+    hint: 'hint',
+  }
+  return map[normalized] ?? fallback
+}
+
 function parseBoolean(value: unknown, fallback: boolean): boolean {
   if (value === undefined || value === null || value === '') return fallback
   if (typeof value === 'boolean') return value
@@ -152,6 +169,9 @@ export function resolveConfig(raw: Record<string, unknown> = {}): LspConfig {
   const timeoutMs = parseInteger('timeoutMs', raw.timeoutMs, DEFAULT_TIMEOUT_MS, 1000)
   const lazyStart = parseBoolean(raw.lazyStart, true)
   const logDir = typeof raw.logDir === 'string' && raw.logDir.trim() !== '' ? raw.logDir.trim() : DEFAULT_LOG_DIR
+  const syncLoadOnRead = parseBoolean(raw.syncLoadOnRead, DEFAULT_SYNC_LOAD_ON_READ)
+  const diagnosticsOnWrite = parseBoolean(raw.diagnosticsOnWrite, DEFAULT_DIAGNOSTICS_ON_WRITE)
+  const diagnosticsMinSeverity = parseSeverity(raw.diagnosticsMinSeverity, DEFAULT_DIAGNOSTICS_MIN_SEVERITY)
 
   const servers: ServerSpec[] = []
   const seenExtensions = new Map<string, string>()
@@ -206,5 +226,5 @@ export function resolveConfig(raw: Record<string, unknown> = {}): LspConfig {
 
   if (servers.length === 0) fail('no enabled servers configured')
 
-  return { lazyStart, maxLocations, maxResultChars, timeoutMs, logDir, servers }
+  return { lazyStart, maxLocations, maxResultChars, timeoutMs, logDir, servers, syncLoadOnRead, diagnosticsOnWrite, diagnosticsMinSeverity }
 }

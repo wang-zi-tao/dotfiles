@@ -17,8 +17,10 @@
 
 import { LspClient } from './client.js'
 import { resolveConfig } from './config.js'
-import { isFileUri, pathToFileUri, readLinePreview, renderLocations, toLspLocation, toSymbolEntry } from './protocol.js'
+import { diagnosticsMessage, filterDiagnostics } from './diagnostics.js'
+import { isFileUri, pathToFileUri, readLinePreview, renderLocations, toDiagnosticEntries, toLspLocation, toSymbolEntry } from './protocol.js'
 import { ServerRegistry } from './registry.js'
+import type { ToolExecution } from '@deepseek-ai/dsh-tools'
 import type {
   CommandInvocation,
   CommandResult,
@@ -33,7 +35,7 @@ import type {
 } from './types.js'
 
 export const name = 'dsh-lsp'
-export const inject = ['tools', 'commands', 'subprocess']
+export const inject = ['tools', 'commands', 'subprocess', 'systemPrompt']
 export { resolveConfig }
 export { LspClient } from './client.js'
 export { ServerRegistry } from './registry.js'
@@ -71,7 +73,7 @@ function optionalInteger(args: any, key: string, minimum = 1): number | undefine
   return parsed
 }
 
-function cwdOf(exec: ToolRunContext | undefined): string | undefined {
+function cwdOf(exec: ToolExecution | undefined): string | undefined {
   return exec?.agent?.session?.header?.cwd
 }
 
@@ -174,18 +176,7 @@ async function runQuery(
   if (args.operation === 'diagnostics') {
     const { client } = await registry.resolve(filePath, cwd, signal)
     const raw = await client.diagnostics(filePath, signal)
-    const diagnostics = (raw ?? []).map(d => ({
-      severity: d.severity === 1 ? 'error' : d.severity === 2 ? 'warning' : d.severity === 3 ? 'information' : 'hint',
-      message: typeof d.message === 'string' ? d.message : d.message.value,
-      range: {
-        startLine: d.range.start.line + 1,
-        startCharacter: d.range.start.character + 1,
-        endLine: d.range.end.line + 1,
-        endCharacter: d.range.end.character + 1,
-      },
-      ...(d.code !== undefined ? { code: String(d.code) } : {}),
-      ...(d.source ? { source: d.source } : {}),
-    }))
+    const diagnostics = toDiagnosticEntries(raw)
     return { kind: 'diagnostics', diagnostics }
   }
 
@@ -376,18 +367,95 @@ function toJson(result: LspQueryResult): unknown {
   }
 }
 
+/**
+ * Combine several AbortSignals into one that aborts when any source aborts.
+ * Lets a write's diagnostics run observe both the caller's turn signal and
+ * the superseding controller that cancels a stale in-flight run.
+ */
+function mergeAbortSignals(...signals: Array<AbortSignal | undefined>): AbortSignal {
+  const controller = new AbortController()
+  for (const signal of signals) {
+    if (!signal) continue
+    if (signal.aborted) {
+      controller.abort()
+      break
+    }
+    signal.addEventListener('abort', () => controller.abort(), { once: true })
+  }
+  return controller.signal
+}
+
+/**
+ * Pull diagnostics for a just-written file and inject them into the calling
+ * agent's next pre-step context via Agent.inject. Runs fire-and-forget
+ * off the write result so a write never waits on the LSP. `signal` carries
+ * both the turn's cancellation and the superseding write's abort, so a stale
+ * run never injects after a newer edit. Fail-open: an aborted/superseded run
+ * logs at debug level; an unexpected failure logs a warning but never throws.
+ */
+async function runAsyncDiagnostics(
+  registry: ServerRegistry,
+  config: ReturnType<typeof resolveConfig>,
+  logger: Logger,
+  exec: ToolExecution,
+  filePath: string,
+  signal: AbortSignal | undefined,
+): Promise<void> {
+  try {
+    const entries = await registry.diagnosticsFor(filePath, cwdOf(exec), signal)
+    if (signal?.aborted) return
+    const relevant = filterDiagnostics(entries, config.diagnosticsMinSeverity)
+    if (relevant.length === 0) return
+    const agent = exec.agent
+    if (!agent || typeof agent.inject !== 'function') {
+      logger.debug('dsh-lsp: no injectable agent for ' + filePath + ' diagnostics')
+      return
+    }
+    agent.inject(diagnosticsMessage(filePath, relevant))
+    logger.info('dsh-lsp: injected ' + relevant.length + ' diagnostic(s) for ' + filePath + ' into agent ' + agent.id)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (signal?.aborted) {
+      // Expected: superseded by a newer write or the turn was cancelled.
+      logger.debug('dsh-lsp: async diagnostics cancelled for ' + filePath + ': ' + message)
+    } else {
+      logger.warn('dsh-lsp: async diagnostics failed for ' + filePath + ': ' + message)
+    }
+  }
+}
+
 export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}): void {
   const config = resolveConfig(rawConfig)
   const logger = makeLogger(ctx)
   const registry = new ServerRegistry(config, ctx.subprocess, logger)
 
+  // In-flight write-diagnostics runs keyed by the agent's session id. Editing
+  // one file can surface errors in OTHER files (cross-file diagnostics), so any
+  // newer write aborts the previous run: only the latest run's results are
+  // ever injected, never a stale snapshot.
+  const diagnosticRuns = new Map<string, AbortController>()
+
   // Lifespan: every server subprocess belongs to this fiber. On unload / HMR
-  // the disposer stops and joins all live trees.
+  // the disposer stops and joins all live trees, and aborts in-flight runs.
   const dispose = ctx.effect(() => {
     return () => {
+      for (const controller of diagnosticRuns.values()) controller.abort()
       void registry.stopAll()
     }
   })
+
+
+  ctx.systemPrompt.section({
+    name: 'dsh-lsp',
+    order: TOOL_SECTION_ORDER,
+    text: [
+      '# Language Server Protocol',
+      '代码库较大, 使用 `lsp` 工具进行代码导航.',
+      '查 C++ 符号时 `filePath` 优先用 `.cpp`（编译单元在 compile_commands.json 中，命中更快更全）；`.h` 也能工作但依赖后台索引预热，命中略慢. ',
+      '读文件时 LSP 自动加载该文件; 写文件后 LSP 自动异步检查诊断, 结果会注入到你的上下文, 请据此修复问题.',
+      'dsh-lsp插件可迭代升级',
+    ].join('\n'),
+  });
 
   // ------------------------------------------------------------------
   // Model-facing tool
@@ -515,4 +583,56 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
       }
     },
   })
+
+  // ------------------------------------------------------------------
+  // File-access integration
+  // ------------------------------------------------------------------
+  // Synchronously didOpen files the AI reads (warm servers) so the document
+  // is queryable the moment the read result returns; after a write, pull
+  // diagnostics in the background and inject findings into the agent's next
+  // pre-step context. A superseding write by the same agent aborts the
+  // in-flight run so stale results never pollute a newer edit.
+  ctx.on('tools/post-execute', async (exec, result, next) => {
+    try {
+      const args = (exec.arguments ?? {}) as Record<string, unknown>
+      const filePath = typeof args.file_path === 'string' ? args.file_path.trim() : ''
+      if (!filePath) return next()
+      if (exec.name === 'read' && config.syncLoadOnRead) {
+        if (registry.serverRunning(filePath)) {
+          // Warm server: didOpen before the read result reaches the model.
+          await registry.openFile(filePath, cwdOf(exec), exec.signal)
+        } else {
+          // Cold server: warm it in the background; never stall a read.
+          void registry.openFile(filePath, cwdOf(exec), exec.signal).catch((error) => {
+            logger.debug('dsh-lsp: background open failed for ' + filePath + ': ' + (error instanceof Error ? error.message : String(error)))
+          })
+        }
+      } else if (config.diagnosticsOnWrite && (exec.name === 'write' || exec.name === 'edit')) {
+        const agent = exec.agent
+        // Key by session id, not file: a change to one file can break others,
+        // so every in-flight run for this agent must give way to the newest.
+        const key = agent ? String(agent.id) : ''
+        // Supersede any in-flight diagnostics run for this agent.
+        const previous = diagnosticRuns.get(key)
+        if (previous) previous.abort()
+        const controller = new AbortController()
+        diagnosticRuns.set(key, controller)
+        void runAsyncDiagnostics(
+          registry,
+          config,
+          logger,
+          exec,
+          filePath,
+          mergeAbortSignals(exec.signal, controller.signal),
+        ).finally(() => {
+          if (diagnosticRuns.get(key) === controller) diagnosticRuns.delete(key)
+        })
+      }
+    } catch (error) {
+      // File-access integration must never break a tool call, but the failure
+      // should be visible in the lsp log rather than silently swallowed.
+      logger.debug('dsh-lsp: file-access integration error: ' + (error instanceof Error ? error.message : String(error)))
+    }
+    return next()
+  }, { global: true })
 }

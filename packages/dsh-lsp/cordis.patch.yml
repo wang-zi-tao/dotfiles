@@ -18,6 +18,9 @@
         maxLocations: 100
         maxResultChars: 16000
         timeoutMs: 60000
+        syncLoadOnRead: true
+        diagnosticsOnWrite: true
+        diagnosticsMinSeverity: warning
         servers:
           - id: clangd
             command: clangd
