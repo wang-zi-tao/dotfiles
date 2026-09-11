@@ -68,9 +68,9 @@ opt.foldenable = true
 
 opt.winborder = "rounded"
 
-if vim.fn.executable("nu") == 1 then
-  vim.o.shell = "nu"
-end
+-- if vim.fn.executable("nu") == 1 then
+--   vim.o.shell = "nu"
+-- end
 
 -- vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
 --     callback = function()

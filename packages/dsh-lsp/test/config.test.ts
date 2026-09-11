@@ -49,6 +49,31 @@ test('resolveConfig normalizes extensions (lowercase, strip dot)', () => {
   deepEqual(x.extensions, ['foo', 'bar'])
 })
 
+test('resolveConfig defaults for file-access integration', () => {
+  const config = resolveConfig({})
+  equal(config.syncLoadOnRead, true)
+  equal(config.diagnosticsOnWrite, true)
+  equal(config.diagnosticsMinSeverity, 'warning')
+})
+
+test('resolveConfig parses file-access integration options', () => {
+  const config = resolveConfig({
+    syncLoadOnRead: false,
+    diagnosticsOnWrite: 'no',
+    diagnosticsMinSeverity: 'error',
+  })
+  equal(config.syncLoadOnRead, false)
+  equal(config.diagnosticsOnWrite, false)
+  equal(config.diagnosticsMinSeverity, 'error')
+})
+
+test('resolveConfig normalizes severity aliases', () => {
+  equal(resolveConfig({ diagnosticsMinSeverity: 'warn' }).diagnosticsMinSeverity, 'warning')
+  equal(resolveConfig({ diagnosticsMinSeverity: 'info' }).diagnosticsMinSeverity, 'information')
+  equal(resolveConfig({ diagnosticsMinSeverity: 'WARNING' }).diagnosticsMinSeverity, 'warning')
+  equal(resolveConfig({ diagnosticsMinSeverity: 'bogus' }).diagnosticsMinSeverity, 'warning')
+})
+
 test('resolveConfig can disable a built-in server', () => {
   const config = resolveConfig({
     servers: [{ id: 'lua-language-server', enabled: false }],

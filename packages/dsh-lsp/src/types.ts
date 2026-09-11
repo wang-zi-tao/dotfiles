@@ -97,6 +97,9 @@ export interface ServerSpec {
   enabled?: boolean
 }
 
+/** LSP diagnostic severity levels, in ascending severity order. */
+export type DiagnosticSeverity = 'hint' | 'information' | 'warning' | 'error'
+
 export interface LspConfig {
   lazyStart: boolean
   maxLocations: number
@@ -105,6 +108,12 @@ export interface LspConfig {
   /** Directory where per-server stderr logs are written (absolute or ~-relative). */
   logDir: string
   servers: ServerSpec[]
+  /** Sync-load the file into its LSP server when the AI reads it. */
+  syncLoadOnRead: boolean
+  /** Async diagnostics + agent.inject after the AI writes a file. */
+  diagnosticsOnWrite: boolean
+  /** Only diagnostics at or above this severity are injected. */
+  diagnosticsMinSeverity: DiagnosticSeverity
 }
 
 // ---------------------------------------------------------------------------
@@ -163,7 +172,7 @@ export interface SymbolEntry {
 }
 
 export interface DiagnosticEntry {
-  severity: string
+  severity: DiagnosticSeverity
   message: string
   range: LspRange
   code?: string

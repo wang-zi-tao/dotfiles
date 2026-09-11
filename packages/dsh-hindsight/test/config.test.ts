@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { DEFAULTS, resolveConfig } from '../src/config.js'
 
-const emptyEnv: ProcessEnv = {}
+const emptyEnv: NodeJS.ProcessEnv = {}
 
 test('resolveConfig applies defaults', () => {
   const config = resolveConfig({}, emptyEnv)
@@ -30,6 +30,13 @@ test('resolveConfig normalizes tags and types', () => {
   }, emptyEnv)
   assert.deepEqual(config.retainTags, ['a:1', 'b:2'])
   assert.deepEqual(config.recallTypes, ['world', 'experience'])
+})
+
+test('resolveConfig logDir defaults, aliases, env, and disable', () => {
+  assert.equal(resolveConfig({}, emptyEnv).logDir, '~/.dsh/logs/dsh-hindsight')
+  assert.equal(resolveConfig({ log_dir: '/tmp/hindsight' }, emptyEnv).logDir, '/tmp/hindsight')
+  assert.equal(resolveConfig({}, { HINDSIGHT_LOG_DIR: '/var/log/hindsight' }).logDir, '/var/log/hindsight')
+  assert.equal(resolveConfig({ logDir: '' }, emptyEnv).logDir, '')
 })
 
 test('resolveConfig rejects invalid values', () => {

@@ -1,8 +1,9 @@
 # dsh-hindsight bundle patch.
 #
 # Insert one host-side plugin row. Hooks (session/event turn/end retention,
-# session/disposed flush) and the auto-recall context cache must be host-side:
-# they observe every session. Tools are registered globally as well, because a
+# session/disposed flush) and the auto-recall reflect injection must be
+# host-side: they observe every session. Tools are registered globally as
+# well, because a
 # memory bank is intentionally shared across sessions.
 #
 # The row config is only the starting point. The plugin merges defaults < row

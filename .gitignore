@@ -20,6 +20,7 @@ windows
 chroma.log
 node_modules
 lib
+build
 
 # Python build artifacts
 __pycache__/

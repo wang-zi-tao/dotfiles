@@ -29,6 +29,24 @@ export function fmtStack(data: any): string {
   return out;
 }
 
+/** Render a thread switch: the newly current thread plus its top frames. */
+export function fmtSwitchThread(data: any): string {
+  const frames: any[] = data.frames || (data.frame ? [data.frame] : [])
+  const total = data.totalFrames ?? frames.length
+  const name = data.thread_name ? ` (${data.thread_name})` : ''
+  let out = `已切换到线程 ${data.thread_id}${name}`
+  if (total > frames.length) out += ` — 共 ${total} 帧，显示前 ${frames.length} 帧`
+  out += '\n'
+  if (frames.length === 0) return out + '(no frames)'
+  for (let i = 0; i < frames.length; i++) {
+    const f = frames[i]
+    const loc = f.source ? `${f.source}:${f.line}` : `line ${f.line}`
+    out += `\n${i} | ${f.name || '?'} | ${loc}${f.column ? `:${f.column}` : ''}`
+    if (f.sourceLine) out += `\n    ${f.sourceLine}`
+  }
+  return out
+}
+
 export function fmtBreakpoints(data: any): string {
   const bps: any[] = data.breakpoints || [];
   if (bps.length === 0) return '(no breakpoints)';

@@ -10,9 +10,9 @@
 import { isAbsolute, relative } from 'node:path'
 import { readFileSync } from 'node:fs'
 
-import type { Position, Range } from 'vscode-languageserver-protocol'
+import type { Diagnostic, Position, Range } from 'vscode-languageserver-protocol'
 
-import type { LspLocation, LspRange, SymbolEntry } from './types.js'
+import type { DiagnosticEntry, LspLocation, LspRange, SymbolEntry } from './types.js'
 
 /** Convert a Windows or POSIX absolute path to a `file:` URI. */
 export function pathToFileUri(path: string): string {
@@ -111,6 +111,31 @@ export function toSymbolEntry(raw: {
   }
   if (raw.containerName) entry.containerName = raw.containerName
   return entry
+}
+
+/**
+ * Project raw LSP pull-diagnostics onto model-facing entries. Severity maps
+ * LSP's numeric DiagnosticSeverity (1=error, 2=warning, 3=information, 4=hint)
+ * to the shared severity vocabulary; ranges convert from 0-based UTF-16 to the
+ * tool surface's 1-based coordinates.
+ */
+export function toDiagnosticEntries(raw: readonly Diagnostic[] | null | undefined): DiagnosticEntry[] {
+  return (raw ?? []).map(d => {
+    const severity = d.severity === 1 ? 'error' : d.severity === 2 ? 'warning' : d.severity === 3 ? 'information' : 'hint'
+    const entry: DiagnosticEntry = {
+      severity,
+      message: typeof d.message === 'string' ? d.message : d.message.value,
+      range: {
+        startLine: d.range.start.line + 1,
+        startCharacter: d.range.start.character + 1,
+        endLine: d.range.end.line + 1,
+        endCharacter: d.range.end.character + 1,
+      },
+    }
+    if (d.code !== undefined) entry.code = String(d.code)
+    if (d.source) entry.source = d.source
+    return entry
+  })
 }
 
 /** Human-readable names for the LSP SymbolKind enum (subset covers the common cases). */

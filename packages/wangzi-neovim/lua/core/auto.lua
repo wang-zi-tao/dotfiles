@@ -1,10 +1,14 @@
 local plenary = require("plenary")
 local a = require("async")
 local utils = require("core.utils")
-local async = require 'plenary.async'
+local async = require("plenary.async")
 
-
-local autocmd = vim.api.nvim_create_autocmd
+--- CoreAuto group: 归入统一 augroup，便于 hotreload 重载前精确清理
+local group = vim.api.nvim_create_augroup("CoreAuto", { clear = true })
+local autocmd = function(events, opts)
+    opts.group = group
+    vim.api.nvim_create_autocmd(events, opts)
+end
 autocmd({ "BufNewFile", "BufRead" }, {
     pattern = { "*.qrc", "*.ts", "*.natvis" },
     callback = function()
@@ -27,32 +31,32 @@ autocmd("FileType", {
 autocmd("FileType", {
     pattern = { "*.inc" },
     callback = function()
-        vim.cmd [[set ft=cpp]]
+        vim.cmd([[set ft=cpp]])
     end,
 })
 
 autocmd("FileType", {
     pattern = { "*.wgsl" },
     callback = function()
-        vim.cmd [[set ft=wgsl_bevy]]
+        vim.cmd([[set ft=wgsl_bevy]])
     end,
 })
 
-vim.api.nvim_create_autocmd('BufWritePost', {
-    pattern = '.nvim.lua',
+autocmd("BufWritePost", {
+    pattern = ".nvim.lua",
     callback = function(ev)
-        local cwd_config = vim.fn.getcwd() .. '/.nvim.lua'
+        local cwd_config = vim.fn.getcwd() .. "/.nvim.lua"
         if utils.is_same_file(cwd_config, ev.match) then
             dofile(ev.match)
-            vim.notify('Reloaded .nvim.lua configuration', vim.log.levels.INFO)
+            vim.notify("Reloaded .nvim.lua configuration", vim.log.levels.INFO)
         else
             vim.notify("skip reloading " .. ev.match, vim.log.levels.INFO)
         end
     end,
-    desc = 'Auto-reload .nvim.lua on save'
+    desc = "Auto-reload .nvim.lua on save",
 })
 
-vim.api.nvim_create_autocmd('BufWritePost', {
+autocmd("BufWritePost", {
     pattern = { ".envrc", "shell.nix", "flake.nix" },
     callback = function(ev)
         local dir = vim.fn.fnamemodify(ev.match, ":h")
@@ -60,10 +64,10 @@ vim.api.nvim_create_autocmd('BufWritePost', {
             utils.apply_envrc()
         end
     end,
-    desc = 'Auto-reload init.lua on save'
+    desc = "Auto-reload init.lua on save",
 })
 
-local envrc_path = vim.fn.getcwd() .. '/.envrc'
+local envrc_path = vim.fn.getcwd() .. "/.envrc"
 if vim.fn.filereadable(envrc_path) == 1 then
     utils.apply_envrc()
 end
@@ -78,7 +82,7 @@ end
 local gen = require("core.gen")
 if gen.core ~= nil then
     for _, file in ipairs(vim.fn.readdir(gen.core .. "/skeleton")) do
-        vim.api.nvim_create_autocmd({ "BufNewFile" }, {
+        autocmd({ "BufNewFile" }, {
             pattern = { file },
             callback = function()
                 vim.cmd("0r '" .. file .. "'")
@@ -86,3 +90,10 @@ if gen.core ~= nil then
         })
     end
 end
+
+-- 注册热加载钩子：重载本模块前清空 CoreAuto group，避免 autocmd 累积
+require("core.hotreload").register_hook("core.auto", {
+    before = function()
+        pcall(vim.api.nvim_clear_autocmds, { group = "CoreAuto" })
+    end,
+})

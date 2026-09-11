@@ -24,7 +24,7 @@
  */
 import { resolveConfig, resolveSocket } from './config.js';
 import { probeSocket, tryConnectNvim } from './neovim.js';
-import { fmtBreakpoints, fmtConfigs, fmtDisasm, fmtFrame, fmtSessions, fmtStack, fmtThreads, } from './format.js';
+import { fmtBreakpoints, fmtConfigs, fmtDisasm, fmtSessions, fmtStack, fmtSwitchThread, fmtThreads, } from './format.js';
 import { createUserMessage } from '@deepseek-ai/dsh-llm';
 export const name = 'dsh-neovim';
 export const inject = ['tools', 'commands', 'agents'];
@@ -74,7 +74,13 @@ export function apply(ctx, rawConfig = {}) {
             if (!id || !dapSessions.has(String(id)))
                 continue;
             try {
-                agent.inject(createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'plugin', plugin: name } }));
+                const message = createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'plugin', plugin: name } });
+                // inject() never wakes an idle driver: a stopped agent would leave the
+                // event pending in the inbox forever, so wake it with a follow-up turn.
+                if (agent.status === 'idle')
+                    agent.followup(message);
+                else
+                    agent.inject(message);
             }
             catch (error) {
                 // The agent went away between list() and inject(); drop the stale entry.
@@ -163,7 +169,7 @@ export function apply(ctx, rawConfig = {}) {
     // ------------------------------------------------------------------
     async function dapCall(code, args) {
         const nv = await ensureNvim();
-        return await nv.luaAsyncEval(code, config.luaModule, args);
+        return await nv.luaAsyncEval(code, config.luaModule, args) || null;
     }
     function markSession(exec) {
         const id = exec?.agent?.session?.id;
@@ -202,9 +208,9 @@ export function apply(ctx, rawConfig = {}) {
         },
         {
             name: 'nvim_lua_command',
-            description: '在 Neovim 中执行 Lua 语句（无返回值）',
+            description: '在 Neovim 中执行 Lua 语句（无返回值，等价 `lua <cmd>`）。cmd 必须是语句：裸表达式（如 `1+1`、`vim.o.tabstop`）不是合法语句，请改用 nvim_lua_eval。',
             parameters: objectSchema({
-                cmd: STRING("Lua 语句，如 'vim.opt.tabstop = 4'"),
+                cmd: STRING('Lua 语句（非表达式），如 "vim.opt.tabstop = 4"；裸表达式请用 nvim_lua_eval'),
             }, ['cmd']),
             async run(args) {
                 const nv = await ensureNvim();
@@ -217,9 +223,9 @@ export function apply(ctx, rawConfig = {}) {
         },
         {
             name: 'nvim_lua_eval',
-            description: '在 Neovim 中异步求值 Lua 表达式并返回结果. 常用lua模块:[core.agent: 各种给agent提供的工具函数和集成式调试器辅助函数, dap: 调试器, overseer: 编译等运行器], 常用vim函数:[vim.inspect: lua值转字符串, vim.fn: 各种neovim内置函数]',
+            description: '在 Neovim 中异步求值 Lua 表达式并返回结果。cmd 必须是 Lua 表达式：内部按 require("<luaModule>").run_async(function() return <cmd> end, ...) 求值，直接写语句会报 Error loading lua: [string "<nvim>"]:1: unexpected symbol near ...；多条语句请包成 (function() ... end)()，只执行语句且不需要返回值请用 nvim_lua_command。常用lua模块:[core.agent: 各种给agent提供的工具函数和集成式调试器辅助函数, dap: 调试器, overseer: 编译等运行器], 常用vim函数:[vim.inspect: lua值转字符串, vim.fn: 各种neovim内置函数]',
             parameters: objectSchema({
-                cmd: STRING("Lua 表达式，如 'vim.o.tabstop'、'vim.api.nvim_get_current_buf()'"),
+                cmd: STRING('Lua 表达式，如 "vim.o.tabstop"、"vim.api.nvim_get_current_buf()"；多条语句用 "(function() ... end)()"'),
             }, ['cmd']),
             async run(args) {
                 const nv = await ensureNvim();
@@ -288,9 +294,10 @@ export function apply(ctx, rawConfig = {}) {
         },
         {
             name: 'nvim_dap_continue',
-            description: '继续执行。协程阻塞等待命中断点后返回停止位置',
+            description: '继续执行。协程阻塞等待命中断点后返回停止位置（vsdbg attach 会话的 continue 须带 threadId，缺省自动用 stopped_thread_id）',
             parameters: objectSchema({
                 timeout_ms: INTEGER('等待命中的超时毫秒数（默认 30000）'),
+                thread_id: INTEGER('线程 ID（缺省自动用 session.stopped_thread_id）'),
             }),
             run: (args, exec) => dapStep('dap_continue', args, exec),
             format: (result) => fmtStep('continue', result),
@@ -372,10 +379,12 @@ export function apply(ctx, rawConfig = {}) {
         },
         {
             name: 'nvim_dap_wait_stop',
-            description: '轮询等待调试会话停止（帧名变化），不依赖协程阻塞。vsdbg attach 会话 step 后 stackTrace 易被取消时使用',
+            description: '轮询等待调试会话停止（帧名变化 或 stopped_thread_id 变化），不依赖协程阻塞。vsdbg attach 会话 step 后 stackTrace 易被取消时使用；also_respond=true 时额外做 CPU 死锁检测',
             parameters: objectSchema({
                 timeout_ms: INTEGER('超时毫秒数（默认 30000）'),
                 poll_ms: INTEGER('轮询间隔毫秒数（默认 200）'),
+                also_respond: BOOLEAN('true 时额外检测目标进程 CPU 死锁（两次采样 CPU 无增长 + Responding=False → 返回 status="hang"），默认 false'),
+                pid: INTEGER('目标进程 PID（also_respond 时使用；缺省尝试从 session.config 推断，无法确定则跳过死锁检测）'),
             }),
             async run(args, exec) {
                 markSession(exec);
@@ -383,8 +392,12 @@ export function apply(ctx, rawConfig = {}) {
             },
             format(result) {
                 if (!result || result.status === 'timeout')
-                    return '等待超时（未检测到帧变化）';
-                return `已检测到停止: thread ${result.thread_id ?? '?'}\n当前帧: **${result.frame_name ?? '?'}**`;
+                    return '等待超时（未检测到停止）';
+                if (result.status === 'hang') {
+                    const h = result.hang || {};
+                    return `疑似死锁: PID ${h.pid ?? '?'} 两次采样 CPU 无增长且 Responding=False`;
+                }
+                return `已检测到停止: thread ${result.thread_id ?? '?'} (stopped_thread_id=${result.stopped_thread_id ?? '?'})\n当前帧: **${result.frame_name ?? '?'}**`;
             },
         },
         {
@@ -418,20 +431,125 @@ export function apply(ctx, rawConfig = {}) {
         },
         {
             name: 'nvim_dap_read_register',
-            description: '读取寄存器值：scopes→Registers→CPU 分组→variables 展开查找寄存器（vsdbg evaluate 读寄存器受限时使用）',
+            description: '读取寄存器值：scopes→Registers→CPU 分组→variables 展开查找寄存器（vsdbg evaluate 读寄存器受限时使用）。vsdbg 实测 f0 inline 帧（id 通常=1000）的 Registers 才精确，auto_inline 时读取失败自动经 stackTrace 找 f0 帧重试；返回值 16 位 hex 无 0x 前缀自动补 "0x"',
             parameters: objectSchema({
-                frame_id: INTEGER('帧 ID（来自 stackTrace，如 nvim_dap_get_stack 的 frames[].id）'),
+                frame_id: INTEGER('帧 ID（来自 stackTrace，如 nvim_dap_get_stack 的 frames[].id）；省略且 auto_inline 时自动找 f0 inline 帧'),
                 reg_name: STRING('寄存器名（大写，如 "RSP"/"RIP"/"RAX"/"RDI"/"RBP"）'),
-            }, ['frame_id', 'reg_name']),
+                auto_inline: BOOLEAN('读取失败时自动经 stackTrace 找 f0 inline 帧重试（默认 true）'),
+            }, ['reg_name']),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_read_register(frame_id, reg_name)`, { frame_id: args.frame_id, reg_name: args.reg_name });
+                return await dapCall(`require("${config.luaModule}").dap_read_register(frame_id, reg_name, auto_inline)`, {
+                    frame_id: args.frame_id ?? null,
+                    reg_name: args.reg_name,
+                    auto_inline: args.auto_inline ?? null,
+                });
             },
             format(result, args) {
                 const value = String(result ?? '');
                 if (!value)
                     return `未找到寄存器 **${args.reg_name}**`;
                 return `**${args.reg_name}** = ${value}`;
+            },
+        },
+        {
+            name: 'nvim_dap_read_memory',
+            description: '读取目标进程内存（DAP readMemory：base64 解码 + 小端 u32/u64 + hex）。readMemory 绕过 vsdbg evaluate 读内存受限问题；auto_pause=true 时目标运行中会自动 pause 后重试',
+            parameters: objectSchema({
+                memory_reference: STRING('内存引用（十六进制 "0x..." 或十进制字符串；缺省用当前帧 instructionPointerReference）'),
+                offset: INTEGER('相对 memory_reference 的字节偏移（默认 0）'),
+                count: INTEGER('读取字节数（默认 64）'),
+                auto_pause: BOOLEAN('true 时若请求报错含 "running"（目标运行中）先 pause 再重试一次（默认 false）'),
+            }),
+            async run(args, exec) {
+                markSession(exec);
+                return await dapCall(`require("${config.luaModule}").dap_read_memory(args)`, { args });
+            },
+            format(result) {
+                if (!result || !result.ok)
+                    return `读取失败: ${result?.error ?? '?'}`;
+                const n = result.bytes?.length ?? 0;
+                let out = `内存 @ ${result.address ?? '?'} (${n} bytes)\n`;
+                const hex = result.hex ?? '';
+                if (hex)
+                    out += `hex: ${hex.length > 96 ? hex.slice(0, 96) + '…' : hex}\n`;
+                const u32 = result.u32 ?? [];
+                if (u32.length > 0)
+                    out += `u32[0]: 0x${u32[0].toString(16)}\n`;
+                const u64 = result.u64 ?? [];
+                if (u64.length > 0)
+                    out += `u64[0]: ${u64[0].hex}\n`;
+                return out;
+            },
+        },
+        {
+            name: 'nvim_dap_read_stack_slot',
+            description: '读取当前栈上参数槽位（读 RSP → RSP+offset → readMemory），绕过 vsdbg evaluate 限制。如 _CalcInterrupt 参数槽 [rsp+3C8h]=src / [rsp+3D0h]=dest（debug 版）',
+            parameters: objectSchema({
+                offset: INTEGER('相对 RSP 的字节偏移（默认 0）'),
+                size: { type: 'integer', enum: [1, 2, 4, 8], description: '读取字节数（默认 8）' },
+                frame_id: INTEGER('读 RSP 使用的帧 ID（缺省自动找 f0 inline 帧）'),
+            }),
+            async run(args, exec) {
+                markSession(exec);
+                return await dapCall(`require("${config.luaModule}").dap_read_stack_slot(args)`, { args });
+            },
+            format(result) {
+                if (!result || !result.ok)
+                    return `读取失败: ${result?.error ?? '?'}`;
+                let out = `RSP = 0x${result.rsp.toString(16)} → 槽位 @ 0x${result.addr.toString(16)}\n`;
+                const u64 = result.u64 ?? [];
+                if (u64.length > 0)
+                    out += `u64[0]: ${u64[0].hex}\n`;
+                const u32 = result.u32 ?? [];
+                if (u32.length > 0)
+                    out += `u32[0]: 0x${u32[0].toString(16)}\n`;
+                if (result.hex)
+                    out += `hex: ${result.hex}\n`;
+                return out;
+            },
+        },
+        {
+            name: 'nvim_dap_address_classify',
+            description: '判定内存地址属于栈还是堆（|addr - RSP| < 1MB → stack，否则 heap）。用途：0x1D5D77 BTS 失败断点判别 RCX 堆/栈地址，区分首次失败（堆=有效现场）与回滚命中（栈=跳过）',
+            parameters: objectSchema({
+                addr: STRING('地址（十六进制 "0x..." 或十进制字符串）'),
+            }, ['addr']),
+            async run(args, exec) {
+                markSession(exec);
+                return await dapCall(`require("${config.luaModule}").dap_address_classify(args)`, { args });
+            },
+            format(result) {
+                if (!result)
+                    return '(无结果)';
+                const addr = result.addr != null ? `0x${result.addr.toString(16)}` : '?';
+                const rsp = result.rsp != null ? `0x${result.rsp.toString(16)}` : '?';
+                const kind = result.kind === 'stack' ? '栈（回滚跳过/局部）' : result.kind === 'heap' ? '堆（有效现场）' : '未知';
+                return `地址 ${addr} → **${kind}** (delta=${result.delta}, RSP=${rsp})`;
+            },
+        },
+        {
+            name: 'nvim_dap_check_hang',
+            description: '卡死检查（独立函数 M.dap_check_hang）：两次采样目标进程 CPU 无增长（delta < hang_delta，默认 0.01 秒）且 Responding=False 判定 status=hang。须在目标自由运行时调用（暂停时 CPU delta=0 是假象）。PID 缺省从 session.config 推断，无法确定返回 skipped',
+            parameters: objectSchema({
+                pid: INTEGER('目标进程 PID（缺省尝试从 session.config 推断）'),
+                interval_ms: INTEGER('两次采样间隔毫秒数（默认 300）'),
+                hang_delta: { type: 'number', description: 'CPU 增量判定阈值秒数（默认 0.01）' },
+            }),
+            async run(args, exec) {
+                markSession(exec);
+                return await dapCall(`require("${config.luaModule}").dap_check_hang(args)`, { args });
+            },
+            format(result) {
+                if (!result)
+                    return '(无结果)';
+                if (result.status === 'skipped')
+                    return '跳过: ' + (result.note || '无法判定');
+                if (result.status === 'hang') {
+                    const h = result.hang || {};
+                    return '疑似死锁 (PID=' + result.pid + '): CPU ' + result.cpu1 + '->' + result.cpu2 + ' delta=' + result.delta + ' 两次 Responding=False\n' + (h.note || '');
+                }
+                return '未死锁 (PID=' + result.pid + '): CPU ' + result.cpu1 + '->' + result.cpu2 + ' delta=' + result.delta + ' Responding=' + result.responding2;
             },
         },
         {
@@ -454,7 +572,7 @@ export function apply(ctx, rawConfig = {}) {
                 return await dapCall(`require("${config.luaModule}").dap_switch_thread(args)`, { args });
             },
             format(result) {
-                return `已切换到线程 ${result.thread_id}\n当前帧: ${fmtFrame(result.frame)}`;
+                return fmtSwitchThread(result);
             },
         },
         {
@@ -667,8 +785,9 @@ export function apply(ctx, rawConfig = {}) {
             async execute(args, exec) {
                 // output_json is a presentation switch, not a Neovim-facing argument:
                 // strip it before forwarding the remaining arguments downstream.
-                const { output_json: _omitted, ...rest } = (args ?? {});
-                return await spec.run(rest, exec);
+                const { output_json, ...rest } = (args ?? {});
+                let ret = await spec.run(rest, exec);
+                return ret || null;
             },
         };
         ctx.tools.register(definition);

@@ -45,11 +45,13 @@ stdenvNoCC.mkDerivation {
     description = "Hindsight long-term memory plugin for DeepSeek Harness";
     longDescription = ''
       dsh-hindsight provides hindsight_retain / hindsight_recall /
-      hindsight_reflect / hindsight_status tools, automatic per-turn retention
-      from the dsh session event log, and automatic cross-session recall
-      injected as ordered dynamic context. Server address, bank id, budget and
-      memory mode are configurable through the Cordis row config and
-      HINDSIGHT_* environment variables. The package is written in TypeScript
+      hindsight_reflect / hindsight_status tools, a /hindsight-import slash
+      command for importing historical sessions, automatic per-turn
+      retention from the dsh session event log, and
+      automatic cross-session recall injected as a user-role message at the
+      start of each agent turn. Server address, bank id, budget and memory
+      mode are configurable through the Cordis row config and HINDSIGHT_*
+      environment variables. The package is written in TypeScript
       and compiled with nixpkgs TypeScript.
     '';
     homepage = "https://hindsight.vectorize.io";

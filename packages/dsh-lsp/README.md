@@ -11,6 +11,8 @@ LSP 语义代码导航插件（DeepSeek Harness）：一个 `lsp` 工具 + 一�
   - `documentSymbol` — 当前文件大纲
   - `diagnostics` — 拉取式诊断（LSP 3.17 `textDocument/diagnostic`）
 - **`/lsp` 命令**：`status` / `start [id...]` / `stop [id...]` / `restart`
+- **文件访问联动**：AI 用 `read` 读文件时，LSP 同步把该文件 didOpen（服务器已热时阻塞到加载完成，冷启动则在后台预热，不拖慢读取）；AI 用 `write`/`edit` 写文件后，异步刷新服务器副本并拉取诊断，达到严重级别的结果通过 `agent.inject` 注入 agent 的下一次 pre-step 上下文
+- **防过期污染**：同一 agent 对同一文件连续多次写入时，新写入会取消上一轮在途的异步诊断，只注入最新结果
 - **懒启动 + 手动覆盖**：首次查询自动 spawn 对应 server；`/lsp` 显式控制
 - **混合语言工程**：按文件扩展名独占路由到不同 server；LSP 根目录自动从被查文件向上查找，不依赖工作目录
 
@@ -42,7 +44,7 @@ npm run build
 
 ## 配置
 
-行 `config` 里可覆盖 `servers`（内置表为缺省）、`lazyStart`、`maxLocations`、`maxResultChars`、`timeoutMs`。`servers` 按 id 覆盖内置项；`enabled: false` 用纯 id 即可禁用某个内置 server；重复扩展名、缺失 command/extensions/languageId 会在加载期抛错（挂载审计会暴露）。
+行 `config` 里可覆盖 `servers`（内置表为缺省）、`lazyStart`、`maxLocations`、`maxResultChars`、`timeoutMs`、`syncLoadOnRead`（读文件时同步加载到 LSP，默认 `true`）、`diagnosticsOnWrite`（写文件后异步诊断并注入，默认 `true`）、`diagnosticsMinSeverity`（注入的最低严重级别：`error` / `warning` / `information` / `hint`，默认 `warning`）。`servers` 按 id 覆盖内置项；`enabled: false` 用纯 id 即可禁用某个内置 server；重复扩展名、缺失 command/extensions/languageId 会在加载期抛错（挂载审计会暴露）。
 
 ## 约束
 

@@ -12,6 +12,7 @@
 import { createProtocolConnection } from 'vscode-languageserver-protocol/node'
 import {
   DefinitionRequest,
+  DidChangeTextDocumentNotification,
   DidCloseTextDocumentNotification,
   DidOpenTextDocumentNotification,
   DocumentDiagnosticRequest,
@@ -220,6 +221,7 @@ export class LspClient {
    * keeps buffers resident).
    */
   private readonly openDocuments = new Set<string>()
+  private readonly documentVersions = new Map<string, number>()
 
   private ensureOpen(filePath: string): void {
     if (this.openDocuments.has(filePath)) return
@@ -242,6 +244,41 @@ export class LspClient {
       },
     })
     this.openDocuments.add(filePath)
+    this.documentVersions.set(filePath, 1)
+  }
+
+  /** Public entry for external callers to didOpen a file (reads current disk content). */
+  open(filePath: string): void {
+    const abs = this.absPath(filePath)
+    this.ensureOpen(abs)
+  }
+
+  /**
+   * Bring the server's in-memory copy of an already-open document in sync with
+   * the current disk content (full-document didChange). Used after the AI
+   * writes/edits a file, so a subsequent pull-diagnostics sees the new text.
+   * For a not-yet-open document this falls back to didOpen.
+   */
+  refreshDocument(filePath: string): void {
+    const abs = this.absPath(filePath)
+    const uri = pathToFileUri(abs)
+    let text: string
+    try {
+      text = readFileSync(abs, 'utf8')
+    } catch {
+      text = ''
+    }
+    const conn = this.requireConnection()
+    if (this.openDocuments.has(abs)) {
+      const version = (this.documentVersions.get(abs) ?? 1) + 1
+      this.documentVersions.set(abs, version)
+      void conn.sendNotification(DidChangeTextDocumentNotification.type, {
+        textDocument: { uri, version },
+        contentChanges: [{ text }],
+      })
+    } else {
+      this.ensureOpen(abs)
+    }
   }
 
   private token(signal?: AbortSignal): CancellationToken {

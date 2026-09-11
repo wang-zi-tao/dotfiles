@@ -1,12 +1,16 @@
 /**
  * Minimal Hindsight HTTP API client.
  *
- * Endpoints mirror `hindsight-client` 0.6.x:
- *   retain:    POST /v1/default/banks/{bank_id}/memories
- *   recall:    POST /v1/default/banks/{bank_id}/memories/recall
- *   reflect:   POST /v1/default/banks/{bank_id}/reflect
- *   operation: GET  /v1/default/banks/{bank_id}/operations/{operation_id}
- *   version:   GET  /version
+ * Endpoints mirror `hindsight-client` 0.6.x plus the mental-models surface:
+ *   retain:      POST /v1/default/banks/{bank_id}/memories
+ *   recall:      POST /v1/default/banks/{bank_id}/memories/recall
+ *   reflect:     POST /v1/default/banks/{bank_id}/reflect
+ *   operation:   GET  /v1/default/banks/{bank_id}/operations/{operation_id}
+ *   version:     GET  /version
+ *   mental list: GET  /v1/default/banks/{bank_id}/mental-models
+ *   mental get:  GET  /v1/default/banks/{bank_id}/mental-models/{id}
+ *   mental make: POST /v1/default/banks/{bank_id}/mental-models
+ *   mental edit: PATCH /v1/default/banks/{bank_id}/mental-models/{id}
  */
 
 export interface RetainItem {
@@ -88,6 +92,64 @@ export interface OperationStatusResponse {
   [key: string]: unknown
 }
 
+export interface MentalModelTrigger {
+  mode?: 'full' | 'delta'
+  refresh_after_consolidation?: boolean
+  fact_types?: string[]
+  exclude_mental_models?: boolean
+  exclude_mental_model_ids?: string[] | null
+  tags_match?: 'any' | 'all' | 'any_strict' | 'all_strict' | null
+  [key: string]: unknown
+}
+
+export interface MentalModel {
+  id: string
+  bank_id?: string
+  name: string
+  source_query?: string | null
+  content?: string | null
+  tags?: string[]
+  max_tokens?: number | null
+  trigger?: MentalModelTrigger | null
+  last_refreshed_at?: string | null
+  created_at?: string | null
+  is_stale?: boolean | null
+  [key: string]: unknown
+}
+
+export interface MentalModelListResponse {
+  items: MentalModel[]
+}
+
+export interface CreateMentalModelOptions {
+  bankId: string
+  id?: string
+  name: string
+  sourceQuery: string
+  tags?: string[]
+  maxTokens?: number
+  trigger?: Record<string, unknown>
+  signal?: AbortSignal
+  timeoutMs?: number
+}
+
+export interface CreateMentalModelResponse {
+  mental_model_id?: string | null
+  operation_id: string
+}
+
+export interface UpdateMentalModelOptions {
+  bankId: string
+  id: string
+  name?: string
+  sourceQuery?: string
+  tags?: string[]
+  maxTokens?: number
+  trigger?: Record<string, unknown>
+  signal?: AbortSignal
+  timeoutMs?: number
+}
+
 export interface HindsightClientOptions {
   apiUrl: string
   apiKey?: string | null
@@ -97,7 +159,7 @@ export interface HindsightClientOptions {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'PATCH'
   body?: unknown
   signal?: AbortSignal
   timeoutMs?: number
@@ -241,5 +303,56 @@ export class HindsightClient {
 
   async version(options: { signal?: AbortSignal; timeoutMs?: number } = {}): Promise<VersionResponse> {
     return this.request('/version', { method: 'GET', signal: options.signal, timeoutMs: options.timeoutMs ?? 10000 })
+  }
+
+  async listMentalModels(
+    bankId: string,
+    options: { signal?: AbortSignal; timeoutMs?: number } = {},
+  ): Promise<MentalModelListResponse> {
+    return this.request(`/v1/default/banks/${encodeURIComponent(bankId)}/mental-models`, {
+      method: 'GET',
+      signal: options.signal,
+      timeoutMs: options.timeoutMs,
+    })
+  }
+
+  async getMentalModel(
+    bankId: string,
+    mentalModelId: string,
+    options: { signal?: AbortSignal; timeoutMs?: number } = {},
+  ): Promise<MentalModel> {
+    return this.request(
+      `/v1/default/banks/${encodeURIComponent(bankId)}/mental-models/${encodeURIComponent(mentalModelId)}`,
+      { method: 'GET', signal: options.signal, timeoutMs: options.timeoutMs },
+    )
+  }
+
+  async createMentalModel(options: CreateMentalModelOptions): Promise<CreateMentalModelResponse> {
+    const body: Record<string, unknown> = {
+      name: options.name,
+      source_query: options.sourceQuery,
+    }
+    if (options.id) body.id = options.id
+    if (options.tags?.length) body.tags = options.tags
+    if (options.maxTokens !== undefined && options.maxTokens !== null) body.max_tokens = options.maxTokens
+    if (options.trigger) body.trigger = options.trigger
+    return this.request(`/v1/default/banks/${encodeURIComponent(options.bankId)}/mental-models`, {
+      body,
+      signal: options.signal,
+      timeoutMs: options.timeoutMs,
+    })
+  }
+
+  async updateMentalModel(options: UpdateMentalModelOptions): Promise<MentalModel> {
+    const body: Record<string, unknown> = {}
+    if (options.name !== undefined) body.name = options.name
+    if (options.sourceQuery !== undefined) body.source_query = options.sourceQuery
+    if (options.tags !== undefined) body.tags = options.tags
+    if (options.maxTokens !== undefined) body.max_tokens = options.maxTokens
+    if (options.trigger !== undefined) body.trigger = options.trigger
+    return this.request(
+      `/v1/default/banks/${encodeURIComponent(options.bankId)}/mental-models/${encodeURIComponent(options.id)}`,
+      { method: 'PATCH', body, signal: options.signal, timeoutMs: options.timeoutMs },
+    )
   }
 }

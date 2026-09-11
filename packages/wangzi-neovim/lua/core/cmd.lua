@@ -32,10 +32,12 @@ end
 local function OpenInVS()
     local file = vim.fn.expand("%")
     local row = vim.api.nvim_win_get_cursor(0)[1]
-    require("plenary.job"):new({
-        command = findDevenv() or "devenv",
-        args = { file, "/edit", file, "/command", "Edit.GoTo " .. row }
-    }):start()
+    require("plenary.job")
+        :new({
+            command = findDevenv() or "devenv",
+            args = { file, "/edit", file, "/command", "Edit.GoTo " .. row },
+        })
+        :start()
 end
 vim.api.nvim_create_user_command("OpenInVS", OpenInVS, {})
 vim.api.nvim_create_user_command("ToVS", OpenInVS, {})
@@ -92,7 +94,7 @@ vim.api.nvim_create_user_command("WatchFile", function(opts)
 end, { nargs = 1, complete = "file" })
 
 vim.api.nvim_create_user_command("ClearLineEnd", function()
-    vim.cmd [[%s/\r//g]]
+    vim.cmd([[%s/\r//g]])
 end, { nargs = 0 })
 
 vim.api.nvim_create_user_command("FileFormatToDos", function()
@@ -105,7 +107,6 @@ vim.api.nvim_create_user_command("FileFormatToDos", function()
     vim.bo[buf].fileformat = "dos"
 end, { nargs = 0 })
 
-
 vim.api.nvim_create_user_command("FileFormatToUnix", function()
     local buf = vim.api.nvim_get_current_buf()
     local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
@@ -116,6 +117,34 @@ vim.api.nvim_create_user_command("FileFormatToUnix", function()
     vim.bo[buf].fileformat = "unix"
 end, {})
 
+-- 注册热加载钩子：重载本模块前删除注册的用户命令，避免 E174: Command already exists
+local USER_COMMANDS = {
+    "ClearTerm",
+    "CopyFilePath",
+    "OpenInVS",
+    "ToVS",
+    "TOVS",
+    "Open",
+    "Rg",
+    "Fd",
+    "Switch",
+    "ProfileStart",
+    "ProfileStartFlame",
+    "ProfileStop",
+    "Cd",
+    "WatchFileThis",
+    "WatchFile",
+    "ClearLineEnd",
+    "FileFormatToDos",
+    "FileFormatToUnix",
+}
+require("core.hotreload").register_hook("core.cmd", {
+    before = function()
+        for _, name in ipairs(USER_COMMANDS) do
+            pcall(vim.api.nvim_del_user_command, name)
+        end
+    end,
+})
 
 return {
     ClearTerm = ClearTerm,
