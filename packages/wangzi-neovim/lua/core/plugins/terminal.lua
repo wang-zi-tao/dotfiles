@@ -148,36 +148,6 @@ return {
         desc = "GitUI",
       },
       {
-        "<leader>td",
-        function()
-          local Job = require("plenary.job")
-          local nu_command = "with-env { NVIM: '" .. vim.v.servername .. "' } { dsh.cmd --profile tui }"
-          if vim.fn.has("win32") == 1 then
-            --wt -w 0 sp -s 0.25 nu -c $"$env.NVIM = '($env.NVIM)'; dsh.cmd --profile tui"
-            Job:new({
-              command = [[C:\Users\wps\AppData\Local\Microsoft\WindowsApps\wt.exe]],
-              args = { "-w", "0", "sp", "-s", "0.25",
-                "nu", "-c",
-                nu_command },
-            }):start()
-          elseif vim.env["ZELLIJ"] ~= nil then
-            coroutine.wrap(function()
-              local job = Job:new({
-                command = [[zellij]],
-                args = { "run", "-c", "-d", "right", "-cwd", vim.fn.getcwd(), "--", "nu", "-c", nu_command },
-              })
-
-              job:start()
-              job:sync()
-              local pane_id = job:result()[0]
-            end)()
-          else
-            require("core.utils").toggle_term("dsh")
-          end
-        end,
-        desc = "Deepseek Harness",
-      },
-      {
         "<leader>tw",
         function()
           require("core.utils").toggle_term("rg")

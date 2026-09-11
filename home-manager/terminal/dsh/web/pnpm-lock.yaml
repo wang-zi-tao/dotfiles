@@ -16,10 +16,10 @@ importers:
         version: 0.2.0
       '@linxin666/dsh-client-ui-skin-center':
         specifier: latest
-        version: 0.3.11(react@18.3.1)
+        version: 0.3.16(react@18.3.1)
       '@linxin666/dsh-liangshen':
         specifier: latest
-        version: 0.3.11
+        version: 0.3.16
       '@omdsh-dev/dsh-genui':
         specifier: github:omdsh-dev/dsh-genui
         version: https://codeload.github.com/omdsh-dev/dsh-genui/tar.gz/0e756efb7671e6b8413dde3d8e199c68fa89cbeb
@@ -29,14 +29,11 @@ importers:
       dsh-at-file:
         specifier: github:omdsh-dev/dsh-at-file
         version: https://codeload.github.com/omdsh-dev/dsh-at-file/tar.gz/2c5653ebc3240626cdad41a9c01d15d22471aed2(react@18.3.1)
-      dsh-memory-evolve:
-        specifier: github:csyangwen/dsh-memory-evolve
-        version: https://codeload.github.com/csyangwen/dsh-memory-evolve/tar.gz/1e6e7eb15ce515b0f2bd2142bdee9a36c46c8b91
 
 packages:
 
   '@dsh-external/dsh-visualize@https://codeload.github.com/Nagi-ovo/dsh-visualize/tar.gz/9667c0e9cf0ea463b9b45b2845de62da34fd918a':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/Nagi-ovo/dsh-visualize/tar.gz/9667c0e9cf0ea463b9b45b2845de62da34fd918a}
+    resolution: {gitHosted: true, integrity: sha512-6kvERA4Cg69KV+E8fnMqh2JiN2vqcNpxkUPhamMqR0dEMCGKOrRocwCA9xVI+Wl24w1ZxfHXkzwH0Fz1iGfaMA==, tarball: https://codeload.github.com/Nagi-ovo/dsh-visualize/tar.gz/9667c0e9cf0ea463b9b45b2845de62da34fd918a}
     version: 0.1.2
     peerDependencies:
       '@deepseek-ai/cordis': ^4.0.1
@@ -52,17 +49,17 @@ packages:
   '@linxin666/dsh-client-ui-skin-blue-fantasy@0.2.0':
     resolution: {integrity: sha512-w9adVHzLJGKlN0Loy+qttkqz8iWHEnYfn/PzzwoOIWIXaA/YKvD1ZcxlG7B0csNCE46uh6clUWpJPxYP4ZW6tg==}
 
-  '@linxin666/dsh-client-ui-skin-center@0.3.11':
-    resolution: {integrity: sha512-lt/PeOnhZsm5n/kMG1nuTo/Me+YUPqmq4X/6qK7spSkKaLiPryImY8PAk4WYNZCKcRljnsrN86pDAIla6bwcOA==}
+  '@linxin666/dsh-client-ui-skin-center@0.3.16':
+    resolution: {integrity: sha512-nP5sfMYhO36qCvUnS1t0Ofcz0PKcHL5/aIaeKEaTW8z+rE/CL3DTfPjybwY/0kqk7EUbY1lxMCFT2z42I1GJCg==}
     peerDependencies:
       react: ^18.2.0
 
-  '@linxin666/dsh-liangshen@0.3.11':
-    resolution: {integrity: sha512-gWgQcoWxyCXGK+hUXpnZINfaJRaTlYnKNZdRedGE/h1bqnVycvLMIa9u+2EzVWV9s7lA2J9knqqJAcUD0OQsRw==}
+  '@linxin666/dsh-liangshen@0.3.16':
+    resolution: {integrity: sha512-dPW4I6DwZP/ATUO/WfGo6txku7eQJIANVf5WVVLCdrUics0W0WJaARUehj3xGSoW7cmp37gh9JKHHKItyxMzGQ==}
     engines: {node: ^22.19.0 || >=24.0.0}
 
   '@omdsh-dev/dsh-genui@https://codeload.github.com/omdsh-dev/dsh-genui/tar.gz/0e756efb7671e6b8413dde3d8e199c68fa89cbeb':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/omdsh-dev/dsh-genui/tar.gz/0e756efb7671e6b8413dde3d8e199c68fa89cbeb}
+    resolution: {gitHosted: true, integrity: sha512-4nuYmKz+/wD+B0yu60AUGjHffM3dQe6z9H8Cpd66TPm/meZoHBTHCXPDCCYGiI18lwUB96Chyyq3i6Mld5d0kw==, tarball: https://codeload.github.com/omdsh-dev/dsh-genui/tar.gz/0e756efb7671e6b8413dde3d8e199c68fa89cbeb}
     version: 0.8.3
     engines: {node: ^22.19.0 || >=24.0.0, pnpm: '>=11.7.0 <12'}
     peerDependencies:
@@ -143,10 +140,6 @@ packages:
         optional: true
       react:
         optional: true
-
-  dsh-memory-evolve@https://codeload.github.com/csyangwen/dsh-memory-evolve/tar.gz/1e6e7eb15ce515b0f2bd2142bdee9a36c46c8b91:
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/csyangwen/dsh-memory-evolve/tar.gz/1e6e7eb15ce515b0f2bd2142bdee9a36c46c8b91}
-    version: 0.1.0
 
   jpeg-js@0.4.4:
     resolution: {integrity: sha512-WZzeDOEtTOBK4Mdsar0IqEU5sMr3vSV2RqkAIzUEV2BHnUfKGyswWFPFwK5EeDo93K3FohSHbLAjj0s1Wzd+dg==}
@@ -250,14 +243,14 @@ snapshots:
 
   '@linxin666/dsh-client-ui-skin-blue-fantasy@0.2.0': {}
 
-  '@linxin666/dsh-client-ui-skin-center@0.3.11(react@18.3.1)':
+  '@linxin666/dsh-client-ui-skin-center@0.3.16(react@18.3.1)':
     dependencies:
       jpeg-js: 0.4.4
       lightningcss: 1.33.0
       react: 18.3.1
       schemastery: 3.18.0
 
-  '@linxin666/dsh-liangshen@0.3.11':
+  '@linxin666/dsh-liangshen@0.3.16':
     dependencies:
       schemastery: 3.18.0
 
@@ -278,8 +271,6 @@ snapshots:
       zod: 4.4.3
     optionalDependencies:
       react: 18.3.1
-
-  dsh-memory-evolve@https://codeload.github.com/csyangwen/dsh-memory-evolve/tar.gz/1e6e7eb15ce515b0f2bd2142bdee9a36c46c8b91: {}
 
   jpeg-js@0.4.4: {}
 

@@ -18,7 +18,10 @@ let
       # First build fails with a hash mismatch; fill in the printed sha256 here.
       hash = hash;
       fetcherVersion = 4;
-      nativeBuildInputs = [ pkgs.git ];
+      nativeBuildInputs = [
+        pkgs.git
+        pkgs.rolldown
+      ];
     };
 
   buildDshNpmPackage =
@@ -52,7 +55,6 @@ let
         nativeBuildInputs = [
           pkgs.nodejs
           pkgs.pnpm
-          pkgs.pnpmConfigHook
           pkgs.git
           pkgs.pnpmConfigHook
           pkgs.pnpmBuildHook
@@ -73,11 +75,6 @@ let
         '';
       }
     );
-  dsh-client-ui = pkgs.fetchgit {
-    url = "https://github.com/zhu1090093659/dsh-web-ui/";
-    rev = "b391cc6cc97f6ba3c1dc743b5383519abeb106c4";
-    sha256 = "sha256-bjWDb1IuTUOc+2toj3auBuEv6ywxoTZJBWwKQo6z0AE=";
-  };
 in
 rec {
   mcp-neovim-server = pkgs.buildNpmPackage {
@@ -114,6 +111,43 @@ rec {
       sha256 = "sha256-QpFhAEzfrHtsKGKROBJfNgFSbV3B5ZwbqEYTh2PrH9c=";
     };
     npmDepsHash = "sha256-cKEzttAbFBPZ7dhNs4JIcltkIftU2Y5PuxiCFCm14ew=";
+  };
+
+  nuphus-mcp = pkgs.rustPlatform.buildRustPackage rec {
+    pname = "nuphus-mcp";
+    version = "v0.2.2";
+    src = pkgs.fetchFromGitHub {
+      owner = "mrpulor-gh";
+      repo = pname;
+      rev = version;
+      sha256 = "sha256-LVgzou2jKU4qClrMBYDIwf5/dWnnNPsBTGiwhIG3zZ4=";
+    };
+    cargoHash = "sha256-ug/rA42yx8Yjv1EBO4Rs+yGVAk/EKW7e3LWnQrEUSG0=";
+    nativeBuildInputs = [
+      pkgs.pkg-config
+    ];
+    buildFeatures = [
+      "http-server"
+    ];
+    LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
+    BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.glibc.dev}/include -I${pkgs.libclang.lib}/lib/clang/${pkgs.libclang.version}/include";
+    # build.rs tries to download the ~150MB ONNX Runtime nupkg (no network in the
+    # sandbox, it only prints warnings anyway) — keep the build hermetic/fast.
+    NUPHUS_MCP_NO_ORT_DOWNLOAD = "1";
+    # Upstream `cargo test` pulls in ONNX/GUI-heavy desktop-api tests that get
+    # OOM-killed in the build sandbox; skip the check phase.
+    doCheck = false;
+    buildInputs = [
+      pkgs.wayland
+      pkgs.openssl
+      pkgs.libxkbcommon
+      pkgs.libdrm
+      pkgs.pipewire
+      pkgs.libgbm
+      pkgs.libglvnd
+      pkgs.libxcb
+      pkgs.xdotool
+    ];
   };
 
   git-mcp-server = pkgs.buildNpmPackage {
@@ -169,6 +203,8 @@ rec {
     build-system = [ pkgs.python312Packages.setuptools ];
   };
 
+  # dsh = pkgs.llm-agents.dsh;
+
   dsh-lsp = buildDshNpmPackage rec {
     pname = "dsh-lsp";
     version = "6634206";
@@ -216,16 +252,6 @@ rec {
     ];
   };
 
-  dsh-client-ui-all = buildDshPnpmPackage {
-    pname = "dsh-client-ui-all";
-    version = "763d88";
-    src = dsh-client-ui;
-    hash = "sha256-ob/DC7I2q88s6o6ZCdj0QUy8krOyrU4JGIYHHRVsYf4=";
-    preFixup = ''
-      cp ./packages $out/ -r
-    '';
-  };
-
   dsh-tui = buildDshPnpmPackage rec {
     pname = "dsh-tui";
     version = "f7db605";
@@ -234,7 +260,11 @@ rec {
       rev = version;
       sha256 = "sha256-Dx1nMu/onJZlqiN56M0hq/5r0ggNC59xmjVV98TtSnA=";
     };
-    hash = "sha256-U4c5/enAwPbJypxngBwtMy1IY+7xdw1MEB+vJA0MZZo=";
+    hash = "sha256-ke68+1fNUZAF1soImBivnvCeww4VSLu9k5ec3dEbpPE=";
+    dontPnpmBuild = true;
+    buildPhase = ''
+      pnpm run compile:src
+    '';
   };
 
   dsh-memory-evolve = buildDshPnpmPackage rec {
@@ -246,6 +276,18 @@ rec {
       sha256 = "sha256-fNFBsveLlLKMSOoIZvVu2u9Dcp3xjX+SRcrpLTbX2vQ=";
     };
     hash = "sha256-dIp6CNh1Kn4aqJWku1G/FUdn/u+epzhqlqwnAkB2uW0=";
+    dontNpmBuild = true;
+  };
+
+  billion-context-dsh = buildDshNpmPackage rec {
+    pname = "billion-context-dsh";
+    version = "bb9f2f6";
+    src = pkgs.fetchgit {
+      url = "https://github.com/Tyan66666/billion-context-dsh";
+      rev = version;
+      sha256 = "sha256-JK2DHLBn+Mg5pfE57p5L30yqrWzsVb/GWPaR2eFmfxU=";
+    };
+    npmDepsHash = "sha256-zF1HISOcq6WVrqgZAIDQ902oU0y7BzEvn5h2+PfVRSg=";
   };
 
   # ── Hindsight memory server (https://github.com/vectorize-io/hindsight) ──

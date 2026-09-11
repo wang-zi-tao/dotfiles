@@ -71,6 +71,11 @@ pkgs-shell)
 	shift
 	nix shell "$script_dir#vars.$system.pkgs.$package" "$@"
 	;;
+pkgs-shell-i)
+	package=$1
+	shift
+	nix shell -i "$script_dir#vars.$system.pkgs.$package" "$@"
+	;;
 pkgs-run)
 	package=$1
 	shift

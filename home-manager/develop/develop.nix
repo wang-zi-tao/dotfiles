@@ -258,9 +258,6 @@ in
   };
 
   programs.mcp.servers = {
-    playwright = {
-      command = "${pkgs.playwright-mcp}/bin/mcp-server-playwright";
-    };
     # github = {
     #   command = "${pkgs.github-mcp-server}/bin/github-mcp-server";
     #   args = [ "stdio" ];

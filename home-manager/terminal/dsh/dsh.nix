@@ -7,7 +7,6 @@
 }:
 
 let
-  dsh-unwrapped = pkgs.llm-agents.dsh;
   cordis_patch = [
     {
       id = "agent-teams";
@@ -32,48 +31,59 @@ let
   ];
   plugins = with pkgs; [
     dsh-hindsight
-    dsh-agent-teams
     dsh-lsp
+    dsh-neovim
+
+    dsh-agent-teams
+    billion-context-dsh
   ];
   profile-web = pkgs.dsh-profile {
     name = "web";
-    hash = "sha256-IKObHmI0S/lsmsjyVGQvTdjxkiTLW04qoi5fVsDDcAQ=";
+    hash = "sha256-NQmxOrnq6Nxg/DWbjHKrokK1pAcjGifMP8ttKeUX2z4=";
     plugins = plugins;
     src = ./web;
-    package = dsh-unwrapped;
+    package = pkgs.dsh;
     cordis_patch = cordis_patch;
   };
   profile-tui = pkgs.dsh-profile {
     name = "tui";
-    hash = "sha256-2Qzoby1/ldwUPe53kBpCv3kLDq8y8y9eGru2TjMtZog=";
+    hash = "sha256-dnIu0gV7+WObLwpxD5J1vLUmzNiR9kF/G4q/75CJ7PM=";
     plugins = plugins;
     src = ./tui;
-    package = dsh-unwrapped;
+    package = pkgs.dsh;
     cordis_patch = cordis_patch;
   };
 
   # One @deepseek-ai/dsh-mcp-client plugin row per home-manager MCP server,
   # inserted through the home-level cordis.patch.yml layer.
-  mcpPatch = name: server: {
-    id = "mcp-${name}";
-    name = "@deepseek-ai/dsh-mcp-client";
-    config =
-      if server.url != null then
-        {
-          serverName = name;
-          transport = "streamable-http";
-          url = server.url;
-          headers = server.headers or { };
-        }
-      else
-        {
-          serverName = name;
-          transport = "stdio";
-          command = server.command;
-          args = server.args or [ ];
-          env = server.env or { };
-        };
-  };
+  mcpPatch =
+    name: server:
+    let
+      wrapper = pkgs.writeScript "dsh-mcp-${name}-wrapper" ''
+        #!${pkgs.busybox}/bin/sh
+        exec "$@" 2> >(logger -t ${name})
+      '';
+    in
+    {
+      id = "mcp-${name}";
+      name = "@deepseek-ai/dsh-mcp-client";
+      config =
+        if server.url != null then
+          {
+            serverName = name;
+            transport = "streamable-http";
+            url = server.url;
+            headers = server.headers or { };
+          }
+        else
+          {
+            serverName = name;
+            transport = "stdio";
+            command = "${wrapper}";
+            args = [ server.command ] ++ (server.args or [ ]);
+            env = server.env or { };
+          };
+    };
 in
 {
   config = {
@@ -118,6 +128,22 @@ in
       ]);
     };
 
+    systemd.user.services.dsh = {
+      Unit = {
+        Description = "dsh server";
+        After = [ "graphical-session-pre.target" ];
+        PartOf = [ "graphical-session.target" ];
+      };
+      Service = {
+        Type = "simple";
+        ExecStart = "${pkgs.dsh}/bin/dsh web";
+        Restart = "always";
+      };
+      Install = {
+        WantedBy = [ "graphical-session.target" ];
+      };
+    };
+
     home.packages = with pkgs; [
       (writeScriptBin "dsh" ''
         #!${bash}/bin/bash
@@ -125,7 +151,7 @@ in
           export DEEPSEEK_API_KEY=$(cat /run/secrets/apikey/deepseek)
         fi
         export DSH_TUI_SKIP_UPDATE=1
-        exec ${dsh-unwrapped}/bin/dsh "$@"
+        exec ${dsh}/bin/dsh "$@"
       '')
     ];
   };

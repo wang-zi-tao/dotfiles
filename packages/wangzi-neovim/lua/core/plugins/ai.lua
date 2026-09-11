@@ -366,8 +366,12 @@ local function config_codecompanion()
 end
 
 local opencode_cmd = { 'opencode', '-c', '--port' }
+local dsh_cmd = { 'dsh', '--profile', 'tui' }
 ---@type snacks.terminal.Opts
 local snacks_terminal_opts = {
+  env = {
+    NVIM = vim.v.servername,
+  },
   win = {
     position = 'right',
     enter = true,
@@ -643,6 +647,27 @@ return {
         expr = true,
         desc = "toggle OpenCode",
         mode = { "n", "x" }
+      },
+      {
+        "<leader>td",
+        function()
+          local Job = require("plenary.job")
+          local nu_command = "with-env { NVIM: '" .. vim.v.servername .. "' } { dsh.cmd --profile tui }"
+          if vim.fn.has("win32") == 1 then
+            --wt -w 0 sp -s 0.25 nu -c $"$env.NVIM = '($env.NVIM)'; dsh.cmd --profile tui"
+            Job:new({
+              command = [[C:\Users\wps\AppData\Local\Microsoft\WindowsApps\wt.exe]],
+              args = { "-w", "0", "sp", "-s", "0.25",
+                "nu", "-c",
+                nu_command },
+            }):start()
+          else
+            vim.schedule(function()
+              require('snacks.terminal').toggle(dsh_cmd, snacks_terminal_opts)
+            end)
+          end
+        end,
+        desc = "Deepseek Harness",
       },
     },
     config = function()

@@ -37,6 +37,14 @@ in
             "NVIM_SOCKET_PATH" = "/tmp/nvim";
           };
         };
+        browser = {
+          command = "${pkgs.llm-agents.agent-browser}/bin/agent-browser";
+          args = [
+            "mcp"
+            "--tools"
+            "all"
+          ];
+        };
       };
     };
     xdg.configFile."mcphub/servers.json".text = builtins.toJSON {

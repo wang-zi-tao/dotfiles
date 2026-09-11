@@ -696,7 +696,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
       parameters: {
         ...spec.parameters,
         properties: {
-          ...spec.parameters,
+          ...(spec.parameters as any).properties,
           output_json: BOOLEAN('是否以 JSON 格式输出结果（默认 false）'),
         },
       },

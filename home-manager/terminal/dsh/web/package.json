@@ -8,8 +8,7 @@
     "@linxin666/dsh-liangshen": "latest",
     "@omdsh-dev/dsh-genui": "github:omdsh-dev/dsh-genui",
     "@vlln/dsh-navbar": "github:vlln/dsh-navbar",
-    "dsh-at-file": "github:omdsh-dev/dsh-at-file",
-    "dsh-memory-evolve": "github:csyangwen/dsh-memory-evolve"
+    "dsh-at-file": "github:omdsh-dev/dsh-at-file"
   },
   "dsh": {
     "profile": {

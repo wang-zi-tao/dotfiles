@@ -10,11 +10,11 @@
  * event injection, which is why dsh-llm sits in `dependencies`.
  */
 
-import type { Context, Logger } from '@deepseek-ai/cordis'
-import type { ToolDefinition, ToolRunContext, ToolExecution } from '@deepseek-ai/dsh-tools'
-import type { CommandDefinition, CommandInvocation, CommandResult } from '@deepseek-ai/dsh-commands'
-import type { Agent } from '@deepseek-ai/dsh-agent'
-import type { Session } from '@deepseek-ai/dsh-session'
+import type {Context, Logger} from '@deepseek-ai/cordis';
+import type {ToolDefinition, ToolRunContext, ToolExecution} from '@deepseek-ai/dsh-tools';
+import type {CommandDefinition, CommandInvocation, CommandResult} from '@deepseek-ai/dsh-commands';
+import type {Agent} from '@deepseek-ai/dsh-agent';
+import type {Session} from '@deepseek-ai/dsh-session';
 
 export type {
   Context,
@@ -27,7 +27,7 @@ export type {
   CommandResult,
   Agent,
   Session,
-}
+};
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -39,10 +39,10 @@ export interface NeovimConfig {
    * $NVIM_LISTEN_ADDRESS → $NVIM → `\\.\pipe\nvim` (win32) →
    * `$XDG_RUNTIME_DIR|/tmp/nvim.$USER`.
    */
-  socket: string
+  socket: string;
   /**
    * Lua module hosting the debugger bridge functions
    * (`dap_subscribe`, `dap_*`, `reload_file`, `run_async`).
    */
-  luaModule: string
+  luaModule: string;
 }

@@ -3,11 +3,12 @@
   stdenvNoCC,
   nodejs,
   typescript,
+  dsh,
 }:
 
 stdenvNoCC.mkDerivation {
   pname = "dsh-hindsight";
-  version = "0.1.0";
+  version = "0.2.0";
 
   src = ./.;
 
@@ -18,6 +19,9 @@ stdenvNoCC.mkDerivation {
 
   buildPhase = ''
     runHook preBuild
+
+    cp -rsf ${dsh}/lib/node_modules/@deepseek-ai/dsh/node_modules/ .
+
     tsc -p tsconfig.build.json
     runHook postBuild
   '';
@@ -33,7 +37,7 @@ stdenvNoCC.mkDerivation {
   installPhase = ''
     runHook preInstall
     mkdir -p "$out/lib"
-    cp -r lib cordis.patch.yml package.json package-lock.json README.md ARCHITECTURE.md "$out/lib"
+    cp -r lib cordis.patch.yml package.json README.md ARCHITECTURE.md "$out/lib"
     runHook postInstall
   '';
 
