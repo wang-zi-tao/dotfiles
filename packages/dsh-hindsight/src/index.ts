@@ -23,7 +23,7 @@
 import {DEFAULTS, resolveConfig} from './config.js';
 import type {HindsightConfig} from './config.js';
 import {HindsightClient} from './client.js';
-import type {RecallResult, RetainItem, RetainResponse} from './client.js';
+import type {MentalModel, RecallResult, RetainItem, RetainResponse} from './client.js';
 import {buildTurnRecord, buildTurnRecordsFromEvents} from './transcript.js';
 import type {TurnRecord} from './transcript.js';
 import {installFileLogger} from './logger.js';
@@ -408,7 +408,7 @@ function toolDefinitions(client: HindsightClient, config: HindsightConfig): Tool
         return {
           ok: true,
           message: results.length
-            ? `Recalled ${results.length} memories from Hindsight bank '${config.bankId}'.`
+            ? `Recalled ${results.length} memories from Hindsight.`
             : `No relevant memories found in Hindsight bank '${config.bankId}'.`,
           bankId: config.bankId,
           count: results.length,
@@ -623,6 +623,18 @@ function memoryMessage(text: string): UserMessage {
   };
 }
 
+/** Build a user-role mental-model message for injection into the pre-step decision. */
+function mentalModelMessage(name: string, content: string): UserMessage {
+  const preamble = '<hindsight-mental-model name="' + name + '">\n# Hindsight Mental Model: ' + name + '\n\n';
+  const footer = '\n</hindsight-mental-model>';
+  return {
+    id: ('hindsight-mm-' + Date.now() + '-' + (++memoryMessageSeq)) as UserMessage['id'],
+    role: 'user',
+    content: [{type: 'text', text: preamble + content + footer}],
+    source: {kind: 'plugin', plugin: 'dsh-hindsight', form: 'recall'},
+  };
+}
+
 /** Format recall results as a compact bulleted text block for injection. */
 function recallResultsToText(results: RecallResult[]): string {
   const lines: string[] = [];
@@ -664,6 +676,144 @@ async function recallAndInject(
   }
 }
 
+
+/**
+ * A mental model the plugin wants to keep available for the agent: the user
+ * preference model plus one project model derived from the session cwd.
+ */
+interface MentalModelWanted {
+  /** Stable identity for dedup and in-flight tracking. */
+  key: string;
+  name: string;
+  sourceQuery: string;
+  tags: string[];
+}
+
+function wantedMentalModels(config: HindsightConfig, cwd: string | undefined): MentalModelWanted[] {
+  const wants: MentalModelWanted[] = [];
+  if (config.mentalModelUserQuery.trim()) {
+    wants.push({
+      key: 'user',
+      name: config.mentalModelUserQuery.trim(),
+      sourceQuery: config.mentalModelUserQuery.trim(),
+      tags: config.mentalModelUserTags,
+    });
+  }
+  if (cwd && config.mentalModelProjectQueryTemplate.trim()) {
+    const query = config.mentalModelProjectQueryTemplate.replace(/{cwd}/g, cwd);
+    wants.push({
+      key: 'project:' + cwd,
+      name: '项目 ' + cwd,
+      sourceQuery: query,
+      tags: config.mentalModelProjectTags,
+    });
+  }
+  return wants;
+}
+
+/**
+ * Ensure a mental model exists for the wanted query: look it up by
+ * source_query (falling back to name/id), auto-create it when missing, and
+ * wait for the background reflect to finish. Returns the fresh model or
+ * undefined when it is unavailable (fail-open).
+ */
+async function ensureMentalModel(
+  client: HindsightClient,
+  config: HindsightConfig,
+  want: MentalModelWanted,
+  creating: Map<string, Promise<MentalModel | undefined>>,
+  signal?: AbortSignal,
+): Promise<MentalModel | undefined> {
+  const inflight = creating.get(want.key);
+  if (inflight) return inflight;
+  const task = (async () => {
+    try {
+      const list = await client.listMentalModels(config.bankId, {signal, timeoutMs: config.mentalModelRequestTimeoutMs});
+      const items = Array.isArray(list.items) ? list.items : [];
+      const found = items.find(mm => mm.source_query === want.sourceQuery)
+        ?? items.find(mm => mm.name === want.name)
+        ?? (want.key === 'user' ? items.find(mm => mm.id === 'user_advise') : undefined);
+      if (found) {
+        return await client.getMentalModel(config.bankId, found.id, {signal, timeoutMs: config.mentalModelRequestTimeoutMs});
+      }
+      if (!config.mentalModelAutoCreate) return undefined;
+      const trigger: Record<string, unknown> = {
+        mode: config.mentalModelRefreshMode,
+        refresh_after_consolidation: true,
+      };
+      if (config.mentalModelFactTypes.length > 0) trigger.fact_types = config.mentalModelFactTypes;
+      const created = await client.createMentalModel({
+        bankId: config.bankId,
+        id: want.key === 'user' ? 'user_advise' : undefined,
+        name: want.name,
+        sourceQuery: want.sourceQuery,
+        tags: want.tags,
+        maxTokens: config.mentalModelMaxTokens,
+        trigger,
+        signal,
+        timeoutMs: config.mentalModelRequestTimeoutMs,
+      });
+      const operationId = created.operation_id;
+      if (operationId) {
+        const deadline = Date.now() + config.mentalModelTimeoutMs;
+        while (Date.now() < deadline) {
+          const status = await client.operationStatus(config.bankId, operationId, {signal, timeoutMs: config.mentalModelRequestTimeoutMs});
+          if (status.status === 'completed') break;
+          if (status.status === 'failed') return undefined;
+          await sleep(config.mentalModelPollIntervalMs);
+        }
+      }
+      const id = created.mental_model_id;
+      if (!id) return undefined;
+      return await client.getMentalModel(config.bankId, id, {signal, timeoutMs: config.mentalModelRequestTimeoutMs});
+    } catch (error) {
+      return undefined;
+    }
+  })();
+  creating.set(want.key, task);
+  task.finally(() => {
+    if (creating.get(want.key) === task) creating.delete(want.key);
+  }).catch(() => {});
+  return task;
+}
+
+/**
+ * Background: ensure user + project mental models exist and inject them into
+ * the agent's context — at most once per session (agent). The injection is
+ * keyed by agent id + wanted model, so every new session gets the current
+ * settled knowledge exactly once, and later turns of the same session skip
+ * the query entirely. When a model is not ready yet (auto-create still
+ * reflecting) it is not marked, so a later turn retries. Fail-open: any
+ * error only logs; the agent never waits on the memory fetch.
+ */
+async function mentalModelsAndInject(
+  agent: Agent,
+  signal: AbortSignal | undefined,
+  deps: {client: HindsightClient; config: HindsightConfig; creatingMentalModels: Map<string, Promise<MentalModel | undefined>>; injectedMentalModels: Set<string>; logger: Logger;},
+): Promise<void> {
+  if (!deps.config.autoMentalModel) return;
+  const cwd = typeof agent.session?.header?.cwd === 'string' ? agent.session.header.cwd : undefined;
+  const wants = wantedMentalModels(deps.config, cwd);
+  for (const want of wants) {
+    const sessionKey = agent.id + ':' + want.key;
+    if (deps.injectedMentalModels.has(sessionKey)) continue;
+    const mm = await ensureMentalModel(deps.client, deps.config, want, deps.creatingMentalModels, signal);
+    const content = typeof mm?.content === 'string' && mm.content.trim() ? mm.content : '';
+    if (!content) continue;
+    try {
+      if (typeof agent.inject !== 'function') {
+        deps.logger.warn('hindsight: agent.inject is unavailable, mental model not injected');
+        continue;
+      }
+      agent.inject(mentalModelMessage(want.name, content));
+      deps.injectedMentalModels.add(sessionKey);
+      deps.logger.info('hindsight mental model injected: ' + want.key + ' for agent ' + agent.id);
+    } catch (error) {
+      deps.logger.warn('hindsight mental model injection failed: ' + String(error));
+    }
+  }
+}
+
 /**
  * Compose the pre-step decision without blocking the agent on recall: the
  * decision is returned unchanged, and {@link recallAndInject} is scheduled
@@ -676,19 +826,19 @@ async function preStepDecision(
   turn: number,
   signal: AbortSignal | undefined,
   next: () => Promise<PreStepDecision>,
-  deps: {client: HindsightClient; config: HindsightConfig; injectedTurns: Set<string>; logger: Logger;},
+  deps: {client: HindsightClient; config: HindsightConfig; injectedTurns: Set<string>; creatingMentalModels: Map<string, Promise<MentalModel | undefined>>; injectedMentalModels: Set<string>; logger: Logger;},
 ): Promise<PreStepDecision> {
-  if (!deps.config.autoRecall || deps.config.memoryMode === 'tools') return next();
+  if ((!deps.config.autoRecall && !deps.config.autoMentalModel) || deps.config.memoryMode === 'tools') return next();
   const decision = await next();
   if (decision.kind !== 'enter') return decision;
   if (decision.messages.length === 0) return decision;
-  const key = `${agent.id}:${turn}`;
+  const key = agent.id + ':' + turn;
   if (deps.injectedTurns.has(key)) return decision;
   if (deps.config.skipSubagents && agent.session.header.origin === 'subagent') return decision;
   const query = extractUserQuery(messages);
-  if (!query) return decision;
   deps.injectedTurns.add(key);
-  void recallAndInject(agent, query, signal, deps);
+  if (deps.config.autoRecall && query) void recallAndInject(agent, query, signal, deps);
+  if (deps.config.autoMentalModel) void mentalModelsAndInject(agent, signal, deps);
   return decision;
 }
 
@@ -716,6 +866,8 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
   const states = new Map<string, SessionState>();
   const injectedTurns = new Set<string>();
   const disposedSessions = new Set<string>();
+  const creatingMentalModels = new Map<string, Promise<MentalModel | undefined>>();
+  const injectedMentalModels = new Set<string>();
 
   function stateFor(sessionId: string): SessionState {
     let state = states.get(sessionId);
@@ -835,6 +987,8 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
       client,
       config,
       injectedTurns,
+      creatingMentalModels,
+      injectedMentalModels,
       logger,
     }),
     {global: true});

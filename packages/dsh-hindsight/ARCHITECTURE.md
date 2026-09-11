@@ -39,9 +39,17 @@ session/event (turn/end, kind ∈ retainTurnKinds)
 agent/pre-step (global: true)
   └─ await next() → default decision with runtime context
   └─ extractUserQuery from payload.messages
-  └─ schedule reflectAndInject (fire-and-forget, non-blocking)
-       ├─ reflectWithTimeout (fail-open, async)
+  └─ schedule recallAndInject (fire-and-forget, non-blocking)
+       ├─ recallWithTimeout (fail-open, async)
        └─ agent.inject(memoryMessage) → claimed at next step boundary
+  └─ schedule mentalModelsAndInject (fire-and-forget, non-blocking)
+       ├─ for each wanted model (user + project from session cwd)
+       │    ├─ listMentalModels → find by source_query / name / user_advise id
+       │    ├─ missing && mentalModelAutoCreate → createMentalModel
+       │    │    └─ poll /operations/{operation_id} until completed
+       │    └─ getMentalModel → content
+       ├─ skip when already injected for this session (agent.id:want.key)
+       └─ agent.inject(mentalModelMessage) → claimed at next step boundary
 ```
 
 Retention happens off the reply path. If retain fails, the buffered record is
@@ -63,6 +71,10 @@ stay independent across sessions.
 | reflect | `POST /v1/default/banks/{bank_id}/reflect` |
 | operation status | `GET /v1/default/banks/{bank_id}/operations/{operation_id}` |
 | version | `GET /version` |
+| list mental models | `GET /v1/default/banks/{bank_id}/mental-models` |
+| get mental model | `GET /v1/default/banks/{bank_id}/mental-models/{id}` |
+| create mental model | `POST /v1/default/banks/{bank_id}/mental-models` |
+| update mental model | `PATCH /v1/default/banks/{bank_id}/mental-models/{id}` |
 
 ## Why recall is injected at agent/pre-step (reflect, asynchronously)
 
@@ -84,6 +96,38 @@ reflection without blocking the turn. The hook is fail-open: timeouts, reflect
 errors, and an unavailable `agent.inject` never block a turn. Per-turn dedup
 (`injectedTurns` set by `agent.id:turn`) prevents duplicate reflect
 scheduling on sub-steps.
+
+## Mental-model injection (auto-create + inject)
+
+On `agent/pre-step` the plugin also ensures two curated mental models exist
+and injects their current content — at most once per session:
+
+- **user model** — `source_query = mentalModelUserQuery` (default `用户偏好`);
+  auto-created with id `user_advise` when missing;
+- **project model** — one per session cwd; `source_query` is
+  `mentalModelProjectQueryTemplate` with `{cwd}` replaced by
+  `agent.session.header.cwd` (skipped when the session has no cwd).
+
+The mental-models endpoints are distinct from recall: they return the
+pre-synthesized standing answer (a plain database read on the server, ~ms),
+not fresh retrieval. Injection is tracked per session (agent) in
+`injectedMentalModels` keyed by `agent.id:want.key`, so each session receives
+the settled content exactly once and later turns skip the query entirely —
+there is no per-turn polling. A wanted model that is not ready yet (content
+empty, e.g. auto-create still reflecting) is left unmarked and retried on a
+later turn of the same session. Cross-session freshness is provided by the
+server-side refresh, not by re-injection. The user requested no truncation, so
+full content is injected.
+
+Auto-created models use `mentalModelRefreshMode` (default `delta`) and
+`refresh_after_consolidation: true`, so the server keeps them current
+incrementally after each consolidation. Missing models are created
+asynchronously and polled via `/operations/{operation_id}` until the
+background reflect completes (`mentalModelTimeoutMs` cap, fail-open on
+timeout/error). In-flight creations are deduplicated per wanted key.
+
+Like recall, the whole path is fire-and-forget and fail-open: the decision
+is returned before any memory work, and errors only log.
 
 ## Configuration ownership
 

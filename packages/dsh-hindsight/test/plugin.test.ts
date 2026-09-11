@@ -162,6 +162,11 @@ interface FetchCall {
 }
 
 function fakeFetch(calls: FetchCall[]): typeof globalThis.fetch {
+  const store: { mentalModels: Array<{id: string; name: string; source_query: string; content: string | null}> } = {
+    mentalModels: [
+      { id: 'user_advise', name: '用户偏好', source_query: '用户偏好', content: '## 用户偏好\n- 喜欢函数式编程' },
+    ],
+  }
   return (async (url: RequestInfo | URL, init: RequestInit = {}) => {
     const target = String(url)
     calls.push({ url: target, init })
@@ -177,6 +182,30 @@ function fakeFetch(calls: FetchCall[]): typeof globalThis.fetch {
     }
     if (target.endsWith('/version')) {
       return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({ version: '0.6.1' }) } as Response
+    }
+    if (/\/mental-models\/[^\/]+$/.test(target) && init.method === 'GET') {
+      const id = decodeURIComponent(target.split('/').pop()!)
+      const mm = store.mentalModels.find(m => m.id === id)
+      if (mm) return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify(mm) } as Response
+      return { ok: false, status: 404, statusText: 'not found', text: async () => JSON.stringify({ detail: 'not found' }) } as Response
+    }
+    if (target.endsWith('/mental-models') && init.method === 'GET') {
+      return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({ items: store.mentalModels }) } as Response
+    }
+    if (target.endsWith('/mental-models') && init.method === 'POST') {
+      const created = {
+        id: String(body?.id ?? 'mm-created'),
+        name: String(body?.name ?? ''),
+        source_query: String(body?.source_query ?? ''),
+        // Simulate the background reflect completing: content is present when
+        // the model is fetched after the operation finishes.
+        content: '## ' + String(body?.name ?? '') + '\n- 模拟生成内容',
+      }
+      store.mentalModels.push(created)
+      return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({ mental_model_id: created.id, operation_id: 'op-1' }) } as Response
+    }
+    if (/\/operations\/[^\/]+$/.test(target) && init.method === 'GET') {
+      return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({ status: 'completed' }) } as Response
     }
     return { ok: false, status: 404, statusText: 'not found', text: async () => JSON.stringify({ detail: 'not found' }) } as Response
   }) as unknown as typeof globalThis.fetch
@@ -372,10 +401,150 @@ test('agent/pre-step does not schedule recall twice for the same agent+turn', wi
     )
     assert.equal(d2.messages.length, 1, 'second call should skip scheduling')
 
-    // Exactly one recall and exactly one injection
+    // Exactly one recall call and exactly one recall injection (mental-model
+    // injections are scheduled separately and are not counted here).
     await waitFor(() => injectedMessages.length >= 1)
     assert.equal(calls.filter(call => call.url.endsWith('/memories/recall')).length, 1)
-    assert.equal(injectedMessages.length, 1, 'inject called exactly once per agent+turn')
+    const recallInjections = injectedMessages.filter((m: any) => String(m.content?.[0]?.text ?? '').includes('hindsight-recall'))
+    assert.equal(recallInjections.length, 1, 'recall injected exactly once per agent+turn')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+
+// ----- D: mental model injection in agent/pre-step -----
+
+test('agent/pre-step injects user + project mental models (auto-create when missing)', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: true,
+      recallTimeoutMs: 5000,
+      autoMentalModel: true,
+      mentalModelUserQuery: '用户偏好',
+      mentalModelProjectQueryTemplate: '项目 {cwd} 的\n- 概述\n- 项目架构',
+      mentalModelAutoCreate: true,
+      mentalModelTimeoutMs: 2000,
+      mentalModelPollIntervalMs: 100,
+    })
+
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener, 'agent/pre-step listener should be registered')
+
+    const injectedMessages: any[] = []
+    const agent = {
+      id: 'agent-mm',
+      session: { header: { cwd: 'D:\\repo\\proj', origin: 'user' } },
+      inject: (msg: any) => injectedMessages.push(msg),
+    }
+    const decision = await preStepListener(
+      { agent, messages: [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'Continue the work' }] }], turn: 1, step: 1 },
+      async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'ctx' }] }),
+    )
+    assert.equal(decision.kind, 'enter', 'decision must not block on mental models')
+
+    // User model already exists (store has user_advise); project model is auto-created.
+    await waitFor(() => injectedMessages.length >= 2, 3000)
+    const mentalTexts = injectedMessages.map((m: any) => String(m.content?.[0]?.text ?? ''))
+    const userInjected = mentalTexts.find(t => t.includes('hindsight-mental-model') && t.includes('用户偏好'))
+    assert.ok(userInjected, 'user mental model should be injected')
+    assert.ok(userInjected!.includes('喜欢函数式编程'), 'user mental model content should be injected')
+    const projectInjected = mentalTexts.find(t => t.includes('hindsight-mental-model') && t.includes('项目'))
+    assert.ok(projectInjected, 'project mental model should be injected')
+
+    // A create request for the project model was issued (auto-create on missing).
+    const createCall = calls.find(call => call.url.endsWith('/mental-models') && call.init.method === 'POST')
+    assert.ok(createCall, 'expected a mental-model create request for the missing project model')
+    const createBody = JSON.parse(String(createCall!.init.body)) as { name: string; source_query: string; trigger: Record<string, unknown> }
+    assert.match(createBody.source_query, /项目 D:\\repo\\proj 的/)
+    assert.equal(createBody.trigger.mode, 'delta', 'auto-created models should use the configured refresh mode (delta)')
+    assert.equal(createBody.trigger.refresh_after_consolidation, true, 'auto-created models refresh after consolidation')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('mental models are injected at most once per session', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: false,
+      autoMentalModel: true,
+      mentalModelAutoCreate: false,
+    })
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener)
+    const injectedMessages: any[] = []
+    const agent = {
+      id: 'agent-mm2',
+      // No cwd → only the user mental model is wanted (no project model).
+      session: { header: { origin: 'user' } },
+      inject: (msg: any) => injectedMessages.push(msg),
+    }
+    const mkMsg = (i: number) => [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'turn ' + i }] }]
+    // First turn: the user model exists in the store, so it is injected.
+    await preStepListener({ agent, messages: mkMsg(1), turn: 1, step: 1 }, async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'c' }] }))
+    await waitFor(() => injectedMessages.length >= 1)
+    const mentalInjections = () => injectedMessages.filter((m: any) => String(m.content?.[0]?.text ?? '').includes('hindsight-mental-model'))
+    assert.equal(mentalInjections().length, 1, 'first turn injects the user mental model')
+    // Second turn, same agent: the plugin must not re-query or re-inject.
+    const callsBefore = calls.length
+    await preStepListener({ agent, messages: mkMsg(2), turn: 2, step: 1 }, async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'c' }] }))
+    await new Promise(resolve => setTimeout(resolve, 150))
+    assert.equal(mentalInjections().length, 1, 'second turn does not re-inject the mental model')
+    // No new /mental-models traffic after the first-turn injection.
+    const mmCallsAfter = calls.slice(callsBefore).filter(c => c.url.includes('/mental-models'))
+    assert.equal(mmCallsAfter.length, 0, 'same-session later turns skip mental-model queries')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('each session (agent) gets its own mental-model injection', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: false,
+      autoMentalModel: true,
+      mentalModelAutoCreate: false,
+    })
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener)
+    const injectedMessages: any[] = []
+    const mkAgent = (id: string) => ({
+      id,
+      session: { header: { cwd: 'C:\\work\\app', origin: 'user' } },
+      inject: (msg: any) => injectedMessages.push(msg),
+    })
+    const mkMsg = (i: number) => [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'turn ' + i }] }]
+    const run = async (agent: any) => {
+      await preStepListener({ agent, messages: mkMsg(1), turn: 1, step: 1 }, async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'c' }] }))
+    }
+    await run(mkAgent('session-A'))
+    await waitFor(() => injectedMessages.length >= 1)
+    await run(mkAgent('session-B'))
+    await waitFor(() => injectedMessages.length >= 2)
+    const mentalInjections = injectedMessages.filter((m: any) => String(m.content?.[0]?.text ?? '').includes('hindsight-mental-model'))
+    assert.equal(mentalInjections.length, 2, 'each session receives its own injection')
   } finally {
     globalThis.fetch = originalFetch
   }

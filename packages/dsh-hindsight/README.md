@@ -5,10 +5,15 @@ Hindsight long-term memory plugin for [DeepSeek Harness](https://github.com/deep
 
 - **automatic retention** — completed turns are extracted from the dsh session
   event log and sent to the Hindsight bank in the background;
-- **automatic recall** — on each `agent/pre-step` the Hindsight reflect API
-  synthesizes relevant memories in the background and queues the result via
+- **automatic recall** — on each `agent/pre-step` the Hindsight recall API
+  fetches relevant memories in the background and queues the result via
   `agent.inject()` for the next step boundary (fail-open, non-blocking, with a
   configurable timeout);
+- **mental-model injection** — on each `agent/pre-step` the plugin looks up
+  the user-preference mental model and a per-project mental model (keyed by the
+  session cwd), auto-creates either when it is missing, and injects the current
+  content via `agent.inject()` when it has changed. No truncation; refresh is
+  left to the server (delta mode by default);
 - **explicit tools** — `hindsight_retain`, `hindsight_recall`,
   `hindsight_reflect`, and `hindsight_status`;
 - **slash command** — `/hindsight-import` imports turns from a historical dsh
@@ -90,6 +95,12 @@ Precedence, highest wins:
 | `HINDSIGHT_RETAIN_TAGS` | Comma-separated default retain tags |
 | `HINDSIGHT_RECALL_TAGS` | Comma-separated recall filter tags |
 | `HINDSIGHT_RECALL_TYPES` | Comma-separated recall fact types |
+| `HINDSIGHT_AUTO_MENTAL_MODEL` | Enable/disable mental-model injection (`true`/`false`) |
+| `HINDSIGHT_MENTAL_MODEL_USER_QUERY` | `source_query` for the user-preference mental model |
+| `HINDSIGHT_MENTAL_MODEL_PROJECT_QUERY_TEMPLATE` | Template for the per-project model; `{cwd}` is replaced by the session cwd |
+| `HINDSIGHT_MENTAL_MODEL_MAX_TOKENS` | `max_tokens` for auto-created mental models |
+| `HINDSIGHT_MENTAL_MODEL_REFRESH_MODE` | Refresh mode for auto-created models: `full` or `delta` |
+| `HINDSIGHT_MENTAL_MODEL_AUTO_CREATE` | Auto-create a missing mental model (`true`/`false`) |
 
 ### Row config
 
@@ -120,6 +131,23 @@ back to the plugin defaults.
     recallMaxTokens: 4096
     recallMaxInputChars: 800
     recallTypes: [experience, observation, world]
+
+    autoMentalModel: true
+    mentalModelUserQuery: 用户偏好
+    mentalModelProjectQueryTemplate: |
+      项目 {cwd} 的
+      - 概述
+      - 项目架构
+      - 设计偏好
+      - 相关事件
+      - 相关修改
+      - 重要实体
+    mentalModelMaxTokens: 4096
+    mentalModelRefreshMode: delta
+    mentalModelAutoCreate: true
+    mentalModelTimeoutMs: 120000
+    mentalModelRequestTimeoutMs: 10000
+    mentalModelPollIntervalMs: 3000
 ```
 
 Prefer `HINDSIGHT_API_KEY` over putting credentials in YAML.
@@ -151,7 +179,7 @@ existing Hermes-style `config.json` works as a starting point.
 | --- | --- |
 | `ctx.tools.register` | Register the four model-facing tools |
 | `ctx.commands.register` | Register the `/hindsight-import` slash command |
-| `agent/pre-step` (`{ global: true }`) | Schedule a background reflect and queue the synthesized memory via `agent.inject()` for the next step boundary (non-blocking) |
+| `agent/pre-step` (`{ global: true }`) | Schedule background recall and mental-model fetch, and queue the synthesized memory via `agent.inject()` for the next step boundary (non-blocking) |
 | `session/event` (`turn/end`, `{ global: true }`) | Buffer/retain completed turns |
 | `session/disposed` (`{ global: true }`) | Best-effort flush of buffered turns and state cleanup |
 
@@ -167,3 +195,16 @@ Subagent sessions are skipped by default (`skipSubagents: true`).
 - Auto-retain only runs for turn end reasons listed in `retainTurnKinds`
   (default `[completed]`). Tool failures and cancellations are not written as
   memories.
+- Mental-model injection is fail-open and non-blocking: it looks up the user
+  model (source_query `用户偏好`, id `user_advise` when auto-created) and one
+  project model per session cwd (source_query from
+  `mentalModelProjectQueryTemplate`). Missing models are auto-created with the
+  configured `mentalModelRefreshMode` and `refresh_after_consolidation: true`,
+  then polled via the operations endpoint until the background reflect finishes.
+- Injection happens **at most once per session (agent)**: the plugin records
+  which mental models were already delivered to a given agent and skips both the
+  query and the inject on later turns of that session. A model that is not ready
+  yet (e.g. auto-create still reflecting) is not marked, so a later turn retries.
+  Each new session gets the current settled content; cross-session freshness
+  comes from the server-side refresh (delta mode by default). Content is not
+  truncated.

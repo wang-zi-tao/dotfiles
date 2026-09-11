@@ -20,6 +20,7 @@ export type RecallBudget = 'low' | 'mid' | 'high'
 // RecallPrefetch removed in v0.2.0; autoRecall now uses recall API via agent/pre-step
 export type TagsMatch = 'any' | 'all' | 'any_strict' | 'all_strict'
 export type RetainUpdateMode = null | 'append' | 'replace'
+export type MentalModelRefreshMode = 'full' | 'delta'
 
 export interface HindsightConfig {
   apiUrl: string
@@ -56,6 +57,20 @@ export interface HindsightConfig {
   retainUpdateMode: RetainUpdateMode
   includeToolResults: boolean
   skipSubagents: boolean
+
+  // Mental model injection (auto-created curated standing answers).
+  autoMentalModel: boolean
+  mentalModelUserQuery: string
+  mentalModelUserTags: string[]
+  mentalModelProjectQueryTemplate: string
+  mentalModelProjectTags: string[]
+  mentalModelMaxTokens: number
+  mentalModelRefreshMode: MentalModelRefreshMode
+  mentalModelAutoCreate: boolean
+  mentalModelFactTypes: string[]
+  mentalModelTimeoutMs: number
+  mentalModelRequestTimeoutMs: number
+  mentalModelPollIntervalMs: number
 }
 
 export const DEFAULT_API_URL = 'https://api.hindsight.vectorize.io'
@@ -98,12 +113,27 @@ export const DEFAULTS: Readonly<HindsightConfig> = Object.freeze({
   retainUpdateMode: null,
   includeToolResults: false,
   skipSubagents: false,
+
+  autoMentalModel: true,
+  mentalModelUserQuery: '用户偏好',
+  mentalModelUserTags: [],
+  mentalModelProjectQueryTemplate:
+    '项目 {cwd} 的\n- 概述\n- 项目架构\n- 设计偏好\n- 相关事件\n- 相关修改\n- 重要实体',
+  mentalModelProjectTags: [],
+  mentalModelMaxTokens: 4096,
+  mentalModelRefreshMode: 'delta',
+  mentalModelAutoCreate: true,
+  mentalModelFactTypes: ['observation', 'experience'],
+  mentalModelTimeoutMs: 120000,
+  mentalModelRequestTimeoutMs: 10000,
+  mentalModelPollIntervalMs: 3000,
 })
 
 const BUDGETS = new Set<string>(['low', 'mid', 'high'])
 const MEMORY_MODES = new Set<string>(['hybrid', 'context', 'tools'])
 const TAG_MATCHES = new Set<string>(['any', 'all', 'any_strict', 'all_strict'])
 const UPDATE_MODES = new Set<RetainUpdateMode>([null, 'append', 'replace'])
+const REFRESH_MODES = new Set<string>(['full', 'delta'])
 
 const ALIASES: Record<string, string> = {
   api_url: 'apiUrl',
@@ -138,6 +168,18 @@ const ALIASES: Record<string, string> = {
   retain_update_mode: 'retainUpdateMode',
   include_tool_results: 'includeToolResults',
   skip_subagents: 'skipSubagents',
+  auto_mental_model: 'autoMentalModel',
+  mental_model_user_query: 'mentalModelUserQuery',
+  mental_model_user_tags: 'mentalModelUserTags',
+  mental_model_project_query_template: 'mentalModelProjectQueryTemplate',
+  mental_model_project_tags: 'mentalModelProjectTags',
+  mental_model_max_tokens: 'mentalModelMaxTokens',
+  mental_model_refresh_mode: 'mentalModelRefreshMode',
+  mental_model_auto_create: 'mentalModelAutoCreate',
+  mental_model_fact_types: 'mentalModelFactTypes',
+  mental_model_timeout_ms: 'mentalModelTimeoutMs',
+  mental_model_request_timeout_ms: 'mentalModelRequestTimeoutMs',
+  mental_model_poll_interval_ms: 'mentalModelPollIntervalMs',
 }
 
 const BOOLEAN_KEYS = new Set<keyof HindsightConfig>([
@@ -148,6 +190,8 @@ const BOOLEAN_KEYS = new Set<keyof HindsightConfig>([
   'includeToolResults',
   'skipSubagents',
   'statusToolEnabled',
+  'autoMentalModel',
+  'mentalModelAutoCreate',
 ])
 
 const INTEGER_KEYS: Partial<Record<keyof HindsightConfig, number>> = {
@@ -159,6 +203,10 @@ const INTEGER_KEYS: Partial<Record<keyof HindsightConfig, number>> = {
   retainMaxChars: 1,
   retainDrainTimeoutMs: 1,
   retainOperationPollIntervalMs: 100,
+  mentalModelMaxTokens: 1,
+  mentalModelTimeoutMs: 1,
+  mentalModelRequestTimeoutMs: 1,
+  mentalModelPollIntervalMs: 100,
 }
 
 function fail(message: string): never {
@@ -257,6 +305,12 @@ export function resolveConfig(raw: RawConfig = {}, env: NodeJS.ProcessEnv = proc
     ['retainTags', env.HINDSIGHT_RETAIN_TAGS],
     ['recallTags', env.HINDSIGHT_RECALL_TAGS],
     ['recallTypes', env.HINDSIGHT_RECALL_TYPES],
+    ['autoMentalModel', env.HINDSIGHT_AUTO_MENTAL_MODEL],
+    ['mentalModelUserQuery', env.HINDSIGHT_MENTAL_MODEL_USER_QUERY],
+    ['mentalModelProjectQueryTemplate', env.HINDSIGHT_MENTAL_MODEL_PROJECT_QUERY_TEMPLATE],
+    ['mentalModelMaxTokens', env.HINDSIGHT_MENTAL_MODEL_MAX_TOKENS],
+    ['mentalModelRefreshMode', env.HINDSIGHT_MENTAL_MODEL_REFRESH_MODE],
+    ['mentalModelAutoCreate', env.HINDSIGHT_MENTAL_MODEL_AUTO_CREATE],
   ]
   for (const [key, value] of envOverrides) {
     if (value) config[key] = value
@@ -280,6 +334,9 @@ export function resolveConfig(raw: RawConfig = {}, env: NodeJS.ProcessEnv = proc
   if (!UPDATE_MODES.has(draft.retainUpdateMode as RetainUpdateMode)) {
     fail(`invalid retainUpdateMode ${JSON.stringify(draft.retainUpdateMode)}; expected null, append or replace`)
   }
+  if (!REFRESH_MODES.has(String(draft.mentalModelRefreshMode))) {
+    fail(`invalid mentalModelRefreshMode ${JSON.stringify(draft.mentalModelRefreshMode)}; expected full or delta`)
+  }
 
   for (const key of BOOLEAN_KEYS) {
     draft[key] = parseBoolean(draft[key], DEFAULTS[key] as boolean)
@@ -295,6 +352,12 @@ export function resolveConfig(raw: RawConfig = {}, env: NodeJS.ProcessEnv = proc
   result.retainUserPrefix = String(result.retainUserPrefix ?? 'User')
   result.retainAssistantPrefix = String(result.retainAssistantPrefix ?? 'Assistant')
   result.recallPromptPreamble = String(result.recallPromptPreamble ?? '')
+  result.mentalModelUserQuery = String(result.mentalModelUserQuery ?? '用户偏好')
+  result.mentalModelProjectQueryTemplate = String(result.mentalModelProjectQueryTemplate ?? '')
+  result.mentalModelUserTags = normalizeTags(result.mentalModelUserTags)
+  result.mentalModelProjectTags = normalizeTags(result.mentalModelProjectTags)
+  result.mentalModelFactTypes = normalizeStringList(result.mentalModelFactTypes)
+  result.mentalModelRefreshMode = String(result.mentalModelRefreshMode ?? 'delta') as MentalModelRefreshMode
   result.retainDocumentId = draft.retainDocumentId == null || draft.retainDocumentId === ''
     ? null
     : String(draft.retainDocumentId)
