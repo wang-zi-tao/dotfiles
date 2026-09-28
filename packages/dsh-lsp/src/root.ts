@@ -40,6 +40,18 @@ function findMarker(dir: string, markers: readonly string[]): string | null {
 }
 
 /**
+ * True when `dir` itself contains one of the server's root markers.
+ *
+ * Auto-start uses this as a guard: `findRoot` deliberately falls back to the
+ * start directory (or the nearest VCS ancestor) when no marker exists, so
+ * without an explicit check a server would be spawned in whatever directory the
+ * session happens to sit in, only to be re-rooted on the first real query.
+ */
+export function hasRootMarker(dir: string, spec: ServerSpec): boolean {
+  return findMarker(dir, spec.rootMarkers) !== null
+}
+
+/**
  * Walk up from `startDir` looking for a directory containing any root marker,
  * or the nearest VCS ancestor. Returns the resolved root directory (absolute).
  */

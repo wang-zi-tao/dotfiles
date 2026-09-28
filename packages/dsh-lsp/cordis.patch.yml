@@ -14,13 +14,18 @@
     - id: lsp
       name: 'dsh-lsp'
       config:
-        lazyStart: true
+        autoStart: session
         maxLocations: 100
         maxResultChars: 16000
         timeoutMs: 60000
         syncLoadOnRead: true
         diagnosticsOnWrite: true
         diagnosticsMinSeverity: warning
+        diagnosticsMode: auto
+        diagnosticsTimeoutMs: 15000
+        diagnosticsDedupeMs: 60000
+        maxDiagnostics: 50
+        diagnosticsOnAnyPublish: false
         servers:
           - id: clangd
             command: clangd

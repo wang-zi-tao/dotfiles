@@ -6,7 +6,14 @@ import { resolveConfig } from '../src/config.js'
 test('resolveConfig uses built-in servers when no override', () => {
   const config = resolveConfig({})
   equal(config.servers.length, 6)
-  equal(config.lazyStart, true)
+  equal(config.autoStart, 'session')
+  deepEqual(config.autoStartServers, [])
+  deepEqual(config.autoStartRoots, [])
+  equal(config.diagnosticsMode, 'auto')
+  equal(config.diagnosticsTimeoutMs, 15000)
+  equal(config.diagnosticsDedupeMs, 60000)
+  equal(config.maxDiagnostics, 50)
+  equal(config.diagnosticsOnAnyPublish, false)
   const clangd = config.servers.find(s => s.id === 'clangd')!
   ok(clangd)
   equal(clangd.languageId, 'cpp')
@@ -80,6 +87,33 @@ test('resolveConfig can disable a built-in server', () => {
   })
   equal(config.servers.find(s => s.id === 'lua-language-server'), undefined)
   equal(config.servers.find(s => s.id === 'clangd') !== undefined, true)
+})
+
+test('resolveConfig rejects an unknown autoStart mode', () => {
+  throws(() => resolveConfig({ autoStart: 'always' }), /invalid autoStart/)
+})
+
+test('resolveConfig rejects an unknown diagnostics mode', () => {
+  throws(() => resolveConfig({ diagnosticsMode: 'events' }), /invalid diagnosticsMode/)
+})
+
+test('resolveConfig accepts the explicit auto-start and diagnostics pins', () => {
+  const config = resolveConfig({
+    autoStart: 'off',
+    autoStartServers: 'clangd, rust-analyzer',
+    autoStartRoots: ['D:\\repo'],
+    diagnosticsMode: 'push',
+    diagnosticsTimeoutMs: 500,
+    maxDiagnostics: 5,
+    diagnosticsOnAnyPublish: 'yes',
+  })
+  equal(config.autoStart, 'off')
+  deepEqual(config.autoStartServers, ['clangd', 'rust-analyzer'])
+  deepEqual(config.autoStartRoots, ['D:\\repo'])
+  equal(config.diagnosticsMode, 'push')
+  equal(config.diagnosticsTimeoutMs, 500)
+  equal(config.maxDiagnostics, 5)
+  equal(config.diagnosticsOnAnyPublish, true)
 })
 
 function ok(value: unknown, message?: string): asserts value {

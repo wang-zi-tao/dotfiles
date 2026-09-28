@@ -100,8 +100,24 @@ export interface ServerSpec {
 /** LSP diagnostic severity levels, in ascending severity order. */
 export type DiagnosticSeverity = 'hint' | 'information' | 'warning' | 'error'
 
+/** When language servers are started without waiting for a query. */
+export type AutoStartMode = 'mount' | 'session' | 'off'
+
+/** How post-write diagnostics are obtained from a server. */
+export type DiagnosticsMode = 'auto' | 'push' | 'pull' | 'off'
+
 export interface LspConfig {
-  lazyStart: boolean
+  /**
+   * Auto-start: spawn servers as soon as a session's cwd (or the process cwd)
+   * roots them, so the first read/query never pays the spawn+initialize cost.
+   * Auto-starting does *not* load a server's index: clangd only activates its
+   * project index on the first didOpen, which the read hook already performs.
+   */
+  autoStart: AutoStartMode
+  /** Server ids eligible for auto-start; empty means every enabled server. */
+  autoStartServers: string[]
+  /** Extra directories tried as auto-start roots; empty means the session cwd. */
+  autoStartRoots: string[]
   maxLocations: number
   maxResultChars: number
   timeoutMs: number
@@ -114,6 +130,39 @@ export interface LspConfig {
   diagnosticsOnWrite: boolean
   /** Only diagnostics at or above this severity are injected. */
   diagnosticsMinSeverity: DiagnosticSeverity
+  /**
+   * How diagnostics are obtained: `auto` keeps the pull request only when the
+   * server advertises it (clangd does not), `push`/`pull` pin one path, and
+   * `off` disables post-write diagnostics entirely.
+   */
+  diagnosticsMode: DiagnosticsMode
+  /**
+   * Upper bound on waiting for one push. The timeout only ends the wait: the
+   * server and its open documents are never aborted.
+   */
+  diagnosticsTimeoutMs: number
+  /** Window in which an identical finding set is injected only once. */
+  diagnosticsDedupeMs: number
+  /** Upper bound on injected diagnostics per push. */
+  maxDiagnostics: number
+  /**
+   * Inject a push that arrives with no armed write watch, into the agent that
+   * most recently wrote that file. Off by default: a background re-publish
+   * (another file's edit invalidating this translation unit) would otherwise
+   * interrupt an unrelated turn.
+   */
+  diagnosticsOnAnyPublish: boolean
+  /**
+   * When `workspaceSymbol` finds nothing in the server's own index, converge
+   * on candidate files, warm them, and retry the index query (slower, capped).
+   */
+  symbolFallback: boolean
+  /** Upper bound on candidate files warmed during a symbol fallback. */
+  symbolFallbackMaxCandidates: number
+  /** Per-search-command timeout for the symbol fallback. */
+  symbolFallbackTimeoutMs: number
+  /** External file-search command used by the fallback (ripgrep-compatible). */
+  fallbackSearchCommand: string
 }
 
 // ---------------------------------------------------------------------------
@@ -171,6 +220,41 @@ export interface SymbolEntry {
   containerName?: string
 }
 
+/** Which discovery pass produced the candidate files. */
+export type CandidateStrategy = 'name' | 'content' | 'none'
+
+export interface CandidateSearchOptions {
+  /** Project root the search runs from (LSP root). */
+  root: string
+  /** Raw symbol query as typed by the model. */
+  query: string
+  /** File extensions the target server claims. */
+  extensions: readonly string[]
+  maxCandidates: number
+  timeoutMs: number
+  /** Search command override; defaults to `rg`. */
+  command?: string
+  signal?: AbortSignal
+}
+
+export interface CandidateSearchResult {
+  candidates: string[]
+  strategy: CandidateStrategy
+  /** Candidates that matched before the cap was applied. */
+  matched: number
+  truncated: boolean
+}
+
+/** Provenance of a `workspaceSymbol` result that needed candidate convergence. */
+export interface SymbolFallbackInfo {
+  used: boolean
+  strategy: CandidateStrategy
+  candidates: number
+  warmed: number
+  matched: number
+  truncated: boolean
+}
+
 export interface DiagnosticEntry {
   severity: DiagnosticSeverity
   message: string
@@ -182,7 +266,7 @@ export interface DiagnosticEntry {
 export type LspQueryResult =
   | { kind: 'locations'; locations: LspLocation[]; truncated: boolean }
   | { kind: 'hover'; hover: string | null }
-  | { kind: 'symbols'; symbols: SymbolEntry[]; truncated: boolean }
+  | { kind: 'symbols'; symbols: SymbolEntry[]; truncated: boolean; fallback?: SymbolFallbackInfo }
   | { kind: 'diagnostics'; diagnostics: DiagnosticEntry[] }
   | { kind: 'explore'; explore: ExploreResult }
 

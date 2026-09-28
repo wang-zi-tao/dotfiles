@@ -46,7 +46,7 @@ let diagnosticsMessageSeq = 0
  * content block + plugin source), exactly the shape the harness's inbox
  * projection accepts for injected context.
  */
-export function diagnosticsMessage(filePath: string, entries: readonly DiagnosticEntry[]): UserMessage {
+export function diagnosticsMessage(filePath: string, entries: readonly DiagnosticEntry[], omitted = 0): UserMessage {
   const counts: Record<DiagnosticSeverity, number> = { error: 0, warning: 0, information: 0, hint: 0 }
   for (const d of entries) counts[d.severity] += 1
   const summary = 'LSP 诊断: ' + counts.error + ' error(s), ' + counts.warning + ' warning(s) - ' + filePath
@@ -54,6 +54,7 @@ export function diagnosticsMessage(filePath: string, entries: readonly Diagnosti
     '<dsh-lsp-diagnostics>',
     '写入后 LSP 诊断 (' + filePath + '):',
     formatDiagnostics(entries),
+    ...(omitted > 0 ? ['… ' + omitted + ' more diagnostic(s) omitted (maxDiagnostics)'] : []),
     '</dsh-lsp-diagnostics>',
   ].join('\n')
   return {
