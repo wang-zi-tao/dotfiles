@@ -63,7 +63,7 @@ stdenv.mkDerivation {
     mkdir -p $root
     cp -r * $root
 
-    dsh_package=$out/lib/node_modules/@deepseek-ai/dsh/node_modules/
+    dsh_package=$out/lib/node_modules/@deepseek-ai/dsh/
     mkdir -p $dsh_package
     ln -s $root/apps/cli/node_modules $dsh_package
 

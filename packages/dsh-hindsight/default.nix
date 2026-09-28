@@ -4,26 +4,40 @@
   nodejs,
   typescript,
   dsh,
+  fetchPnpmDeps,
+  pnpmConfigHook,
+  pnpmBuildHook,
+  pnpm,
 }:
 
-stdenvNoCC.mkDerivation {
+stdenvNoCC.mkDerivation rec {
   pname = "dsh-hindsight";
   version = "0.2.0";
 
   src = ./.;
 
+  pnpmDeps = fetchPnpmDeps {
+    pname = "${pname}-deps";
+    src = src;
+    hash = "sha256-0OcchJ9vfXzRqhGl2x8L28Pu98BRqqiZqAJp2Asjp4s=";
+    fetcherVersion = 4;
+  };
+
   nativeBuildInputs = [
     nodejs
     typescript
+    pnpm
+    pnpmConfigHook
+    pnpmBuildHook
   ];
 
-  buildPhase = ''
-    runHook preBuild
-
+  preConfig = ''
     cp -rsf ${dsh}/lib/node_modules/@deepseek-ai/dsh/node_modules/ .
+  '';
 
-    tsc -p tsconfig.build.json
-    runHook postBuild
+  postConfig = ''
+    ls -l node_modules/
+    false
   '';
 
   doCheck = true;

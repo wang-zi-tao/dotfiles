@@ -1,6 +1,6 @@
 {
   "name": "dsh-hindsight",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Hindsight long-term memory plugin for DeepSeek Harness (dsh): retain/recall/reflect tools plus automatic per-turn retention and recall context injection.",
   "type": "module",
   "main": "lib/index.js",

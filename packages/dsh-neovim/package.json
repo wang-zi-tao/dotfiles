@@ -1,6 +1,6 @@
 {
   "name": "dsh-neovim",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Neovim bridge for DeepSeek Harness: remote vim command / Lua execution / Lua expression evaluation over the Neovim RPC socket, plus a full nvim-dap debugging toolset (start/step/breakpoints/watches/sessions) with paused/terminated/exited event injection back into the agent conversation, and automatic Neovim file reload when the agent writes a file.",
   "type": "module",
   "main": "lib/index.js",
