@@ -47,8 +47,10 @@ export class Neovim {
   private asyncTaskCallbacks: Map<number, [(value: any) => void, (error: any) => void]>;
   private nextTaskId = 0;
   private _disconnected = false;
+  public luaModule: string;
 
-  constructor(client: NeovimClient) {
+  constructor(client: NeovimClient, luaModule: string) {
+    this.luaModule = luaModule;
     this.client = client;
     this.notifyCallbacks = new Map();
     this.asyncTaskCallbacks = new Map();
@@ -154,6 +156,9 @@ export class Neovim {
         }
         return '{' + fields.join(',') + '}';
       }
+      case "function": {
+        return "null"
+      }
       default:
         throw new Error('cannot encode value of type ' + typeof json + ' as Lua');
     }
@@ -213,14 +218,15 @@ export class Neovim {
     return this.parseReturn(ret);
   }
 
-  luaAsyncEval(command: string, luaModule: string, args?: LuaArgs): Promise<unknown> {
-    const task_id = this.nextTaskId;
-    this.nextTaskId += 1;
+  luaAsyncEval(command: string, args?: LuaArgs): Promise<unknown> {
+    const task_id = this.nextTaskId
+    this.nextTaskId += 1
 
     return this.client.channelId.then((channel_id: number) => {
       const script =
-        `require("${luaModule}").run_async(function() return ` +
-        `${this.encodeLuaArgs(command, args)} end, ${channel_id}, ${task_id})`;
+        `require("${this.luaModule}").run_async(function() ` +
+        `local agent=require("${this.luaModule}");` +
+        `return ${this.encodeLuaArgs(command, args)} end, ${channel_id}, ${task_id})`
       return new Promise((resolve, reject) => {
         this.asyncTaskCallbacks.set(task_id, [resolve, reject]);
         this.client.executeLua(script).catch((error: Error) => {
@@ -239,8 +245,9 @@ export class Neovim {
   }
 
   /** Close the RPC connection and release the underlying socket. */
-  close(): Promise<void> {
-    return this.client.close();
+  async close(): Promise<void> {
+    await this.lua(`require("${this.luaModule}").on_dispose(channel_id)`, {channel_id: this.channelId })
+    return this.client.close()
   }
 }
 
@@ -249,9 +256,9 @@ export class Neovim {
  * arguments) return null; a peer that is simply not listening surfaces later
  * as the client's `disconnect` event / a rejected `channelId()`.
  */
-export function tryConnectNvim(socket: string): Neovim | null {
+export function tryConnectNvim(socket: string, luaModule: string): Neovim | null {
   try {
-    return new Neovim(attach({socket}));
+    return new Neovim(attach({ socket }), luaModule)
   } catch {
     return null;
   }

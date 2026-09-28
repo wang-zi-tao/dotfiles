@@ -22,6 +22,7 @@ import {
   ImplementationRequest,
   InitializeRequest,
   InitializedNotification,
+  PublishDiagnosticsNotification,
   ReferencesRequest,
   ShutdownRequest,
   TypeDefinitionRequest,
@@ -45,7 +46,8 @@ import { appendFileSync, mkdirSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { isAbsolute, join, resolve } from 'node:path'
 
-import { pathToFileUri, toLspPosition } from './protocol.js'
+import { DiagnosticInbox, type PublishRecord } from './inbox.js'
+import { fileUriToPath, pathToFileUri, toLspPosition } from './protocol.js'
 import type { LoggerLike, ServerSpec, SubprocessHandle, SubprocessRuntime } from './types.js'
 
 export type LspClientState = 'stopped' | 'starting' | 'running' | 'failed'
@@ -71,6 +73,8 @@ export const CLIENT_CAPABILITIES = {
 
 interface InitializationResult {
   serverInfo?: { name?: string; version?: string }
+  /** Server capabilities; only the pull-diagnostics advertisement is consulted. */
+  capabilities?: { diagnosticProvider?: unknown }
 }
 
 export class LspClient {
@@ -89,6 +93,12 @@ export class LspClient {
   private initialized = false
   private nextId = 1
   private readonly logDir?: string
+
+  /**
+   * Pushed diagnostics for this client's documents. One inbox per client (one
+   * client per server) so a wait can never consume another server's push.
+   */
+  private readonly inbox = new DiagnosticInbox()
 
   constructor(
     spec: ServerSpec,
@@ -159,6 +169,19 @@ export class LspClient {
       const connection = createProtocolConnection(handle.stdout, handle.stdin)
       this.connection = connection
       connection.listen()
+      // Diagnostics are push-only on clangd: the pull request answers
+      // "method not found". The version gate uses what this client last sent
+      // for the document, so a push racing ahead of a fresh didChange is
+      // dropped instead of describing stale text.
+      connection.onNotification(PublishDiagnosticsNotification.type, (params) => {
+        let sentVersion: number | undefined
+        try {
+          sentVersion = this.documentVersions.get(fileUriToPath(params.uri))
+        } catch {
+          sentVersion = undefined
+        }
+        this.inbox.put(params.uri, params, sentVersion)
+      })
 
       const rootUri = pathToFileUri(root)
       const initParams: InitializeParams = {
@@ -169,10 +192,9 @@ export class LspClient {
         initializationOptions: undefined,
       }
 
-      const result = (await connection.sendRequest(InitializeRequest.type, initParams)) as {
-        serverInfo?: { name?: string; version?: string }
-      }
+      const result = (await connection.sendRequest(InitializeRequest.type, initParams)) as InitializationResult
       this.initializeResult.serverInfo = result?.serverInfo
+      this.initializeResult.capabilities = result?.capabilities
       await connection.sendNotification(InitializedNotification.type, {})
       this.initialized = true
       this.state = 'running'
@@ -183,13 +205,17 @@ export class LspClient {
       // log directory so a crash (e.g. clangd exit code 1) is diagnosable:
       // without it, the fatal error clangd wrote to stderr is silently lost.
       handle.done.then((outcome) => {
-        if (this.state === 'running') {
-          this.state = 'failed'
-          const stderrText = this.drainStderr()
-          if (stderrText) this.writeLog(stderrText)
-          this.error = `server exited unexpectedly (exitCode=${outcome.exitCode}, signal=${outcome.signal})`
-          this.logger.warn(`dsh-lsp: ${this.spec.id} exited: ${this.error}${stderrText ? `\n${stderrText.slice(0, 2000)}` : ''}`)
-        }
+        // A failed notification write (see noteWriteFailure) may already have
+        // marked the client failed; the process exit is still when its stderr
+        // tail is complete, so drain it either way and only attribute the exit
+        // here while the client still believed it was running.
+        if (this.state !== 'running' && this.state !== 'failed') return
+        const stderrText = this.drainStderr()
+        if (stderrText) this.writeLog(stderrText)
+        if (this.state !== 'running') return
+        this.state = 'failed'
+        this.error = `server exited unexpectedly (exitCode=${outcome.exitCode}, signal=${outcome.signal})`
+        this.logger.warn(`dsh-lsp: ${this.spec.id} exited: ${this.error}${stderrText ? `\n${stderrText.slice(0, 2000)}` : ''}`)
       }).catch(() => { /* handled on the starting path */ })
     } catch (err) {
       this.state = 'failed'
@@ -210,6 +236,49 @@ export class LspClient {
       throw new Error(`server '${this.spec.id}' is not running`)
     }
     return this.connection
+  }
+
+  /**
+   * Fire a notification that no caller awaits. The write's rejection must never
+   * escape: a server that died (crash, OOM kill, explicit terminate) leaves the
+   * pipe closed, and the next write makes node's socket raise `EPIPE` ("This
+   * socket has been ended by the other party") from inside the promise
+   * `sendNotification` returns. An unhandled rejection is fatal to the harness
+   * process, so every fire-and-forget write funnels through here.
+   */
+  private postNotification(what: string, send: () => Promise<void>): void {
+    let written: Promise<void>
+    try {
+      written = send()
+    } catch (err) {
+      // A closed/disposed connection throws synchronously rather than rejecting.
+      this.noteWriteFailure(what, err)
+      return
+    }
+    written.catch((err: unknown) => this.noteWriteFailure(what, err))
+  }
+
+  /**
+   * Record a failed write to a server that is supposed to be running. The
+   * session is over: mark the client failed so {@link requireConnection} stops
+   * handing out a dead transport and the registry respawns on the next query,
+   * and reap the process so a half-dead server cannot linger. Never rethrows —
+   * this runs on a detached write.
+   */
+  private noteWriteFailure(what: string, err: unknown): void {
+    const message = err instanceof Error ? err.message : String(err)
+    if (this.state !== 'running') {
+      this.logger.debug(`dsh-lsp: ${this.spec.id} ${what} failed while ${this.state}: ${message}`)
+      return
+    }
+    this.state = 'failed'
+    this.error = `${what} failed: ${message}`
+    this.logger.warn(`dsh-lsp: ${this.spec.id} ${what} failed: ${message}`)
+    try {
+      this.handle?.terminate()
+    } catch {
+      /* ignore */
+    }
   }
 
   /**
@@ -235,14 +304,16 @@ export class LspClient {
       text = ''
     }
     const conn = this.requireConnection()
-    void conn.sendNotification(DidOpenTextDocumentNotification.type, {
-      textDocument: {
-        uri,
-        languageId: this.spec.languageId,
-        version: 1,
-        text,
-      },
-    })
+    this.postNotification('didOpen', () =>
+      conn.sendNotification(DidOpenTextDocumentNotification.type, {
+        textDocument: {
+          uri,
+          languageId: this.spec.languageId,
+          version: 1,
+          text,
+        },
+      }),
+    )
     this.openDocuments.add(filePath)
     this.documentVersions.set(filePath, 1)
   }
@@ -256,8 +327,10 @@ export class LspClient {
   /**
    * Bring the server's in-memory copy of an already-open document in sync with
    * the current disk content (full-document didChange). Used after the AI
-   * writes/edits a file, so a subsequent pull-diagnostics sees the new text.
-   * For a not-yet-open document this falls back to didOpen.
+   * writes/edits a file so the server's next push (or a pull) describes the new
+   * text, and so the first refresh on a cold project performs the didOpen that
+   * activates the project's index. For a not-yet-open document this falls back
+   * to didOpen.
    */
   refreshDocument(filePath: string): void {
     const abs = this.absPath(filePath)
@@ -272,13 +345,41 @@ export class LspClient {
     if (this.openDocuments.has(abs)) {
       const version = (this.documentVersions.get(abs) ?? 1) + 1
       this.documentVersions.set(abs, version)
-      void conn.sendNotification(DidChangeTextDocumentNotification.type, {
-        textDocument: { uri, version },
-        contentChanges: [{ text }],
-      })
+      this.postNotification('didChange', () =>
+        conn.sendNotification(DidChangeTextDocumentNotification.type, {
+          textDocument: { uri, version },
+          contentChanges: [{ text }],
+        }),
+      )
     } else {
       this.ensureOpen(abs)
     }
+  }
+
+  /** Whether the server advertises pull diagnostics (`textDocument/diagnostic`). */
+  supportsPullDiagnostics(): boolean {
+    return this.initializeResult.capabilities?.diagnosticProvider !== undefined
+  }
+
+  /** The most recent pushed diagnostics for a document, if any. */
+  cachedDiagnostics(filePath: string): PublishRecord | undefined {
+    return this.inbox.cached(this.absPath(filePath))
+  }
+
+  /**
+   * Resolve with the server's next push for a document. `null` means the wait
+   * expired or was cancelled: the server and its documents are untouched.
+   */
+  waitForDiagnostics(
+    filePath: string,
+    options: { timeoutMs: number; minVersion?: number; signal?: AbortSignal },
+  ): Promise<Diagnostic[] | null> {
+    return this.inbox.wait(this.absPath(filePath), options)
+  }
+
+  /** Subscribe to this client's pushes (the registry forwards them onward). */
+  onPublish(listener: (record: PublishRecord) => void): { dispose(): void } {
+    return this.inbox.onPublish(listener)
   }
 
   private token(signal?: AbortSignal): CancellationToken {
@@ -400,6 +501,55 @@ export class LspClient {
     return conn.sendRequest(DocumentSymbolRequest.type, { textDocument: { uri: pathToFileUri(abs) } }, this.token(signal))
   }
 
+  /**
+   * Parse a bounded set of candidate documents so their symbols enter the
+   * server's dynamic index — the same parse barrier `workspaceSymbol` uses for
+   * its target file, applied to candidates found by an external search.
+   * Fail-open per file: a candidate that fails to parse is skipped rather than
+   * aborting the pass. Returns the documents that parsed successfully.
+   */
+  async warmDocuments(
+    paths: readonly string[],
+    options: { concurrency?: number; signal?: AbortSignal } = {},
+  ): Promise<string[]> {
+    const unique: string[] = []
+    const seen = new Set<string>()
+    for (const path of paths) {
+      // Windows paths are case-insensitive: dedupe on the lowercase form.
+      const key = path.toLowerCase()
+      if (seen.has(key)) continue
+      seen.add(key)
+      unique.push(path)
+    }
+    if (unique.length === 0) return []
+
+    const concurrency = Math.max(1, Math.min(options.concurrency ?? 4, unique.length))
+    const warmed: string[] = []
+    // A shared cursor keeps every worker busy without re-parsing a document.
+    let cursor = 0
+    const workers = Array.from({ length: concurrency }, async () => {
+      for (;;) {
+        const index = cursor++
+        if (index >= unique.length) return
+        if (options.signal?.aborted) return
+        const path = unique[index] as string
+        try {
+          await this.documentSymbol(path, options.signal)
+          warmed.push(path)
+        } catch {
+          // Skipped: not a valid translation unit, or the parse was cancelled.
+        }
+      }
+    })
+    await Promise.all(workers)
+    return warmed
+  }
+
+  /**
+   * Pull diagnostics (`textDocument/diagnostic`). The request is optional in
+   * LSP and clangd answers `method not found`, so this path is only taken when
+   * {@link supportsPullDiagnostics} is true.
+   */
   async diagnostics(filePath: string, signal?: AbortSignal): Promise<Diagnostic[] | null> {
     const abs = this.absPath(filePath)
     this.ensureOpen(abs)
@@ -473,5 +623,6 @@ export class LspClient {
     this.pid = null
     this.state = 'stopped'
     this.error = null
+    this.inbox.clear()
   }
 }

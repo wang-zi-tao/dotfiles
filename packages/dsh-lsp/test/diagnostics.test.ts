@@ -35,8 +35,7 @@ test('diagnosticsMessage builds an injectable user message', () => {
   const entries = [entry('error', 'boom'), entry('warning', 'careful')]
   const msg = diagnosticsMessage('/src/a.ts', entries)
   equal(msg.role, 'user')
-  equal(msg.source.kind, 'plugin')
-  equal((msg.source as { plugin?: string }).plugin, 'dsh-lsp')
+  equal(msg.source.kind, 'dsh-lsp')
   equal((msg.source as { form?: string }).form, 'notice')
   equal((msg.source as { summary?: string }).summary, 'LSP 诊断: 1 error(s), 1 warning(s) - /src/a.ts')
   equal(msg.content.length, 1)

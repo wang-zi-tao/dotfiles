@@ -4,7 +4,7 @@
  * Pure functions only: everything here is unit-testable without touching the
  * LSP client or the plugin wiring. The injected message follows the same
  * structural contract dsh-hindsight uses for recall injection (a user-role
- * message whose source is a plugin notice), consumed by {@link Agent.inject}
+ * message whose source is a `dsh-lsp` notice), consumed by {@link Agent.inject}
  * at the agent's next pre-step boundary.
  */
 
@@ -46,7 +46,7 @@ let diagnosticsMessageSeq = 0
  * content block + plugin source), exactly the shape the harness's inbox
  * projection accepts for injected context.
  */
-export function diagnosticsMessage(filePath: string, entries: readonly DiagnosticEntry[]): UserMessage {
+export function diagnosticsMessage(filePath: string, entries: readonly DiagnosticEntry[], omitted = 0): UserMessage {
   const counts: Record<DiagnosticSeverity, number> = { error: 0, warning: 0, information: 0, hint: 0 }
   for (const d of entries) counts[d.severity] += 1
   const summary = 'LSP 诊断: ' + counts.error + ' error(s), ' + counts.warning + ' warning(s) - ' + filePath
@@ -54,12 +54,13 @@ export function diagnosticsMessage(filePath: string, entries: readonly Diagnosti
     '<dsh-lsp-diagnostics>',
     '写入后 LSP 诊断 (' + filePath + '):',
     formatDiagnostics(entries),
+    ...(omitted > 0 ? ['… ' + omitted + ' more diagnostic(s) omitted (maxDiagnostics)'] : []),
     '</dsh-lsp-diagnostics>',
   ].join('\n')
   return {
     id: 'dsh-lsp-' + Date.now() + '-' + (++diagnosticsMessageSeq) as UserMessage['id'],
     role: 'user',
     content: [{ type: 'text', text }],
-    source: { kind: 'plugin', plugin: 'dsh-lsp', form: 'notice', summary },
+    source: { kind: 'dsh-lsp', form: 'notice', summary },
   }
 }

@@ -1,0 +1,61 @@
+# dsh-encoding bundle patch.
+#
+# One host-side plugin row. The repair observes the tool pipeline
+# (tools/pre-execute + tools/post-execute) rather than owning a service, so it
+# belongs on the host plane next to the other pipeline observers.
+#
+# The row config is only the starting point: the plugin merges built-in
+# defaults < row config, so a later profile `cordis.patch.yml` can override the
+# whole row config by id (remember: dsh patches replace the whole config, not
+# deep-merge).
+#
+# A row fenced in by 2 TABs is not a thing here; the indentation below is spaces.
+
+- insert:
+    - id: encoding
+      name: 'dsh-encoding'
+      config:
+        enabled: true
+        # Tools whose file writes are repaired after they land.
+        tools:
+          - write
+          - edit
+        # C/C++ convention: a source containing any non-ASCII byte must be
+        # UTF-8 with BOM (missing BOM -> C4819 -> /WX -> C2220), and newly
+        # written lines use the DOS terminator (a bare CR -> C4335 -> C2220).
+        bom: non-ascii
+        eol: crlf
+        # Per-file-type patches, first match wins field by field. These are
+        # tried BEFORE the plugin's built-in ones, so what is here wins.
+        #
+        # CMake is not compiled by MSVC, so the C4819 rule does not apply to
+        # it: no BOM is ever ADDED to a CMake file. 'preserve' also declines to
+        # strip a BOM that is already there, because removing it is a
+        # gratuitous diff on a file that configures fine today. Change it to
+        # 'never' to converge the tree on BOM-free CMake.
+        overrides:
+          - match:
+              - '**/CMakeLists.txt'
+              - '**/*.cmake'
+              - '**/*.cmake.in'
+            bom: preserve
+        # Do not churn lines the write did not change: the tree mixes LF and
+        # CRLF, and rewriting the terminator of an untouched line is pure diff
+        # noise.
+        preserveUntouchedEol: true
+        # A bare CR is never a terminator worth keeping.
+        fixLoneCr: true
+        include:
+          - '**/*.{c,cc,cpp,cxx,c++,h,hh,hpp,hxx,h++,inl,ipp,tpp}'
+          - '**/CMakeLists.txt'
+          - '**/*.cmake'
+          - '**/*.cmake.in'
+        exclude:
+          - '**/.git/**'
+          - '**/.vs/**'
+          - '**/.idea/**'
+          - '**/node_modules/**'
+          - '**/CMakeFiles/**'
+        # Log one line per repaired file; use 'debug' to also see conforming and
+        # skipped files, or 'off' for silence.
+        log: summary

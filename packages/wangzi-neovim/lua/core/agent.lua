@@ -4,14 +4,137 @@
 ---@class AgentModule
 ---@field nextId integer
 ---@field disableSessionEvent table<integer, boolean>
+---@field dispose table<integer, {funcs: table<fun(integer), boolean>}>
 local M = require("core.hotreload").init_module(function()
   return {
     nextId = 0,
     disableSessionEvent = {},
+    dispose = {},
   }
 end)
 
-M.f = 10
+---@param channel_id integer
+---@param disposer fun(integer)
+function M.register_dispose(channel_id, disposer)
+  if not M.dispose[channel_id] then
+    M.dispose[channel_id] = {
+      funcs = {}
+    }
+  end
+  M.dispose[channel_id].funcs[disposer] = true
+end
+
+function M.on_dispose(channel_id)
+  if M.dispose[channel_id] then
+    for disposer, _ in pairs(M.dispose[channel_id].funcs) do
+      disposer(channel_id)
+    end
+    M.dispose[channel_id] = nil
+  end
+end
+
+---@param channel_id integer
+---@param func fun(): fun()
+---@return fun()
+function M.effect(channel_id, func)
+  local dispose = func()
+  M.register_dispose(channel_id, dispose)
+
+  return function()
+    dispose()
+    if M.dispose[channel_id] then
+      M.dispose[channel_id].funcs[dispose] = nil
+    end
+  end
+end
+
+---@generic T
+---@param channel_id integer
+---@param event string
+---@param key? string
+---@return fun(): T|nil, boolean
+function M.install_dap_listener(channel_id, event, key)
+  local dap = require("dap")
+  if key == nil then
+    key = "agent_step_" .. channel_id .. "_" .. M.get_next_id()
+  end
+
+
+  local co_event = coroutine.wrap(function ()
+    return coroutine.yield()
+  end)
+
+  local co_waiter = coroutine.wrap(function ()
+    
+  end)
+
+  local co_all = M.waitAll(function ()
+    
+  end, co_event)
+
+  local dispose;
+  dispose = M.effect(channel_id, function()
+    dap.listeners.after[event][key] = function(body)
+      coroutine.resume(co_event, "event", body)
+      dispose()
+    end
+
+    return function()
+      dap.listeners.after[event][key] = nil
+      coroutine.resume(co_event, "dispose")
+    end
+  end)
+
+  return function ()
+    coroutine.resume(co_event, "wait",coroutine.running())
+    return coroutine.yield()
+  end
+end
+
+---@param ... fun(): ...
+---@return integer, ...
+function M.waitAny(...)
+  local co = coroutine.running()
+  local done = false
+
+  for i, func in ipairs({ ... }) do
+    coroutine.wrap(function()
+      if not done then
+        local ret = { func() }
+        if not done then
+          done = true
+          coroutine.resume(co, i, unpack(ret))
+        end
+      end
+    end)()
+  end
+
+  return coroutine.yield()
+end
+
+function M.waitAll(...)
+  local co = coroutine.running()
+  local returns = {}
+  local counter = 0
+  local count = select("#", ...)
+  
+  for i, func in ipairs({ ... }) do
+    coroutine.wrap(function (...)
+      local ret = { func() }
+
+      counter = counter + 1
+      returns[i] = ret
+
+      if counter == count then
+        coroutine.resume(co)
+      end
+    end)()
+  end
+
+  coroutine.yield()
+
+  return unpack(returns)
+end
 
 function M.get_next_id()
   local id = M.nextId
@@ -37,10 +160,12 @@ function M.clean_table(tbl)
 end
 
 function M.rpcnotify(channel_id, method, argument)
-  local ok, err = pcall(vim.rpcnotify, channel_id, method, M.clean_table(argument))
-  if not ok then
-    error("rpcnotify error: " .. tostring(err))
-  end
+  coroutine.wrap(function()
+    local ok, err = pcall(vim.rpcnotify, channel_id, method, M.clean_table(argument))
+    if not ok then
+      vim.print("rpcnotify error: " .. tostring(err))
+    end
+  end)()
 end
 
 ---@param f function
@@ -72,59 +197,75 @@ function M.dap_subscribe(channel_id)
   local dap = require("dap")
   local client_name = "agent_" .. channel_id
 
-  ---@param session dap.Session
-  dap.listeners.after.event_stopped[client_name] = function(session, event)
-    if M.disableSessionEvent[session.id] then
-      return
-    end
-
-    local stacks = M.dap_get_stack({ limit = 10, thread_id = event.threadId })
-    M.rpcnotify(
-      channel_id,
-      "dap_pause",
-      {
-        session = session.id,
-        thread_id = event.threadId,
-        config_name = session.config.name,
-        stop_event = event,
-        stacks_top_10 = stacks.frames,
-      }
-    )
-  end
-
-  ---@param session dap.Session
-  dap.listeners.after.event_terminated[client_name] = function(session, event)
-    if M.disableSessionEvent[session.id] then
-      return
-    end
-
-    M.rpcnotify(
-      channel_id,
-      "event_terminated",
-      {
-        session = session.id,
-        config_name = session.config.name,
-        event = event,
-      }
-    )
-  end
-
-  ---@param session dap.Session
-  dap.listeners.after.event_exited[client_name] = function(session, event)
-    if M.disableSessionEvent[session.id] then
-      return
-    end
-
-    M.rpcnotify(
-      channel_id,
-      "event_exited",
-      {
-        session = session.id,
-        config_name = session.config.name,
-        event = event,
-      }
-    )
-  end
+  -- M.effect(channel_id, function()
+  --   dap.listeners.after.event_stopped[client_name] = function(session, event)
+  --     if M.disableSessionEvent[session.id] then
+  --       return
+  --     end
+  --
+  --     coroutine.wrap(function()
+  --       local stacks = M.dap_get_stack({ limit = 10, thread_id = event.threadId })
+  --       M.rpcnotify(
+  --         channel_id,
+  --         "dap_pause",
+  --         {
+  --           session = session.id,
+  --           thread_id = event.threadId,
+  --           config_name = session.config.name,
+  --           stop_event = event,
+  --           stacks_top_10 = stacks.frames,
+  --         }
+  --       )
+  --     end)()
+  --   end
+  --   return function()
+  --     dap.listeners.after.event_stopped[client_name] = nil
+  --   end
+  -- end)
+  --
+  -- M.effect(channel_id, function()
+  --   ---@param session dap.Session
+  --   dap.listeners.after.event_terminated[client_name] = function(session, event)
+  --     if M.disableSessionEvent[session.id] then
+  --       return
+  --     end
+  --
+  --     M.rpcnotify(
+  --       channel_id,
+  --       "event_terminated",
+  --       {
+  --         session = session.id,
+  --         config_name = session.config.name,
+  --         event = event,
+  --       }
+  --     )
+  --   end
+  --   return function()
+  --     dap.listeners.after.event_terminated[client_name] = nil
+  --   end
+  -- end)
+  --
+  -- M.effect(channel_id, function()
+  --   ---@param session dap.Session
+  --   dap.listeners.after.event_exited[client_name] = function(session, event)
+  --     if M.disableSessionEvent[session.id] then
+  --       return
+  --     end
+  --
+  --     M.rpcnotify(
+  --       channel_id,
+  --       "event_exited",
+  --       {
+  --         session = session.id,
+  --         config_name = session.config.name,
+  --         event = event,
+  --       }
+  --     )
+  --   end
+  --   return function()
+  --     dap.listeners.after.event_exited[client_name] = nil
+  --   end
+  -- end)
 end
 
 --- 获取当前调试 session，若不存在则报错
@@ -334,43 +475,23 @@ function M.step_and_wait(step_fn, opts)
   end
 
   local sid = session.id
-  local stopped_body = nil
-  local terminated = false
-  local done = false
-  local key = "agent_step_" .. sid .. "_" .. M.get_next_id()
+  local key = "agent_step_" .. sid
 
-  -- 超时定时器（默认 30 秒，可通过 opts.timeout_ms 配置）
-  local timeout_ms = opts.timeout_ms or 30000
-  vim.defer_fn(function()
-    if not done then
-      done = true
-      coroutine.resume(co)
-    end
-  end, timeout_ms)
-
-  -- stopped 监听器：命中断点/单步完成时唤醒
-  dap.listeners.after.event_stopped[key] = function(s, body)
-    if not done and s.id == sid then
-      done = true
-      stopped_body = body
-      coroutine.resume(co)
-    end
-  end
-
-  -- terminated 监听器：调试目标退出时唤醒
-  dap.listeners.after.event_terminated[key] = function(s)
-    if not done and s.id == sid then
-      done = true
-      terminated = true
-      coroutine.resume(co)
-    end
-  end
+  local i, value = M.waitAny(function()
+    return M.install_dap_listener(0, "event_stopped")
+  end, function()
+    return M.install_dap_listener(0, "event_terminated")
+  end, function()
+    local co = coroutine.running()
+    local timeout_ms = opts.timeout_ms or 30000
+    vim.defer_fn(function()
+        coroutine.resume(co)
+    end, timeout_ms)
+    coroutine.yield()
+  end)
 
   M.disableSessionEvent[session.id] = true
   step_fn()
-
-  -- 挂起协程，等待事件或超时
-  coroutine.yield()
   M.disableSessionEvent[session.id] = false
 
   -- 清理
@@ -1037,8 +1158,11 @@ function M.dap_read_memory(opts)
     memref = session.current_frame.instructionPointerReference
   end
   if not memref then
-    return { ok = false, error =
-    "no memoryReference (provide opts.memoryReference or a current frame with instructionPointerReference)" }
+    return {
+      ok = false,
+      error =
+      "no memoryReference (provide opts.memoryReference or a current frame with instructionPointerReference)"
+    }
   end
 
   -- 归一化 memoryReference 为 0x 前缀 hex（DAP/vsdbg 惯例）
@@ -1702,5 +1826,8 @@ function M.reload_file(path)
     vim.cmd("edit!")
   end)
 end
+
+_G.agent = M
+_G.dap = dap
 
 return M

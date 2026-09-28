@@ -11,7 +11,7 @@
  * row config), rather than mis-routing queries at runtime.
  */
 
-import type { DiagnosticSeverity, LspConfig, ServerSpec } from './types.js'
+import type { AutoStartMode, DiagnosticSeverity, DiagnosticsMode, LspConfig, ServerSpec } from './types.js'
 
 export const DEFAULT_MAX_LOCATIONS = 100
 export const DEFAULT_MAX_RESULT_CHARS = 16000
@@ -20,6 +20,18 @@ export const DEFAULT_LOG_DIR = '~/.dsh/logs/dsh-lsp'
 export const DEFAULT_SYNC_LOAD_ON_READ = true
 export const DEFAULT_DIAGNOSTICS_ON_WRITE = true
 export const DEFAULT_DIAGNOSTICS_MIN_SEVERITY = 'warning'
+export const DEFAULT_AUTO_START: AutoStartMode = 'session'
+export const DEFAULT_AUTO_START_SERVERS: string[] = []
+export const DEFAULT_AUTO_START_ROOTS: string[] = []
+export const DEFAULT_DIAGNOSTICS_MODE: DiagnosticsMode = 'auto'
+export const DEFAULT_DIAGNOSTICS_TIMEOUT_MS = 15000
+export const DEFAULT_DIAGNOSTICS_DEDUPE_MS = 60000
+export const DEFAULT_MAX_DIAGNOSTICS = 50
+export const DEFAULT_DIAGNOSTICS_ON_ANY_PUBLISH = false
+export const DEFAULT_SYMBOL_FALLBACK = true
+export const DEFAULT_SYMBOL_FALLBACK_MAX_CANDIDATES = 12
+export const DEFAULT_SYMBOL_FALLBACK_TIMEOUT_MS = 15000
+export const DEFAULT_FALLBACK_SEARCH_COMMAND = 'rg'
 
 /**
  * The built-in server table, optimized for C/C++ (clangd) and Rust
@@ -129,6 +141,19 @@ function parseBoolean(value: unknown, fallback: boolean): boolean {
   return fallback
 }
 
+/**
+ * Parse a value from a closed set. Unknown values fail loud: a typo in
+ * `autoStart`/`diagnosticsMode` must not silently degrade to a fallback that
+ * looks like it worked.
+ */
+function parseEnum<T extends string>(key: string, value: unknown, allowed: readonly T[], fallback: T): T {
+  if (value === undefined || value === null || value === '') return fallback
+  const normalized = String(value).trim().toLowerCase()
+  const match = allowed.find(item => String(item) === normalized)
+  if (!match) fail(`invalid ${key} ${JSON.stringify(value)}; expected one of ${allowed.join(' | ')}`)
+  return match
+}
+
 function normalizeServer(raw: unknown, index: number): ServerSpec {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     fail(`servers[${index}] must be an object`)
@@ -167,11 +192,35 @@ export function resolveConfig(raw: Record<string, unknown> = {}): LspConfig {
   const maxLocations = parseInteger('maxLocations', raw.maxLocations, DEFAULT_MAX_LOCATIONS, 1)
   const maxResultChars = parseInteger('maxResultChars', raw.maxResultChars, DEFAULT_MAX_RESULT_CHARS, 100)
   const timeoutMs = parseInteger('timeoutMs', raw.timeoutMs, DEFAULT_TIMEOUT_MS, 1000)
-  const lazyStart = parseBoolean(raw.lazyStart, true)
+  const autoStart = parseEnum<AutoStartMode>('autoStart', raw.autoStart, ['mount', 'session', 'off'], DEFAULT_AUTO_START)
+  const autoStartServers = normalizeStringList(raw.autoStartServers)
+  const autoStartRoots = normalizeStringList(raw.autoStartRoots)
+  const diagnosticsMode = parseEnum<DiagnosticsMode>('diagnosticsMode', raw.diagnosticsMode, ['auto', 'push', 'pull', 'off'], DEFAULT_DIAGNOSTICS_MODE)
+  const diagnosticsTimeoutMs = parseInteger('diagnosticsTimeoutMs', raw.diagnosticsTimeoutMs, DEFAULT_DIAGNOSTICS_TIMEOUT_MS, 100)
+  const diagnosticsDedupeMs = parseInteger('diagnosticsDedupeMs', raw.diagnosticsDedupeMs, DEFAULT_DIAGNOSTICS_DEDUPE_MS, 0)
+  const maxDiagnostics = parseInteger('maxDiagnostics', raw.maxDiagnostics, DEFAULT_MAX_DIAGNOSTICS, 1)
+  const diagnosticsOnAnyPublish = parseBoolean(raw.diagnosticsOnAnyPublish, DEFAULT_DIAGNOSTICS_ON_ANY_PUBLISH)
   const logDir = typeof raw.logDir === 'string' && raw.logDir.trim() !== '' ? raw.logDir.trim() : DEFAULT_LOG_DIR
   const syncLoadOnRead = parseBoolean(raw.syncLoadOnRead, DEFAULT_SYNC_LOAD_ON_READ)
   const diagnosticsOnWrite = parseBoolean(raw.diagnosticsOnWrite, DEFAULT_DIAGNOSTICS_ON_WRITE)
   const diagnosticsMinSeverity = parseSeverity(raw.diagnosticsMinSeverity, DEFAULT_DIAGNOSTICS_MIN_SEVERITY)
+  const symbolFallback = parseBoolean(raw.symbolFallback, DEFAULT_SYMBOL_FALLBACK)
+  const symbolFallbackMaxCandidates = parseInteger(
+    'symbolFallbackMaxCandidates',
+    raw.symbolFallbackMaxCandidates,
+    DEFAULT_SYMBOL_FALLBACK_MAX_CANDIDATES,
+    1,
+  )
+  const symbolFallbackTimeoutMs = parseInteger(
+    'symbolFallbackTimeoutMs',
+    raw.symbolFallbackTimeoutMs,
+    DEFAULT_SYMBOL_FALLBACK_TIMEOUT_MS,
+    100,
+  )
+  const fallbackSearchCommand =
+    typeof raw.fallbackSearchCommand === 'string' && raw.fallbackSearchCommand.trim() !== ''
+      ? raw.fallbackSearchCommand.trim()
+      : DEFAULT_FALLBACK_SEARCH_COMMAND
 
   const servers: ServerSpec[] = []
   const seenExtensions = new Map<string, string>()
@@ -226,5 +275,26 @@ export function resolveConfig(raw: Record<string, unknown> = {}): LspConfig {
 
   if (servers.length === 0) fail('no enabled servers configured')
 
-  return { lazyStart, maxLocations, maxResultChars, timeoutMs, logDir, servers, syncLoadOnRead, diagnosticsOnWrite, diagnosticsMinSeverity }
+  return {
+    autoStart,
+    autoStartServers,
+    autoStartRoots,
+    maxLocations,
+    maxResultChars,
+    timeoutMs,
+    logDir,
+    servers,
+    syncLoadOnRead,
+    diagnosticsOnWrite,
+    diagnosticsMinSeverity,
+    diagnosticsMode,
+    diagnosticsTimeoutMs,
+    diagnosticsDedupeMs,
+    maxDiagnostics,
+    diagnosticsOnAnyPublish,
+    symbolFallback,
+    symbolFallbackMaxCandidates,
+    symbolFallbackTimeoutMs,
+    fallbackSearchCommand,
+  }
 }
