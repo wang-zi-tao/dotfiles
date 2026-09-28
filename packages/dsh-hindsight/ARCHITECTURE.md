@@ -126,6 +126,35 @@ asynchronously and polled via `/operations/{operation_id}` until the
 background reflect completes (`mentalModelTimeoutMs` cap, fail-open on
 timeout/error). In-flight creations are deduplicated per wanted key.
 
+### Scope tags (why a model can silently read nothing)
+
+`MentalModel.tags` is not decoration — it is the scope of the memories the
+model's internal reflect may read. The server defaults `trigger.tags_match` to
+`all_strict` **when the model has tags** (`any` when it has none), meaning a
+memory must carry *every* model tag and untagged memories are excluded. A model
+tagged with labels its memories do not carry therefore refreshes to **empty
+content**, silently.
+
+The plugin's contract is therefore:
+
+- retain writes `cwd:<session cwd>` on every memory
+  (`retainCwdTagPrefix`, default `cwd:`, empty disables);
+- the project model declares the same `cwd:<cwd>` in its `tags`;
+- creation pins `trigger.tags_match = 'all_strict'` explicitly rather than
+  relying on the server default, so a tagged model never ORs its tag with
+  untagged memories;
+- the cwd is never normalised (case, trailing separator): model identity is
+  derived from the same raw string, and normalising one side only would break
+  the match;
+- a *found* model is reconciled before injection: `reconcileMentalModelTags`
+  PATCHes `tags` only when the wanted scope is non-empty and differs from the
+  model's, leaving the stored content intact until the next scoped refresh. An
+  empty wanted scope means "leave the scope alone", never "clear it".
+
+Because the patch changes only the scope, adopting this on an existing bank
+requires backfilling `cwd` tags onto previously retained documents — otherwise
+the re-scoped models have nothing in scope to read.
+
 Like recall, the whole path is fire-and-forget and fail-open: the decision
 is returned before any memory work, and errors only log.
 

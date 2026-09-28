@@ -10,11 +10,12 @@
  * event injection, which is why dsh-llm sits in `dependencies`.
  */
 
-import type {Context, Logger} from '@deepseek-ai/cordis';
-import type {ToolDefinition, ToolRunContext, ToolExecution} from '@deepseek-ai/dsh-tools';
-import type {CommandDefinition, CommandInvocation, CommandResult} from '@deepseek-ai/dsh-commands';
-import type {Agent} from '@deepseek-ai/dsh-agent';
-import type {Session} from '@deepseek-ai/dsh-session';
+import type { Context, Logger } from '@deepseek-ai/cordis'
+import type { ToolDefinition, ToolRunContext, ToolExecution } from '@deepseek-ai/dsh-tools'
+import type { CommandDefinition, CommandInvocation, CommandResult } from '@deepseek-ai/dsh-commands'
+import type { Agent } from '@deepseek-ai/dsh-agent'
+import type { Session } from '@deepseek-ai/dsh-session'
+import type { ContextFormed } from '@deepseek-ai/dsh-llm'
 
 export type {
   Context,
@@ -28,6 +29,17 @@ export type {
   Agent,
   Session,
 };
+
+/**
+ * This plugin's own injected-context kind. DSH 0.1.7 dropped the shared
+ * catch-all `plugin` source: every producer declares its kind by merging into
+ * the harness's `MessageSourceMap`.
+ */
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    'dsh-neovim': { kind: 'dsh-neovim' } & ContextFormed
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Configuration

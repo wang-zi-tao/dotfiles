@@ -13,7 +13,7 @@
 | `src/inbox.ts` | `DiagnosticInbox`：推送式诊断的唯一落点——版本闸门（陈旧推送整条丢弃）、等待者（超时/取消结算为 `null`）、最近一次推送缓存、订阅分发 |
 | `src/watch.ts` | `DiagnosticWatcher`：写入→推送→注入的全部语义（登记先于刷新、空集不注入、去重窗口、同 agent 覆盖、超时仅丢弃监听） |
 | `src/diagnostics.ts` | 纯函数：严重级别过滤、诊断格式化、`agent.inject` 消息构造 |
-| `src/index.ts` | `apply`：注册 `lsp` 工具 + `/lsp` 命令 + 自动启动（挂载补漏 + `agent/session-start`）+ 推送订阅 + `tools/post-execute` 文件访问联动 + 生命周期 disposer |
+| `src/index.ts` | `apply`：注册 `lsp` 工具 + `/lsp` 命令 + 自动启动（挂载补漏 + `agent/created`）+ 推送订阅 + `tools/post-execute` 文件访问联动 + 生命周期 disposer |
 
 ## 关键决策
 
@@ -35,7 +35,7 @@
    - 防过期污染：按 agent 的 session id 记录在途运行（改一个文件可能让其他文件出现报错，跨文件诊断互相牵连），新写入 abort 旧控制器（合并进诊断请求的 CancellationToken），只注入最新结果。
    - 全部 fail-open：任何异常只写日志，绝不影响工具调用本身。
 
-8. **自动启动只负责「进程 + 握手」，不负责索引**。`agent/session-start` 取会话 cwd 起进程，挂载时再用 `ctx.agents.list()` 对已存在会话补漏（覆盖 HMR 后不会再有 session-start 的情况）；`findRoot` 之后必须 `hasRootMarker`，否则只有 `.git` 兜底的目录也会白起进程。启动路径不 await、失败只落 debug 日志；`registry` 的 `inFlight` 让自动启动、读钩子与查询共享同一次 spawn。
+8. **自动启动只负责「进程 + 握手」，不负责索引**。`agent/created` 取会话 cwd 起进程（串行监听器：异常会被吞掉，绝不拖垮 agent 创建），挂载时再用 `ctx.agents.list()` 对已存在会话补漏（覆盖 HMR 后不会再有 agent/created 的情况）；`findRoot` 之后必须 `hasRootMarker`，否则只有 `.git` 兜底的目录也会白起进程。启动路径不 await、失败只落 debug 日志；`registry` 的 `inFlight` 让自动启动、读钩子与查询共享同一次 spawn。
 
 9. **诊断走推送，超时只结束等待**。clangd 的 `textDocument/diagnostic` 回 `method not found`，所以主路径是 `textDocument/publishDiagnostics`：client 在 `connection.listen()` 后注册通知 → 版本闸门（低于本端最后发送版本者整条丢弃）→ `DiagnosticInbox` → `registry` 转发 → `DiagnosticWatcher` 在「有写入登记 + 达到 `diagnosticsMinSeverity` + 非重复」时 `agent.inject`（不唤醒 driver）。等待由 `diagnosticsTimeoutMs` 兜底，到期只结算为 `null`（`lsp diagnostics` 回退用最近一次推送）：**任何超时/取消都不 stop server、不 didClose**。`diagnosticsMode: auto` 仅在 server 声明 `diagnosticProvider` 时改走拉取路径。
 

@@ -67,7 +67,7 @@ test.before(async () => {
       child.once('spawn', () => resolve())
     })
     const client = attach({ proc: child })
-    const nv = new Neovim(client)
+    const nv = new Neovim(client, 'core.agent')
     await withTimeout(nv.channelId(), 10_000, 'channelId')
     await nv.command(`lua ${CORE_AGENT_STUB}`)
     nvim = nv
@@ -79,7 +79,7 @@ test.before(async () => {
 
 test.after(async () => {
   if (nvim) {
-    await withTimeout(nvim.close(), 2_000, 'close').catch(() => {})
+    await withTimeout(nvim.close('core.agent'), 2_000, 'close').catch(() => {})
   }
   proc?.kill()
 })
@@ -164,7 +164,7 @@ test('run neovim command async', async (t) => {
 test('run neovim command lua async', async (t) => {
   const nv = requireNvim(t)
   if (!nv) return
-  const result = await nv.luaAsyncEval('a*b', 'core.agent', { a: 2, b: 3 })
+  const result = await nv.luaAsyncEval('a*b', { a: 2, b: 3 })
   assert.equal(result, 6)
 })
 
@@ -172,7 +172,7 @@ test('run neovim command lua error', async (t) => {
   const nv = requireNvim(t)
   if (!nv) return
   await assert.rejects(
-    () => nv.luaAsyncEval("error('error message')", 'core.agent'),
+    () => nv.luaAsyncEval("error('error message')"),
     (error: unknown) => error !== null && error !== undefined,
   )
 })

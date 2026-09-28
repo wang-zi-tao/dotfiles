@@ -17,7 +17,7 @@
 | `Plugin = async ({ client })` | `apply(ctx, config)`（bundle 行 config） |
 | 加载时 `tryConnectNvim()` 失败即 `throw` | 懒连接：挂载只做后台探测，工具调用时按需连接；失败抛 `nvim not connected`（工具错误，不拖垮插件） |
 | `client.app.log({ service:'neovim', ... })` | `ctx.logger('neovim')` |
-| `client.session.promptAsync(...)` × `dap_sessions` | `agent.inject({ content, source:{kind:'plugin',plugin:'dsh-neovim'} })` × `dapSessions: Set<sessionId>`，经 `ctx.agents.list()` 匹配在线 agent；agent 已销毁时清退注册项 |
+| `client.session.promptAsync(...)` × `dap_sessions` | `agent.inject({ content, source:{kind:'dsh-neovim'} })` × `dapSessions: Set<sessionId>`，经 `ctx.agents.list()` 匹配在线 agent；agent 已销毁时清退注册项 |
 | `tool.execute.after`（write） | `ctx.on('tools/result', ...)`：观察 `write`/`edit` 的 `path`/`file_path`，fire-and-forget `reload_file`（观察者不修改结果） |
 | zod 参数校验 | 手工 JSON Schema（本仓库 dsh-lsp 惯例，`defineTool` 同源契约） |
 | bun:test | node:test（`t.after` 关闭连接，进程可自退；无 nvim 时干净 skip） |

@@ -93,6 +93,7 @@ Precedence, highest wins:
 | `HINDSIGHT_TIMEOUT` | Request timeout in milliseconds |
 | `HINDSIGHT_MEMORY_MODE` | `hybrid`, `context`, or `tools` |
 | `HINDSIGHT_RETAIN_TAGS` | Comma-separated default retain tags |
+| `HINDSIGHT_RETAIN_CWD_TAG_PREFIX` | Prefix of the per-session working-directory visibility tag (default `cwd:`); empty disables the tag |
 | `HINDSIGHT_RECALL_TAGS` | Comma-separated recall filter tags |
 | `HINDSIGHT_RECALL_TYPES` | Comma-separated recall fact types |
 | `HINDSIGHT_AUTO_MENTAL_MODEL` | Enable/disable mental-model injection (`true`/`false`) |
@@ -125,6 +126,9 @@ back to the plugin defaults.
     retainDrainTimeoutMs: 10000
     retainContext: conversation between a coding agent and the user
     retainTags: [source:dsh-hindsight]
+    # Visibility scope written on every retained memory: `cwd:<cwd>`.
+    # Empty disables it. Keep it identical to the mental-model scope below.
+    retainCwdTagPrefix: 'cwd:'
 
     autoRecall: true
     recallTimeoutMs: 6000
@@ -134,6 +138,11 @@ back to the plugin defaults.
 
     autoMentalModel: true
     mentalModelUserQuery: 用户偏好
+    # Extra scope tags. The project model always gets the session's `cwd:<cwd>`
+    # tag; these narrow it further. The user model is only scoped by what you
+    # list here — leave it empty to keep it reading the whole bank.
+    mentalModelUserTags: []
+    mentalModelProjectTags: []
     mentalModelProjectQueryTemplate: |
       项目 {cwd} 的
       - 概述
@@ -157,6 +166,51 @@ Prefer `HINDSIGHT_API_KEY` over putting credentials in YAML.
 Set `configFile: /absolute/path/config.json` in the row config, or set
 `HINDSIGHT_CONFIG`. Both camelCase and snake_case keys are accepted, so an
 existing Hermes-style `config.json` works as a starting point.
+
+## Visibility tags (`cwd` scope)
+
+Hindsight memories and mental models both carry **tags**, and a mental model's
+tags *are* the scope of the memories it can read. The semantics (Hindsight
+0.10.x):
+
+| Where | Meaning |
+| --- | --- |
+| `MemoryItem.tags` (retain) | Visibility scope stored on the document, its facts and its observations. `RetainRequest.document_tags` is deprecated in favour of item-level tags. |
+| `RecallRequest.tags` / `tags_match` | `any`/`all` also match untagged memories; `any_strict`/`all_strict` exclude them; `exact` is set equality. |
+| `MentalModel.tags` | "Tags for scoped visibility" — the refresh's internal recall/freflect only sees memories carrying them. |
+| `MentalModel.trigger.tags_match` | Defaults to `all_strict` **when the model has tags**, `any` when it has none. Under `all_strict` a memory must carry *every* model tag and untagged memories are excluded. |
+
+Consequences this plugin is built around:
+
+- A tagged project model whose memories do **not** carry the same tag refreshes
+  to **empty content** — the failure is silent, so the tag written by retain and
+  the tag declared on the model must be byte-identical.
+- The cwd is written **verbatim** (`cwd:C:\dotfiles-copy`), never normalised,
+  because the mental-model identity (`source_query` / name) is derived from the
+  same raw string.
+- The session tag (`session:<id>`) is *per-call provenance*: useful for
+  filtering, but it fragments consolidation because the default
+  `observation_scopes: combined` consolidates one tag-set at a time.
+
+What the plugin writes:
+
+| Producer | Tags |
+| --- | --- |
+| auto-retain (`turn/end`) | `retainTags` + `cwd:<session cwd>` + `session:<session id>` |
+| `hindsight_retain` tool | `retainTags` + `cwd:<calling session cwd>` + tool `tags` |
+| project mental model | `cwd:<session cwd>` + `mentalModelProjectTags` |
+| user mental model | `mentalModelUserTags` (empty by default — reads the whole bank) |
+
+Existing models are **re-scoped in place**: when a wanted model is found its
+tags are compared with the wanted scope and a `PATCH` is issued only on a
+difference (never on an empty wanted scope — an empty list means "leave it
+alone", not "clear it"). The patch changes the scope only; the stored content
+is preserved until the server's next scoped refresh.
+
+> Upgrading an existing bank: memories retained before this change carry no
+> `cwd` tag, so a freshly scoped project model will read nothing until those
+> documents are backfilled. `scripts/backfill-cwd-tags.mjs` does that through
+> the documents API.
 
 ## Tools
 
@@ -188,10 +242,14 @@ Subagent sessions are skipped by default (`skipSubagents: true`).
 ## Notes
 
 - With `retainDocumentId: null` (default) every retained turn gets a
-  per-turn document id (`{sessionId}-turn-{turn}`), so older Hindsight
-  servers never overwrite prior turns. Set `retainDocumentId` plus
-  `retainUpdateMode: append` when grouping a whole session into one document
-  is desired.
+  per-turn document id (`{sessionId}-turn-{turn}`), written with
+  `update_mode: replace`. The record is a full snapshot of the turn, never a
+  delta, so replacing keeps a re-send (a batch retried after a failure, a
+  replayed or resumed session) idempotent — appending the snapshot to itself
+  is refused by the server's append guard, which requires the new body to
+  extend the stored one byte-for-byte. Set `retainDocumentId` to group a whole
+  session into one document, where appending each turn is the point and is the
+  default for that mode. `retainUpdateMode` overrides the mode in both cases.
 - Auto-retain only runs for turn end reasons listed in `retainTurnKinds`
   (default `[completed]`). Tool failures and cancellations are not written as
   memories.
@@ -199,8 +257,12 @@ Subagent sessions are skipped by default (`skipSubagents: true`).
   model (source_query `用户偏好`, id `user_advise` when auto-created) and one
   project model per session cwd (source_query from
   `mentalModelProjectQueryTemplate`). Missing models are auto-created with the
-  configured `mentalModelRefreshMode` and `refresh_after_consolidation: true`,
-  then polled via the operations endpoint until the background reflect finishes.
+  configured `mentalModelRefreshMode`, `refresh_after_consolidation: true` and
+  `tags_match: 'all_strict'` whenever they carry tags, then polled via the
+  operations endpoint until the background reflect finishes.
+- Project models are scoped by the session's cwd tag (see
+  [Visibility tags](#visibility-tags-cwd-scope)); a model found with a different
+  scope is re-scoped with a `PATCH` before it is injected.
 - Injection happens **at most once per session (agent)**: the plugin records
   which mental models were already delivered to a given agent and skips both the
   query and the inject on later turns of that session. A model that is not ready

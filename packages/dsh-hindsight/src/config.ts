@@ -49,6 +49,12 @@ export interface HindsightConfig {
   retainOperationPollIntervalMs: number
   retainContext: string
   retainTags: string[]
+  /**
+   * Prefix for the per-session working-directory visibility tag
+   * (`cwd:<cwd>`). Empty disables the tag. The tag is what lets a scoped
+   * mental model read exactly the memories of one project.
+   */
+  retainCwdTagPrefix: string
   retainUserPrefix: string
   retainAssistantPrefix: string
   retainTurnKinds: string[]
@@ -105,6 +111,7 @@ export const DEFAULTS: Readonly<HindsightConfig> = Object.freeze({
   retainOperationPollIntervalMs: 500,
   retainContext: 'conversation between a DeepSeek Harness agent and the user',
   retainTags: [],
+  retainCwdTagPrefix: 'cwd:',
   retainUserPrefix: 'User',
   retainAssistantPrefix: 'Assistant',
   retainTurnKinds: ['completed'],
@@ -160,6 +167,7 @@ const ALIASES: Record<string, string> = {
   retain_operation_poll_interval_ms: 'retainOperationPollIntervalMs',
   retain_context: 'retainContext',
   retain_tags: 'retainTags',
+  retain_cwd_tag_prefix: 'retainCwdTagPrefix',
   retain_user_prefix: 'retainUserPrefix',
   retain_assistant_prefix: 'retainAssistantPrefix',
   retain_turn_kinds: 'retainTurnKinds',
@@ -303,6 +311,7 @@ export function resolveConfig(raw: RawConfig = {}, env: NodeJS.ProcessEnv = proc
     ['logDir', env.HINDSIGHT_LOG_DIR],
     ['memoryMode', env.HINDSIGHT_MEMORY_MODE],
     ['retainTags', env.HINDSIGHT_RETAIN_TAGS],
+    ['retainCwdTagPrefix', env.HINDSIGHT_RETAIN_CWD_TAG_PREFIX],
     ['recallTags', env.HINDSIGHT_RECALL_TAGS],
     ['recallTypes', env.HINDSIGHT_RECALL_TYPES],
     ['autoMentalModel', env.HINDSIGHT_AUTO_MENTAL_MODEL],
@@ -348,6 +357,7 @@ export function resolveConfig(raw: RawConfig = {}, env: NodeJS.ProcessEnv = proc
   result.recallTypes = normalizeStringList(result.recallTypes)
   result.recallTags = normalizeTags(result.recallTags)
   result.retainTags = normalizeTags(result.retainTags)
+  result.retainCwdTagPrefix = result.retainCwdTagPrefix == null ? '' : String(result.retainCwdTagPrefix)
   result.retainContext = String(result.retainContext ?? '')
   result.retainUserPrefix = String(result.retainUserPrefix ?? 'User')
   result.retainAssistantPrefix = String(result.retainAssistantPrefix ?? 'Assistant')
@@ -367,4 +377,24 @@ export function resolveConfig(raw: RawConfig = {}, env: NodeJS.ProcessEnv = proc
   if (result.retainTurnKinds.length === 0) fail('retainTurnKinds must not be empty')
 
   return result
+}
+
+/**
+ * The visibility tag that scopes memories to one working directory:
+ * `cwd:<cwd>` by default.
+ *
+ * The same value must be written on the retained memory AND declared on the
+ * mental model that reads it — a mental model's tags default to
+ * `tags_match: 'all_strict'` on the server, so a memory has to carry every
+ * one of the model's tags (untagged memories are excluded) or the model
+ * refreshes to empty content. The cwd is used verbatim, never normalised:
+ * the mental-model identity is derived from the same raw string, and
+ * normalising one side only would break the match.
+ *
+ * Returns undefined when there is no cwd or the prefix is disabled.
+ */
+export function cwdTag(prefix: string, cwd: string | undefined | null): string | undefined {
+  const value = typeof cwd === 'string' ? cwd.trim() : ''
+  if (!value || !prefix) return undefined
+  return prefix + value
 }

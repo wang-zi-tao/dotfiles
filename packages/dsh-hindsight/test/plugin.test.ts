@@ -33,6 +33,7 @@ const envKeys = [
   'HINDSIGHT_TIMEOUT',
   'HINDSIGHT_MEMORY_MODE',
   'HINDSIGHT_RETAIN_TAGS',
+  'HINDSIGHT_RETAIN_CWD_TAG_PREFIX',
   'HINDSIGHT_RECALL_TAGS',
   'HINDSIGHT_RECALL_TYPES',
 ]
@@ -85,8 +86,11 @@ interface FakeCtx {
   listeners: Map<string, any[]>
   on(event: string, listener: any, opts?: any): () => void
   sessionPersistence?: {
-    list: () => Promise<Array<{ id: string; cwd?: string; createdAt: number }>>
-    inspect: (sessionId: string) => Promise<{ meta: Record<string, unknown>; events: SessionEventLike[] }>
+    list: () => Promise<Array<{ header: { id: string; cwd?: string; createdAt: number } }>>
+    open: (sessionId: string, access: 'read') => Promise<{
+      read: () => Promise<{ events: SessionEventLike[] }>
+      close: () => Promise<void>
+    }>
   }
 }
 
@@ -161,10 +165,19 @@ interface FetchCall {
   init: RequestInit
 }
 
-function fakeFetch(calls: FetchCall[]): typeof globalThis.fetch {
-  const store: { mentalModels: Array<{id: string; name: string; source_query: string; content: string | null}> } = {
+interface FakeMentalModel {
+  id: string
+  name: string
+  source_query: string
+  content: string | null
+  tags: string[]
+}
+
+function fakeFetch(calls: FetchCall[], seed: FakeMentalModel[] = []): typeof globalThis.fetch {
+  const store: { mentalModels: FakeMentalModel[] } = {
     mentalModels: [
-      { id: 'user_advise', name: '用户偏好', source_query: '用户偏好', content: '## 用户偏好\n- 喜欢函数式编程' },
+      { id: 'user_advise', name: '用户偏好', source_query: '用户偏好', content: '## 用户偏好\n- 喜欢函数式编程', tags: [] },
+      ...seed,
     ],
   }
   return (async (url: RequestInfo | URL, init: RequestInit = {}) => {
@@ -183,6 +196,13 @@ function fakeFetch(calls: FetchCall[]): typeof globalThis.fetch {
     if (target.endsWith('/version')) {
       return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({ version: '0.6.1' }) } as Response
     }
+    if (/\/mental-models\/[^\/]+$/.test(target) && init.method === 'PATCH') {
+      const id = decodeURIComponent(target.split('/').pop()!)
+      const mm = store.mentalModels.find(m => m.id === id)
+      if (!mm) return { ok: false, status: 404, statusText: 'not found', text: async () => JSON.stringify({ detail: 'not found' }) } as Response
+      if (Array.isArray(body?.tags)) mm.tags = (body!.tags as unknown[]).map(String)
+      return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify(mm) } as Response
+    }
     if (/\/mental-models\/[^\/]+$/.test(target) && init.method === 'GET') {
       const id = decodeURIComponent(target.split('/').pop()!)
       const mm = store.mentalModels.find(m => m.id === id)
@@ -200,6 +220,7 @@ function fakeFetch(calls: FetchCall[]): typeof globalThis.fetch {
         // Simulate the background reflect completing: content is present when
         // the model is fetched after the operation finishes.
         content: '## ' + String(body?.name ?? '') + '\n- 模拟生成内容',
+        tags: Array.isArray(body?.tags) ? (body!.tags as unknown[]).map(String) : [],
       }
       store.mentalModels.push(created)
       return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({ mental_model_id: created.id, operation_id: 'op-1' }) } as Response
@@ -462,10 +483,17 @@ test('agent/pre-step injects user + project mental models (auto-create when miss
     // A create request for the project model was issued (auto-create on missing).
     const createCall = calls.find(call => call.url.endsWith('/mental-models') && call.init.method === 'POST')
     assert.ok(createCall, 'expected a mental-model create request for the missing project model')
-    const createBody = JSON.parse(String(createCall!.init.body)) as { name: string; source_query: string; trigger: Record<string, unknown> }
+    const createBody = JSON.parse(String(createCall!.init.body)) as {
+      name: string
+      source_query: string
+      tags: string[]
+      trigger: Record<string, unknown>
+    }
     assert.match(createBody.source_query, /项目 D:\\repo\\proj 的/)
     assert.equal(createBody.trigger.mode, 'delta', 'auto-created models should use the configured refresh mode (delta)')
     assert.equal(createBody.trigger.refresh_after_consolidation, true, 'auto-created models refresh after consolidation')
+    assert.deepEqual(createBody.tags, ['cwd:D:\\repo\\proj'], 'the project model is scoped by the session cwd tag')
+    assert.equal(createBody.trigger.tags_match, 'all_strict', 'a tagged model must exclude untagged memories')
   } finally {
     globalThis.fetch = originalFetch
   }
@@ -576,11 +604,22 @@ function invocation(rawInput: string): CommandInvocation {
   }
 }
 
+/**
+ * 0.1.7 read handle standing in for `inspect`, which was removed: a stored
+ * session is opened read-only and its log slice read through the handle.
+ */
+function fakeReadHandle(events: SessionEventLike[]) {
+  return {
+    read: async () => ({ events }),
+    close: async () => {},
+  }
+}
+
 test('hindsight-import command is registered and lists sessions', withCleanEnv(async () => {
   const ctx = fakeCtx()
   ctx.sessionPersistence = {
-    list: async () => [{ id: 's1', cwd: '/proj', createdAt: 1735689600000 }],
-    inspect: async (_id: string) => ({ meta: {}, events: [] }),
+    list: async () => [{ header: { id: 's1', cwd: '/proj', createdAt: 1735689600000 } }],
+    open: async () => fakeReadHandle([]),
   }
   const originalFetch = globalThis.fetch
   globalThis.fetch = fakeFetch([])
@@ -598,7 +637,7 @@ test('hindsight-import command is registered and lists sessions', withCleanEnv(a
     assert.match((listResult as { text: string }).text, /s1/)
 
     // Import mode with no events
-    ctx.sessionPersistence!.inspect = async () => ({ meta: {}, events: [] })
+    ctx.sessionPersistence!.open = async () => fakeReadHandle([])
     const emptyResult = await importCommand!.handler(invocation('s1'))
     assert.equal(emptyResult.kind, 'success')
     assert.match((emptyResult as { text: string }).text, /has no events to import/)
@@ -611,15 +650,12 @@ test('hindsight-import imports turns from historical session', withCleanEnv(asyn
   const ctx = fakeCtx()
   ctx.sessionPersistence = {
     list: async () => [],
-    inspect: async (_id: string) => ({
-      meta: {},
-      events: [
-        turnStartEvent(1),
-        userMessage('Historical query'),
-        assistantMessage(1, 'Historical answer'),
-        turnEndEvent(1),
-      ],
-    }),
+    open: async () => fakeReadHandle([
+      turnStartEvent(1),
+      userMessage('Historical query'),
+      assistantMessage(1, 'Historical answer'),
+      turnEndEvent(1),
+    ]),
   }
   const calls: FetchCall[] = []
   const originalFetch = globalThis.fetch
@@ -651,9 +687,9 @@ test('hindsight-import parses options from raw input', withCleanEnv(async () => 
   let inspectedId = ''
   ctx.sessionPersistence = {
     list: async () => [],
-    inspect: async (id: string) => {
+    open: async (id: string) => {
       inspectedId = id
-      return { meta: {}, events: [] }
+      return fakeReadHandle([])
     },
   }
   const originalFetch = globalThis.fetch
@@ -731,4 +767,216 @@ test('apply installs a file logger exporter that writes hindsight logs', withCle
     rmSync(dir, { recursive: true, force: true })
   }
 }))
+
+// ----- E: cwd visibility tags (retain scope + mental-model scope) -----
+
+const flushSession = (ctx: FakeCtx, session: SessionLike) => {
+  const listener = ctx.listeners.get('session/event')?.[0]
+  assert.ok(listener, 'session/event listener should be registered')
+  listener(session, session.events[session.events.length - 1]!)
+}
+
+const retainItemsOf = (calls: FetchCall[]) => {
+  const call = calls.find(c => c.url.endsWith('/memories'))
+  assert.ok(call, 'expected a retain request')
+  return JSON.parse(String(call!.init.body)) as { items: Array<{ tags: string[]; metadata: Record<string, string> }> }
+}
+
+test('auto-retain writes the session cwd tag on every memory', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRetain: true,
+      retainEveryNTurns: 1,
+      autoRecall: false,
+      retainAsync: false,
+    })
+
+    const session = makeSession('sess-tag', [
+      turnStartEvent(1),
+      userMessage('remember the tag'),
+      assistantMessage(1, 'ok'),
+      turnEndEvent(1),
+    ], { cwd: 'C:\\repo\\tagged' })
+    flushSession(ctx, session)
+    await waitFor(() => calls.length >= 1)
+
+    const body = retainItemsOf(calls)
+    assert.deepEqual(body.items[0]?.tags, ['cwd:C:\\repo\\tagged', 'session:sess-tag'])
+    assert.equal(body.items[0]?.metadata.cwd, 'C:\\repo\\tagged', 'cwd metadata stays for traceability')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('a session without a cwd gets only the session tag', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRetain: true,
+      retainEveryNTurns: 1,
+      autoRecall: false,
+      retainAsync: false,
+    })
+
+    const session = makeSession('sess-nocwd', [
+      turnStartEvent(1),
+      userMessage('no cwd here'),
+      assistantMessage(1, 'ok'),
+      turnEndEvent(1),
+    ])
+    flushSession(ctx, session)
+    await waitFor(() => calls.length >= 1)
+
+    const body = retainItemsOf(calls)
+    assert.deepEqual(body.items[0]?.tags, ['session:sess-nocwd'])
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('retainCwdTagPrefix can disable the cwd tag', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRetain: true,
+      retainEveryNTurns: 1,
+      autoRecall: false,
+      retainAsync: false,
+      retainCwdTagPrefix: '',
+    })
+
+    const session = makeSession('sess-off', [
+      turnStartEvent(1),
+      userMessage('cwd but tagging off'),
+      assistantMessage(1, 'ok'),
+      turnEndEvent(1),
+    ], { cwd: 'C:\\repo\\off' })
+    flushSession(ctx, session)
+    await waitFor(() => calls.length >= 1)
+
+    const body = retainItemsOf(calls)
+    assert.deepEqual(body.items[0]?.tags, ['session:sess-off'])
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('hindsight_retain adds the calling session cwd tag', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: false,
+      autoRetain: false,
+      retainAsync: false,
+    })
+    const retainTool = ctx.tools.registered.find(def => def.name === 'hindsight_retain')
+    assert.ok(retainTool, 'hindsight_retain should be registered')
+
+    await retainTool!.execute(
+      { content: 'a note worth scoping' },
+      { agent: { session: { header: { cwd: 'D:\\proj\\a' } } } } as unknown as ToolRunContext,
+    )
+
+    const body = retainItemsOf(calls)
+    assert.deepEqual(body.items[0]?.tags, ['cwd:D:\\proj\\a'])
+    assert.equal(body.items[0]?.metadata.cwd, 'D:\\proj\\a')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('an existing mental model is re-scoped to the session cwd tag', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  const sourceQuery = '项目 C:\\work\\app 的\n- 概述'
+  globalThis.fetch = fakeFetch(calls, [{
+    id: 'mm-legacy',
+    name: '项目 C:\\work\\app',
+    source_query: sourceQuery,
+    content: '## 项目 C:\\work\\app\n- 旧内容',
+    tags: [],
+  }])
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: false,
+      autoMentalModel: true,
+      mentalModelProjectQueryTemplate: '项目 {cwd} 的\n- 概述',
+      mentalModelAutoCreate: true,
+      mentalModelTimeoutMs: 2000,
+      mentalModelPollIntervalMs: 100,
+    })
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener)
+
+    const injectedMessages: any[] = []
+    const agent = {
+      id: 'agent-legacy',
+      session: { header: { cwd: 'C:\\work\\app', origin: 'user' } },
+      inject: (msg: any) => injectedMessages.push(msg),
+    }
+    await preStepListener(
+      { agent, messages: [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'continue' }] }], turn: 1, step: 1 },
+      async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'ctx' }] }),
+    )
+    await waitFor(() => injectedMessages.length >= 1, 3000)
+
+    const patchCall = calls.find(c => c.url.endsWith('/mental-models/mm-legacy') && c.init.method === 'PATCH')
+    assert.ok(patchCall, 'an untagged legacy model should be patched with the cwd tag')
+    assert.deepEqual(JSON.parse(String(patchCall!.init.body)), { tags: ['cwd:C:\\work\\app'] })
+
+    // The model is not re-created and its content is still injected.
+    assert.ok(!calls.some(c => c.url.endsWith('/mental-models') && c.init.method === 'POST'))
+    const mental = injectedMessages
+      .map((m: any) => String(m.content?.[0]?.text ?? ''))
+      .find(t => t.includes('hindsight-mental-model') && t.includes('项目'))
+    assert.ok(mental, 'the reconciled model content is injected')
+    assert.ok(mental!.includes('旧内容'), 'tagging does not wipe the stored content')
+
+    // A model already carrying the wanted tags is left alone.
+    const callsBefore = calls.length
+    const agent2 = { ...agent, id: 'agent-legacy-2' }
+    await preStepListener(
+      { agent: agent2, messages: [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'again' }] }], turn: 1, step: 1 },
+      async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'ctx' }] }),
+    )
+    await new Promise(resolve => setTimeout(resolve, 150))
+    assert.equal(
+      calls.slice(callsBefore).filter(c => c.init.method === 'PATCH').length,
+      0,
+      'an already-scoped model is not patched again',
+    )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
 

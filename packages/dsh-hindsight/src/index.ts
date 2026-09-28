@@ -20,7 +20,7 @@
  * @module dsh-hindsight
  */
 
-import {DEFAULTS, resolveConfig} from './config.js';
+import {DEFAULTS, cwdTag, resolveConfig} from './config.js';
 import type {HindsightConfig} from './config.js';
 import {HindsightClient} from './client.js';
 import type {MentalModel, RecallResult, RetainItem, RetainResponse} from './client.js';
@@ -34,10 +34,22 @@ import type {Agent, PreStepDecision} from '@deepseek-ai/dsh-agent';
 import type {Logger, Context} from '@deepseek-ai/cordis';
 import type {Session, SessionEvent, SessionId, UserMessage} from '@deepseek-ai/dsh-session';
 import type {SessionPersistence} from '@deepseek-ai/dsh-session-persistence';
+import type {ContextFormed} from '@deepseek-ai/dsh-llm';
+
+/**
+ * This plugin's own injected-context kind. DSH 0.1.7 dropped the shared
+ * catch-all `plugin` source: every producer declares its kind by merging into
+ * the harness's `MessageSourceMap`.
+ */
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    'dsh-hindsight': { kind: 'dsh-hindsight' } & ContextFormed;
+  }
+}
 
 export const name = 'dsh-hindsight';
 export const inject = ['tools', 'systemPrompt', 'commands','sessionPersistence'];
-export {DEFAULTS, resolveConfig};
+export {DEFAULTS, cwdTag, resolveConfig};
 export type {HindsightConfig};
 export {HindsightClient} from './client.js';
 export type {
@@ -172,12 +184,28 @@ function agentMetadata(exec: ToolRunContext | undefined): Record<string, string>
   return metadata;
 }
 
+/** The tool-run agent's session working directory, when it has one. */
+function agentCwd(exec: ToolRunContext | undefined): string | undefined {
+  const cwd = exec?.agent?.session?.header?.cwd;
+  return typeof cwd === 'string' && cwd.trim() ? cwd : undefined;
+}
+
 function retainItem(record: TurnRecord, session: Session, config: HindsightConfig): RetainItem {
   const item: RetainItem = {
     content: record.text,
     timestamp: record.startedAt,
     context: config.retainContext,
-    update_mode: "append",
+    // A per-turn document is a full snapshot of that turn — `record.text` is the
+    // WHOLE turn, never a delta — so `replace` is the idempotent choice: a
+    // re-send (a batch kept after a failure, a replay, a resumed session)
+    // rewrites the document with the content it already holds.
+    //
+    // Appending the snapshot to itself does not survive a real server: its
+    // append guard requires the new body to extend the stored one byte-for-byte,
+    // and the stored body is `JSON.stringify` output (compact) that the server
+    // re-serializes with `", "` / `": "` separators. The append is then refused
+    // forever — `AppendWouldTruncateDocument` — and the turn never lands.
+    update_mode: "replace",
     document_id: `${session.id}-turn-${record.turn}`,
     metadata: {
       source: 'dsh-hindsight',
@@ -187,13 +215,32 @@ function retainItem(record: TurnRecord, session: Session, config: HindsightConfi
       retainedAt: new Date().toISOString(),
       ...(session.header.cwd ? {cwd: String(session.header.cwd)} : {}),
     },
-    tags: mergeTags(config.retainTags, [`session:${session.id}`]),
+    // Visibility scope: the configured default tags, the session's working
+    // directory (`cwd:<cwd>`) and the session id. The cwd tag is what a
+    // project mental model scoped to the same cwd can read back.
+    tags: mergeTags(
+      config.retainTags,
+      [cwdTag(config.retainCwdTagPrefix, session.header.cwd)],
+      [`session:${session.id}`],
+    ),
   };
   if (config.retainDocumentId) {
+    // Every turn accumulates into ONE document: appending is the point of this
+    // mode, so it stays the default here.
     item.document_id = config.retainDocumentId;
-    if (config.retainUpdateMode) item.update_mode = config.retainUpdateMode;
+    item.update_mode = config.retainUpdateMode ?? "append";
+  } else if (config.retainUpdateMode) {
+    item.update_mode = config.retainUpdateMode;
   }
   return item;
+}
+
+/** Forget the retained turns in place and by identity: the buffer may hold more. */
+function dropRetained(state: SessionState, records: TurnRecord[]): void {
+  for (const record of records) {
+    const index = state.buffer.indexOf(record);
+    if (index >= 0) state.buffer.splice(index, 1);
+  }
 }
 
 function recallResultsToValue(results: RecallResult[] | undefined): Array<Record<string, unknown>> {
@@ -311,7 +358,11 @@ function toolDefinitions(client: HindsightClient, config: HindsightConfig): Tool
     async execute(args, exec) {
       const content = requireString(args, 'content');
       const context = optionalString(args, 'context');
-      const tags = mergeTags(config.retainTags, optionalTags(args, []));
+      const tags = mergeTags(
+        config.retainTags,
+        [cwdTag(config.retainCwdTagPrefix, agentCwd(exec))],
+        optionalTags(args, []),
+      );
       const documentId = optionalString(args, 'documentId') ?? config.retainDocumentId;
       const updateMode = optionalString(args, 'updateMode') ?? (config.retainUpdateMode ?? undefined);
       const item: RetainItem = {content, context, metadata: agentMetadata(exec), tags};
@@ -619,7 +670,7 @@ function memoryMessage(text: string): UserMessage {
     id: `hindsight-${Date.now()}-${++memoryMessageSeq}` as UserMessage['id'],
     role: 'user',
     content: [{type: 'text', text: `${preamble}${text}${footer}`}],
-    source: {kind: 'plugin', plugin: 'dsh-hindsight', form: 'recall'},
+    source: {kind: 'dsh-hindsight', form: 'recall'},
   };
 }
 
@@ -631,7 +682,10 @@ function mentalModelMessage(name: string, content: string): UserMessage {
     id: ('hindsight-mm-' + Date.now() + '-' + (++memoryMessageSeq)) as UserMessage['id'],
     role: 'user',
     content: [{type: 'text', text: preamble + content + footer}],
-    source: {kind: 'plugin', plugin: 'dsh-hindsight', form: 'recall'},
+    source: {
+      kind: 'dsh-hindsight',
+      form: 'recall',
+    },
   };
 }
 
@@ -705,10 +759,58 @@ function wantedMentalModels(config: HindsightConfig, cwd: string | undefined): M
       key: 'project:' + cwd,
       name: '项目 ' + cwd,
       sourceQuery: query,
-      tags: config.mentalModelProjectTags,
+      // The project model is scoped to memories retained from this cwd. The
+      // server defaults a tagged model to `tags_match: 'all_strict'`, so the
+      // model reads ONLY memories carrying the same cwd tag — an untagged
+      // memory (another project, or data retained before cwd tagging) is
+      // invisible to it. Extra configured tags narrow the scope further.
+      tags: mergeTags([cwdTag(config.retainCwdTagPrefix, cwd)], config.mentalModelProjectTags),
     });
   }
   return wants;
+}
+
+/** Order-insensitive set equality for tag lists. */
+function sameTags(left: string[] | undefined, right: string[] | undefined): boolean {
+  const a = left ?? [];
+  const b = right ?? [];
+  if (a.length !== b.length) return false;
+  const seen = new Set(a);
+  return b.every(tag => seen.has(tag));
+}
+
+/**
+ * Bring an existing mental model's tags in line with the wanted scope.
+ *
+ * A model created before cwd tagging carries no tags, which makes it read the
+ * WHOLE bank — every project, plus data from other clients sharing the bank.
+ * Patching its tags scopes it to this cwd; the content is left alone, so the
+ * model keeps its knowledge until the server's next scoped refresh.
+ *
+ * Only models with a non-empty wanted scope are reconciled: an empty wanted
+ * list means "leave the scope exactly as it is", never "clear it".
+ */
+async function reconcileMentalModelTags(
+  client: HindsightClient,
+  config: HindsightConfig,
+  model: MentalModel,
+  want: MentalModelWanted,
+  signal?: AbortSignal,
+): Promise<MentalModel> {
+  if (want.tags.length === 0 || sameTags(model.tags, want.tags)) return model;
+  try {
+    return await client.updateMentalModel({
+      bankId: config.bankId,
+      id: model.id,
+      tags: want.tags,
+      signal,
+      timeoutMs: config.mentalModelRequestTimeoutMs,
+    });
+  } catch {
+    // Fail-open: an un-reconciled model still injects (with its old, wider
+    // scope) rather than dropping the mental model for this turn.
+    return model;
+  }
 }
 
 /**
@@ -734,7 +836,8 @@ async function ensureMentalModel(
         ?? items.find(mm => mm.name === want.name)
         ?? (want.key === 'user' ? items.find(mm => mm.id === 'user_advise') : undefined);
       if (found) {
-        return await client.getMentalModel(config.bankId, found.id, {signal, timeoutMs: config.mentalModelRequestTimeoutMs});
+        const model = await client.getMentalModel(config.bankId, found.id, {signal, timeoutMs: config.mentalModelRequestTimeoutMs});
+        return await reconcileMentalModelTags(client, config, model, want, signal);
       }
       if (!config.mentalModelAutoCreate) return undefined;
       const trigger: Record<string, unknown> = {
@@ -742,6 +845,9 @@ async function ensureMentalModel(
         refresh_after_consolidation: true,
       };
       if (config.mentalModelFactTypes.length > 0) trigger.fact_types = config.mentalModelFactTypes;
+      // Spelled out rather than relying on the server default: a tagged model
+      // must exclude untagged memories, not merely OR its tags with them.
+      if (want.tags.length > 0) trigger.tags_match = 'all_strict';
       const created = await client.createMentalModel({
         bankId: config.bankId,
         id: want.key === 'user' ? 'user_advise' : undefined,
@@ -878,6 +984,15 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
     return state;
   }
 
+  /**
+   * Retain the buffered turns, dropping only the turns that actually landed.
+   *
+   * A batch used to be all-or-nothing for the caller: one failing item kept the
+   * WHOLE buffer, so every later `turn/end` re-sent every turn before it, and
+   * the batch could never drain while that one item kept failing. Retaining the
+   * turns one at a time after a batch failure isolates the failure and leaves
+   * only the turns that really failed buffered for the next retry.
+   */
   async function flushRetain(session: Session, state: SessionState): Promise<void> {
     const records = state.buffer.slice();
     if (records.length === 0) return;
@@ -888,13 +1003,50 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
     const docIds = items.map(item => item.document_id);
     const hasDuplicate = new Set(docIds).size !== docIds.length;
     if (hasDuplicate) {
-      for (const item of items) {
-        await retainAndWait(client, config, {bankId: config.bankId, items: [item]});
-      }
-    } else {
-      await retainAndWait(client, config, {bankId: config.bankId, items});
+      await retainIndividually(session, state, records, items);
+      return;
     }
-    state.buffer.splice(0, records.length);
+    try {
+      await retainAndWait(client, config, {bankId: config.bankId, items});
+    } catch (error) {
+      // With one item the batch IS the item: there is nothing to isolate, so let
+      // the caller keep it buffered for the next completed turn to retry.
+      if (items.length === 1) throw error;
+      logger.warn(
+        `hindsight retain of ${items.length} turn(s) failed for session ${session.id};`
+        + ' retrying them one at a time',
+      );
+      await retainIndividually(session, state, records, items);
+      return;
+    }
+    dropRetained(state, records);
+    logger.info(`hindsight retained ${items.length} turn(s) for session ${session.id}`);
+  }
+
+  /** Retain one turn per request and forget each turn as soon as it lands. */
+  async function retainIndividually(
+    session: Session,
+    state: SessionState,
+    records: TurnRecord[],
+    items: RetainItem[],
+  ): Promise<void> {
+    const failures: string[] = [];
+    for (let index = 0; index < items.length; index += 1) {
+      const item = items[index]!;
+      const record = records[index]!;
+      try {
+        await retainAndWait(client, config, {bankId: config.bankId, items: [item]});
+        dropRetained(state, [record]);
+      } catch (error) {
+        failures.push(`turn ${record.turn}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    if (failures.length > 0) {
+      logger.warn(
+        `hindsight retained ${items.length - failures.length} of ${items.length} turn(s) for session ${session.id}`,
+      );
+      throw new Error(`${failures.length} of ${items.length} turn(s) failed — ${failures.join('; ')}`);
+    }
     logger.info(`hindsight retained ${items.length} turn(s) for session ${session.id}`);
   }
 
@@ -1021,11 +1173,11 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
       try {
         // List mode: list importable sessions.
         if (!args.sessionId) {
-          const headers = await sp.list();
-          const sessions = headers.map(s => ({
-            id: String(s.id),
-            cwd: String(s.cwd ?? ''),
-            createdAt: String(s.createdAt),
+          const snapshots = await sp.list();
+          const sessions = snapshots.map(s => ({
+            id: String(s.header.id),
+            cwd: String(s.header.cwd ?? ''),
+            createdAt: String(s.header.createdAt),
           }));
           if (sessions.length === 0) return {kind: 'success', text: 'No importable sessions found.'};
           const lines = sessions.map(s => `  ${s.id}  (cwd: ${s.cwd}, created: ${s.createdAt})`);
@@ -1034,8 +1186,16 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
 
         // Import mode.
         const sessionId = args.sessionId as SessionId;
-        const inspected = await sp.inspect(sessionId);
-        const events = Array.isArray(inspected.events) ? [...inspected.events] : ([] as SessionEvent[]);
+        // 0.1.7 removed `inspect`: a stored session is read through a read-only
+        // handle whose `read()` returns its contiguous logical log slice.
+        const handle = await sp.open(sessionId, 'read');
+        let events: SessionEvent[];
+        try {
+          const slice = await handle.read();
+          events = Array.isArray(slice.events) ? [...slice.events] : ([] as SessionEvent[]);
+        } finally {
+          await handle.close();
+        }
         if (events.length === 0) {
           return {kind: 'success', text: `Session ${sessionId} has no events to import.`};
         }

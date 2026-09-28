@@ -502,11 +502,18 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
   }
 
   // Mount-time catch-up: a remount (hot reload) happens mid-session, where no
-  // `agent/session-start` fires again, so live sessions are scanned as well.
+  // `agent/created` fires again, so live sessions are scanned as well.
   if (config.autoStart === 'mount') autoStartFor(process.cwd())
   for (const agent of liveAgents(ctx)) autoStartFor(sessionCwd(agent))
-  ctx.on('agent/session-start', (payload: { agent: unknown }) => {
-    autoStartFor(sessionCwd(payload.agent))
+  // `agent/created` is serial: a throw or rejection fails agent creation, so
+  // auto-start stays best-effort and never propagates a failure.
+  ctx.on('agent/created', async (payload: { agent: unknown }) => {
+    try {
+      autoStartFor(sessionCwd(payload.agent))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      logger.debug('dsh-lsp: auto-start on agent/created failed: ' + message)
+    }
   })
 
   // In-flight write-diagnostics runs keyed by the agent's session id. Editing

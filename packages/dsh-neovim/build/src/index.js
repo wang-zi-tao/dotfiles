@@ -74,7 +74,7 @@ export function apply(ctx, rawConfig = {}) {
             if (!id || !dapSessions.has(String(id)))
                 continue;
             try {
-                const message = createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'plugin', plugin: name } });
+                const message = createUserMessage({ content: [{ type: 'text', text }], source: { kind: name } });
                 // inject() never wakes an idle driver: a stopped agent would leave the
                 // event pending in the inbox forever, so wake it with a follow-up turn.
                 if (agent.status === 'idle')
@@ -90,7 +90,7 @@ export function apply(ctx, rawConfig = {}) {
     }
     async function subscribeDap(nv) {
         const channelId = await nv.channelId();
-        nv.lua(`require("${config.luaModule}").dap_subscribe(${channelId})`).catch((error) => {
+        nv.lua(`agent.dap_subscribe(${channelId})`).catch((error) => {
             logger.error(`dap_subscribe error: ${errText(error)}`);
         });
         logger.info(`listening for neovim debugger events (channel ${channelId})`);
@@ -135,11 +135,16 @@ export function apply(ctx, rawConfig = {}) {
                 logger.warn(`neovim not reachable at ${socket}`);
                 return null;
             }
-            const nv = tryConnectNvim(socket);
+            const nv = tryConnectNvim(socket, config.luaModule);
             if (!nv)
                 return null;
             // Touches the wire; re-subscribes debugger events on every reconnect.
-            await subscribeDap(nv);
+            ctx.effect(() => {
+                subscribeDap(nv);
+                return () => {
+                    nv.close(config.luaModule);
+                };
+            });
             return nv;
         }
         catch (error) {
@@ -169,7 +174,7 @@ export function apply(ctx, rawConfig = {}) {
     // ------------------------------------------------------------------
     async function dapCall(code, args) {
         const nv = await ensureNvim();
-        return await nv.luaAsyncEval(code, config.luaModule, args) || null;
+        return await nv.luaAsyncEval(code, args) || null;
     }
     function markSession(exec) {
         const id = exec?.agent?.session?.id;
@@ -178,7 +183,7 @@ export function apply(ctx, rawConfig = {}) {
     }
     async function dapStep(luaFn, args, exec) {
         markSession(exec);
-        return await dapCall(`require("${config.luaModule}").${luaFn}(args)`, { args });
+        return await dapCall(`agent.${luaFn}(args)`, { args });
     }
     function fmtStep(action, ret) {
         if (!ret || ret.status === 'terminated')
@@ -223,13 +228,13 @@ export function apply(ctx, rawConfig = {}) {
         },
         {
             name: 'nvim_lua_eval',
-            description: '在 Neovim 中异步求值 Lua 表达式并返回结果。cmd 必须是 Lua 表达式：内部按 require("<luaModule>").run_async(function() return <cmd> end, ...) 求值，直接写语句会报 Error loading lua: [string "<nvim>"]:1: unexpected symbol near ...；多条语句请包成 (function() ... end)()，只执行语句且不需要返回值请用 nvim_lua_command。常用lua模块:[core.agent: 各种给agent提供的工具函数和集成式调试器辅助函数, dap: 调试器, overseer: 编译等运行器], 常用vim函数:[vim.inspect: lua值转字符串, vim.fn: 各种neovim内置函数]',
+            description: '在 Neovim 中异步求值 Lua 表达式并返回结果。cmd 必须是 Lua 表达式：内部按 agent.run_async(function() return <cmd> end, ...) 求值. 多条语句请包成 (function() ... end)()，常用lua模块:[core.agent: 各种给agent提供的工具函数和集成式调试器辅助函数, dap: 调试器, overseer: 编译等运行器], 常用vim函数:[vim.inspect: lua值转字符串, vim.fn: 各种neovim内置函数]',
             parameters: objectSchema({
-                cmd: STRING('Lua 表达式，如 "vim.o.tabstop"、"vim.api.nvim_get_current_buf()"；多条语句用 "(function() ... end)()"'),
+                cmd: STRING('Lua 表达式'),
             }, ['cmd']),
             async run(args) {
                 const nv = await ensureNvim();
-                return await nv.luaAsyncEval(args.cmd, config.luaModule);
+                return await nv.luaAsyncEval(args.cmd);
             },
             format(result) {
                 return JSON.stringify(result);
@@ -242,7 +247,7 @@ export function apply(ctx, rawConfig = {}) {
                 expr: STRING('要求值的表达式'),
             }, ['expr']),
             async run(args) {
-                const ret = await dapCall(`require("${config.luaModule}").dap_eval(expr)`, { expr: args.expr });
+                const ret = await dapCall(`agent.dap_eval(expr)`, { expr: args.expr });
                 if (!ret)
                     throw new Error('evaluate failed');
                 return ret;
@@ -266,7 +271,7 @@ export function apply(ctx, rawConfig = {}) {
             }),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_disasm(args)`, { args });
+                return await dapCall(`agent.dap_disasm(args)`, { args });
             },
             format: fmtDisasm,
         },
@@ -279,7 +284,7 @@ export function apply(ctx, rawConfig = {}) {
                 config: OBJECT('深度合并到模板的覆盖字段，如 program、pid/processId（附加）、args、cwd、env、request、stopAtEntry'),
             }, ['config_name']),
             async run(args, exec) {
-                const ret = await dapCall(`require("${config.luaModule}").dap_start(args)`, { args });
+                const ret = await dapCall(`agent.dap_start(args)`, { args });
                 markSession(exec);
                 return ret;
             },
@@ -307,7 +312,7 @@ export function apply(ctx, rawConfig = {}) {
             description: '终止当前调试会话',
             parameters: objectSchema({}),
             async run() {
-                await dapCall(`require("${config.luaModule}").dap_stop()`);
+                await dapCall(`agent.dap_stop()`);
                 return { ok: true };
             },
             format() {
@@ -362,7 +367,7 @@ export function apply(ctx, rawConfig = {}) {
             }),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_run_to_location(args)`, { args });
+                return await dapCall(`agent.dap_run_to_location(args)`, { args });
             },
             format: (result) => fmtStep('run to location', result),
         },
@@ -371,7 +376,7 @@ export function apply(ctx, rawConfig = {}) {
             description: '获取当前调用栈',
             parameters: objectSchema({}),
             async run(_args, exec) {
-                const ret = await dapCall(`require("${config.luaModule}").dap_get_stack()`);
+                const ret = await dapCall(`agent.dap_get_stack()`);
                 markSession(exec);
                 return ret;
             },
@@ -388,7 +393,7 @@ export function apply(ctx, rawConfig = {}) {
             }),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_wait_stop(args)`, { args });
+                return await dapCall(`agent.dap_wait_stop(args)`, { args });
             },
             format(result) {
                 if (!result || result.status === 'timeout')
@@ -414,7 +419,7 @@ export function apply(ctx, rawConfig = {}) {
             }, ['thread_id', 'frame_match']),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_frame_vars(thread_id, frame_match, var_names)`, {
+                return await dapCall(`agent.dap_frame_vars(thread_id, frame_match, var_names)`, {
                     thread_id: args.thread_id,
                     frame_match: args.frame_match,
                     var_names: args.var_names ?? null,
@@ -439,7 +444,7 @@ export function apply(ctx, rawConfig = {}) {
             }, ['reg_name']),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_read_register(frame_id, reg_name, auto_inline)`, {
+                return await dapCall(`agent.dap_read_register(frame_id, reg_name, auto_inline)`, {
                     frame_id: args.frame_id ?? null,
                     reg_name: args.reg_name,
                     auto_inline: args.auto_inline ?? null,
@@ -463,7 +468,7 @@ export function apply(ctx, rawConfig = {}) {
             }),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_read_memory(args)`, { args });
+                return await dapCall(`agent.dap_read_memory(args)`, { args });
             },
             format(result) {
                 if (!result || !result.ok)
@@ -492,7 +497,7 @@ export function apply(ctx, rawConfig = {}) {
             }),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_read_stack_slot(args)`, { args });
+                return await dapCall(`agent.dap_read_stack_slot(args)`, { args });
             },
             format(result) {
                 if (!result || !result.ok)
@@ -517,7 +522,7 @@ export function apply(ctx, rawConfig = {}) {
             }, ['addr']),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_address_classify(args)`, { args });
+                return await dapCall(`agent.dap_address_classify(args)`, { args });
             },
             format(result) {
                 if (!result)
@@ -538,7 +543,7 @@ export function apply(ctx, rawConfig = {}) {
             }),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_check_hang(args)`, { args });
+                return await dapCall(`agent.dap_check_hang(args)`, { args });
             },
             format(result) {
                 if (!result)
@@ -557,7 +562,7 @@ export function apply(ctx, rawConfig = {}) {
             description: '获取所有线程',
             parameters: objectSchema({}),
             async run() {
-                return await dapCall(`require("${config.luaModule}").dap_get_threads()`);
+                return await dapCall(`agent.dap_get_threads()`);
             },
             format: fmtThreads,
         },
@@ -569,7 +574,7 @@ export function apply(ctx, rawConfig = {}) {
             }, ['thread_id']),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_switch_thread(args)`, { args });
+                return await dapCall(`agent.dap_switch_thread(args)`, { args });
             },
             format(result) {
                 return fmtSwitchThread(result);
@@ -580,7 +585,7 @@ export function apply(ctx, rawConfig = {}) {
             description: '列出所有活跃调试会话',
             parameters: objectSchema({}),
             async run() {
-                return await dapCall(`require("${config.luaModule}").dap_get_sessions()`);
+                return await dapCall(`agent.dap_get_sessions()`);
             },
             format: fmtSessions,
         },
@@ -592,7 +597,7 @@ export function apply(ctx, rawConfig = {}) {
             }, ['session_name']),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_switch_session(args)`, { args });
+                return await dapCall(`agent.dap_switch_session(args)`, { args });
             },
             format(result) {
                 const s = result.session;
@@ -606,7 +611,7 @@ export function apply(ctx, rawConfig = {}) {
                 expr: STRING('监视表达式'),
             }, ['expr']),
             async run(args) {
-                return await dapCall(`require("${config.luaModule}").dap_add_watch(args)`, { args });
+                return await dapCall(`agent.dap_add_watch(args)`, { args });
             },
             format(result, args) {
                 return `已添加监视: **${result.expression || args.expr}**`;
@@ -624,7 +629,7 @@ export function apply(ctx, rawConfig = {}) {
             }, ['line']),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_add_breakpoint(args)`, { args });
+                return await dapCall(`agent.dap_add_breakpoint(args)`, { args });
             },
             format(result) {
                 const file = result.file ? result.file.replace(/^.*[\\/]/, '') : '?';
@@ -642,7 +647,7 @@ export function apply(ctx, rawConfig = {}) {
             }, ['func']),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_add_function_breakpoint(args)`, { args });
+                return await dapCall(`agent.dap_add_function_breakpoint(args)`, { args });
             },
             format(result, args) {
                 const bps = result?.breakpoints;
@@ -665,7 +670,7 @@ export function apply(ctx, rawConfig = {}) {
             }),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_toggle_breakpoint(args)`, { args });
+                return await dapCall(`agent.dap_toggle_breakpoint(args)`, { args });
             },
             format(result) {
                 const file = result.file ? result.file.replace(/^.*[\\/]/, '') : '?';
@@ -680,7 +685,7 @@ export function apply(ctx, rawConfig = {}) {
                 line: INTEGER('行号（1-based）'),
             }, ['line']),
             async run(args) {
-                return await dapCall(`require("${config.luaModule}").dap_remove_breakpoint(args)`, { args });
+                return await dapCall(`agent.dap_remove_breakpoint(args)`, { args });
             },
             format(result) {
                 const file = result.file ? result.file.replace(/^.*[\\/]/, '') : '?';
@@ -692,7 +697,7 @@ export function apply(ctx, rawConfig = {}) {
             description: '列出所有断点及其属性',
             parameters: objectSchema({}),
             async run() {
-                return await dapCall(`require("${config.luaModule}").dap_list_breakpoints()`);
+                return await dapCall(`agent.dap_list_breakpoints()`);
             },
             format: fmtBreakpoints,
         },
@@ -701,7 +706,7 @@ export function apply(ctx, rawConfig = {}) {
             description: '清除所有断点',
             parameters: objectSchema({}),
             async run() {
-                await dapCall(`require("${config.luaModule}").dap_clear_breakpoints()`);
+                await dapCall(`agent.dap_clear_breakpoints()`);
                 return { ok: true };
             },
             format() {
@@ -718,7 +723,7 @@ export function apply(ctx, rawConfig = {}) {
             }, ['command']),
             async run(args, exec) {
                 markSession(exec);
-                return await dapCall(`require("${config.luaModule}").dap_request(args)`, { args });
+                return await dapCall(`agent.dap_request(args)`, { args });
             },
             format(result) {
                 if (result.error) {
@@ -756,7 +761,7 @@ export function apply(ctx, rawConfig = {}) {
                 lang: STRING('按语言筛选（如 cpp、python），省略则列出全部'),
             }),
             async run(args) {
-                return await dapCall(`require("${config.luaModule}").dap_get_configurations(args)`, { args });
+                return await dapCall(`agent.dap_get_configurations(args)`, { args });
             },
             format: fmtConfigs,
         },
@@ -765,16 +770,8 @@ export function apply(ctx, rawConfig = {}) {
         const definition = {
             name: spec.name,
             description: spec.description,
-            parameters: {
-                ...spec.parameters,
-                properties: {
-                    ...spec.parameters,
-                    output_json: BOOLEAN('是否以 JSON 格式输出结果（默认 false）'),
-                },
-            },
+            parameters: spec.parameters,
             output: {
-                // 工具原始结果形态不定（字符串或任意 JSON 值）；dsh 原生以 canonical JSON 值
-                // 承载 execute 的返回值，展示形式由 render 按 output_json 决定。
                 schema: { description: '工具原始结果（任意 JSON 值）或 markdown 文本' },
                 render: (args, value) => {
                     const { output_json: wantJson, ...rest } = (args ?? {});
@@ -783,8 +780,6 @@ export function apply(ctx, rawConfig = {}) {
                 },
             },
             async execute(args, exec) {
-                // output_json is a presentation switch, not a Neovim-facing argument:
-                // strip it before forwarding the remaining arguments downstream.
                 const { output_json, ...rest } = (args ?? {});
                 let ret = await spec.run(rest, exec);
                 return ret || null;
@@ -805,7 +800,7 @@ export function apply(ctx, rawConfig = {}) {
         const nv = nvim;
         if (!nv || nv.disconnected)
             return;
-        nv.lua(`require("${config.luaModule}").reload_file(path)`, { path: filePath }).catch((error) => {
+        nv.lua(`agent.reload_file(path)`, { path: filePath }).catch((error) => {
             logger.error(`reload_file failed for ${filePath}: ${errText(error)}`);
         });
     });

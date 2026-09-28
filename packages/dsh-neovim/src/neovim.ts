@@ -156,6 +156,9 @@ export class Neovim {
         }
         return '{' + fields.join(',') + '}';
       }
+      case "function": {
+        return "null"
+      }
       default:
         throw new Error('cannot encode value of type ' + typeof json + ' as Lua');
     }

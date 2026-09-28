@@ -107,7 +107,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
       const id = agent.session?.id
       if (!id || !dapSessions.has(String(id))) continue
       try {
-        const message = createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'plugin', plugin: name } })
+        const message = createUserMessage({ content: [{ type: 'text', text }], source: { kind: name } })
         // inject() never wakes an idle driver: a stopped agent would leave the
         // event pending in the inbox forever, so wake it with a follow-up turn.
         if (agent.status === 'idle') 
@@ -800,16 +800,8 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     const definition: ToolDefinition = {
       name: spec.name,
       description: spec.description,
-      parameters: {
-        ...spec.parameters,
-        properties: {
-          ...(spec.parameters as any).properties,
-          output_json: BOOLEAN('是否以 JSON 格式输出结果（默认 false）'),
-        },
-      },
+      parameters: spec.parameters,
       output: {
-        // 工具原始结果形态不定（字符串或任意 JSON 值）；dsh 原生以 canonical JSON 值
-        // 承载 execute 的返回值，展示形式由 render 按 output_json 决定。
         schema: { description: '工具原始结果（任意 JSON 值）或 markdown 文本' },
         render: (args, value) => {
           const { output_json: wantJson, ...rest } = (args ?? {}) as Record<string, unknown>
@@ -818,8 +810,6 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
         },
       },
       async execute(args, exec) {
-        // output_json is a presentation switch, not a Neovim-facing argument:
-        // strip it before forwarding the remaining arguments downstream.
         const { output_json, ...rest } = (args ?? {}) as Record<string, unknown>
         let ret = await spec.run(rest, exec)
         return ret || null

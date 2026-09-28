@@ -143,6 +143,33 @@ local function init()
   dap.defaults.fallback.auto_continue_if_many_stopped = false
   dap.defaults.fallback.exception_breakpoints = { 'all uncaught' }
 
+  -- local function auto_attach_children(pid, cfg)
+  --   local seen, uv = {}, vim.uv or vim.loop
+  --   local t = uv.new_timer()
+  --   t:start(500, 800, vim.schedule_wrap(function()
+  --     local ok, out = pcall(vim.fn.system, { "powershell", "-NoProfile", "-Command",
+  --       ("Get-CimInstance Win32_Process -Filter 'ParentProcessId=%d' | Select-Object -ExpandProperty ProcessId"):format(
+  --       pid) })
+  --     if not ok then return end
+  --     for _, s in ipairs(vim.split(out, "\n", { trimempty = true })) do
+  --       local cpid = tonumber(s)
+  --       if cpid and not seen[cpid] then
+  --         seen[cpid] = true -- 子会话断点需自行下发
+  --         dap.run(vim.tbl_deep_extend("force", cfg, {
+  --           name = "vsdbg child auto-attach", request = "attach", processId = cpid,
+  --         }))
+  --       end
+  --     end
+  --   end))
+  --   return t
+  -- end
+  -- dap.listeners.after.event_process["auto_child_attach"] = function(session, body)
+  --   if session.config.type == "cppvsdbg" and not session.parent and body.systemProcessId then
+  --     auto_attach_children(body.systemProcessId, vim.deepcopy(session.config))
+  --   end
+  -- end
+
+
   local rr_dap = require("nvim-dap-rr")
   rr_dap.setup({
     mappings = {
@@ -212,6 +239,8 @@ local function init()
     cwd = "${workspaceFolder}",
     visualizerFile = vsdbg_find_natvis,
     initCommands = ".childdbg 1",
+    -- https://github.com/albertziegenhagel/childdebugger-vscode
+    autoAttachChildProcess = true,
     showDisplayString = true,
     stopAtEntry = false,
     logging = {
