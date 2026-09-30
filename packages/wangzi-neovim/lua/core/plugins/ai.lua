@@ -654,13 +654,7 @@ return {
           local Job = require("plenary.job")
           local nu_command = "with-env { NVIM: '" .. vim.v.servername .. "' } { dsh.cmd --profile tui }"
           if vim.fn.has("win32") == 1 then
-            --wt -w 0 sp -s 0.25 nu -c $"$env.NVIM = '($env.NVIM)'; dsh.cmd --profile tui"
-            Job:new({
-              command = [[C:\Users\wps\AppData\Local\Microsoft\WindowsApps\wt.exe]],
-              args = { "-w", "0", "sp", "-s", "0.25",
-                "nu", "-c",
-                nu_command },
-            }):start()
+            vim.cmd( [[!wt -w 0 sp -s 0.25 nu -c ]] .. vim.fn.shellescape(nu_command)  )
           else
             vim.schedule(function()
               require('snacks.terminal').toggle(dsh_cmd, snacks_terminal_opts)
