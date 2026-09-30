@@ -19,7 +19,7 @@ stdenvNoCC.mkDerivation rec {
   pnpmDeps = fetchPnpmDeps {
     pname = "${pname}-deps";
     src = src;
-    hash = "sha256-0OcchJ9vfXzRqhGl2x8L28Pu98BRqqiZqAJp2Asjp4s=";
+    hash = "sha256-+d2k/nChVqCAxYI9apZ+8s5bSc2Hfr4hk2qQ5TWpa0k=";
     fetcherVersion = 4;
   };
 
@@ -51,7 +51,7 @@ stdenvNoCC.mkDerivation rec {
   installPhase = ''
     runHook preInstall
     mkdir -p "$out/lib"
-    cp -r lib cordis.patch.yml package.json README.md ARCHITECTURE.md "$out/lib"
+    cp -r lib cordis.patch.yml package.json README.md ARCHITECTURE.md node_modules "$out/lib"
     runHook postInstall
   '';
 

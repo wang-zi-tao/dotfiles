@@ -205,28 +205,6 @@ rec {
 
   # dsh = pkgs.llm-agents.dsh;
 
-  dsh-lsp = buildDshNpmPackage rec {
-    pname = "dsh-lsp";
-    version = "6634206";
-    src = pkgs.fetchgit {
-      url = "https://github.com/omdsh-dev/dsh-lsp";
-      rev = version;
-      sha256 = "sha256-LJ/TKgn9Xrv6GWYSonkOakQG00h1/D613FePeJXRm6A=";
-    };
-    npmDepsHash = "sha256-sjRCXM9y4sSN6XO9rugquc3bTFfHK/ryU4i0qB3dYfc=";
-  };
-
-  dsh-agent-teams = buildDshPnpmPackage rec {
-    pname = "dsh-agent-teams";
-    version = "763d88";
-    src = pkgs.fetchgit {
-      url = "https://github.com/NanmiCoder/dsh-agent-teams";
-      rev = version;
-      sha256 = "sha256-oZEIHa6gUIz5q+jI7b5SkTVkBVOSbbuuwZATwsY5X0U=";
-    };
-    hash = "sha256-xv7QD/ecCYbwr8KBJSUet0M3ZmdHyBjE9/DxBtbAEjk=";
-  };
-
   dsh-genui = buildDshPnpmPackage rec {
     pname = "dsh-genui";
     version = "2187fa4";
@@ -238,32 +216,28 @@ rec {
     hash = "sha256-8GaDJuO8z1RJNCJQ8xFy2ofwaWGYCcqUtfEoHKV6t24=";
   };
 
-  dsh-at-file = buildDshPnpmPackage rec {
-    pname = "dsh-at-file";
-    version = "898369e";
-    src = pkgs.fetchgit {
-      url = "https://github.com/omdsh-dev/dsh-at-file";
-      rev = version;
-      sha256 = "sha256-G3XbsI9BaEnBUmYEXkqGxQi78OHrF6wxnK3CPEnJ1pU=";
-    };
-    hash = "sha256-pTHoDj3MwGC4snJ5J8eKW0slfMdcEhvgmLgD+Kqa8eM=";
-    nativeBuildInputs = with pkgs; [
-      esbuild
-    ];
-  };
-
-  dsh-tui = buildDshPnpmPackage rec {
+  # 直接从 npm registry 取发布包（tarball 里已经带编译产物）：
+  # 上游 `prepare` 在 publish 前会跑 compile，所以 tarball 内 bin/ + lib/types/** +
+  # lib/settings.json，以及 @dsh-std/*、@dsh-tui-vendor/mathjax-tex-svg、
+  # @deepseek-harness-tui/dsh-auth 各自的 lib/ 都是齐的，且不带符号链接。
+  # 之前的 buildDshPnpmPackage 源码构建只做 `cp ./* $out/lib` 且 dontPnpmBuild = true，
+  # 从不执行 tsc，所以产物里根本没有 lib/（只有 src/ 和 bin/dsh-tui.js 启动器）。
+  # 升级版本：改 version，然后用 `nix-prefetch-url <url>` 或构建报错里给的 hash 重填。
+  dsh-tui = pkgs.stdenvNoCC.mkDerivation rec {
     pname = "dsh-tui";
-    version = "f7db605";
-    src = pkgs.fetchgit {
-      url = "https://github.com/ccch1mneyyy/dsh-TUI";
-      rev = version;
-      sha256 = "sha256-Dx1nMu/onJZlqiN56M0hq/5r0ggNC59xmjVV98TtSnA=";
+    version = "0.11.2";
+    src = pkgs.fetchurl {
+      url = "https://registry.npmjs.org/@deepseek-harness-tui/dsh-tui/-/dsh-tui-${version}.tgz";
+      hash = "sha256-+3IuHl48K4JnACeQujdytCL+SF8+lEZ2PI1Jo8P20xY=";
     };
-    hash = "sha256-ke68+1fNUZAF1soImBivnvCeww4VSLu9k5ec3dEbpPE=";
-    dontPnpmBuild = true;
-    buildPhase = ''
-      pnpm run compile:src
+    dontConfigure = true;
+    dontBuild = true;
+    # 与其它 dsh 包保持同一布局：包根 = $out/lib
+    installPhase = ''
+      runHook preInstall
+      mkdir -p "$out/lib"
+      cp -r ./* "$out/lib/"
+      runHook postInstall
     '';
   };
 

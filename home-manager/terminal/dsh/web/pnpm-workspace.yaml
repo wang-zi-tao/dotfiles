@@ -7,3 +7,4 @@ minimumReleaseAgeExclude:
   - "@linxin666/dsh-liangshen@0.1.15"
 allowBuilds:
   node-pty: true
+  "@changfenhuang/dsh-genui@https://codeload.github.com/omdsh-dev/dsh-genui/tar.gz/ffb89fdc4212b250891d3e87eca311e79c74c06b": true

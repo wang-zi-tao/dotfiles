@@ -9,15 +9,21 @@
 let
   cordis_patch = [
     {
-      id = "agent-teams";
-      name = "@nanmicoder/dsh-agent-teams";
-      config = {
-        stateDir = ".agent-teams";
-        memberProvider = "fork";
-        memberModel = "deepseek-v4-flash";
-        memberMaxDepth = 1;
-        maxMembers = 8;
-      };
+      insert = [
+        {
+          id = "computer-use";
+          name = "@deepseek-ai/dsh-computer-use";
+        }
+        {
+          id = "computer-use-cua-driver-mcp";
+          name = "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp";
+          config = {
+            command = "${pkgs.cua-driver}/bin/cua-driver";
+            args = [ "mcp" ];
+            toolCallTimeoutMs = 120000;
+          };
+        }
+      ];
     }
     {
       id = "hindsight";
@@ -28,18 +34,21 @@ let
         apiKey = "!!js require('fs').readFileSync('/run/secrets/hindsight/apikey').trim()";
       };
     }
+    {
+      id = "agent-default-model";
+      config = {
+        model = "deepseek-v4.1-flash";
+      };
+    }
   ];
   plugins = with pkgs; [
     dsh-hindsight
     dsh-lsp
     dsh-neovim
-
-    dsh-agent-teams
-    billion-context-dsh
   ];
   profile-web = pkgs.dsh-profile {
     name = "web";
-    hash = "sha256-NQmxOrnq6Nxg/DWbjHKrokK1pAcjGifMP8ttKeUX2z4=";
+    hash = "sha256-kanOfX4fr8i33MpmWagE4WDf9VBwttR4Ku0MiLN6f8c=";
     plugins = plugins;
     src = ./web;
     package = pkgs.dsh;
@@ -47,8 +56,8 @@ let
   };
   profile-tui = pkgs.dsh-profile {
     name = "tui";
-    hash = "sha256-dnIu0gV7+WObLwpxD5J1vLUmzNiR9kF/G4q/75CJ7PM=";
-    plugins = plugins;
+    hash = "sha256-eE6DNKBXXZF7KMYVjgGFpke/a84c66tJIUp2tUlB21Q=";
+    plugins = plugins ++ [ pkgs.dsh-tui ];
     src = ./tui;
     package = pkgs.dsh;
     cordis_patch = cordis_patch;

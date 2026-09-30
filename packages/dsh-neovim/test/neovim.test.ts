@@ -79,7 +79,7 @@ test.before(async () => {
 
 test.after(async () => {
   if (nvim) {
-    await withTimeout(nvim.close('core.agent'), 2_000, 'close').catch(() => {})
+    await withTimeout(nvim.close(), 2_000, 'close').catch(() => {})
   }
   proc?.kill()
 })

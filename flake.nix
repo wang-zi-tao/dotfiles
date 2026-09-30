@@ -44,6 +44,7 @@
     kubenix.url = "github:hall/kubenix";
     hermes-agent.url = "github:NousResearch/hermes-agent";
     llm-agents.url = "github:numtide/llm-agents.nix";
+    cua.url = "github:trycua/cua";
   };
   outputs =
     inputs@{
@@ -132,6 +133,7 @@
                     nixpkgs-old = import inputs.nixpkgs-old { inherit system overlays config; };
                     flake-inputs = inputs;
                     eza = eza.packages.${system}.default;
+                    cua-driver = inputs.cua.packages.${system}.cua-driver;
                     scripts = builtins.mapAttrs (
                       name: kind: prev.writeScriptBin name (readFile (./scripts + "/${name}"))
                     ) (readDir ./scripts);

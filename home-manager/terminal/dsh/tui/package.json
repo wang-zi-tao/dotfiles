@@ -2,8 +2,15 @@
   "name": "dsh-profile-tui",
   "private": true,
   "dependencies": {
-    "@deepseek-harness-tui/dsh-tui": "0.10.0-beta.5",
-    "@linxin666/dsh-liangshen": "^0.1.15",
-    "dsh-at-file": "github:omdsh-dev/dsh-at-file"
+    "@deepseek-ai/dsh-computer-use": "0.1.7-rc.2",
+    "@deepseek-ai/dsh-experimental-agent-team-profile": "0.1.7-rc.2",
+    "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp": "0.1.7-rc.2"
+  },
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-experimental-agent-team-profile"
+      ]
+    }
   }
 }
