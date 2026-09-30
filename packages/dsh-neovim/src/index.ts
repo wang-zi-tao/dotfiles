@@ -37,7 +37,7 @@ import {
   fmtThreads,
 } from './format.js'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
-import type { Context, Logger, ToolDefinition, ToolRunContext, ToolExecution } from './types.js'
+import type { Context, Logger, ToolDefinition, ToolRunContext, ToolExecution, Agent } from './types.js'
 
 export const name = 'dsh-neovim'
 export const inject = ['tools', 'commands', 'agents']
@@ -102,24 +102,42 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
   /** Sessions that used a DAP tool; debugger events are injected only there. */
   const dapSessions = new Set<string>()
 
+  function inject(agent: Agent, prompt: string) {
+    try {
+      const message = createUserMessage({content: [{type: 'text', text: prompt}], source: {kind: name}});
+      if (agent.status === 'idle')
+        agent.followup(message);
+      else
+        agent.inject(message);
+    } catch (error) {
+      // The agent went away between list() and inject(); drop the stale entry.
+      logger.error(`prompt event delivery failed for session ${agent.session.id}: ${errText(error)}`);
+    }
+  }
+
   function broadcastDapEvent(text: string): void {
     for (const agent of ctx.agents.list()) {
       const id = agent.session?.id
       if (!id || !dapSessions.has(String(id))) continue
-      try {
-        const message = createUserMessage({ content: [{ type: 'text', text }], source: { kind: name } })
-        // inject() never wakes an idle driver: a stopped agent would leave the
-        // event pending in the inbox forever, so wake it with a follow-up turn.
-        if (agent.status === 'idle') 
-          agent.followup(message)
-        else 
-          agent.inject(message)
-      } catch (error) {
-        // The agent went away between list() and inject(); drop the stale entry.
-        logger.error(`dap event delivery failed for session ${id}: ${errText(error)}`)
-      }
+      inject(agent, text)
     }
   }
+
+  async function subscribeNvim(nv: Neovim): Promise<void> {
+    const channelId = await nv.channelId();
+    nv.lua(`agent.subscribe(${channelId})`).catch((error) => {
+      logger.error(`subscribe error: ${errText(error)}`);
+    });
+
+    await nv.subscribe("prompt_inject", (args: any) => {
+      const a = args?.[0] ?? args;
+      let prompt: string = a.prompt;
+
+      for (const agent of ctx.agents.roots()) {
+        inject(agent, prompt)
+      }
+    });
+  };
 
   async function subscribeDap(nv: Neovim): Promise<void> {
     const channelId = await nv.channelId()
@@ -177,6 +195,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
       if (!nv) return null
       // Touches the wire; re-subscribes debugger events on every reconnect.
       ctx.effect(()=>{
+        subscribeNvim(nv)
         subscribeDap(nv)
         return ()=>{
           nv.close()

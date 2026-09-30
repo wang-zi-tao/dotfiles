@@ -4,32 +4,38 @@
 ---@class AgentModule
 ---@field nextId integer
 ---@field disableSessionEvent table<integer, boolean>
----@field dispose table<integer, {funcs: table<fun(integer), boolean>}>
+---@field channels table<integer, {funcs: table<fun(integer), boolean>, subscribe: boolean}>
 local M = require("core.hotreload").init_module(function()
   return {
     nextId = 0,
     disableSessionEvent = {},
-    dispose = {},
+    channels = {},
   }
 end)
+
+---@param channel_id number
+---@return {funcs: table<fun(integer), boolean>, subscribe: boolean}
+function M.ensure_channel(channel_id)
+  if not M.channels[channel_id] then
+    M.channels[channel_id] = {
+      funcs = {}, subscribe = false,
+    }
+  end
+  return M.channels[channel_id]
+end
 
 ---@param channel_id integer
 ---@param disposer fun(integer)
 function M.register_dispose(channel_id, disposer)
-  if not M.dispose[channel_id] then
-    M.dispose[channel_id] = {
-      funcs = {}
-    }
-  end
-  M.dispose[channel_id].funcs[disposer] = true
+  M.ensure_channel(channel_id).funcs[disposer] = true
 end
 
 function M.on_dispose(channel_id)
-  if M.dispose[channel_id] then
-    for disposer, _ in pairs(M.dispose[channel_id].funcs) do
+  if M.channels[channel_id] then
+    for disposer, _ in pairs(M.channels[channel_id].funcs) do
       disposer(channel_id)
     end
-    M.dispose[channel_id] = nil
+    M.channels[channel_id] = nil
   end
 end
 
@@ -42,8 +48,8 @@ function M.effect(channel_id, func)
 
   return function()
     dispose()
-    if M.dispose[channel_id] then
-      M.dispose[channel_id].funcs[dispose] = nil
+    if M.channels[channel_id] then
+      M.channels[channel_id].funcs[dispose] = nil
     end
   end
 end
@@ -59,34 +65,29 @@ function M.install_dap_listener(channel_id, event, key)
     key = "agent_step_" .. channel_id .. "_" .. M.get_next_id()
   end
 
-
-  local co_event = coroutine.wrap(function ()
-    return coroutine.yield()
-  end)
-
-  local co_waiter = coroutine.wrap(function ()
-    
-  end)
-
-  local co_all = M.waitAll(function ()
-    
-  end, co_event)
+  local done = false
+  local co = coroutine.running()
 
   local dispose;
   dispose = M.effect(channel_id, function()
     dap.listeners.after[event][key] = function(body)
-      coroutine.resume(co_event, "event", body)
+      if not done then
+        coroutine.resume(co, body, true)
+        done = true
+      end
       dispose()
     end
 
     return function()
       dap.listeners.after[event][key] = nil
-      coroutine.resume(co_event, "dispose")
+      if not done then
+        coroutine.resume(co, nil, false)
+        done = true
+      end
     end
   end)
 
-  return function ()
-    coroutine.resume(co_event, "wait",coroutine.running())
+  return function()
     return coroutine.yield()
   end
 end
@@ -117,9 +118,9 @@ function M.waitAll(...)
   local returns = {}
   local counter = 0
   local count = select("#", ...)
-  
+
   for i, func in ipairs({ ... }) do
-    coroutine.wrap(function (...)
+    coroutine.wrap(function(...)
       local ret = { func() }
 
       counter = counter + 1
@@ -191,6 +192,76 @@ function M.run_async(f, channel_id, task_id, argsJson)
       })
     )
   end)(f, channel_id, task_id, argsJson)
+end
+
+function M.subscribe(channel_id)
+  local client_name = "agent_" .. channel_id
+
+  M.effect(channel_id, function()
+    M.ensure_channel(channel_id).subscribe = true
+
+    return function()
+      M.ensure_channel(channel_id).subscribe = false
+    end
+  end)
+end
+
+---@param method string
+---@param args table
+function M.publish(method, args)
+  for channel_id, channel in pairs(M.channels) do
+    if channel.subscribe then
+      M.rpcnotify(channel_id, method, args)
+    end
+  end
+end
+
+---@param prompt string
+function M.send_prompt(prompt)
+  if string.find(prompt, "@this ") then
+    local file_path = vim.fn.expand("%:p")
+    local full_location
+
+    if vim.fn.mode() == "v" then
+      local start_row = vim.fn.line("'<") - 1
+      local start_line = vim.fn.getline(start_row + 1)
+      local end_row = vim.fn.line("'>") - 1
+      local end_line = vim.fn.getline(end_row + 1)
+      full_location = "[vim.range: " ..
+      file_path .. ":" .. start_row + 1 .. ":" .. start_line .. "-" .. end_row + 1 .. ":" .. end_line .. "]"
+    else
+      local row = vim.api.nvim_win_get_cursor(0)[1]
+      local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
+      full_location = "[vim.file: " .. file_path .. ":" .. row .. ":" .. line .. "]"
+    end
+
+    prompt = string.gsub(prompt, "@this ", full_location)
+  end
+
+  if string.find(prompt, "@diagnostic ") then
+    local file_path = vim.fn.expand("%:p")
+    local diags = vim.diagnostic.get(0)
+    local diag_text = {}
+    local row = vim.api.nvim_win_get_cursor(0)[1]
+    for _, d in ipairs(diags) do
+      if d.lnum >= row - 1 and d.lnum <= row + 1 then
+        table.insert(diag_text,
+          "[vim.diagnostic: " .. file_path .. ":" .. d.lnum + 1 .. ":" .. d.col + 1 .. ": " .. d.message .. "]")
+      end
+    end
+
+    prompt = string.gsub(prompt, "@diagnostic ", table.concat(diag_text, "\n"))
+  end
+
+  if string.find(prompt, "@select ") then
+    if vim.fn.mode() == "v" then
+      local selection = vim.fn.getreg("v")
+      local text = "[vim.selection: [" .. selection .. "]vim.selection]"
+      prompt = string.gsub(prompt, "@select ", text)
+    end
+  end
+
+  M.publish("prompt_inject", { prompt = prompt })
 end
 
 function M.dap_subscribe(channel_id)
@@ -460,6 +531,8 @@ end
 ---@return table {status: string, reason?: string, thread_id?: number, frames?: table[], error?: dap.ErrorResponse, totalFrames?: integer}
 function M.step_and_wait(step_fn, opts)
   opts = opts or {}
+  local timeout_ms = opts.timeout_ms or 30000
+
   local dap = require("dap")
   local session = dap.session()
   if not session then
@@ -469,40 +542,31 @@ function M.step_and_wait(step_fn, opts)
     error("session is not stopped")
   end
 
-  local co = coroutine.running()
-  if not co then
-    error("must be called within a coroutine")
-  end
-
-  local sid = session.id
-  local key = "agent_step_" .. sid
-
-  local i, value = M.waitAny(function()
-    return M.install_dap_listener(0, "event_stopped")
-  end, function()
-    return M.install_dap_listener(0, "event_terminated")
-  end, function()
-    local co = coroutine.running()
-    local timeout_ms = opts.timeout_ms or 30000
-    vim.defer_fn(function()
-        coroutine.resume(co)
-    end, timeout_ms)
-    coroutine.yield()
-  end)
+  local stop_waiter = M.install_dap_listener(0, "event_stopped")
+  local terminated_waiter = M.install_dap_listener(0, "event_terminated")
 
   M.disableSessionEvent[session.id] = true
   step_fn()
   M.disableSessionEvent[session.id] = false
 
-  -- 清理
-  dap.listeners.after.event_stopped[key] = nil
-  dap.listeners.after.event_terminated[key] = nil
+  local i, stopped_body, succ = M.waitAny(function()
+    return stop_waiter()
+  end, function()
+    return terminated_waiter()
+  end, function()
+    local co = coroutine.running()
+    vim.defer_fn(function()
+      coroutine.resume(co)
+    end, timeout_ms)
+    coroutine.yield()
+    return nil, false
+  end)
 
-  if terminated then
+  if i == 2 then
     return { status = "terminated" }
-  end
-  if not stopped_body then
-    error(string.format("step timeout: no stop event within %dms", timeout_ms))
+  elseif i == 3 then
+    return { status = "timeout", error = string.format("step timeout: no stop event within %dms", timeout_ms) }
+  else
   end
 
   local tid = stopped_body.threadId or session.stopped_thread_id
@@ -511,19 +575,6 @@ function M.step_and_wait(step_fn, opts)
   end
 
   local frames, total, err = M.build_frames(session, tid, 4)
-  if not frames then
-    -- vsdbg attach 会话 stackTrace 易失败（取消/超时）：降级返回停止信息而非抛错
-    return {
-      status = "stopped",
-      reason = stopped_body.reason,
-      description = stopped_body.description,
-      thread_id = tid,
-      error = err,
-      frames = nil,
-      totalFrames = 0,
-    }
-  end
-
   return {
     status = "stopped",
     reason = stopped_body.reason,
@@ -1829,5 +1880,34 @@ end
 
 _G.agent = M
 _G.dap = dap
+
+require("core.hotreload").effect("core.agent", function()
+  vim.keymap.set({ "n", "v" }, "<leader>ao", function()
+    local prompt = vim.ui.input({
+      prompt = "Ask Dsh",
+      description = "Ask Deepseek Harness",
+      default = "@this @diagnostic "
+
+    }, function(prompt)
+      M.send_prompt(prompt)
+    end)
+  end, { desc = "Ask Dsh" })
+
+  return function()
+
+  end
+end)
+
+require("core.hotreload").effect("core.agent", function()
+  vim.api.nvim_create_user_command("DshAsk", function(args)
+    ---@type string
+    local prompt = args.args[1]
+    M.send_prompt(prompt)
+  end, { nargs = 1 })
+
+  return function()
+    pcall(vim.api.nvim_del_user_command, "DshAsk")
+  end
+end)
 
 return M

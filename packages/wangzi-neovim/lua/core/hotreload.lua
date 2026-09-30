@@ -94,7 +94,17 @@ end
 ---@param module string
 ---@param hook HotReloadHooks
 function M.register_hook(module, hook)
-  hooks[module] = hook
+  if hooks[module] == nil then
+    hooks[module] = {}
+  end
+  table.insert(hooks[module], hook)
+end
+
+---@param module string
+---@param func fun(): fun()
+function M.effect(module, func)
+  local dispose = func()
+  M.register_hook(module, { before = dispose })
 end
 
 --- 创建并托管模块状态表。
@@ -140,9 +150,10 @@ function M.reload(module)
   end
 
   local old = package.loaded[module]
-  local hook = hooks[module]
-  if hook and hook.before then
-    pcall(hook.before, old)
+  for _, hook in ipairs(hooks[module] or {}) do
+    if hook and hook.before then
+      pcall(hook.before, old)
+    end
   end
 
   package.loaded[module] = nil
@@ -157,8 +168,10 @@ function M.reload(module)
   end
 
   local new = package.loaded[module]
-  if hook and hook.after then
-    pcall(hook.after, new)
+  for _, hook in ipairs(hooks[module] or {}) do
+    if hook and hook.after then
+      pcall(hook.after, new)
+    end
   end
   vim.notify("已重载 " .. module, vim.log.levels.INFO)
   return true
