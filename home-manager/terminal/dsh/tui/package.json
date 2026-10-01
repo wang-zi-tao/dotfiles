@@ -4,12 +4,14 @@
   "dependencies": {
     "@deepseek-ai/dsh-computer-use": "0.1.7-rc.2",
     "@deepseek-ai/dsh-experimental-agent-team-profile": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp": "0.1.7-rc.2"
+    "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp": "0.1.7-rc.2",
+    "@deepseek-harness-tui/dsh-tui": "0.11.2"
   },
   "dsh": {
     "profile": {
       "bundles": [
-        "@deepseek-ai/dsh-experimental-agent-team-profile"
+        "@deepseek-ai/dsh-experimental-agent-team-profile",
+        "@deepseek-harness-tui/dsh-tui"
       ]
     }
   }

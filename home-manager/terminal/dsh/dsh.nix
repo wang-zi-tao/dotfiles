@@ -37,6 +37,7 @@ let
     {
       id = "agent-default-model";
       config = {
+        provider = "deepseek";
         model = "deepseek-v4.1-flash";
       };
     }
@@ -46,18 +47,25 @@ let
     dsh-lsp
     dsh-neovim
   ];
+
+  # @omdsh-dev/dsh-genui 以 git 依赖装进 profile，但 nixpkgs 的 pnpm 钩子用
+  # --ignore-scripts 安装，它的 build/prepare 不跑，落地只有 src/ 没有 lib/ →
+  # dsh 启动报 “…/dsh-genui/lib/index.js 不存在”，插件崩。
+  # 这里换成 overlays/ai.nix 里从 npm 发布包构建的 pkgs.dsh-genui（自带 lib/，
+  # 并把清单名统一成 profile 的依赖键），generate-bundles 会就地覆盖空壳目录，
+  # 因此不需要动 web/package.json 与 pnpm-lock.yaml。
   profile-web = pkgs.dsh-profile {
     name = "web";
     hash = "sha256-kanOfX4fr8i33MpmWagE4WDf9VBwttR4Ku0MiLN6f8c=";
-    plugins = plugins;
+    plugins = plugins ++ [ pkgs.dsh-genui ];
     src = ./web;
     package = pkgs.dsh;
     cordis_patch = cordis_patch;
   };
   profile-tui = pkgs.dsh-profile {
     name = "tui";
-    hash = "sha256-eE6DNKBXXZF7KMYVjgGFpke/a84c66tJIUp2tUlB21Q=";
-    plugins = plugins ++ [ pkgs.dsh-tui ];
+    hash = "sha256-N8q4dUmOkZOS9RLdgCcuhoAl5auVsnkwSEM5sbU7kvw=";
+    plugins = plugins ++ [ ];
     src = ./tui;
     package = pkgs.dsh;
     cordis_patch = cordis_patch;

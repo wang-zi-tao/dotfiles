@@ -205,40 +205,47 @@ rec {
 
   # dsh = pkgs.llm-agents.dsh;
 
-  dsh-genui = buildDshPnpmPackage rec {
+  # dsh-genui：直接从 npm 取发布包（自带编译好的 lib/），不再用 git 源码 + pnpm 构建。
+  # 后者有两个坑：pnpmDeps hash 会随上游提交漂移，而且 nixpkgs 的 pnpm 钩子带
+  # --ignore-scripts，源码里的 build/prepare 根本不会跑，产物只有 src/。
+  # 与 dsh-tui 同一套路（fetchurl 直取 npm tarball）。
+  # 包内清单名是 @changfenhuang/dsh-genui（仓库名 vs 包名不一致），而 web profile 的
+  # 依赖键与它自带 bundle 补丁里的行名用的是 @omdsh-dev/dsh-genui，这里统一成后者，
+  # 这样 generate-bundles 会就地 rm+cp 覆盖掉那个只有 src/ 的空壳目录。
+  dsh-genui = pkgs.stdenvNoCC.mkDerivation rec {
     pname = "dsh-genui";
-    version = "2187fa4";
-    src = pkgs.fetchgit {
-      url = "https://github.com/omdsh-dev/dsh-genui";
-      rev = version;
-      sha256 = "sha256-FU0VrkilMivm2rHzLGvXl57KKNYHc8ROnUgQvYNrZgI=";
-    };
-    hash = "sha256-8GaDJuO8z1RJNCJQ8xFy2ofwaWGYCcqUtfEoHKV6t24=";
-  };
-
-  # 直接从 npm registry 取发布包（tarball 里已经带编译产物）：
-  # 上游 `prepare` 在 publish 前会跑 compile，所以 tarball 内 bin/ + lib/types/** +
-  # lib/settings.json，以及 @dsh-std/*、@dsh-tui-vendor/mathjax-tex-svg、
-  # @deepseek-harness-tui/dsh-auth 各自的 lib/ 都是齐的，且不带符号链接。
-  # 之前的 buildDshPnpmPackage 源码构建只做 `cp ./* $out/lib` 且 dontPnpmBuild = true，
-  # 从不执行 tsc，所以产物里根本没有 lib/（只有 src/ 和 bin/dsh-tui.js 启动器）。
-  # 升级版本：改 version，然后用 `nix-prefetch-url <url>` 或构建报错里给的 hash 重填。
-  dsh-tui = pkgs.stdenvNoCC.mkDerivation rec {
-    pname = "dsh-tui";
-    version = "0.11.2";
+    version = "0.11.3";
     src = pkgs.fetchurl {
-      url = "https://registry.npmjs.org/@deepseek-harness-tui/dsh-tui/-/dsh-tui-${version}.tgz";
-      hash = "sha256-+3IuHl48K4JnACeQujdytCL+SF8+lEZ2PI1Jo8P20xY=";
+      url = "https://registry.npmjs.org/@changfenhuang/dsh-genui/-/dsh-genui-${version}.tgz";
+      hash = "sha256-b33gjcWEpQl+QGQpbdI7v6eaexr3Bfa0l72ZkGqxAwo=";
     };
+    # 包根放 $out/lib，与仓库里其它 dsh 插件包一致（profile 用 file:<pkg>/lib 引用）
     dontConfigure = true;
     dontBuild = true;
-    # 与其它 dsh 包保持同一布局：包根 = $out/lib
     installPhase = ''
       runHook preInstall
       mkdir -p "$out/lib"
       cp -r ./* "$out/lib/"
       runHook postInstall
     '';
+    postInstall = ''
+      substituteInPlace $out/lib/package.json \
+        --replace-fail '"@changfenhuang/dsh-genui"' '"@omdsh-dev/dsh-genui"'
+      substituteInPlace $out/lib/cordis.patch.yml \
+        --replace-fail "'@changfenhuang/dsh-genui'" "'@omdsh-dev/dsh-genui'"
+    '';
+  };
+
+  dsh-tui = buildDshPnpmPackage rec {
+    pname = "dsh-tui";
+    version = "v0.11.1";
+    src = pkgs.fetchgit {
+      url = "https://github.com/ccch1mneyyy/dsh-TUI";
+      rev = version;
+      sha256 = "sha256-ZQ03CKIPdDclQg/P7ZXcBb1OLwZn47xu4B/BRwx/swg=";
+    };
+    hash = "";
+    dontCheckForBrokenSymlinks = true;
   };
 
   dsh-memory-evolve = buildDshPnpmPackage rec {
