@@ -37,7 +37,7 @@ stdenvNoCC.mkDerivation {
     git
   ];
 
-  buildInputs = plugins;
+  buildInputs = plugins ++ [ package ];
 
   pnpmDeps = fetchPnpmDeps {
     pname = "dsh-profile-deps-${name}";
@@ -56,21 +56,16 @@ stdenvNoCC.mkDerivation {
     cp -r node_modules $out/lib
     ln -s ${cordis_patch_yaml} $out/cordis.patch.yml
 
-    # 只覆盖 dsh 仓库自己构建出来的 @deepseek-ai 包，保留 profile 从 npm 装进来、
-    # 而 dsh 仓库并不产出的那些（例如 @deepseek-ai/dsh-computer-use 与
-    # @deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp）。
-    # 以前这里整目录 rm -rf，把它们一并删掉，于是 profile 的 Preset 行指向一个
-    # 不存在的包，启动时报 “N required plugins did not activate”。
-    store_packages=${package}/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai
-    for p in "$store_packages"/*; do
-      rm -rf "$out/lib/node_modules/@deepseek-ai/$(basename "$p")"
-    done
-
     node ${./generate-bundles.mjs} "$out/package.json" "$out/lib/node_modules" ${pluginArgs}
 
-    cp -rsf "$store_packages" \
-        "$out/lib/node_modules/"
-
+    # 原生解析回退层。dsh 的运行时解析器只把一部分 @deepseek-ai/dsh-* 放进它自己的
+    # entries 表（installation scope），表里没有的名字会退化成 Node 原生解析，
+    # 而原生解析是从模块所在的 /nix/store/<profile>/lib/node_modules/... 逐级向上找
+    # node_modules，于是会走到 $out/node_modules。这里指向 dsh 应用自己的依赖集，
+    # 等价于 npm 安装时 node_modules/@deepseek-ai/dsh/node_modules 的自然布局。
+    # 例：@deepseek-ai/dsh-session-persistence-jsonl 不在 entries 里，但在这里有；
+    # 缺了它 dsh-tui 会 ERR_MODULE_NOT_FOUND，连带 agent-team 一起挂。
+    ln -s "${package}/lib/node_modules/@deepseek-ai/dsh/node_modules" "$out/"
     runHook postInstall
   '';
 

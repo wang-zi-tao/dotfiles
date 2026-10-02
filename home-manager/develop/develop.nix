@@ -267,6 +267,10 @@ in
     # };
     codegraph = {
       command = "${pkgs.unstable.codegraph}/bin/codegraph";
+      args = [
+        "serve"
+        "--mcp"
+      ];
     };
     vectorcode = {
       command = "${pkgs.vectorcode}/bin/vectorcode-mcp-server";

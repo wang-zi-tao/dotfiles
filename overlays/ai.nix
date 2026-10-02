@@ -236,16 +236,22 @@ rec {
     '';
   };
 
-  dsh-tui = buildDshPnpmPackage rec {
+  dsh-tui = pkgs.stdenvNoCC.mkDerivation rec {
     pname = "dsh-tui";
-    version = "v0.11.1";
-    src = pkgs.fetchgit {
-      url = "https://github.com/ccch1mneyyy/dsh-TUI";
-      rev = version;
-      sha256 = "sha256-ZQ03CKIPdDclQg/P7ZXcBb1OLwZn47xu4B/BRwx/swg=";
+    version = "0.11.2";
+    src = pkgs.fetchurl {
+      url = "https://registry.npmjs.org/@deepseek-harness-tui/dsh-tui/-/dsh-tui-${version}.tgz";
+      hash = "sha256-+3IuHl48K4JnACeQujdytCL+SF8+lEZ2PI1Jo8P20xY=";
     };
-    hash = "";
-    dontCheckForBrokenSymlinks = true;
+    dontConfigure = true;
+    dontBuild = true;
+    # 与其它 dsh 包保持同一布局：包根 = $out/lib
+    installPhase = ''
+      runHook preInstall
+      mkdir -p "$out/lib"
+      cp -r ./* "$out/lib/"
+      runHook postInstall
+    '';
   };
 
   dsh-memory-evolve = buildDshPnpmPackage rec {

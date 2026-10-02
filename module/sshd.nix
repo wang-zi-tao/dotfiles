@@ -48,7 +48,7 @@ in
       openFirewall = true;
     };
     programs.ssh.extraConfig = ''
-      ControlMaster auto
+      ControlMaster no
       ControlPath /tmp/ssh_mux_%h_%p_%r
       ControlPersist yes
       ServerAliveInterval 360

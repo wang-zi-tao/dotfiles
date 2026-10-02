@@ -71,6 +71,26 @@ let
     cordis_patch = cordis_patch;
   };
 
+  # dsh 的运行时解析器只对三类 importer 路径启用「拦截层」
+  # （@deepseek-ai/dsh-app-boot 的 profile-resolution/resolver.js → findInterceptionLayer）：
+  #   ① $DSH_HOME/profiles 树内；② 当前 profile 目录内；
+  #   ③ <profile>/node_modules 下登记的 symlink 条目（linked root）的真实路径内。
+  #
+  # profile 的依赖里 @deepseek-ai/dsh-* 全是 optional peerDependency，而
+  # pnpm-workspace.yaml 设了 autoInstallPeers=false，所以它们不会装进 profile 的
+  # node_modules，只能靠拦截层从 dsh 本体的 installation scope 解析。
+  # 若把整个 node_modules 做成指向 /nix/store 的 symlink，插件模块真实路径就落在
+  # 三个条件之外，拦截层失效，启动报 “N entries did not activate”。
+  # 逐条 symlink 顶层条目，每个条目都会成为 linked root，拦截层随即生效。
+  profileModuleFiles =
+    profile: dir:
+    lib.listToAttrs (
+      map (e: {
+        name = "${dir}/node_modules/${e}";
+        value.source = "${profile}/lib/node_modules/${e}";
+      }) (lib.attrNames (builtins.readDir "${profile}/lib/node_modules"))
+    );
+
   # One @deepseek-ai/dsh-mcp-client plugin row per home-manager MCP server,
   # inserted through the home-level cordis.patch.yml layer.
   mcpPatch =
@@ -110,12 +130,11 @@ in
       ".dsh/profiles/web/pnpm-lock.yaml".source = "${profile-web}/pnpm-lock.yaml";
       ".dsh/profiles/web/pnpm-workspace.yaml".source = "${profile-web}/pnpm-workspace.yaml";
       ".dsh/profiles/web/cordis.patch.yml".source = "${profile-web}/cordis.patch.yml";
-      ".dsh/profiles/web/node_modules".source = "${profile-web}/lib/node_modules";
       ".dsh/profiles/tui/package.json".source = "${profile-tui}/package.json";
       ".dsh/profiles/tui/pnpm-lock.yaml".source = "${profile-tui}/pnpm-lock.yaml";
       ".dsh/profiles/tui/pnpm-workspace.yaml".source = "${profile-tui}/pnpm-workspace.yaml";
       ".dsh/profiles/tui/cordis.patch.yml".source = "${profile-tui}/cordis.patch.yml";
-      ".dsh/profiles/tui/node_modules".source = "${profile-tui}/lib/node_modules";
+      ".dsh/profiles/node_modules".source = "${pkgs.dsh}/lib/node_modules";
       ".dsh/pet.json".source = ./pet.json;
       ".dsh/cordis.patch.yml".source = (pkgs.formats.yaml { }).generate "cordis.patch.yml" ([
         {
@@ -143,7 +162,16 @@ in
           ];
         }
       ]);
-    };
+    }
+    # 逐条 symlink 顶层条目，让每个条目成为 dsh 解析器的 linked root
+    # （原因见上面 profileModuleFiles 的注释）。node_modules 必须是真目录，
+    # 整目录 symlink 到 /nix/store 会让拦截层失效。
+    #
+    # 代价：这里对 profile 派生做 IFD —— Nix 求值 home-manager 配置时会先构建
+    # dsh-profile-{web,tui} 才能列出 node_modules 内容。不想 IFD 的话，改由
+    # packages/dsh-profile 生成 symlink 农场目录，再整目录链接过来。
+    // (profileModuleFiles profile-web ".dsh/profiles/web")
+    // (profileModuleFiles profile-tui ".dsh/profiles/tui");
 
     systemd.user.services.dsh = {
       Unit = {
