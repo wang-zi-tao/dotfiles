@@ -6,11 +6,11 @@
 }:
 {
   imports = [
-    ./tmux/tmux.nix
+    # ./tmux/tmux.nix
     ./zsh/zsh.nix
     ./procs/procs.nix
     ./htop.nix
-    ./ranger/ranger.nix
+    # ./ranger/ranger.nix
     ../develop/git.nix
     ./zellij.nix
     ./nushell.nix
@@ -119,7 +119,6 @@
         direnv
         nix-direnv
         duf
-        eza
         fd
         jq
         xq
@@ -143,8 +142,6 @@
         openssh
         perl
         dnsutils
-
-        github-copilot-cli
       ]
       ++ (lib.optionals (pkgs.system == "x86_64-linux") [
         nload

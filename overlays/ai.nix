@@ -238,10 +238,10 @@ rec {
 
   dsh-tui = pkgs.stdenvNoCC.mkDerivation rec {
     pname = "dsh-tui";
-    version = "0.11.2";
+    version = "0.12.0";
     src = pkgs.fetchurl {
       url = "https://registry.npmjs.org/@deepseek-harness-tui/dsh-tui/-/dsh-tui-${version}.tgz";
-      hash = "sha256-+3IuHl48K4JnACeQujdytCL+SF8+lEZ2PI1Jo8P20xY=";
+      hash = "";
     };
     dontConfigure = true;
     dontBuild = true;

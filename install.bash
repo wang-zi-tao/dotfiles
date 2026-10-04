@@ -178,6 +178,13 @@ run-vm)
 	nix build "$script_dir#nixos.$profile.config.system.build.vm" "$@"
 	NIX_DISK_IMAGE=$(readlink -f "${NIX_DISK_IMAGE:-${HOME}/Temp/$profile.qcow2}") "./result/bin/run-$profile-vm"
 	;;
+nixos-anywhere)
+  profile=$1
+  target=$2
+  shift
+  shift
+  nix run github:nix-community/nixos-anywhere --builders "" -- --flake "$script_dir#$profile" --target-host "root@$target" --build-on local --debug --no-substitute-on-destination  "$@"
+  ;;
 *)
 	echo "unknown subcommand $command"
 	false

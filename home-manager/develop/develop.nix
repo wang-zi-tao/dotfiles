@@ -56,6 +56,7 @@ in
   imports = [
     ./git.nix
     ./cpp.nix
+    ../terminal/dsh/dsh.nix
   ];
   programs.go = {
     enable = true;
@@ -70,7 +71,7 @@ in
     RUST_BACKTRACE = "1";
   };
   lazyPackage = with pkgs; [
-    "/nixfs/flake/str/nixpkgs#jdk/bin/java"
+    # "/nixfs/flake/str/nixpkgs#jdk/bin/java"
     "/nixfs/flake/str/nixpkgs#jdk/bin/javac"
     "/nixfs/flake/str/nixpkgs#jdk/bin/jar"
     "/nixfs/flake/str/nixpkgs#jdk/bin/jshell"

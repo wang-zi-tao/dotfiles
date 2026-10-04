@@ -14,7 +14,6 @@ let
 in
 {
   imports = [
-    ./dsh/dsh.nix
   ];
   config = {
     home.packages = with pkgs; [

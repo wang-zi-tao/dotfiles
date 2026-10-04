@@ -100,10 +100,6 @@
       less = "bat --theme=Coldark-Dark";
       man = ''MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';
 
-      ls = "eza --icons always";
-      ll = "eza -la --icons always";
-      l = "eza -la --icons always";
-
       rcpp = "rg -C=8 -g='*.{c,cpp,h,hpp,mm,inl,INL}'";
       rts = "rg -C=8 -g='*.{ts}'";
       rkuip = "rg -C=8 -g='*.{kuip,ku}'";
@@ -196,7 +192,6 @@
         procs
         rmtrash
         bat
-        eza
         dust
         duf
         tmuxinator

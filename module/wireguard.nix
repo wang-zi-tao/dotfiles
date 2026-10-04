@@ -160,23 +160,22 @@ in
                   "${otherNodeNetworkConfig.localIp}:${toString otherNodeWireguardConfig.port}"
                 else
                   null;
-              allowedIPs =
-                [
-                  otherNodeWireguardConfig.clusterIp
-                  otherNodeWireguardConfig.clusterIpRange
-                ]
-                ++ otherNodeWireguardConfig.clusterIps
-                ++ optionals (wireguard.config.gateway == otherNodeName) (
-                  concatLists (
-                    mapAttrsToList (
-                      nodeName: node:
-                      optionals (!hasAttr nodeName wireguard.peers) [
-                        node.config.clusterIp
-                        node.config.clusterIpRange
-                      ]
-                    ) wireguardCluster
-                  )
-                );
+              allowedIPs = [
+                otherNodeWireguardConfig.clusterIp
+                otherNodeWireguardConfig.clusterIpRange
+              ]
+              ++ otherNodeWireguardConfig.clusterIps
+              ++ optionals (wireguard.config.gateway == otherNodeName) (
+                concatLists (
+                  mapAttrsToList (
+                    nodeName: node:
+                    optionals (!hasAttr nodeName wireguard.peers) [
+                      node.config.clusterIp
+                      node.config.clusterIpRange
+                    ]
+                  ) wireguardCluster
+                )
+              );
             }
           ) wireguard.peers;
         };
@@ -278,9 +277,9 @@ in
                   RestartSec = "5s";
                   ExecStart = "${pkgs.udp2raw}/bin/udp2raw --fix-gro -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -c -l127.0.0.1:${
                     toString (channelPort wireguardCluster.${otherNodeName}.config)
-                  } -r ${networkCluster.${otherNodeName}.config.publicIp}:${
-                    toString (channelPort wireguard.config)
-                  } -a";
+                  } -r ${
+                    networkCluster.${otherNodeName}.config.publicIp
+                  }:${toString (channelPort wireguard.config)} -a";
                 };
               }
             )

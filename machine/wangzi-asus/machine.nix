@@ -77,11 +77,19 @@ nixpkgs.lib.nixosSystem {
           "ntfs"
         ];
         hardware = {
+          # prime.sync 只会生成 Xorg 配置（NVIDIA 当唯一活动 Screen），而本机会话是 GNOME 50
+          # Wayland：GNOME 50 已经没有 Xorg 会话，Wayland 下由 mutter 按“内屏挂在哪块卡上”
+          # 自己选主 GPU，而内屏 eDP-1 接在 i915 上（gpu_mux_mode=1，Optimus 模式），
+          # 所以 sync 在这台机器上永远不会生效，桌面一直由 Intel 渲染。
+          # 想让整个桌面走 NVIDIA：切 MUX 到独显直连（gpu_mux_mode=0，需重启）或者用
+          # 支持 WLR_DRM_DEVICES 的合成器（如本仓库已启用的 sway）。
+          # 这里改用 PRIME render offload：合成器留在 iGPU，用 `nvidia-offload <程序>` 让
+          # 指定程序用 NVIDIA 渲染（GLX/Vulkan 都有效）。
           nvidia.prime = {
-            sync.enable = true;
+            # sync.enable = true; # 仅 Xorg 有效，Wayland 下无作用
             # reverseSync.enable = true;
-            # offload.enable = true;
-            # offload.enableOffloadCmd = true;
+            offload.enable = true;
+            offload.enableOffloadCmd = true;
             allowExternalGpu = true;
             nvidiaBusId = "PCI:1:0:0";
             intelBusId = "PCI:0:2:0";

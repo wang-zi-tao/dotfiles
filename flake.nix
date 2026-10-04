@@ -35,7 +35,6 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    eza.url = "github:eza-community/eza";
     nixfs.url = "github:illustris/nixfs";
     NixVirt = {
       url = "https://flakehub.com/f/AshleyYakeley/NixVirt/*.tar.gz";
@@ -60,7 +59,6 @@
       sops-nix,
       deploy-rs,
       disko,
-      eza,
       master,
       nixfs,
       NixVirt,
@@ -132,7 +130,6 @@
                     master = import inputs.master { inherit system overlays config; };
                     nixpkgs-old = import inputs.nixpkgs-old { inherit system overlays config; };
                     flake-inputs = inputs;
-                    eza = eza.packages.${system}.default;
                     cua-driver = inputs.cua.packages.${system}.cua-driver;
                     scripts = builtins.mapAttrs (
                       name: kind: prev.writeScriptBin name (readFile (./scripts + "/${name}"))
@@ -143,6 +140,23 @@
               ++ overlays
             );
         };
+      nixos = builtins.mapAttrs (
+        name: value:
+        value (
+          {
+            inherit pkgs-template;
+            modules = [
+              sops-nix.nixosModules.sops
+              home-manager.nixosModules.home-manager
+              disko.nixosModules.disko
+              nixfs.nixosModules.nixfs
+              NixVirt.nixosModules.default
+              inputs.hermes-agent.nixosModules.default
+            ];
+          }
+          // inputs
+        )
+      ) (import-dir ./machine "machine.nix");
     in
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -204,26 +218,8 @@
       }
     )
     // {
-      nixos = builtins.mapAttrs (
-        name: value:
-        value (
-          {
-            inherit pkgs-template;
-            modules = [
-              sops-nix.nixosModules.sops
-              home-manager.nixosModules.home-manager
-              disko.nixosModules.disko
-              nixfs.nixosModules.nixfs
-              NixVirt.nixosModules.default
-              inputs.hermes-agent.nixosModules.default
-            ];
-          }
-          // inputs
-        )
-      ) (import-dir ./machine "machine.nix");
-      # nixosConfigurations = builtins.mapAttrs
-      #   (name: value: value ({ inherit pkgs-template; } // inputs))
-      #   (import-dir ./machine "machine.nix");
+      nixos = nixos;
+      nixosConfigurations = nixos;
       nixOnDroidConfigurations = builtins.mapAttrs (
         name: value: (value (inputs // { inherit pkgs-template; }))
       ) (import-dir ./nix-on-droid/profiles "profile.nix");
@@ -252,6 +248,9 @@
               magicRollback = false;
             };
             "aliyun-hk" = {
+              magicRollback = true;
+            };
+            "aliyun-gz" = {
               magicRollback = true;
             };
           };

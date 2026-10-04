@@ -40,8 +40,6 @@ in
         less = "bat --theme=Coldark-Dark";
         man = ''MANPAGER="sh -c 'col -bx | bat --theme=Coldark-Dark -l man -p'" man'';
 
-        l = "eza -la --icons always";
-
         rts = "rg -C 8 -g '*.{ts}'";
         rkuip = "rg -C 8 -g '*.{kuip,ku}'";
 

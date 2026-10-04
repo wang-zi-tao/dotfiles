@@ -34,19 +34,22 @@ in
     {
       nix = {
         settings.substituters = [
-          # "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
+          "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
           "https://nix-community.cachix.org"
           "https://nixpkgs-wayland.cachix.org"
-          "https://mirrors.ustc.edu.cn/nix-channels/store"
+          "https://mirrors.cernet.edu.cn/nix-channels/store"
+          # "https://mirrors.ustc.edu.cn/nix-channels/store"
+          # "https://mirror.sjtu.edu.cn/nix-channels/store"
+          # "ssh://root@aliyun-hk.wg"
+          # "ssh://root@wangzi-nuc.wg"
+          # "ssh://root@wangzi-asus.wg"
           "https://cache.nixos.org/"
-          # "root@aliyun-hk:64022"
         ];
         settings.trusted-substituters = [
           "https://hydra.nixos.org/"
-          # "ssh://root@aliyun-hk.wg:64022"
-          # "ssh://root@aliyun-ecs.wg:64022"
-          # "ssh://root@aliyun-hk:64022"
-          # "ssh://root@aliyun-ecs:64022"
+          "ssh://root@aliyun-hk.wg"
+          "ssh://root@aliyun-ecs.wg"
+          "ssh://root@aliyun-hk"
         ];
         settings.trusted-public-keys = [
           # "47.243.22.114:5000:wfL5ei3BfHGUVpiOihncv1LmbBzjqDm6uTFtJ95wueI="
@@ -57,6 +60,7 @@ in
         settings.auto-optimise-store = true;
         settings.max-jobs = "auto";
         settings.stalled-download-timeout = 60;
+        settings.require-sigs = false;
         daemonIOSchedClass = "idle";
         daemonCPUSchedPolicy = "batch";
         extraOptions = ''
@@ -73,7 +77,7 @@ in
           lib.mapAttrsToList (
             host: node:
             lib.optional (node.buildNode.enable && host != hostName) {
-              hostName = "${host}";
+              hostName = "${host}.wg";
               systems = [
                 "x86_64-linux"
                 "aarch64-linux"
