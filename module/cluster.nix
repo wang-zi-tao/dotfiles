@@ -238,7 +238,9 @@ with builtins;
             wangzi-nuc.config = desktop_config // {
               localIp = "192.168.32.1";
             };
-            wangzi-asus.config = desktop_config // { };
+            wangzi-asus.config = desktop_config // {
+              localIp = "192.168.32.128";
+            };
             huawei-ecs.config = {
               publicIp = "139.9.235.87";
             };
@@ -403,7 +405,7 @@ with builtins;
         {
           wangzi-nuc = desktop_config // {
             users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
-            localIp = "192.168.32.1";
+            # localIp = "192.168.32.1";
             wayland.enable = true;
             hermes.enable = true;
             hindsight.enable = true;
