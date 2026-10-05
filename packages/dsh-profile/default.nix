@@ -7,6 +7,7 @@
   fetchPnpmDeps,
   git,
   dsh-hindsight,
+  dsh-cordis-patch,
   formats,
 }:
 {
@@ -22,7 +23,14 @@ let
   # Nix-built dsh plugins injected into this profile's node_modules and
   # bundle list. Add new entries here as more plugins move into packages/.
   pluginArgs = lib.escapeShellArgs (map toString plugins);
-  cordis_patch_yaml = (formats.yaml { }).generate "cordis.patch.yml" cordis_patch;
+  # formats.yaml（remarshal/json2yaml）给每个字符串都加引号，插件里那些
+  # `!!js …` 表达式会退化成普通字符串，dsh 的 Loader 就不再求值了。
+  # dsh-cordis-patch 用同一套 schema 做往返：读出来，再把它们裸写成 YAML 标签。
+  # formats.yaml 的产物是 store 路径，直接交给转换包读，不经过 builtins.readFile，
+  # 所以不会额外引入 IFD。
+  cordis_patch_yaml = dsh-cordis-patch {
+    yaml = (formats.yaml { }).generate "cordis.raw.yml" cordis_patch;
+  };
 in
 stdenvNoCC.mkDerivation {
   pname = "dsh-profile-${name}";

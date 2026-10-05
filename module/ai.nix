@@ -210,7 +210,10 @@ in
       systemd.services.hindsight = {
         description = "Hindsight memory API server";
         wantedBy = [ "multi-user.target" ];
-        after = [ "network-online.target" "postgresql.service" ];
+        after = [
+          "network-online.target"
+          "postgresql.service"
+        ];
         wants = [ "network-online.target" ];
         requires = [ "postgresql.service" ];
         environment = {

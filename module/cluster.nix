@@ -128,10 +128,6 @@ with builtins;
                   type = bool;
                   default = false;
                 };
-                cockpitServer.enable = mkOption {
-                  type = bool;
-                  default = false;
-                };
                 atuin.enable = mkOption {
                   type = bool;
                   default = false;
@@ -172,6 +168,23 @@ with builtins;
                     default = false;
                   };
                 };
+                dshWeb = {
+                  enable = mkOption {
+                    type = bool;
+                    default = false;
+                    description = "DeepSeek Harness 浏览器 GUI：dsh 只绑回环，由 Caddy basic_auth 保护后按独立端口暴露到公网";
+                  };
+                  port = mkOption {
+                    type = port;
+                    default = 29443;
+                    description = "公网 HTTPS 监听端口（Caddy）";
+                  };
+                  bindPort = mkOption {
+                    type = port;
+                    default = 18080;
+                    description = "dsh 自身监听端口，固定只绑 127.0.0.1";
+                  };
+                };
               };
             }
           )
@@ -209,6 +222,7 @@ with builtins;
     ./rustdesk.nix
     ./xpra.nix
     ./ai.nix
+    ./dsh-web.nix
   ];
   config = {
     boot.isContainer = nodeConfig.inContainer;
@@ -389,7 +403,7 @@ with builtins;
         {
           wangzi-nuc = desktop_config // {
             users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
-            # localIp = "192.168.32.1";
+            localIp = "192.168.32.1";
             wayland.enable = true;
             hermes.enable = true;
             hindsight.enable = true;
@@ -410,22 +424,21 @@ with builtins;
             NextCloudServer.enable = true;
             webssh.enable = true;
             OnedevServer.enable = true;
-            RustDeskServer.enable = true;
-            XpraProxy.enable = true;
             atuin.enable = true;
-            cockpitServer.enable = true;
-            prometheus.server = true;
-            # k3s.enable = true;
-            k3s.kind = "server";
-            k3s.taint = "master:NoSchedule";
             inVM = true;
           };
           aliyun-gz = server_config // {
-            # webssh.enable = true;
-            # RustDeskServer.enable = true;
-            # XpraProxy.enable = true;
-            # atuin.enable = true;
             inVM = true;
+            webssh.enable = true;
+            dshWeb.enable = true;
+            OnedevServer.enable = true;
+            RustDeskServer.enable = true;
+            XpraProxy.enable = true;
+            atuin.enable = true;
+            prometheus.server = true;
+            k3s.enable = true;
+            k3s.kind = "server";
+            k3s.taint = "master:NoSchedule";
           };
           aliyun-ecs = server_config // {
             webssh.enable = true;

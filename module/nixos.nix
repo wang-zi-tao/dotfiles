@@ -10,6 +10,11 @@
 let
   hostName = config.networking.hostName;
   nodeConfig = config.cluster.nodes.${hostName};
+  ssh-substituters = builtins.mapAttrs (node: wgConfig: "ssh://nix-ssh@${wgConfig.clusterIp}.wg") (
+    lib.filterAttrs (
+      node: wgConfig: config.cluster.nodes.${nodeConfig}.sshd.enable
+    ) config.cluster.wireguard.nodes
+  );
 in
 {
   options =
@@ -40,17 +45,13 @@ in
           "https://mirrors.cernet.edu.cn/nix-channels/store"
           # "https://mirrors.ustc.edu.cn/nix-channels/store"
           # "https://mirror.sjtu.edu.cn/nix-channels/store"
-          # "ssh://root@aliyun-hk.wg"
-          # "ssh://root@wangzi-nuc.wg"
-          # "ssh://root@wangzi-asus.wg"
           "https://cache.nixos.org/"
-        ];
+        ]
+        ++ ssh-substituters;
         settings.trusted-substituters = [
           "https://hydra.nixos.org/"
-          "ssh://root@aliyun-hk.wg"
-          "ssh://root@aliyun-ecs.wg"
-          "ssh://root@aliyun-hk"
-        ];
+        ]
+        ++ ssh-substituters;
         settings.trusted-public-keys = [
           # "47.243.22.114:5000:wfL5ei3BfHGUVpiOihncv1LmbBzjqDm6uTFtJ95wueI="
           "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="

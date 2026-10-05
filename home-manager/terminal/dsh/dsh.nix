@@ -31,7 +31,18 @@ let
       config = {
         apiUrl = "http://127.0.0.1:11438";
         memoryMode = "hybrid";
-        apiKey = "!!js require('fs').readFileSync('/run/secrets/hindsight/apikey').trim()";
+        # 经 pkgs.dsh-cordis-patch 处理后才成为真正的 YAML 标签。
+        #
+        # 表达式只能用求值沙箱里有的东西：cordis-plugin-loader 的实现是
+        #   new Function("ctx", "expr", "with (ctx) { return eval(expr) }")
+        # 即全局作用域 + loader 提供的成员。dsh 只 provide 了 dshHomePath，
+        # **没有 require** —— 写 require('fs') 会 ReferenceError，该 entry
+        # 激活失败，整个 dsh-hindsight 插件不加载（工具直接消失）。
+        # process 是 Node 全局，用 process.getBuiltinModule 才能拿到内建模块。
+        #
+        # 另外 readFileSync 必须显式带 'utf8'：不给编码返回 Buffer，
+        # 而 Buffer 没有 trim()，会 TypeError。
+        apiKey = "!!js process.getBuiltinModule('fs').readFileSync('/run/secrets/hindsight/apikey','utf8').trim()";
       };
     }
     {
@@ -64,7 +75,7 @@ let
   };
   profile-tui = pkgs.dsh-profile {
     name = "tui";
-    hash = "sha256-N8q4dUmOkZOS9RLdgCcuhoAl5auVsnkwSEM5sbU7kvw=";
+    hash = "sha256-vcsUnG5yikVBxC+lQo/EKHOhnNfFWmShpOeuCF+2hcg=";
     plugins = plugins ++ [ ];
     src = ./tui;
     package = pkgs.dsh;
@@ -136,32 +147,39 @@ in
       ".dsh/profiles/tui/cordis.patch.yml".source = "${profile-tui}/cordis.patch.yml";
       ".dsh/profiles/node_modules".source = "${pkgs.dsh}/lib/node_modules";
       ".dsh/pet.json".source = ./pet.json;
-      ".dsh/cordis.patch.yml".source = (pkgs.formats.yaml { }).generate "cordis.patch.yml" ([
-        {
-          insert = (builtins.attrValues (builtins.mapAttrs mcpPatch config.programs.mcp.servers)) ++ [
-            {
-              id = "mcp-context7";
-              name = "@deepseek-ai/dsh-mcp-client";
-              config = {
-                serverName = "context7";
-                transport = "streamable-http";
-                url = "https://mcp.context7.com/mcp";
-                headers = {
-                  Authorization = "!!js ('Bearer '+require('fs').readFileSync('/run/secrets/apikey/context7')).trim()";
+      # formats.yaml 会给每个字符串加引号，`!!js …` 因此退化成普通字符串，
+      # dsh 不求值 → 插件把整串当 apiKey 发出去 → 401。
+      # dsh-cordis-patch 把带引号的 !!js 还原成真正的 YAML 标签。
+      ".dsh/cordis.patch.yml".source = pkgs.dsh-cordis-patch {
+        yaml = (pkgs.formats.yaml { }).generate "cordis.raw.yml" ([
+          {
+            insert = (builtins.attrValues (builtins.mapAttrs mcpPatch config.programs.mcp.servers)) ++ [
+              {
+                id = "mcp-context7";
+                name = "@deepseek-ai/dsh-mcp-client";
+                config = {
+                  serverName = "context7";
+                  transport = "streamable-http";
+                  url = "https://mcp.context7.com/mcp";
+                  headers = {
+                    # 同 hindsight：沙箱里没有 require，且 readFileSync 必须带
+                    # 'utf8'（否则返回 Buffer，Buffer 没有 trim）。
+                    Authorization = "!!js ('Bearer '+process.getBuiltinModule('fs').readFileSync('/run/secrets/apikey/context7','utf8').trim())";
+                  };
                 };
-              };
-            }
-            {
-              id = "skills-nix";
-              name = "@deepseek-ai/dsh-skill-filesystem";
-              customSkillDirs = [
-                ".opencode/skills"
-              ];
+              }
+              {
+                id = "skills-nix";
+                name = "@deepseek-ai/dsh-skill-filesystem";
+                customSkillDirs = [
+                  ".opencode/skills"
+                ];
 
-            }
-          ];
-        }
-      ]);
+              }
+            ];
+          }
+        ]);
+      };
     }
     # 逐条 symlink 顶层条目，让每个条目成为 dsh 解析器的 linked root
     # （原因见上面 profileModuleFiles 的注释）。node_modules 必须是真目录，
@@ -190,6 +208,8 @@ in
     };
 
     home.packages = with pkgs; [
+      bubblewrap
+
       (writeScriptBin "dsh" ''
         #!${bash}/bin/bash
         if [ -e /run/secrets/apikey/deepseek ]; then

@@ -1,13 +1,16 @@
-{ pkgs, config, lib, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
 with builtins;
 with lib;
 let
   inherit (config.cluster) nodeConfig;
   nodeList = attrValues config.cluster.nodes;
-  networkConfig =
-    config.cluster.network.edges.${config.cluster.nodeName}.config;
-  wireguardConfig =
-    config.cluster.wireguard.edges.${config.cluster.nodeName}.config;
+  networkConfig = config.cluster.network.edges.${config.cluster.nodeName}.config;
+  wireguardConfig = config.cluster.wireguard.edges.${config.cluster.nodeName}.config;
   grafanaConfig = ''
     {
       "annotations": {
@@ -1521,7 +1524,8 @@ let
       "weekStart": ""
     }
   '';
-in {
+in
+{
   imports = [ ./wireguard.nix ];
   config = {
     sops.secrets = optionalAttrs nodeConfig.prometheus.server {
@@ -1536,8 +1540,8 @@ in {
           http_port = 9002;
         };
         security = {
-          adminPasswordFile =
-            config.sops.secrets."prometheus/admin_password".path;
+          secret_key = "SW2YcwTIb9zpOOhoPsMm";
+          adminPasswordFile = config.sops.secrets."prometheus/admin_password".path;
           allow_embedding = true;
         };
         "auth.anonymous" = {
@@ -1545,7 +1549,9 @@ in {
           org_name = "anonymous";
           org_role = "Viewer";
         };
-        feature_toggles = { enable = "displayAnonymousStats"; };
+        feature_toggles = {
+          enable = "displayAnonymousStats";
+        };
       };
     };
     services.caddy = lib.optionalAttrs nodeConfig.prometheus.server {
@@ -1564,23 +1570,27 @@ in {
     services.prometheus = {
       enable = nodeConfig.prometheus.server;
       port = 9001;
-      scrapeConfigs = (map (node: {
-        job_name = "${node.hostname}";
-        static_configs = [{
-          targets = [ "${node.hostname}.wg:9100" "${node.hostname}.wg:9256" ];
-        }];
-      }) (filter (node: node.prometheus.nodeExporter) nodeList)) ++ (map
-        (node: {
+      scrapeConfigs =
+        (map (node: {
+          job_name = "${node.hostname}";
+          static_configs = [
+            {
+              targets = [
+                "${node.hostname}.wg:9100"
+                "${node.hostname}.wg:9256"
+              ];
+            }
+          ];
+        }) (filter (node: node.prometheus.nodeExporter) nodeList))
+        ++ (map (node: {
           job_name = "${node.hostname}-wg";
-          static_configs = [{ targets = [ "${node.hostname}.wg:9586" ]; }];
-        }) (filter (node: hasAttr node.hostname config.cluster.wireguard.edges)
-          nodeList)) ++ (map (node: {
-            job_name = "${node.hostname}-weed";
-            metrics_path = "/metrics";
-            static_configs = [{ targets = [ "${node.hostname}.wg:9101" ]; }];
-          })
-            (filter (node: hasAttr node.hostname config.cluster.seaweedfs.edges)
-              nodeList));
+          static_configs = [ { targets = [ "${node.hostname}.wg:9586" ]; } ];
+        }) (filter (node: hasAttr node.hostname config.cluster.wireguard.edges) nodeList))
+        ++ (map (node: {
+          job_name = "${node.hostname}-weed";
+          metrics_path = "/metrics";
+          static_configs = [ { targets = [ "${node.hostname}.wg:9101" ]; } ];
+        }) (filter (node: hasAttr node.hostname config.cluster.seaweedfs.edges) nodeList));
       exporters = {
         node = mkIf nodeConfig.prometheus.nodeExporter {
           enable = true;
