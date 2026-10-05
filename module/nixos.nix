@@ -10,7 +10,7 @@
 let
   hostName = config.networking.hostName;
   nodeConfig = config.cluster.nodes.${hostName};
-  ssh-substituters = lib.mapAttrsToList (node: wg: "ssh://nix-ssh@${wg.config.clusterIp}.wg") (
+  ssh-substituters = lib.mapAttrsToList (node: wg: "ssh://nix-ssh@${wg.config.clusterIp}") (
     lib.filterAttrs (
       node: wgConfig: config.cluster.nodes.${node}.sshd.enable
     ) config.cluster.wireguard.nodes

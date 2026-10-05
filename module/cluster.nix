@@ -261,8 +261,7 @@ with builtins;
         };
       wireguard = {
         nodes = {
-          # wangzi-asus.peers.wangzi-nuc = { };
-          # wangzi-asus.peers.wangzi-nuc = { };
+          wangzi-asus.peers.wangzi-nuc = { };
           wangzi-nuc.config = {
             index = 12;
             port = 16538;
