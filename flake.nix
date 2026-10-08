@@ -248,10 +248,10 @@
               magicRollback = false;
             };
             "aliyun-hk" = {
-              magicRollback = true;
+              magicRollback = false;
             };
             "aliyun-gz" = {
-              magicRollback = true;
+              magicRollback = false;
             };
           };
     };

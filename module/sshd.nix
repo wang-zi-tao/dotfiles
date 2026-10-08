@@ -37,10 +37,6 @@ in
       # NixOS 自己写 /etc/ssh/authorized_keys.d/%u 用的也正是 mode = "0444"。
       mode = "0444";
     };
-    nix.sshServe = {
-      enable = true;
-      keys = [ ];
-    };
     services.openssh = {
       enable = true;
       settings = {
@@ -74,6 +70,10 @@ in
     services.sshguard = {
       enable = true;
       whitelist = [ "192.168.0.0/16" ];
+    };
+
+    nix.sshServe = {
+      enable = true;
     };
   };
 }

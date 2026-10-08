@@ -98,7 +98,10 @@ let
     lib.listToAttrs (
       map (e: {
         name = "${dir}/node_modules/${e}";
-        value.source = "${profile}/lib/node_modules/${e}";
+        value = {
+          source = "${profile}/lib/node_modules/${e}";
+          force = true;
+        };
       }) (lib.attrNames (builtins.readDir "${profile}/lib/node_modules"))
     );
 

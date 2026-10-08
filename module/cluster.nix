@@ -241,18 +241,18 @@ with builtins;
             wangzi-asus.config = desktop_config // {
               localIp = "192.168.32.128";
             };
-            huawei-ecs.config = {
-              publicIp = "139.9.235.87";
-            };
+            # huawei-ecs.config = {
+            #   publicIp = "139.9.235.87";
+            # };
             aliyun-hk.config = {
               publicIp = "47.83.14.140";
             };
             aliyun-gz.config = {
               publicIp = "8.138.123.170";
             };
-            aliyun-ecs.config = {
-              publicIp = "116.62.23.116";
-            };
+            # aliyun-ecs.config = {
+            #   publicIp = "116.62.23.116";
+            # };
             lxd = { };
             nova9 = { };
             M6 = { };
@@ -286,11 +286,11 @@ with builtins;
           wangzi-nuc.peers.aliyun-gz = {
             tunnel = true;
           };
-          huawei-ecs.config = {
-            index = 1;
-            port = 30806;
-            publicKey = "IfOIL06xMk/4r2QQvhNbLUFDLh97sXdHO3WIyOP4Sj4=";
-          };
+          # huawei-ecs.config = {
+          #   index = 1;
+          #   port = 30806;
+          #   publicKey = "IfOIL06xMk/4r2QQvhNbLUFDLh97sXdHO3WIyOP4Sj4=";
+          # };
           aliyun-hk.config = {
             index = 2;
             port = 21176;
@@ -304,11 +304,11 @@ with builtins;
             port = 40287;
             publicKey = "tqeHWYqgoSVoMlREKDukgPZRrS5jbbIaZW19NUxZiF4=";
           };
-          aliyun-ecs.config = {
-            index = 3;
-            port = 39690;
-            publicKey = "riRxoNrTrJYZQyjAtiMk/aqiZ8ZoLnzw2e9maV18Tlk=";
-          };
+          # aliyun-ecs.config = {
+          #   index = 3;
+          #   port = 39690;
+          #   publicKey = "riRxoNrTrJYZQyjAtiMk/aqiZ8ZoLnzw2e9maV18Tlk=";
+          # };
           nova9.config = {
             index = 21;
             port = 53555;
@@ -324,8 +324,8 @@ with builtins;
         };
         peersWhiteList = [
           "aliyun-hk"
-          "aliyun-ecs"
-          "huawei-ecs"
+          # "aliyun-ecs"
+          # "huawei-ecs"
           "aliyun-gz"
         ];
       };
@@ -374,14 +374,14 @@ with builtins;
           aliyun-hk.config = {
             client.size = 1 * 1024;
           };
-          aliyun-ecs.config = {
-            client.size = 1 * 1024;
-          };
-          aliyun-ecs.to.aliyun-hk = {
-            syncDirs = {
-              "Cluster" = { };
-            };
-          };
+          # aliyun-ecs.config = {
+          #   client.size = 1 * 1024;
+          # };
+          # aliyun-ecs.to.aliyun-hk = {
+          #   syncDirs = {
+          #     "Cluster" = { };
+          #   };
+          # };
         };
       };
       ssh.publicKeySops = ../secrets/public-key.yaml;
@@ -400,6 +400,10 @@ with builtins;
           server_config = {
             container.enable = true;
           };
+          mobile_config = {
+            sshd.enable = false;
+            arch = "aarch64-linux";
+          };
         in
         {
           wangzi-nuc = desktop_config // {
@@ -414,13 +418,13 @@ with builtins;
             wayland.enable = true;
             hindsight.enable = true;
           };
-          huawei-ecs = server_config // {
-            MySQL.enable = true;
-            webssh.enable = true;
-            redis.enable = true;
-            # weedServer.enable = true;
-            inVM = true;
-          };
+          # huawei-ecs = server_config // {
+          #   MySQL.enable = true;
+          #   webssh.enable = true;
+          #   redis.enable = true;
+          #   # weedServer.enable = true;
+          #   inVM = true;
+          # };
           aliyun-hk = server_config // {
             NextCloudServer.enable = true;
             webssh.enable = true;
@@ -441,20 +445,18 @@ with builtins;
             k3s.kind = "server";
             k3s.taint = "master:NoSchedule";
           };
-          aliyun-ecs = server_config // {
-            webssh.enable = true;
-            prometheus.server = true;
-            # redis.enable = true;
-            inVM = true;
-          };
+          # aliyun-ecs = server_config // {
+          #   webssh.enable = true;
+          #   prometheus.server = true;
+          #   # redis.enable = true;
+          #   inVM = true;
+          # };
           lxd = {
             inContainer = true;
           };
-          nova9 = {
-            arch = "aarch64-linux";
+          nova9 = mobile_config // {
           };
-          M6 = {
-            arch = "aarch64-linux";
+          M6 = mobile_config // {
           };
         };
       nfs = {
