@@ -25,14 +25,23 @@
         diagnosticsTimeoutMs: 15000
         diagnosticsDedupeMs: 60000
         maxDiagnostics: 50
-        diagnosticsOnAnyPublish: false
+        diagnosticsOnAnyPublish: true
+        # workspaceSymbol fallback: when the index answers nothing, converge on
+        # candidate files with ripgrep, didOpen+parse them (which fills the
+        # dynamic index), and query the index again.
+        symbolFallback: true
+        symbolFallbackMaxCandidates: 12
+        symbolFallbackTimeoutMs: 15000
+        fallbackSearchCommand: rg
         servers:
           - id: clangd
             command: clangd
+            # No --compile-commands-dir=. : it would pin every compilation
+            # database to this one root. clangd's default (nearest
+            # compile_commands.json above each file) is per-file correct.
             args:
               - '--background-index'
               - '--clang-tidy'
-              - '--compile-commands-dir=.'
               - '--log=error'
             extensions: [c, cc, cpp, cxx, 'c++', h, hpp, hh, hxx, 'h++', inl]
             languageId: cpp

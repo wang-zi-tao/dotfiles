@@ -46,14 +46,35 @@ import { appendFileSync, mkdirSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { isAbsolute, join, resolve } from 'node:path'
 
+import { withDeadline } from './deadline.js'
 import { DiagnosticInbox, type PublishRecord } from './inbox.js'
+import { foldIndexProgress, progressToken, type ProgressParamsLike } from './progress.js'
 import { fileUriToPath, pathToFileUri, toLspPosition } from './protocol.js'
-import type { LoggerLike, ServerSpec, SubprocessHandle, SubprocessRuntime } from './types.js'
+import type { IndexProgress, LoggerLike, ServerSpec, SubprocessHandle, SubprocessRuntime } from './types.js'
 
 export type LspClientState = 'stopped' | 'starting' | 'running' | 'failed'
 
+/** Default hard deadline for one LSP request (ms); the config's `timeoutMs` overrides it. */
+export const DEFAULT_REQUEST_TIMEOUT_MS = 60_000
+
+/**
+ * Budget for the graceful `shutdown`/`exit` handshake (ms). Teardown runs on
+ * plugin unload and on `/lsp restart`, so it must terminate even when the server
+ * stopped answering; the process is tree-terminated right after either way.
+ */
+export const SHUTDOWN_TIMEOUT_MS = 1_000
+
+/** A listener receiving every tracked `$/progress` update from one client. */
+export type ProgressListener = (progress: IndexProgress) => void
+
 /** The three capabilities the plugin actually queries. */
 export const CLIENT_CAPABILITIES = {
+  // clangd only reports its background index when the client advertises work
+  // done progress; without it the index builds silently and the plugin cannot
+  // tell "no such symbol" from "the index is not ready yet".
+  window: {
+    workDoneProgress: true,
+  },
   workspace: {
     workspaceFolders: true,
   },
@@ -77,6 +98,9 @@ interface InitializationResult {
   capabilities?: { diagnosticProvider?: unknown }
 }
 
+/** Minimal shape of a `textDocument/diagnostic` answer. */
+type PullDiagnosticsReport = { kind?: string; items?: Diagnostic[] } | null
+
 export class LspClient {
   readonly spec: ServerSpec
   private readonly subprocess: SubprocessRuntime
@@ -93,6 +117,8 @@ export class LspClient {
   private initialized = false
   private nextId = 1
   private readonly logDir?: string
+  /** Hard deadline for one request and for the initialize handshake (ms). */
+  private readonly requestTimeoutMs: number
 
   /**
    * Pushed diagnostics for this client's documents. One inbox per client (one
@@ -100,18 +126,24 @@ export class LspClient {
    */
   private readonly inbox = new DiagnosticInbox()
 
+  /** Last state per `$/progress` token (clangd: `backgroundIndexProgress`). */
+  private readonly progress = new Map<string, IndexProgress>()
+  private readonly progressListeners = new Set<ProgressListener>()
+
   constructor(
     spec: ServerSpec,
     subprocess: SubprocessRuntime,
     logger: LoggerLike,
     initializeResult: InitializationResult = {},
     logDir?: string,
+    requestTimeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS,
   ) {
     this.spec = spec
     this.subprocess = subprocess
     this.logger = logger
     this.initializeResult = initializeResult
     this.logDir = logDir
+    this.requestTimeoutMs = Math.max(1, Math.trunc(requestTimeoutMs))
   }
 
   /**
@@ -169,6 +201,17 @@ export class LspClient {
       const connection = createProtocolConnection(handle.stdout, handle.stdin)
       this.connection = connection
       connection.listen()
+
+      // Long-running server work (clangd's background index) arrives as
+      // `$/progress` under a server-chosen token. clangd first asks for a
+      // progress token with `window/workDoneProgress/create` unless the client
+      // advertises implicit creation, so the request is accepted with the
+      // spec's `null` result; a rejected request would disable progress for the
+      // whole session (clangd gives up after one failure).
+      connection.onRequest('window/workDoneProgress/create', () => null)
+      connection.onNotification('$/progress', (params) => {
+        this.acceptProgress(params as ProgressParamsLike)
+      })
       // Diagnostics are push-only on clangd: the pull request answers
       // "method not found". The version gate uses what this client last sent
       // for the document, so a push racing ahead of a fresh didChange is
@@ -192,7 +235,13 @@ export class LspClient {
         initializationOptions: undefined,
       }
 
-      const result = (await connection.sendRequest(InitializeRequest.type, initParams)) as InitializationResult
+      // The handshake is bounded: a server that never answers `initialize`
+      // would otherwise leave every later query awaiting this promise forever.
+      const result: InitializationResult | null = await withDeadline(
+        deadlineSignal =>
+          connection.sendRequest(InitializeRequest.type, initParams, this.token(deadlineSignal)) as Promise<InitializationResult | null>,
+        { timeoutMs: this.requestTimeoutMs, label: `initialize (${this.spec.id})`, ...(signal ? { signal } : {}) },
+      )
       this.initializeResult.serverInfo = result?.serverInfo
       this.initializeResult.capabilities = result?.capabilities
       await connection.sendNotification(InitializedNotification.type, {})
@@ -228,6 +277,59 @@ export class LspClient {
         /* ignore */
       }
       throw err
+    }
+  }
+
+  /**
+   * Fold one `$/progress` notification into the tracked state and fan it out
+   * to the registry. A bad notification (foreign token, unknown kind) is
+   * ignored: progress is informative, never a reason to fail a session.
+   */
+  private acceptProgress(params: ProgressParamsLike): void {
+    const token = progressToken(params)
+    if (token === null) return
+    const next = foldIndexProgress(this.progress.get(token), params)
+    if (!next) return
+    this.progress.set(token, next)
+    for (const listener of [...this.progressListeners]) {
+      try {
+        listener(next)
+      } catch (error) {
+        this.logger.debug(
+          'dsh-lsp: progress listener failed for ' + this.spec.id + ': ' + (error instanceof Error ? error.message : String(error)),
+        )
+      }
+    }
+  }
+
+  /**
+   * The most relevant tracked progress: a still-running stream wins over a
+   * finished one, so `/lsp status` and empty symbol answers report the index
+   * that is being built right now rather than a previous run.
+   */
+  indexProgress(): IndexProgress | null {
+    let latest: IndexProgress | null = null
+    for (const entry of this.progress.values()) {
+      if (latest === null) {
+        latest = entry
+        continue
+      }
+      if (latest.done !== entry.done) {
+        if (latest.done) latest = entry
+        continue
+      }
+      if (entry.updatedAt >= latest.updatedAt) latest = entry
+    }
+    return latest
+  }
+
+  /** Subscribe to progress updates; the subscription is per client instance. */
+  onIndexProgress(listener: ProgressListener): { dispose(): void } {
+    this.progressListeners.add(listener)
+    return {
+      dispose: () => {
+        this.progressListeners.delete(listener)
+      },
     }
   }
 
@@ -382,18 +484,48 @@ export class LspClient {
     return this.inbox.onPublish(listener)
   }
 
+  /** Whether a cancellation could still reach a live server. */
+  private canCancel(): boolean {
+    return this.connection !== null && (this.state === 'running' || this.state === 'starting')
+  }
+
+  /**
+   * The cancellation token handed to one request.
+   *
+   * `vscode-jsonrpc` answers a cancellation by writing a `$/cancelRequest`
+   * notification, and writing to an already-closed connection throws
+   * `ConnectionError: Connection is closed`. Cancellation is delivered from an
+   * abort listener — i.e. synchronously inside `controller.abort()`, usually
+   * called from a timer or a teardown hook — so such a throw escapes as an
+   * `uncaughtException` and kills the host process. That is exactly what a hot
+   * reload did: teardown aborted in-flight runs whose connections were already
+   * gone. Hence: never notify a dead connection, and never let a listener throw
+   * out of the abort dispatch.
+   */
   private token(signal?: AbortSignal): CancellationToken {
     if (!signal) return { get isCancellationRequested() { return false }, onCancellationRequested() { return { dispose() {} } } }
     return {
       get isCancellationRequested() { return signal.aborted },
-      onCancellationRequested(listener) {
+      onCancellationRequested: (listener: (error?: unknown) => void) => {
+        const notify = (): void => {
+          if (!this.canCancel()) {
+            this.logger.debug(`dsh-lsp: dropped a cancellation for ${this.spec.id}: connection is closed`)
+            return
+          }
+          try {
+            listener(new Error('aborted'))
+          } catch (error) {
+            this.logger.debug(
+              `dsh-lsp: cancellation for ${this.spec.id} failed: ${error instanceof Error ? error.message : String(error)}`,
+            )
+          }
+        }
         if (signal.aborted) {
-          listener(new Error('aborted'))
+          notify()
           return { dispose() {} }
         }
-        const handler = () => listener(new Error('aborted'))
-        signal.addEventListener('abort', handler, { once: true })
-        return { dispose() { signal.removeEventListener('abort', handler) } }
+        signal.addEventListener('abort', notify, { once: true })
+        return { dispose() { signal.removeEventListener('abort', notify) } }
       },
     }
   }
@@ -550,7 +682,11 @@ export class LspClient {
    * LSP and clangd answers `method not found`, so this path is only taken when
    * {@link supportsPullDiagnostics} is true.
    */
-  async diagnostics(filePath: string, signal?: AbortSignal): Promise<Diagnostic[] | null> {
+  async diagnostics(
+    filePath: string,
+    signal?: AbortSignal,
+    timeoutMs: number = this.requestTimeoutMs,
+  ): Promise<Diagnostic[] | null> {
     const abs = this.absPath(filePath)
     this.ensureOpen(abs)
     const conn = this.requireConnection()
@@ -559,7 +695,15 @@ export class LspClient {
       identifier: `dsh-lsp-${this.nextId++}`,
       previousResultId: undefined,
     }
-    const report = await conn.sendRequest(DocumentDiagnosticRequest.type, params, this.token(signal))
+    // A pull request has no server-side deadline. Without one here, a server
+    // that accepts `textDocument/diagnostic` and never answers would leave the
+    // caller awaiting forever. The deadline cancels this request only: the
+    // server keeps running and its documents stay open.
+    const report = await withDeadline(
+      deadlineSignal =>
+        conn.sendRequest(DocumentDiagnosticRequest.type, params, this.token(deadlineSignal)) as Promise<PullDiagnosticsReport>,
+      { timeoutMs, label: `textDocument/diagnostic (${this.spec.id})`, ...(signal ? { signal } : {}) },
+    )
     if (!report) return null
     if (report.kind === 'full') return report.items ?? []
     // 'unchanged' reports carry no items; return empty rather than erroring.
@@ -601,10 +745,15 @@ export class LspClient {
     const conn = this.connection
     if (conn && this.initialized) {
       try {
-        await conn.sendRequest(ShutdownRequest.type, undefined)
+        // Bounded: a server that accepts `shutdown` and never answers must not
+        // wedge unload / restart. The process is terminated below regardless.
+        await withDeadline(() => conn.sendRequest(ShutdownRequest.type, undefined), {
+          timeoutMs: SHUTDOWN_TIMEOUT_MS,
+          label: `shutdown (${this.spec.id})`,
+        })
         await conn.sendNotification(ExitNotification.type)
       } catch {
-        /* server may already be gone */
+        /* server may already be gone, or stopped answering */
       }
     }
     try {

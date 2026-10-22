@@ -15,24 +15,33 @@
  * @module dsh-lsp
  */
 
+import { isAbsolute, relative, resolve } from 'node:path'
+
+import { searchCandidates } from './candidates.js'
 import { LspClient } from './client.js'
 import { resolveConfig } from './config.js'
 import { diagnosticsMessage, filterDiagnostics } from './diagnostics.js'
+import { indexProgressMessage, renderIndexProgress } from './progress.js'
 import { isFileUri, pathToFileUri, readLinePreview, renderLocations, toLspLocation, toSymbolEntry } from './protocol.js'
 import { ServerRegistry } from './registry.js'
 import { findRoot, hasRootMarker } from './root.js'
 import { DiagnosticWatcher, type InjectableAgent } from './watch.js'
-import type { ToolExecution } from '@deepseek-ai/dsh-tools'
+import type { JsonSchemaNode, ToolExecution } from '@deepseek-ai/dsh-tools'
+import type { SymbolInformation, WorkspaceSymbol } from 'vscode-languageserver-protocol'
 import type {
   CommandInvocation,
   CommandResult,
   DshContext,
   ExploreResult,
+  IndexProgress,
   Logger,
   LspLocation,
   LspQueryResult,
   QueryArgs,
+  ServerSpec,
+  SubprocessRuntime,
   SymbolEntry,
+  SymbolFallbackInfo,
   ToolRunContext,
 } from './types.js'
 
@@ -103,6 +112,24 @@ function liveAgents(ctx: DshContext): unknown[] {
   }
 }
 
+/**
+ * Live agents whose session cwd lies inside `root`. A finished background
+ * index is only useful to the sessions that query that root, and injecting the
+ * notice into every session would interrupt unrelated turns.
+ */
+function agentsUnder(ctx: DshContext, root: string): InjectableAgent[] {
+  const normalizedRoot = resolve(root).toLowerCase()
+  const out: InjectableAgent[] = []
+  for (const candidate of liveAgents(ctx)) {
+    const cwd = sessionCwd(candidate)
+    if (!cwd) continue
+    if (typeof (candidate as { inject?: unknown }).inject !== 'function') continue
+    const rel = relative(normalizedRoot, resolve(cwd).toLowerCase())
+    if (rel === '' || (!rel.startsWith('..') && !isAbsolute(rel))) out.push(candidate as InjectableAgent)
+  }
+  return out
+}
+
 function hoverToText(hover: { contents: unknown } | null | undefined): string | null {
   if (!hover) return null
   const contents = hover.contents
@@ -141,6 +168,100 @@ function renderSymbols(symbols: SymbolEntry[], maxLocations: number, withPreview
   return { text: lines.join('\n'), truncated }
 }
 
+/** What the symbol fallback needs beyond the LSP client itself. */
+interface FallbackDeps {
+  subprocess: SubprocessRuntime
+  logger: Logger
+}
+
+/**
+ * Overall ceiling for one fallback pass, expressed as a multiple of the
+ * per-search timeout: the name search, the content search and the warm-up
+ * retry each get one budget, and the whole pass aborts once they are spent.
+ */
+const FALLBACK_BUDGET_FACTOR = 3
+
+/** Map a raw LSP symbol list to the model-facing entry vocabulary. */
+function toSymbolEntries(
+  raw: Array<SymbolInformation | WorkspaceSymbol> | null | undefined,
+  rootUri: string,
+): SymbolEntry[] {
+  return (raw ?? []).map(sym => toSymbolEntry({
+    name: sym.name,
+    kind: sym.kind,
+    location: sym.location,
+    ...(sym.containerName ? { containerName: sym.containerName } : {}),
+  }, rootUri))
+}
+
+/**
+ * Fill an empty `workspace/symbol` answer by converging on candidate files,
+ * parsing them, and asking the index again.
+ *
+ * clangd answers `workspace/symbol` from its Dex index only and never waits for
+ * the background index, so a symbol whose file nobody opened is invisible
+ * until either the background index catches up or that file is parsed. The
+ * search costs one ripgrep pass; `warmDocuments` is what actually helps,
+ * because a parsed translation unit lands in the dynamic index immediately.
+ *
+ * Fail-open by construction: no candidates, an unusable search command, a
+ * failed parse, or a spent budget all return the empty answer plus a record of
+ * what was attempted, never an error.
+ */
+async function convergeSymbols(
+  deps: FallbackDeps,
+  client: LspClient,
+  spec: ServerSpec,
+  root: string,
+  filePath: string,
+  query: string,
+  config: ReturnType<typeof resolveConfig>,
+  signal: AbortSignal | undefined,
+): Promise<{ symbols: SymbolEntry[]; info: SymbolFallbackInfo }> {
+  const info: SymbolFallbackInfo = { used: true, strategy: 'none', candidates: 0, warmed: 0, matched: 0, truncated: false }
+  const controller = new AbortController()
+  const budgetMs = Math.max(1000, config.symbolFallbackTimeoutMs) * FALLBACK_BUDGET_FACTOR
+  const timer = setTimeout(() => controller.abort(), budgetMs)
+  const budget = mergeAbortSignals(signal, controller.signal)
+  try {
+    const found = await searchCandidates(deps.subprocess, deps.logger, {
+      root,
+      query,
+      extensions: spec.extensions,
+      maxCandidates: config.symbolFallbackMaxCandidates,
+      timeoutMs: config.symbolFallbackTimeoutMs,
+      command: config.fallbackSearchCommand,
+      signal: budget,
+    })
+    info.strategy = found.strategy
+    info.candidates = found.candidates.length
+    info.matched = found.matched
+    info.truncated = found.truncated
+    if (found.candidates.length === 0) return { symbols: [], info }
+
+    // Parsing is what registers a candidate in the server's dynamic index; the
+    // search alone changes nothing the server can see.
+    const warmed = await client.warmDocuments(found.candidates, { signal: budget })
+    info.warmed = warmed.length
+    if (warmed.length === 0) return { symbols: [], info }
+
+    const rootUri = pathToFileUri(root)
+    const symbols = toSymbolEntries(await client.workspaceSymbol(filePath, query, budget), rootUri)
+    deps.logger.debug(
+      'dsh-lsp: symbol fallback for "' + query + '": ' + found.strategy + ', ' +
+      warmed.length + '/' + found.candidates.length + ' candidate(s) parsed, index answers ' + symbols.length,
+    )
+    return { symbols, info }
+  } catch (error) {
+    deps.logger.debug(
+      'dsh-lsp: symbol fallback failed for "' + query + '": ' + (error instanceof Error ? error.message : String(error)),
+    )
+    return { symbols: [], info }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 /**
  * Run one LSP operation and return the canonical structured result.
  */
@@ -149,6 +270,7 @@ async function runQuery(
   args: QueryArgs,
   config: ReturnType<typeof resolveConfig>,
   exec: ToolRunContext | undefined,
+  deps: FallbackDeps,
 ): Promise<LspQueryResult> {
   const signal = exec?.signal
   const cwd = cwdOf(exec)
@@ -159,16 +281,31 @@ async function runQuery(
     // workspaceSymbol routes through the file's server; use the file path as
     // the server selector (per the AGENTS.md LSP guidance).
     const { spec, client, root } = await registry.resolve(filePath, cwd, signal)
-    const raw = await client.workspaceSymbol(filePath, query, signal)
     const rootUri = pathToFileUri(root)
-    const symbols: SymbolEntry[] = (raw ?? []).map(sym => toSymbolEntry({
-      name: sym.name,
-      kind: sym.kind,
-      location: sym.location,
-      ...(sym.containerName ? { containerName: sym.containerName } : {}),
-    }, rootUri))
+    let symbols = toSymbolEntries(await client.workspaceSymbol(filePath, query, signal), rootUri)
+
+    // An empty answer is not proof the symbol is absent: the query only sees the
+    // server's index, which may not have parsed the owning file yet. Converge on
+    // candidate files, parse them into the dynamic index, and ask again.
+    let fallback: SymbolFallbackInfo | undefined
+    if (symbols.length === 0 && query.trim() !== '' && config.symbolFallback) {
+      const converged = await convergeSymbols(deps, client, spec, root, filePath, query, config, signal)
+      symbols = converged.symbols
+      fallback = converged.info
+    }
+
     const rendered = renderSymbols(symbols, config.maxLocations)
-    return { kind: 'symbols', symbols, truncated: rendered.truncated }
+    // Still empty while the background index is building: say so, because the
+    // next query after it finishes can legitimately succeed.
+    const progress = client.indexProgress()
+    const indexing = symbols.length === 0 && progress !== null && !progress.done ? renderIndexProgress(progress) : undefined
+    return {
+      kind: 'symbols',
+      symbols,
+      truncated: rendered.truncated,
+      ...(fallback ? { fallback } : {}),
+      ...(indexing ? { indexing } : {}),
+    }
   }
 
   if (args.operation === 'documentSymbol') {
@@ -200,12 +337,17 @@ async function runQuery(
   }
 
   if (args.operation === 'diagnostics') {
-    // Push-aware: refresh the document and wait for the server's next push
-    // (bounded by diagnosticsTimeoutMs), falling back to the last cached push
-    // for a server that does not answer the pull request — clangd answers
-    // "method not found". The timeout ends the wait, never the server.
-    const diagnostics = await registry.diagnosticsFor(filePath, cwd, signal)
-    return { kind: 'diagnostics', diagnostics }
+    // Bounded on every transport, so a server that never answers cannot hang
+    // the tool: the pull request and the initialize handshake carry the
+    // config's `timeoutMs` as a hard deadline, and the push wait has
+    // `diagnosticsTimeoutMs`. On expiry the last cached push is used and a
+    // note explains the gap; a timeout ends the wait, never the server.
+    const report = await registry.diagnosticsFor(filePath, cwd, signal)
+    return {
+      kind: 'diagnostics',
+      diagnostics: report.entries,
+      ...(report.note ? { note: report.note } : {}),
+    }
   }
 
   // Position-requiring operations.
@@ -313,12 +455,26 @@ function renderResult(args: QueryArgs, value: any, config: ReturnType<typeof res
       return value.hover ?? 'No hover information.'
     case 'symbols': {
       const rendered = renderSymbols(value.symbols, config.maxLocations, true)
-      return value.symbols.length === 0 ? 'No symbols.' : rendered.text
+      const body = value.symbols.length === 0 ? 'No symbols.' : rendered.text
+      const notes: string[] = []
+      const fallback = (value as { fallback?: SymbolFallbackInfo }).fallback
+      if (fallback) {
+        notes.push(
+          '(index miss → candidate fallback: ' + fallback.strategy + ', ' + fallback.candidates + ' candidate(s) found, ' +
+          fallback.warmed + ' parsed, ' + fallback.matched + ' matched' + (fallback.truncated ? ', capped' : '') + ')',
+        )
+      }
+      const indexing = (value as { indexing?: string }).indexing
+      if (indexing) notes.push('(' + indexing + ' — results may be incomplete; retry after the index completion notice)')
+      return notes.length === 0 ? body : body + '\n' + notes.join('\n')
     }
-    case 'diagnostics':
-      if (value.diagnostics.length === 0) return 'No diagnostics.'
-      return value.diagnostics.map((d: any) =>
-        `[${d.severity}] ${d.source ? d.source + ': ' : ''}${d.range.startLine}:${d.range.startCharacter} ${d.message}`).join('\n')
+    case 'diagnostics': {
+      const body = value.diagnostics.length === 0
+        ? 'No diagnostics.'
+        : value.diagnostics.map((d: any) =>
+          `[${d.severity}] ${d.source ? d.source + ': ' : ''}${d.range.startLine}:${d.range.startCharacter} ${d.message}`).join('\n')
+      return value.note ? `${body}\n(${value.note})` : body
+    }
     case 'explore': {
       const e = value.explore
       const lines: string[] = []
@@ -343,13 +499,13 @@ function capText(text: string, maxChars: number): string {
 }
 
 /**
- * Produce a stable JSON projection of a query result for programmatic
- * consumption (e.g. DSH's PTC mode, where a JS snippet post-processes the
- * tool output). Locations/symbols flatten to `{ path, line, character, preview }`
- * so a consumer never re-parses the human `text` form. All values are plain
- * JSON-serializable (no live objects).
+ * Produce a stable, plain-JSON projection of a query result. It is always
+ * carried as the tool's `result` field, so a consumer (e.g. a PTC snippet)
+ * can post-process the answer without re-parsing the human `text` form.
+ * Locations/symbols flatten to `{ path, line, character, preview }`; all
+ * values are JSON-serializable (no live objects).
  */
-function toJson(result: LspQueryResult): unknown {
+function toStructuredResult(result: LspQueryResult): unknown {
   const loc = (l: LspLocation) => {
     const preview = l.preview ?? readLinePreview(l)
     return {
@@ -374,9 +530,15 @@ function toJson(result: LspQueryResult): unknown {
           location: loc(s.location),
         })),
         truncated: result.truncated,
+        ...(result.fallback ? { fallback: result.fallback } : {}),
+        ...(result.indexing ? { indexing: result.indexing } : {}),
       }
     case 'diagnostics':
-      return { kind: 'diagnostics', diagnostics: result.diagnostics }
+      return {
+        kind: 'diagnostics',
+        diagnostics: result.diagnostics,
+        ...(result.note ? { note: result.note } : {}),
+      }
     case 'explore': {
       const e = result.explore
       return {
@@ -393,6 +555,168 @@ function toJson(result: LspQueryResult): unknown {
     default:
       return result
   }
+}
+
+/** One flattened location in the structured projection. */
+const LOCATION_SCHEMA: JsonSchemaNode = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    path: { type: 'string', description: 'Workspace-relative path when inside the root, otherwise the absolute path.' },
+    line: { type: 'integer', description: '1-based line.' },
+    character: { type: 'integer', description: '1-based UTF-16 character.' },
+    preview: { type: 'string', description: 'Trimmed content of the line the range starts on; omitted when empty.' },
+  },
+  required: ['path', 'line', 'character'],
+}
+
+/** A null is meaningful for hover (no information available). */
+const NULLABLE_STRING_SCHEMA: JsonSchemaNode = {
+  oneOf: [{ type: 'string' }, { type: 'null' }],
+}
+
+const SYMBOL_SCHEMA: JsonSchemaNode = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    name: { type: 'string' },
+    kind: { type: 'string', description: 'Human-readable symbol kind (function, class, struct, ...).' },
+    containerName: { type: 'string' },
+    location: LOCATION_SCHEMA,
+  },
+  required: ['name', 'kind', 'location'],
+}
+
+const DIAGNOSTIC_SCHEMA: JsonSchemaNode = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    severity: { type: 'string', enum: ['hint', 'information', 'warning', 'error'] },
+    message: { type: 'string' },
+    range: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        startLine: { type: 'integer' },
+        startCharacter: { type: 'integer' },
+        endLine: { type: 'integer' },
+        endCharacter: { type: 'integer' },
+      },
+      required: ['startLine', 'startCharacter', 'endLine', 'endCharacter'],
+    },
+    code: { type: 'string' },
+    source: { type: 'string' },
+  },
+  required: ['severity', 'message', 'range'],
+}
+
+/** The per-operation payload carried in `result`. */
+const RESULT_SCHEMA: JsonSchemaNode = {
+  oneOf: [
+    {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        kind: { type: 'string', const: 'locations' },
+        locations: { type: 'array', items: LOCATION_SCHEMA },
+        truncated: { type: 'boolean' },
+      },
+      required: ['kind', 'locations', 'truncated'],
+    },
+    {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        kind: { type: 'string', const: 'hover' },
+        hover: NULLABLE_STRING_SCHEMA,
+      },
+      required: ['kind', 'hover'],
+    },
+    {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        kind: { type: 'string', const: 'symbols' },
+        symbols: { type: 'array', items: SYMBOL_SCHEMA },
+        truncated: { type: 'boolean' },
+        fallback: {
+          type: 'object',
+          additionalProperties: false,
+          description: 'Present when the index answered nothing and the candidate fallback ran.',
+          properties: {
+            used: { type: 'boolean' },
+            strategy: { type: 'string', enum: ['name', 'content', 'none'] },
+            candidates: { type: 'integer', description: 'Candidate files the search returned.' },
+            warmed: { type: 'integer', description: 'Candidates parsed into the dynamic index.' },
+            matched: { type: 'integer', description: 'Candidates that matched before capping.' },
+            truncated: { type: 'boolean' },
+          },
+          required: ['used', 'strategy', 'candidates', 'warmed', 'matched', 'truncated'],
+        },
+        indexing: { type: 'string', description: 'Background index state when the answer was empty because the index was still building.' },
+      },
+      required: ['kind', 'symbols', 'truncated'],
+    },
+    {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        kind: { type: 'string', const: 'diagnostics' },
+        diagnostics: { type: 'array', items: DIAGNOSTIC_SCHEMA },
+        note: {
+          type: 'string',
+          description: 'Present when the answer is incomplete: a pull timed out or no push arrived in time.',
+        },
+      },
+      required: ['kind', 'diagnostics'],
+    },
+    {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        kind: { type: 'string', const: 'explore' },
+        symbolName: { type: 'string' },
+        hover: NULLABLE_STRING_SCHEMA,
+        definition: { type: 'array', items: LOCATION_SCHEMA },
+        typeDefinition: { type: 'array', items: LOCATION_SCHEMA },
+        implementation: { type: 'array', items: LOCATION_SCHEMA },
+        references: { type: 'array', items: LOCATION_SCHEMA },
+        truncated: { type: 'boolean' },
+      },
+      required: ['kind', 'symbolName', 'hover', 'definition', 'typeDefinition', 'implementation', 'references', 'truncated'],
+    },
+  ],
+}
+
+/**
+ * Canonical tool output: a human `text` rendering plus the always-present
+ * structured `result` projection, or an error envelope. The two branches are
+ * disjoint (`ok` is a const), so exactly one matches any returned value.
+ */
+const OUTPUT_SCHEMA: JsonSchemaNode = {
+  oneOf: [
+    {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        ok: { type: 'boolean', const: true },
+        kind: { type: 'string', enum: ['locations', 'hover', 'symbols', 'diagnostics', 'explore'] },
+        text: { type: 'string' },
+        result: RESULT_SCHEMA,
+      },
+      required: ['ok', 'kind', 'text', 'result'],
+    },
+    {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        ok: { type: 'boolean', const: false },
+        kind: { type: 'string', const: 'error' },
+        text: { type: 'string' },
+      },
+      required: ['ok', 'kind', 'text'],
+    },
+  ],
 }
 
 /**
@@ -432,7 +756,9 @@ async function runAsyncDiagnostics(
   signal: AbortSignal | undefined,
 ): Promise<void> {
   try {
-    const entries = await registry.diagnosticsFor(filePath, cwdOf(exec), signal)
+    const report = await registry.diagnosticsFor(filePath, cwdOf(exec), signal)
+    if (report.note) logger.debug(`dsh-lsp: diagnostics for ${filePath}: ${report.note}`)
+    const entries = report.entries
     if (signal?.aborted) return
     const relevant = filterDiagnostics(entries, config.diagnosticsMinSeverity)
     if (relevant.length === 0) return
@@ -471,6 +797,30 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
     logger,
   })
   const published = registry.onPublishedDiagnostics((_serverId, record) => watcher.accept(record))
+
+  // A background index finishing is the one moment a previously empty
+  // `workspaceSymbol` becomes answerable, and it happens outside any tool call:
+  // nothing would tell the model its earlier "No symbols." was a timing
+  // artefact. Announce it once per server+root to the agents rooted there.
+  const announcedIndexes = new Set<string>()
+  const progress = registry.onIndexProgress((serverId, root, state) => {
+    if (!state.done) return
+    const key = serverId + '\u0000' + root.toLowerCase()
+    if (announcedIndexes.has(key)) return
+    const targets = agentsUnder(ctx, root)
+    if (targets.length === 0) return
+    announcedIndexes.add(key)
+    for (const agent of targets) {
+      try {
+        agent.inject(indexProgressMessage(serverId, root, state))
+        logger.info('dsh-lsp: announced ' + serverId + ' index completion (root=' + root + ') to agent ' + agent.id)
+      } catch (error) {
+        logger.debug(
+          'dsh-lsp: index notification failed for ' + serverId + ': ' + (error instanceof Error ? error.message : String(error)),
+        )
+      }
+    }
+  })
 
   // ------------------------------------------------------------------
   // Auto-start
@@ -527,6 +877,7 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
   const dispose = ctx.effect(() => {
     return () => {
       published.dispose()
+      progress.dispose()
       watcher.abortAll()
       for (const controller of diagnosticRuns.values()) controller.abort()
       // Detached teardown: a rejection here must never surface as an unhandled
@@ -541,10 +892,12 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
     order: TOOL_SECTION_ORDER,
     text: [
       '# Language Server Protocol',
-      '代码库较大, 使用 `lsp` 工具进行代码导航.',
+      '代码库较大时, 优先使用 `lsp` 工具快速查找函数和类型的位置, 以及使用点.',
+      '普通导航使用 search/read。当文本匹配不明确，或在变更前需要精确的定义、实现或引用时，使用 lsp。符号外的位置可能返回空结果。',
       '查 C++ 符号时 `filePath` 优先用 `.cpp`（编译单元在 compile_commands.json 中，命中更快更全）；`.h` 也能工作但依赖后台索引预热，命中略慢. ',
       '读文件时 LSP 自动加载该文件; 写文件后语言服务器推送诊断, 结果会注入到你的上下文, 请据此修复问题.',
-      '语言服务器在会话启动时自动拉起（`/lsp status` 查看）; 自动启动不等于索引就绪——clangd 要等首次打开文件才激活工程索引.',
+      '语言服务器在会话启动时自动拉起（`/lsp status` 查看）; 自动启动不等于索引就绪——clangd 要等首次 didOpen 才激活工程索引, 后台索引建完后会注入一条「后台索引已完成」通知.',
+      '`workspaceSymbol` 命中为空时插件会用 rg 收敛候选文件、解析后重查; 若结果带 "index still building" 说明后台索引仍在建, 稍后重试（完成时会收到通知）.',
       'dsh-lsp插件可迭代升级',
     ].join('\n'),
   });
@@ -555,7 +908,7 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
   ctx.tools.register({
     name: 'lsp',
     description:
-      'Language-server code navigation. Query a symbol or file via operation: explore (one call: definition + type + hover + implementation + references), goToDefinition, findReferences, goToImplementation, typeDefinition, hover, workspaceSymbol (fuzzy/partial name), documentSymbol, diagnostics. filePath selects the language server by extension; line/character are 1-based UTF-16 (required for position ops and workspaceSymbol per server routing). Use /lsp to control servers.',
+      'Language-server code navigation. Query a symbol or file via operation: explore (one call: definition + type + hover + implementation + references), goToDefinition, findReferences, goToImplementation, typeDefinition, hover(get the signature and docs), workspaceSymbol (get the symbols in the project) (fuzzy/partial name), documentSymbol(get the symbols in the file), diagnostics. filePath selects the language server by extension; line/character are 1-based UTF-16 (required for position ops and workspaceSymbol per server routing). Use /lsp to control servers.',
     parameters: {
       type: 'object',
       additionalProperties: false,
@@ -568,34 +921,19 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
         line: { type: 'integer', description: '1-based line of the cursor (position ops and workspaceSymbol).' },
         character: { type: 'integer', description: '1-based UTF-16 character of the cursor.' },
         query: { type: 'string', description: 'Symbol name for workspaceSymbol; supports partial/fuzzy names.' },
-        json: { type: 'boolean', description: 'When true, also return a structured `json` projection (flattened {path,line,character,preview}) for programmatic/PTC consumption.' },
       },
       required: ['operation', 'filePath'],
     },
     output: {
-      schema: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          ok: { type: 'boolean' },
-          kind: { type: 'string' },
-          text: { type: 'string' },
-          json: { type: 'object', description: 'Structured result for programmatic (PTC/JS) consumption; locations/symbols flatten to {path,line,character,preview}.' },
-        },
-        required: ['ok', 'kind', 'text'],
-      },
+      schema: OUTPUT_SCHEMA,
       render: (_args, value) => [{ type: 'text', text: String((value as { text?: string } | null)?.text ?? '') }],
     },
     async execute(rawArgs, exec) {
       const args = rawArgs as unknown as QueryArgs
       try {
-        const result = await runQuery(registry, args, config, exec)
+        const result = await runQuery(registry, args, config, exec, { subprocess: ctx.subprocess, logger })
         const text = capText(renderResult(args, result, config), config.maxResultChars)
-        if (args.json === true) {
-          const json = toJson(result)
-          return { ok: true, kind: result.kind, text, json }
-        }
-        return { ok: true, kind: result.kind, text }
+        return { ok: true, kind: result.kind, text, result: toStructuredResult(result) }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
         return { ok: false, kind: 'error', text: `lsp failed: ${message}` }
@@ -627,7 +965,8 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
               const root = r.root ?? '-'
               const pid = r.pid ?? '-'
               const err = r.error ? ` (${r.error})` : ''
-              return `- ${r.id}: ${r.state}${err}\n    languageId=${r.languageId}, extensions=[${r.extensions.join(', ')}], root=${root}, pid=${pid}`
+              const index = r.index ? `, index=${renderIndexProgress(r.index)}` : ''
+              return `- ${r.id}: ${r.state}${err}\n    languageId=${r.languageId}, extensions=[${r.extensions.join(', ')}], root=${root}, pid=${pid}${index}`
             })
             return { kind: 'success', text: `LSP servers:\n${lines.join('\n')}` }
           }

@@ -18,6 +18,11 @@ test('resolveConfig uses built-in servers when no override', () => {
   ok(clangd)
   equal(clangd.languageId, 'cpp')
   equal(clangd.extensions.includes('cpp'), true)
+  // A pinned `--compile-commands-dir=.` binds every compilation database to the
+  // one process cwd; clangd's default (nearest CDB above each file) is per-file
+  // and is what lets one client serve several projects.
+  equal(clangd.args.includes('--compile-commands-dir=.'), false)
+  equal(clangd.args.includes('--background-index'), true)
   const ra = config.servers.find(s => s.id === 'rust-analyzer')!
   equal(ra.languageId, 'rust')
 })

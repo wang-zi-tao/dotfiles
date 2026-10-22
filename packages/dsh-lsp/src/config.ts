@@ -36,16 +36,22 @@ export const DEFAULT_FALLBACK_SEARCH_COMMAND = 'rg'
 /**
  * The built-in server table, optimized for C/C++ (clangd) and Rust
  * (rust-analyzer), with mainstream languages available for the mixed-language
- * case. The WPS clangd invocation mirrors the user's neovim lspconfig:
- * `--background-index` + `--compile-commands-dir=.` so the 264 MB
- * `D:\branch-master\wpsmain\compile_commands.json` is picked up from the
- * resolved project root.
+ * case. The clangd invocation is `--background-index` + `--clang-tidy`.
+ *
+ * Deliberately *no* `--compile-commands-dir=.`: that flag pins every
+ * compilation database to clangd's process cwd, which is one resolved root,
+ * so files from any other project served by the same client get a foreign or
+ * stale database — and then their translation units never enter the project
+ * index (the symptom is a `workspace/symbol` that always answers "No
+ * symbols." for those trees). clangd's default, walking up from each source
+ * file to the nearest `compile_commands.json`, is correct per file even when
+ * one process covers several projects.
  */
 export const BUILTIN_SERVERS: readonly ServerSpec[] = Object.freeze([
   {
     id: 'clangd',
     command: 'clangd',
-    args: ['--background-index', '--clang-tidy', '--compile-commands-dir=.', '--log=error'],
+    args: ['--background-index', '--clang-tidy', '--log=error'],
     extensions: ['c', 'cc', 'cpp', 'cxx', 'c++', 'h', 'hpp', 'hh', 'hxx', 'h++', 'inl'],
     languageId: 'cpp',
     rootMarkers: ['compile_commands.json', 'compile_flags.txt', '.clangd', 'wps_3rdparty_list.cmake'],

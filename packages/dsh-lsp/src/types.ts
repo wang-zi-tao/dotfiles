@@ -132,6 +132,10 @@ export interface LspConfig {
   autoStartRoots: string[]
   maxLocations: number
   maxResultChars: number
+  /**
+   * Hard deadline for one LSP request and for the initialize handshake (ms).
+   * Expiry cancels that request (or the start) and never aborts the server.
+   */
   timeoutMs: number
   /** Directory where per-server stderr logs are written (absolute or ~-relative). */
   logDir: string
@@ -198,8 +202,6 @@ export interface QueryArgs {
   line?: number
   character?: number
   query?: string
-  /** When true, the result also carries a structured `json` projection. */
-  json?: boolean
 }
 
 /** 1-based UTF-16 cursor position (the tool's convention). */
@@ -267,6 +269,31 @@ export interface SymbolFallbackInfo {
   truncated: boolean
 }
 
+/**
+ * The last state of one `$/progress` stream reported by a server.
+ *
+ * clangd's background index reports itself this way (`backgroundIndexProgress`:
+ * begin → report → end). Keeping the last statement per token lets a query
+ * explain an empty answer while the index is still building, and lets the
+ * plugin announce the moment it becomes usable.
+ */
+export interface IndexProgress {
+  /** Progress token as chosen by the server (clangd: `backgroundIndexProgress`). */
+  token: string
+  /** `begin.title` (clangd: "indexing"). */
+  title: string
+  /** Last reported completeness, 0–100, or null before the first report. */
+  percentage: number | null
+  /** Translation units finished, parsed from the report's "completed/enqueued" message. */
+  completed: number | null
+  /** Translation units enqueued, parsed from the report's "completed/enqueued" message. */
+  enqueued: number | null
+  /** True once the server sent `end`: the queue drained and the index is usable. */
+  done: boolean
+  /** Epoch milliseconds of the last update. */
+  updatedAt: number
+}
+
 export interface DiagnosticEntry {
   severity: DiagnosticSeverity
   message: string
@@ -275,11 +302,29 @@ export interface DiagnosticEntry {
   source?: string
 }
 
+/**
+ * One diagnostics answer: the entries plus an optional note explaining why the
+ * answer may be incomplete (a pull timed out, no push arrived in time, ...).
+ */
+export interface DiagnosticsReport {
+  entries: DiagnosticEntry[]
+  note?: string
+}
+
 export type LspQueryResult =
   | { kind: 'locations'; locations: LspLocation[]; truncated: boolean }
   | { kind: 'hover'; hover: string | null }
-  | { kind: 'symbols'; symbols: SymbolEntry[]; truncated: boolean; fallback?: SymbolFallbackInfo }
-  | { kind: 'diagnostics'; diagnostics: DiagnosticEntry[] }
+  | {
+      kind: 'symbols'
+      symbols: SymbolEntry[]
+      truncated: boolean
+      /** Present when the server's own index answered nothing and the candidate fallback ran. */
+      fallback?: SymbolFallbackInfo
+      /** Present when the answer was empty while a background index was still building. */
+      indexing?: string
+    }
+  /** Present when the answer is incomplete (a timed-out pull, a missing push). */
+  | { kind: 'diagnostics'; diagnostics: DiagnosticEntry[]; note?: string }
   | { kind: 'explore'; explore: ExploreResult }
 
 export interface ExploreResult {
@@ -301,4 +346,6 @@ export interface ServerStatus {
   root: string | null
   pid: number | null
   error: string | null
+  /** Last background-index progress the server reported, if any. */
+  index?: IndexProgress | null
 }
