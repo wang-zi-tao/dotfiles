@@ -613,6 +613,7 @@ return {
     "nickjvandyke/opencode.nvim",
     name = "opencode",
     dir = gen.opencode,
+    enabled = false,
     keys = {
       {
         "<leader>ao",
