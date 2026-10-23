@@ -315,6 +315,22 @@ Key modules:
 - `core/utils.lua`: Utility functions and helpers
 - `core/plugins/`: Plugin configurations (LSP, UI, navigation, etc.)
 
+### Neovim 配置热重载（改配置不必重启 nvim）
+
+改 `packages/wangzi-neovim/lua/**` 后想让运行中的 nvim 立刻生效，用 `lua/core/hotreload.lua`：
+
+- 安装目录是 `stdpath("config")`（Windows 上是 `C:\Users\wps\AppData\Local\nvim`）。仓库目录不是 nvim 的运行目录，
+  仓库里的改动必须先同步到安装目录，再在 nvim 里执行 `:LuaReload`；安装目录是否被外部进程自动复制不可假定，
+  改完先确认两边文件大小/内容一致。
+- `:LuaReload <module>` 重载单个模块（如 `:LuaReload core.diagnostic`）；`:LuaReloadAll [path]` 批量重载。
+- 自动模式：`fs_event` 监听安装目录的 `lua/core`，文件被外部覆盖时自动重载；`vim.g.lua_hotreload = false` 可关闭。
+- **缓存的 require 陷阱**：其它模块在顶层写了 `local x = require("core.diagnostic")` 时，只重载该模块不会更新那份旧引用，
+  必须连依赖方一起重载（例如 `:LuaReload core.map`，否则 `K` 仍走老实现）。
+- 默认重载列表：`core.opt / core.map / core.env / core.theme / core.cmd / core.auto / core.agent`；
+  `core.database` 与 `core.plugins.*` 不参与（插件不做热重载，`core.database` 手动重载风险自负）。
+- 有状态模块用 `init_module(factory)` 托管状态表（重载不换表，只换函数）；副作用（用户命令 / autocmd）用
+  `register_hook(module, { before = fn })` 在重载前清理。
+
 ### Git Configuration
 - Configured in `home-manager/develop/git.nix`
 - Uses neovim-remote for difftool/mergetool

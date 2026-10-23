@@ -1,8 +1,7 @@
 require("core.theme").define_sign()
 
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-    border = "rounded",
-})
+-- hover 浮窗：原生 hover 内容 + 当前行诊断全文（诊断过长时 virtual text 会截断）
+vim.lsp.handlers["textDocument/hover"] = require("core.diagnostic").hover_handler
 vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
     border = "rounded",
 })

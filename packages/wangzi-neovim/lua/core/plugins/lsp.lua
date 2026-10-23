@@ -130,32 +130,7 @@ return {
         cmd = "Lspsaga",
         module = "lspsaga",
         keys = {
-            { "[d", "<cmd>Lspsaga diagnostic_jump_prev<CR>", mode = "n", desc = "Previous Diagnostic" },
-            { "]d", "<cmd>Lspsaga diagnostic_jump_next<CR>", mode = "n", desc = "Next Diagnostic" },
-            {
-                "[e",
-                function()
-                    require("lspsaga.diagnostic"):goto_prev({ severity = vim.diagnostic.severity.ERROR })
-                end,
-                mode = "n",
-                desc = "Previous Error",
-            },
-            {
-                "]e",
-                function()
-                    require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
-                end,
-                mode = "n",
-                desc = "Next Error",
-            },
-            {
-                "ge",
-                function()
-                    require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
-                end,
-                mode = "n",
-                desc = "Diagnostic",
-            },
+            -- 诊断跳转统一由 core.diagnostic 提供（跳转后弹浮窗显示诊断全文）
             { "gT",         "<cmd>Lspsaga goto_type_definition<CR>", mode = "n",          desc = "Goto Type Definition" },
             {
                 "gh",
