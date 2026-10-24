@@ -17,6 +17,9 @@ importers:
       '@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp':
         specifier: 0.2.0-rc.2
         version: 0.2.0-rc.2(@deepseek-ai/dsh-computer-use@0.2.0-rc.2)
+      '@he0119/dsh-tailnet-admin':
+        specifier: latest
+        version: 0.1.0(@deepseek-ai/schemastery@3.18.5)
       '@linxin666/dsh-client-ui-skin-blue-fantasy':
         specifier: latest
         version: 0.2.0
@@ -123,6 +126,14 @@ packages:
 
   '@deepseek-ai/schemastery@3.18.5':
     resolution: {integrity: sha512-Mnobvqf9rHsZYv4g5edj5ddxS1oF1kIdSlz0DunUgnY3LWG5F26MqvH3YOOsSaodCgyzJ16OMN9O99/s5Crtdw==}
+
+  '@he0119/dsh-tailnet-admin@0.1.0':
+    resolution: {integrity: sha512-i1IajrnU4fqvfd8VeN4q+zkCY321N54g+hWrm/7n4mWhdujo2u3ovamPC3Ld/aqpmNKUsGw/jt+sNrPoBoZtOw==}
+    engines: {dsh: ^0.2.0-rc.1, node: ^22.19.0 || >=24.0.0}
+    peerDependencies:
+      '@deepseek-ai/cordis': ^4.0.4
+      '@deepseek-ai/dsh-client-ui-primitives': ^0.2.0-rc.1
+      '@deepseek-ai/schemastery': ^3.18.4
 
   '@linxin666/dsh-client-ui-skin-blue-fantasy@0.2.0':
     resolution: {integrity: sha512-w9adVHzLJGKlN0Loy+qttkqz8iWHEnYfn/PzzwoOIWIXaA/YKvD1ZcxlG7B0csNCE46uh6clUWpJPxYP4ZW6tg==}
@@ -438,6 +449,10 @@ snapshots:
     dependencies:
       '@deepseek-ai/cosmokit': 1.8.6
       '@standard-schema/spec': 1.1.0
+
+  '@he0119/dsh-tailnet-admin@0.1.0(@deepseek-ai/schemastery@3.18.5)':
+    dependencies:
+      '@deepseek-ai/schemastery': 3.18.5
 
   '@linxin666/dsh-client-ui-skin-blue-fantasy@0.2.0': {}
 

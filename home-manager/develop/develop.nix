@@ -56,7 +56,6 @@ in
   imports = [
     ./git.nix
     ./cpp.nix
-    ../terminal/dsh/dsh.nix
   ];
   programs.go = {
     enable = true;
@@ -266,15 +265,5 @@ in
     # obsidian = {
     #   command = "${pkgs.mcp-obsidian}/bin/mcpvault";
     # };
-    codegraph = {
-      command = "${pkgs.unstable.codegraph}/bin/codegraph";
-      args = [
-        "serve"
-        "--mcp"
-      ];
-    };
-    vectorcode = {
-      command = "${pkgs.vectorcode}/bin/vectorcode-mcp-server";
-    };
   };
 }

@@ -41,7 +41,7 @@ return {
           vim.keymap.set('t', '<C-\\>', [[<cmd>q<CR>]], opts)
         end,
       })
-      local shell = vim.o.shell
+      local shell = nil
       if 1 == vim.fn.has("win32") and vim.fn.executable("nu") == 1 then
         shell = "nu"
       end

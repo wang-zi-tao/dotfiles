@@ -52,6 +52,7 @@ with lib;
     ../develop/vscode.nix
   ];
   config = {
+    dsh.desktop = true;
     services.unclutter = {
       enable = true;
       timeout = 8;

@@ -38,27 +38,14 @@ let
   networkConfig = cfg.network.edges.${cfg.nodeName}.config;
   sops-enable = config.sops.defaultSopsFile != "/";
 
-  publicIp = if networkConfig.publicIp!=null then builtins.toString networkConfig.publicIp else "127.0.0.1";
+  publicIp =
+    if networkConfig.publicIp != null then builtins.toString networkConfig.publicIp else "127.0.0.1";
   publicPort = nodeConfig.dshWeb.port;
   bindPort = nodeConfig.dshWeb.bindPort;
   homepagePort = nodeConfig.homepage.bindPort;
 
   home = "/var/lib/dsh";
   workspace = "${home}/workspace";
-
-  loginUrl = pkgs.writeShellScriptBin "dsh-web-login-url" ''
-    set -euo pipefail
-    if [ "$(id -u)" -ne 0 ]; then
-      echo "dsh-web-login-url: 需要 root（要读 systemd 日志）" >&2
-      exit 1
-    fi
-    tokenized=$(journalctl -u dsh-web -o cat --no-pager | grep -o 'http://127[.]0[.]0[.]1:[0-9]*/?token=[A-Za-z0-9_-]*' | tail -n 1 || true)
-    if [ -z "$tokenized" ]; then
-      echo "dsh-web-login-url: 日志里没有带 token 的 URL，先看 systemctl status dsh-web" >&2
-      exit 1
-    fi
-    echo "$(echo "$tokenized" | sed 's#^http://127[.]0[.]0[.]1:[0-9]*#https://${publicIp}:${toString publicPort}#')"
-  '';
 in
 {
   config = lib.mkMerge [
@@ -82,23 +69,13 @@ in
         inherit home;
         description = "DeepSeek Harness browser GUI";
       };
-      nix.settings.trusted-users = ["dsh"];
-
-      # DSH_HOME 与 agent 的工作目录。dsh 会自己在 profiles/ 下初始化 web profile
-      # （package.json + cordis.patch.yml），它要的 bundle 都在 pkgs.dsh 自己的
-      # node_modules 里，所以这里不需要 pnpm / nix 预先铺任何文件。
-      systemd.tmpfiles.rules = [
-        "d ${home} 0700 dsh dsh -"
-        "d ${workspace} 0700 dsh dsh -"
-      ];
-
       systemd.services.dsh-web = {
         description = "DeepSeek Harness browser GUI";
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
         environment = {
           HOME = home;
-          DSH_HOME = home;
+          DSH_HOME = home + "/.dsh";
         };
         # 这两项会以 mkAfter 追加在 systemd 服务默认 PATH（coreutils/findutils/
         # gnugrep/gnused/systemd）之后：
@@ -171,8 +148,23 @@ in
       };
 
       networking.firewall.allowedTCPPorts = [ publicPort ];
+      nix.settings.trusted-users = [ "dsh" ];
 
-      environment.systemPackages = [ loginUrl ];
+      home-manager.users.dsh = {
+        home.stateVersion = "26.05";
+        home.username = "dsh";
+        home.homeDirectory = home;
+        imports = [
+          ({ pkgs, lib, ... }: {
+            home.file = pkgs.dsh-home.home-file-factory (
+              pkgs.dsh-home.override (old: {
+                enable_develop = false;
+                enable_desktop = false;
+              })
+            );
+          })
+        ];
+      };
     })
   ];
 }

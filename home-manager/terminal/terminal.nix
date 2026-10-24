@@ -15,6 +15,7 @@
     ./zellij.nix
     ./nushell.nix
     ./ai.nix
+    ./dsh.nix
   ];
   options =
     with lib;
@@ -40,6 +41,14 @@
       sops.enable = mkOption {
         type = bool;
         default = true;
+      };
+      dsh.develop = mkOption {
+        type = bool;
+        default = false;
+      };
+      dsh.desktop = mkOption {
+        type = bool;
+        default = false;
       };
     };
   config = {

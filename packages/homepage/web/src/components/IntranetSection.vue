@@ -79,34 +79,38 @@ function hostLabel(url: string) {
   color: var(--muted);
 }
 
+/* 服务器之间纵向排列，一台服务器一行 */
 .groups {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
+/* 左侧固定服务器名，右侧网站按横向表格铺开 */
 .group {
-  padding: 12px 14px;
+  padding: 10px 14px;
   display: grid;
-  gap: 8px;
-  align-content: start;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 6px 14px;
+  align-items: start;
 }
 
 .group h3 {
   margin: 0;
+  padding-top: 7px;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
-/* 条目做成可换行的窄标签，不再一条占满整行 */
+/* 同一服务器内的网站横向排成表格 */
 .entries {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px;
+  min-width: 0;
 }
 
 .entry {
@@ -120,8 +124,7 @@ function hostLabel(url: string) {
   transition:
     background 0.15s ease,
     border-color 0.15s ease;
-  max-width: 100%;
-  min-width: 100%;
+  min-width: 0;
 }
 
 .entry:hover {
@@ -159,11 +162,23 @@ function hostLabel(url: string) {
 }
 
 .entry-text small {
-  max-width: 170px;
+  max-width: 100%;
   font-size: 10.5px;
   color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 窄屏下服务器名单独一行，避免挤占表格宽度 */
+@media (max-width: 640px) {
+  .group {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .group h3 {
+    padding-top: 0;
+  }
 }
 </style>
