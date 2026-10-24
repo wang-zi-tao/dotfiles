@@ -27,7 +27,7 @@ let
   ];
   profile-web = pkgs.dsh-profile {
     name = "web";
-    hash = "sha256-sVWZ1qaGESm0D5/g/hDTpn3k7A9lCAPBsAkSe01T55c=";
+    hash = "";
     plugins = plugins ++ [ ];
     src = ./web;
     package = pkgs.dsh;
@@ -36,7 +36,7 @@ let
   };
   profile-tui = pkgs.dsh-profile {
     name = "tui";
-    hash = "sha256-nj9CDtQRo8qxPxUzKjOWvuuEGsnQVZneA9zYpbAGTTs=";
+    hash = "";
     plugins = plugins ++ [ ];
     src = ./tui;
     package = pkgs.dsh;
@@ -154,64 +154,64 @@ in
                   toolCallTimeoutMs = 120000;
                 };
               }
-              {
-                id = "hindsight";
-                name = "dsh-hindsight";
-                config = {
-                  apiUrl = "http://127.0.0.1:11438";
-                  memoryMode = "hybrid";
-                  # 经 pkgs.dsh-cordis-patch 处理后才成为真正的 YAML 标签。
-                  #
-                  # 表达式只能用求值沙箱里有的东西：cordis-plugin-loader 的实现是
-                  #   new Function("ctx", "expr", "with (ctx) { return eval(expr) }")
-                  # 即全局作用域 + loader 提供的成员。dsh 只 provide 了 dshHomePath，
-                  # **没有 require** —— 写 require('fs') 会 ReferenceError，该 entry
-                  # 激活失败，整个 dsh-hindsight 插件不加载（工具直接消失）。
-                  # process 是 Node 全局，用 process.getBuiltinModule 才能拿到内建模块。
-                  #
-                  # 另外 readFileSync 必须显式带 'utf8'：不给编码返回 Buffer，
-                  # 而 Buffer 没有 trim()，会 TypeError。
-                  apiKey = "!!js process.getBuiltinModule('fs').readFileSync('/run/secrets/hindsight/apikey','utf8').trim()";
-                };
-              }
-              {
-                id = "agent-default-model";
-                config = {
-                  provider = "deepseek";
-                  model = "deepseek-v4.1-flash";
-                  reasoningEffort = "high";
-                };
-              }
-              {
-                id = "ui-settings-general";
-                name = "@deepseek-ai/dsh-client-ui-settings-general";
-                config = {
-                  welcomeNoticeVersion = "2026-09-28.1";
-                };
-              }
-              {
-                id = "agent-preset-registry";
-                name = "@deepseek-ai/dsh-agent-preset-registry";
-                config = {
-                  default = "ptc";
-                  selectedDefault = "ptc";
-                };
-              }
-              {
-                id = "permission";
-                name = "@deepseek-ai/dsh-permission-presets";
-                config = {
-                  defaultPreset = "workspace-write";
-                };
-              }
-              {
-                id = "ui-conversation";
-                name = "@deepseek-ai/dsh-client-ui-conversation";
-                config = {
-                  busyEnter = "steer";
-                };
-              }
             ];
+          }
+          {
+            id = "hindsight";
+            name = "dsh-hindsight";
+            config = {
+              apiUrl = "http://127.0.0.1:11438";
+              memoryMode = "hybrid";
+              # 经 pkgs.dsh-cordis-patch 处理后才成为真正的 YAML 标签。
+              #
+              # 表达式只能用求值沙箱里有的东西：cordis-plugin-loader 的实现是
+              #   new Function("ctx", "expr", "with (ctx) { return eval(expr) }")
+              # 即全局作用域 + loader 提供的成员。dsh 只 provide 了 dshHomePath，
+              # **没有 require** —— 写 require('fs') 会 ReferenceError，该 entry
+              # 激活失败，整个 dsh-hindsight 插件不加载（工具直接消失）。
+              # process 是 Node 全局，用 process.getBuiltinModule 才能拿到内建模块。
+              #
+              # 另外 readFileSync 必须显式带 'utf8'：不给编码返回 Buffer，
+              # 而 Buffer 没有 trim()，会 TypeError。
+              apiKey = "!!js process.getBuiltinModule('fs').readFileSync('/run/secrets/hindsight/apikey','utf8').trim()";
+            };
+          }
+          {
+            id = "agent-default-model";
+            config = {
+              provider = "deepseek";
+              model = "deepseek-v4.1-flash";
+              reasoningEffort = "high";
+            };
+          }
+          {
+            id = "ui-settings-general";
+            name = "@deepseek-ai/dsh-client-ui-settings-general";
+            config = {
+              welcomeNoticeVersion = "2026-09-28.1";
+            };
+          }
+          {
+            id = "agent-preset-registry";
+            name = "@deepseek-ai/dsh-agent-preset-registry";
+            config = {
+              default = "ptc";
+              selectedDefault = "ptc";
+            };
+          }
+          {
+            id = "permission";
+            name = "@deepseek-ai/dsh-permission-presets";
+            config = {
+              defaultPreset = "workspace-write";
+            };
+          }
+          {
+            id = "ui-conversation";
+            name = "@deepseek-ai/dsh-client-ui-conversation";
+            config = {
+              busyEnter = "steer";
+            };
           }
         ]);
       };

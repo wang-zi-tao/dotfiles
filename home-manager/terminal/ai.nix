@@ -29,21 +29,6 @@ in
         nixos = {
           command = "${pkgs.mcp-nixos}/bin/mcp-nixos";
         };
-        neovim = {
-          command = "${pkgs.mcp-neovim-server}/bin/mcp-neovim-server";
-          env = {
-            "ALLOW_SHELL_COMMANDS" = "true";
-            "NVIM_SOCKET_PATH" = "/tmp/nvim";
-          };
-        };
-        browser = {
-          command = "${pkgs.llm-agents.agent-browser}/bin/agent-browser";
-          args = [
-            "mcp"
-            "--tools"
-            "all"
-          ];
-        };
       };
     };
     xdg.configFile."mcphub/servers.json".text = builtins.toJSON {

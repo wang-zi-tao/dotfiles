@@ -4,6 +4,7 @@
   "dependencies": {
     "@deepseek-ai/dsh-computer-use": "0.2.0-rc.2",
     "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-experimental-session-search": "0.2.0-rc.2",
     "@linxin666/dsh-client-ui-skin-blue-fantasy": "latest",
     "@linxin666/dsh-client-ui-skin-center": "0.4.6",
     "@changfenhuang/dsh-genui": "latest"
@@ -12,6 +13,7 @@
     "profile": {
       "bundles": [
         "@linxin666/dsh-client-ui-skin-center",
+        "@deepseek-ai/dsh-experimental-session-search",
         "@changfenhuang/dsh-genui"
       ]
     }
