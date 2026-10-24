@@ -56,6 +56,10 @@ let
           type = nullOr str;
           default = null;
         };
+        extraHostname = mkOption {
+          type = listOf str;
+          default = [ ];
+        };
       };
     edgeOption = _: {
       tunnel = mkOption {
@@ -97,7 +101,7 @@ in
             optionals (hasAttr nodeName wireguardCluster) [
               {
                 name = nodeWireguard.config.clusterIp;
-                value = [ "${nodeName}.wg" ];
+                value = [ "${nodeName}.wg" ] ++ nodeWireguard.config.extraHostname;
               }
               {
                 name = nodeWireguard.config.clusterIp2;

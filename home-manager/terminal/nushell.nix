@@ -56,6 +56,8 @@ in
 
         nlocate = "nix-locate";
 
+        l = "ls -l";
+
         ".." = "cd ..";
       };
 

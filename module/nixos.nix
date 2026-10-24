@@ -10,10 +10,47 @@
 let
   hostName = config.networking.hostName;
   nodeConfig = config.cluster.nodes.${hostName};
-  ssh-substituters = lib.mapAttrsToList (node: wg: "ssh://nix-ssh@${wg.config.clusterIp}") (
-    lib.filterAttrs (
-      node: wgConfig: config.cluster.nodes.${node}.sshd.enable
-    ) config.cluster.wireguard.nodes
+  sops-enable = config.sops.defaultSopsFile != "/";
+  # 可以通过 ssh 直接访问的节点（substituters 与 remote builder 的目标）
+  ssh-nodes = lib.filterAttrs (
+    node: wgConfig: config.cluster.nodes.${node}.sshd.enable
+  ) config.cluster.wireguard.nodes;
+  # nix-daemon 是 root 身份，而 root 根本没有 ssh 私钥（/root/.ssh 下只有 known_hosts），
+  # 不显式指定身份就会 Permission denied（同样是 failed to start SSH connection）。
+  # 用 nix-ssh 专用私钥，其公钥已在 secrets/public-key.yaml 的 ssh-public-keys 中授权；
+  # 只有 root(daemon) 需要读它，保持 sops 默认的 0400 root:root 即可。
+  ssh-substituter-key = config.sops.secrets."nix-ssh/private-key".path;
+  # 没有 sops 的机器拿不到私钥，就没必要再挂这些注定连不上的 substituter
+  ssh-substituters = lib.optionals sops-enable (
+    lib.mapAttrsToList (
+      node: wg: "ssh://nix-ssh@${wg.config.clusterIp}?ssh-key=${ssh-substituter-key}"
+    ) ssh-nodes
+  );
+  # nix-daemon 是以 root 身份调用 ssh 的，root 的 ~/.ssh/known_hosts 里没有这些节点，
+  # 于是每次 substitution 都会 Host key verification failed，
+  # 表现为 error: failed to start SSH connection to '192.168.16.3'。
+  # 写进全局 /etc/ssh/ssh_known_hosts，配合 /etc/ssh/ssh_config 中的
+  # GlobalKnownHostsFile，对 root(daemon) 与普通用户一并生效。
+  ssh-known-hosts = lib.listToAttrs (
+    lib.concatLists (
+      lib.mapAttrsToList (
+        node: wgConfig:
+        let
+          hostNames = [
+            wgConfig.config.clusterIp
+            "${node}.wg"
+            wgConfig.config.clusterIp2
+            "${node}.wg1"
+          ];
+        in
+        lib.imap0 (index: publicKey: {
+          name = "${node}-${toString index}";
+          value = {
+            inherit hostNames publicKey;
+          };
+        }) config.cluster.nodes.${node}.ssh.hostPublicKeys
+      ) ssh-nodes
+    )
   );
 in
 {
@@ -37,6 +74,10 @@ in
     };
   config = lib.mkMerge [
     {
+      programs.ssh.knownHosts = ssh-known-hosts;
+      sops.secrets."nix-ssh/private-key" = lib.mkIf sops-enable {
+        sopsFile = config.cluster.ssh.publicKeySops;
+      };
       nix = {
         settings.substituters = [
           "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"

@@ -16,6 +16,7 @@
   name ? [ ],
   plugins ? [ ],
   cordis_patch ? [ ],
+  extra_bundles ? [],
   package,
 }:
 
@@ -47,14 +48,18 @@ stdenvNoCC.mkDerivation {
 
   buildInputs = plugins ++ [ package ];
 
-  pnpmDeps = fetchPnpmDeps {
-    pname = "dsh-profile-deps-${name}";
-    src = src;
-    # First build fails with a hash mismatch; fill in the printed sha256 here.
-    hash = hash;
-    fetcherVersion = 4;
-    nativeBuildInputs = [ git ];
-  };
+  pnpmDeps =
+    (fetchPnpmDeps {
+      pname = "dsh-profile-deps-${name}-${stdenvNoCC.system}";
+      src = src;
+      # First build fails with a hash mismatch; fill in the printed sha256 here.
+      hash = hash;
+      fetcherVersion = 4;
+      nativeBuildInputs = [ git ];
+    }).overrideAttrs
+      (old: {
+        installPhase = builtins.replaceStrings [ "--force" ] [ "" ] old.installPhase;
+      });
 
   installPhase = ''
     runHook preInstall
@@ -65,6 +70,7 @@ stdenvNoCC.mkDerivation {
     ln -s ${cordis_patch_yaml} $out/cordis.patch.yml
 
     node ${./generate-bundles.mjs} "$out/package.json" "$out/lib/node_modules" ${pluginArgs}
+    node ${./add-bundles.mjs} "$out/package.json" ${lib.escapeShellArgs extra_bundles}
 
     # 原生解析回退层。dsh 的运行时解析器只把一部分 @deepseek-ai/dsh-* 放进它自己的
     # entries 表（installation scope），表里没有的名字会退化成 Node 原生解析，

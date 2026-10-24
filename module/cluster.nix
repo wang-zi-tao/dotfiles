@@ -54,6 +54,15 @@ with builtins;
                   type = bool;
                   default = true;
                 };
+                ssh.hostPublicKeys = mkOption {
+                  type = listOf str;
+                  default = [ ];
+                  description = ''
+                    SSH host public keys of this node (ed25519), used to generate
+                    programs.ssh.knownHosts. Regenerate with:
+                    ssh-keyscan -t ed25519 <clusterIp>
+                  '';
+                };
                 prometheus = {
                   server = mkOption {
                     type = bool;
@@ -267,12 +276,14 @@ with builtins;
             port = 16538;
             publicKey = "Vk2vw8TbtI7GgktauuppvfhKAAxyEeNC8+/nxt10t1s=";
             gateway = "aliyun-gz";
+            extraHostname = [ "dev.c.wg" ];
           };
           wangzi-asus.config = {
             index = 13;
             port = 16538;
             publicKey = "1O+by7g8ZKgNEy+SmWHRcX6QsIQvq4bjxBY9rm4v6CA=";
             gateway = "aliyun-gz";
+            extraHostname = [ "ollama.c.wg" "libvirt.c.wg" ];
           };
           wangzi-asus.peers.aliyun-hk = {
             tunnel = true;
@@ -298,11 +309,13 @@ with builtins;
             iptables.enable = true;
             gatewayServer = true;
             nat = "ens5";
+            extraHostname = [ "nextcloud.c.wg" "onedev.c.wg" ];
           };
           aliyun-gz.config = {
             index = 3;
             port = 40287;
             publicKey = "tqeHWYqgoSVoMlREKDukgPZRrS5jbbIaZW19NUxZiF4=";
+            extraHostname = [ "dsh.c.wg" "hindsight.c.wg" "webssh.c.wg" ];
           };
           # aliyun-ecs.config = {
           #   index = 3;
@@ -410,13 +423,19 @@ with builtins;
             users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
             # localIp = "192.168.32.1";
             wayland.enable = true;
-            hermes.enable = true;
+            hermes.enable = false;
             hindsight.enable = true;
+            ssh.hostPublicKeys = [
+              "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGCXhvbrseUepfs+/iWWaqieSUVLiP60wJsg1bklKRN4"
+            ];
           };
           wangzi-asus = desktop_config // {
             users.wangzi = ../home-manager/profiles/wangzi-asus.nix;
             wayland.enable = true;
             hindsight.enable = true;
+            ssh.hostPublicKeys = [
+              "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICJpbG3rTbNEK5lUFpf+ePDAYyUIQsnBRxaiWr8OV1iu"
+            ];
           };
           # huawei-ecs = server_config // {
           #   MySQL.enable = true;
@@ -431,11 +450,15 @@ with builtins;
             OnedevServer.enable = true;
             atuin.enable = true;
             inVM = true;
+            ssh.hostPublicKeys = [
+              "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINN4tYEoQEGo3VcFANUevCtRoX98RVd0/tlu2zYz45fW"
+            ];
           };
           aliyun-gz = server_config // {
             inVM = true;
             webssh.enable = true;
             dshWeb.enable = true;
+            hindsight.enable = true;
             OnedevServer.enable = true;
             RustDeskServer.enable = true;
             XpraProxy.enable = true;
@@ -444,6 +467,9 @@ with builtins;
             k3s.enable = true;
             k3s.kind = "server";
             k3s.taint = "master:NoSchedule";
+            ssh.hostPublicKeys = [
+              "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIduB0gcFs0JnFI89yVhAeF/Ef800Tb5DO5L0WOU2WKS"
+            ];
           };
           # aliyun-ecs = server_config // {
           #   webssh.enable = true;

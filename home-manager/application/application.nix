@@ -69,8 +69,8 @@
       qt5.qtbase
       harfbuzz
       gvfs
-      llm-agents.hermes-desktop
-      llm-agents.hermes-one
+      # llm-agents.hermes-desktop
+      # llm-agents.hermes-one
     ]
     ++ [
 

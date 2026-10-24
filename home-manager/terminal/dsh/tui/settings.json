@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "values": {
+    "fullscreen": true,
+    "minimal": false,
+    "pageMargin": "normal",
+    "promptSessionLabel": true,
+    "statusBar": {
+      "tps": true,
+      "cost": true,
+      "tokens": true,
+      "model": false,
+      "thinking": false,
+      "cwd": false,
+      "goal": true,
+      "contextUsage": false
+    },
+    "thinkingFold": "preview",
+    "toolBackground": "subtle",
+    "whaleGirl": true,
+    "companion": {
+      "skin": "whale"
+    },
+    "codeFrameStyle": "full",
+    "brand": "deepseek",
+    "foldTerminalCommand": true,
+    "notificationMethod": "osc9",
+    "turnUsageRow": true,
+    "sidePanel": {
+      "open": true
+    },
+    "scrollGutter": "timeline",
+    "whaleIdle": true,
+    "splashFont": "classic",
+    "lang": "zh"
+  }
+}

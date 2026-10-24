@@ -10,75 +10,37 @@ let
   cordis_patch = [
     {
       insert = [
-        {
-          id = "computer-use";
-          name = "@deepseek-ai/dsh-computer-use";
-        }
-        {
-          id = "computer-use-cua-driver-mcp";
-          name = "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp";
-          config = {
-            command = "${pkgs.cua-driver}/bin/cua-driver";
-            args = [ "mcp" ];
-            toolCallTimeoutMs = 120000;
-          };
-        }
       ];
-    }
-    {
-      id = "hindsight";
-      name = "dsh-hindsight";
-      config = {
-        apiUrl = "http://127.0.0.1:11438";
-        memoryMode = "hybrid";
-        # 经 pkgs.dsh-cordis-patch 处理后才成为真正的 YAML 标签。
-        #
-        # 表达式只能用求值沙箱里有的东西：cordis-plugin-loader 的实现是
-        #   new Function("ctx", "expr", "with (ctx) { return eval(expr) }")
-        # 即全局作用域 + loader 提供的成员。dsh 只 provide 了 dshHomePath，
-        # **没有 require** —— 写 require('fs') 会 ReferenceError，该 entry
-        # 激活失败，整个 dsh-hindsight 插件不加载（工具直接消失）。
-        # process 是 Node 全局，用 process.getBuiltinModule 才能拿到内建模块。
-        #
-        # 另外 readFileSync 必须显式带 'utf8'：不给编码返回 Buffer，
-        # 而 Buffer 没有 trim()，会 TypeError。
-        apiKey = "!!js process.getBuiltinModule('fs').readFileSync('/run/secrets/hindsight/apikey','utf8').trim()";
-      };
-    }
-    {
-      id = "agent-default-model";
-      config = {
-        provider = "deepseek";
-        model = "deepseek-v4.1-flash";
-      };
     }
   ];
   plugins = with pkgs; [
     dsh-hindsight
     dsh-lsp
     dsh-neovim
+    dsh-continual-harness
+    billion-context
   ];
-
-  # @omdsh-dev/dsh-genui 以 git 依赖装进 profile，但 nixpkgs 的 pnpm 钩子用
-  # --ignore-scripts 安装，它的 build/prepare 不跑，落地只有 src/ 没有 lib/ →
-  # dsh 启动报 “…/dsh-genui/lib/index.js 不存在”，插件崩。
-  # 这里换成 overlays/ai.nix 里从 npm 发布包构建的 pkgs.dsh-genui（自带 lib/，
-  # 并把清单名统一成 profile 的依赖键），generate-bundles 会就地覆盖空壳目录，
-  # 因此不需要动 web/package.json 与 pnpm-lock.yaml。
+  extra_bundles = [
+    "@deepseek-ai/dsh-experimental-agent-team-profile"
+    "@deepseek-ai/dsh-experimental-schedule-bundle"
+    "@deepseek-ai/dsh-experimental-session-search"
+  ];
   profile-web = pkgs.dsh-profile {
     name = "web";
-    hash = "sha256-kanOfX4fr8i33MpmWagE4WDf9VBwttR4Ku0MiLN6f8c=";
-    plugins = plugins ++ [ pkgs.dsh-genui ];
+    hash = "sha256-sVWZ1qaGESm0D5/g/hDTpn3k7A9lCAPBsAkSe01T55c=";
+    plugins = plugins ++ [ ];
     src = ./web;
     package = pkgs.dsh;
+    extra_bundles = extra_bundles ++ [ "@deepseek-ai/dsh-web-app" ];
     cordis_patch = cordis_patch;
   };
   profile-tui = pkgs.dsh-profile {
     name = "tui";
-    hash = "sha256-vcsUnG5yikVBxC+lQo/EKHOhnNfFWmShpOeuCF+2hcg=";
+    hash = "sha256-nj9CDtQRo8qxPxUzKjOWvuuEGsnQVZneA9zYpbAGTTs=";
     plugins = plugins ++ [ ];
     src = ./tui;
     package = pkgs.dsh;
+    extra_bundles = extra_bundles;
     cordis_patch = cordis_patch;
   };
 
@@ -143,13 +105,14 @@ in
       ".dsh/profiles/web/package.json".source = "${profile-web}/package.json";
       ".dsh/profiles/web/pnpm-lock.yaml".source = "${profile-web}/pnpm-lock.yaml";
       ".dsh/profiles/web/pnpm-workspace.yaml".source = "${profile-web}/pnpm-workspace.yaml";
-      ".dsh/profiles/web/cordis.patch.yml".source = "${profile-web}/cordis.patch.yml";
+      # ".dsh/profiles/web/cordis.patch.yml".source = "${profile-web}/cordis.patch.yml";
       ".dsh/profiles/tui/package.json".source = "${profile-tui}/package.json";
       ".dsh/profiles/tui/pnpm-lock.yaml".source = "${profile-tui}/pnpm-lock.yaml";
       ".dsh/profiles/tui/pnpm-workspace.yaml".source = "${profile-tui}/pnpm-workspace.yaml";
-      ".dsh/profiles/tui/cordis.patch.yml".source = "${profile-tui}/cordis.patch.yml";
+      ".dsh-tui/settings.json".source = ./tui/settings.json;
+      # ".dsh/profiles/tui/cordis.patch.yml".source = "${profile-tui}/cordis.patch.yml";
       ".dsh/profiles/node_modules".source = "${pkgs.dsh}/lib/node_modules";
-      ".dsh/pet.json".source = ./pet.json;
+      ".dsh/AGENTS.md".source = ./AGENTS.md;
       # formats.yaml 会给每个字符串加引号，`!!js …` 因此退化成普通字符串，
       # dsh 不求值 → 插件把整串当 apiKey 发出去 → 401。
       # dsh-cordis-patch 把带引号的 !!js 还原成真正的 YAML 标签。
@@ -175,9 +138,78 @@ in
                 id = "skills-nix";
                 name = "@deepseek-ai/dsh-skill-filesystem";
                 customSkillDirs = [
-                  ".opencode/skills"
+                  ../../../skills
                 ];
-
+              }
+              {
+                id = "computer-use";
+                name = "@deepseek-ai/dsh-computer-use";
+              }
+              {
+                id = "computer-use-cua-driver-mcp";
+                name = "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp";
+                config = {
+                  command = "${pkgs.cua-driver}/bin/cua-driver";
+                  args = [ "mcp" ];
+                  toolCallTimeoutMs = 120000;
+                };
+              }
+              {
+                id = "hindsight";
+                name = "dsh-hindsight";
+                config = {
+                  apiUrl = "http://127.0.0.1:11438";
+                  memoryMode = "hybrid";
+                  # 经 pkgs.dsh-cordis-patch 处理后才成为真正的 YAML 标签。
+                  #
+                  # 表达式只能用求值沙箱里有的东西：cordis-plugin-loader 的实现是
+                  #   new Function("ctx", "expr", "with (ctx) { return eval(expr) }")
+                  # 即全局作用域 + loader 提供的成员。dsh 只 provide 了 dshHomePath，
+                  # **没有 require** —— 写 require('fs') 会 ReferenceError，该 entry
+                  # 激活失败，整个 dsh-hindsight 插件不加载（工具直接消失）。
+                  # process 是 Node 全局，用 process.getBuiltinModule 才能拿到内建模块。
+                  #
+                  # 另外 readFileSync 必须显式带 'utf8'：不给编码返回 Buffer，
+                  # 而 Buffer 没有 trim()，会 TypeError。
+                  apiKey = "!!js process.getBuiltinModule('fs').readFileSync('/run/secrets/hindsight/apikey','utf8').trim()";
+                };
+              }
+              {
+                id = "agent-default-model";
+                config = {
+                  provider = "deepseek";
+                  model = "deepseek-v4.1-flash";
+                  reasoningEffort = "high";
+                };
+              }
+              {
+                id = "ui-settings-general";
+                name = "@deepseek-ai/dsh-client-ui-settings-general";
+                config = {
+                  welcomeNoticeVersion = "2026-09-28.1";
+                };
+              }
+              {
+                id = "agent-preset-registry";
+                name = "@deepseek-ai/dsh-agent-preset-registry";
+                config = {
+                  default = "ptc";
+                  selectedDefault = "ptc";
+                };
+              }
+              {
+                id = "permission";
+                name = "@deepseek-ai/dsh-permission-presets";
+                config = {
+                  defaultPreset = "workspace-write";
+                };
+              }
+              {
+                id = "ui-conversation";
+                name = "@deepseek-ai/dsh-client-ui-conversation";
+                config = {
+                  busyEnter = "steer";
+                };
               }
             ];
           }
@@ -194,6 +226,13 @@ in
     // (profileModuleFiles profile-web ".dsh/profiles/web")
     // (profileModuleFiles profile-tui ".dsh/profiles/tui");
 
+    # home.activation.dsh = lib.mkIf config.programs.nix-index.enable (
+    #   lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    #     cp ${profile-web}/lib/node_modules $HOME/.dsh/profiles/web/ -rf
+    #     cp ${profile-tui}/lib/node_modules $HOME/.dsh/profiles/tui/ -rf
+    #   ''
+    # );
+
     systemd.user.services.dsh = {
       Unit = {
         Description = "dsh server";
@@ -202,7 +241,7 @@ in
       };
       Service = {
         Type = "simple";
-        ExecStart = "${pkgs.dsh}/bin/dsh web";
+        ExecStart = "${pkgs.dsh}/bin/dsh web --no-open";
         Restart = "always";
       };
       Install = {

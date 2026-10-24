@@ -203,45 +203,44 @@ rec {
     build-system = [ pkgs.python312Packages.setuptools ];
   };
 
-  # dsh = pkgs.llm-agents.dsh;
+  # dsh = pkgs.llm-agents.dsh.override (oldAttr: {
+  #   nodejs = nodejsForDsh;
+  # });
 
-  # dsh-genui：直接从 npm 取发布包（自带编译好的 lib/），不再用 git 源码 + pnpm 构建。
-  # 后者有两个坑：pnpmDeps hash 会随上游提交漂移，而且 nixpkgs 的 pnpm 钩子带
-  # --ignore-scripts，源码里的 build/prepare 根本不会跑，产物只有 src/。
-  # 与 dsh-tui 同一套路（fetchurl 直取 npm tarball）。
-  # 包内清单名是 @changfenhuang/dsh-genui（仓库名 vs 包名不一致），而 web profile 的
-  # 依赖键与它自带 bundle 补丁里的行名用的是 @omdsh-dev/dsh-genui，这里统一成后者，
-  # 这样 generate-bundles 会就地 rm+cp 覆盖掉那个只有 src/ 的空壳目录。
-  dsh-genui = pkgs.stdenvNoCC.mkDerivation rec {
-    pname = "dsh-genui";
-    version = "0.11.3";
-    src = pkgs.fetchurl {
-      url = "https://registry.npmjs.org/@changfenhuang/dsh-genui/-/dsh-genui-${version}.tgz";
-      hash = "sha256-b33gjcWEpQl+QGQpbdI7v6eaexr3Bfa0l72ZkGqxAwo=";
+  # dsh 的 node-addon-require-builtin 要在进程里用「精确字节匹配」找到 Node 内部的
+  # `node::PrincipalRealm::builtin_module_require() const`（一个 this->field getter），
+  # 期望的机器码是 `mov rax,[rdi+0x200] ; ret`。
+  # nixpkgs 默认开着的 zerocallusedregs 加固（-fzero-call-used-regs=used-gpr）会在
+  # mov 和 ret 之间插一条 `xor edi,edi`，匹配器就不认了，启动直接挂在：
+  #   dsh: host preparation failed: node-addon-require-builtin unsupported:
+  #   Unsupported/no-getter (x64 sysv getter is not a recognized this->field accessor)
+  #
+  # 关键：必须改「真正编译 node 的那份」= nodejs-slim。
+  # pkgs.nodejs 只是把 nodejs-slim 的输出用 lndir 拼起来的包装包（buildCommand 里
+  # 就是 lndir，bin/node 是指向 slim 二进制的链接），对它 overrideAttrs 只会换掉
+  # 那个拼装 derivation 的 hash，机器码一个字节都不会变，问题依旧。
+  nodejsForDsh = pkgs.nodejs-slim.overrideAttrs (old: {
+    hardeningDisable = (old.hardeningDisable or [ ]) ++ [ "zerocallusedregs" ];
+    doCheck = false; # 本地编译，跳过 node 自带那套超长测试
+  });
+
+  dsh-continual-harness = buildDshPnpmPackage rec {
+    pname = "dsh-continual-harness";
+    version = "v0.3.3";
+    src = pkgs.fetchgit {
+      url = "https://github.com/jasen215/dsh-continual-harness";
+      rev = version;
+      sha256 = "sha256-HEx21GTAYMFOZhdJMQr165l7Ay94MOH/UyF1YNz+U0M=";
     };
-    # 包根放 $out/lib，与仓库里其它 dsh 插件包一致（profile 用 file:<pkg>/lib 引用）
-    dontConfigure = true;
-    dontBuild = true;
-    installPhase = ''
-      runHook preInstall
-      mkdir -p "$out/lib"
-      cp -r ./* "$out/lib/"
-      runHook postInstall
-    '';
-    postInstall = ''
-      substituteInPlace $out/lib/package.json \
-        --replace-fail '"@changfenhuang/dsh-genui"' '"@omdsh-dev/dsh-genui"'
-      substituteInPlace $out/lib/cordis.patch.yml \
-        --replace-fail "'@changfenhuang/dsh-genui'" "'@omdsh-dev/dsh-genui'"
-    '';
+    hash = "sha256-dZXm/Sg7R4EZYVXAy9Fq29guOLXy9HYn3zEjJ8sWuv0=";
   };
 
-  dsh-tui = pkgs.stdenvNoCC.mkDerivation rec {
+  billion-context = pkgs.stdenvNoCC.mkDerivation rec {
     pname = "dsh-tui";
-    version = "0.12.0";
+    version = "0.1.204";
     src = pkgs.fetchurl {
-      url = "https://registry.npmjs.org/@deepseek-harness-tui/dsh-tui/-/dsh-tui-${version}.tgz";
-      hash = "";
+      url = "https://registry.npmjs.org/billion-context/-/billion-context-${version}.tgz";
+      hash = "sha256-ftwWrlzk5e5oEw5wajEqm/QW1fDY4f3RuhZV+UXDLXU=";
     };
     dontConfigure = true;
     dontBuild = true;
@@ -252,29 +251,6 @@ rec {
       cp -r ./* "$out/lib/"
       runHook postInstall
     '';
-  };
-
-  dsh-memory-evolve = buildDshPnpmPackage rec {
-    pname = "dsh-memory-evolve";
-    version = "1e6e7eb";
-    src = pkgs.fetchgit {
-      url = "https://github.com/csyangwen/dsh-memory-evolve";
-      rev = version;
-      sha256 = "sha256-fNFBsveLlLKMSOoIZvVu2u9Dcp3xjX+SRcrpLTbX2vQ=";
-    };
-    hash = "sha256-dIp6CNh1Kn4aqJWku1G/FUdn/u+epzhqlqwnAkB2uW0=";
-    dontNpmBuild = true;
-  };
-
-  billion-context-dsh = buildDshNpmPackage rec {
-    pname = "billion-context-dsh";
-    version = "bb9f2f6";
-    src = pkgs.fetchgit {
-      url = "https://github.com/Tyan66666/billion-context-dsh";
-      rev = version;
-      sha256 = "sha256-JK2DHLBn+Mg5pfE57p5L30yqrWzsVb/GWPaR2eFmfxU=";
-    };
-    npmDepsHash = "sha256-zF1HISOcq6WVrqgZAIDQ902oU0y7BzEvn5h2+PfVRSg=";
   };
 
   # ── Hindsight memory server (https://github.com/vectorize-io/hindsight) ──

@@ -51,7 +51,7 @@ in
     };
 
     programs.opencode = {
-      enable = true;
+      enable = false;
       enableMcpIntegration = true;
       # https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/op/opencode/package.nix
       package = pkgs.llm-agents.opencode;
@@ -245,8 +245,6 @@ in
         timeout = 128;
       };
     };
-
-    home.file.".agents/skills".source = ../../skills;
 
     home.sessionVariables = {
       HERMES_HOME = "/var/lib/hermes/.hermes";

@@ -2,18 +2,17 @@
   "name": "dsh-profile-web",
   "private": true,
   "dependencies": {
-    "@deepseek-ai/dsh-computer-use": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-experimental-agent-team-profile": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp": "0.1.7-rc.2",
+    "@deepseek-ai/dsh-computer-use": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp": "0.2.0-rc.2",
     "@linxin666/dsh-client-ui-skin-blue-fantasy": "latest",
-    "@linxin666/dsh-client-ui-skin-center": "latest",
-    "@omdsh-dev/dsh-genui": "github:omdsh-dev/dsh-genui"
+    "@linxin666/dsh-client-ui-skin-center": "0.4.6",
+    "@changfenhuang/dsh-genui": "latest"
   },
   "dsh": {
     "profile": {
       "bundles": [
-        "@deepseek-ai/dsh-experimental-agent-team-profile",
-        "@deepseek-ai/dsh-web-app"
+        "@linxin666/dsh-client-ui-skin-center",
+        "@changfenhuang/dsh-genui"
       ]
     }
   }

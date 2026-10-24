@@ -35,7 +35,7 @@ let
   networkConfig = cfg.network.edges.${cfg.nodeName}.config;
   sops-enable = config.sops.defaultSopsFile != "/";
 
-  publicIp = builtins.toString networkConfig.publicIp;
+  publicIp = if networkConfig.publicIp!=null then builtins.toString networkConfig.publicIp else "127.0.0.1";
   publicPort = nodeConfig.dshWeb.port;
   bindPort = nodeConfig.dshWeb.bindPort;
 
@@ -81,6 +81,7 @@ in
         inherit home;
         description = "DeepSeek Harness browser GUI";
       };
+      nix.settings.trusted-users = ["dsh"];
 
       # DSH_HOME 与 agent 的工作目录。dsh 会自己在 profiles/ 下初始化 web profile
       # （package.json + cordis.patch.yml），它要的 bundle 都在 pkgs.dsh 自己的
@@ -110,6 +111,11 @@ in
           pkgs.bubblewrap
           pkgs.git
           config.system.path
+          pkgs.nodejs
+          pkgs.python3
+          pkgs.pnpm
+          pkgs.uv
+          pkgs.clang
         ];
         serviceConfig = {
           User = "dsh";

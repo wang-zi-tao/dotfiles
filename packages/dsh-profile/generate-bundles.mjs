@@ -19,7 +19,7 @@ for (const packagePath of pluginPaths) {
     throw new Error("Plugin at " + pluginPath + " is missing a package name");
   }
 
-  const version = "file:" + pluginPath;
+  const version = "link:" + pluginPath;
   const target = join(modulesDir, packageName);
 
   // Recreate the target so cpSync always materializes the plugin at target
