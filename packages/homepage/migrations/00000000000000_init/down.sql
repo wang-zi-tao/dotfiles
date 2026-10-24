@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS sessions;
+DROP INDEX IF EXISTS idx_bookmarks_category;
+DROP TABLE IF EXISTS bookmarks;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS meta;

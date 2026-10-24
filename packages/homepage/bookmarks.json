@@ -1,0 +1,160 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "name": "常用",
+      "bookmarks": [
+        {
+          "name": "GitHub",
+          "url": "https://github.com/",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/11ad5726053067fa842833ff0529b680.png"
+        },
+        {
+          "name": "掘金",
+          "url": "http://gold.xitu.io/?utm_source=infinitynewtab.com",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/534995dd434a6e0e39a4521a5fe04f8e.png"
+        },
+        {
+          "name": "哔哩哔哩 (゜-゜)つロ 干杯~-bilibili",
+          "url": "https://www.bilibili.com/",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/9001c91g3utjee9xucs5xfhgi0goag.png"
+        },
+        {
+          "name": "MC百科",
+          "url": "https://www.mcmod.cn/",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/8001eqru8eeh18p362vnnc975ttzuo.png"
+        },
+        {
+          "name": "金山文档",
+          "url": "https://www.kdocs.cn/latest",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/8001dje2ekj1skn5u06v45w1omizzo.png"
+        },
+        {
+          "name": "金山日历",
+          "url": "https://rili.wps.cn/",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/8001f08bk8rkree56raoevv4nn1es4.png"
+        },
+        {
+          "name": "reddit",
+          "url": "http://www.reddit.com/",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/0a3a674dff5eebcd2b6c2e516b73a11c.png"
+        },
+        {
+          "name": "Stack Overflow - Where Developers Learn, Share, & Build Careers",
+          "url": "https://stackoverflow.com/",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/43e54a82b30dbf7d3e2ee8cfe537c849.png"
+        },
+        {
+          "name": "NixOS Search - Packages",
+          "url": "https://search.nixos.org/packages",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/icon-1hucp3aqq0ceixgb5knabbm0nof.png"
+        },
+        {
+          "name": "Google 翻譯",
+          "url": "https://translate.google.com.hk/?hl=zh-CN",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/83a31f5de7b62ad4c8d8e62d05fafd38.png"
+        },
+        {
+          "name": "Standard C++",
+          "url": "https://isocpp.org/",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/8001cqj6ss7l1zi0edofqradk6nfvx.png"
+        },
+        {
+          "name": "C/C++ 语言和标准库参考 | Microsoft Docs",
+          "url": "https://docs.microsoft.com/zh-cn/cpp/cpp/c-cpp-language-and-standard-libraries?view=msvc-160",
+          "icon": null
+        },
+        {
+          "name": "阿里云",
+          "url": "https://s.click.taobao.com/t?infinityType=aliyun&e=m%3D2%26s%3Dv2bETZt%2BmZMcQipKwQzePCperVdZeJviEViQ0P1Vf2kguMN8XjClAsJSLIMpmDpB%2BY2AJQZCxCEqDrUHgVoNpvVKm9Ob0IT9VuIJQ3hZR078JvDfi2GothmIkXBqRClNTcEU%2BDykfuSM%2BhtH71aX6uIOTs4KMj3yjpOyWSRdiSZDEm2YKA6YIrbIzrZDfgWtwGXLU4WXsy8CZuZoOOkzXFxfvOyje0ynomfkDJRs%2BhU%3D",
+          "icon": "https://infinityicon.infinitynewtab.com/icon/30db4bc1073f6b3be0036c75a8ce77f8.png"
+        },
+        {
+          "name": "有道翻译",
+          "url": "http://fanyi.youdao.com/?keyfrom=fanyi-new.logo",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/adbbb4ad604a31261e84dc37a50c0086.png"
+        },
+        {
+          "name": "阿里云",
+          "url": "https://swas.console.aliyun.com/?spm=5176.12818093.ProductAndResource--ali--widget-product-recent.dre0.3be916d0hWgUCt#/servers",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/icon-1g95d6jjgczwa07y9sgb654m9zx.png"
+        },
+        {
+          "name": "金山知识管理 - 为业务绩效赋能",
+          "url": "https://km.wps.cn/home",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/icon-1gp45t4puwfzlh3nn8k3r6johk4.png"
+        },
+        {
+          "name": "Fantasy",
+          "url": "https://fs.wps.kingsoft.net/#/workbench",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/icon-1gsirl9tls1be6tza2ok1rz4sx7.png"
+        },
+        {
+          "name": "知乎",
+          "url": "https://www.zhihu.com/",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/2b89ebe968d8cafe77a5c587daa79c7f.png"
+        },
+        {
+          "name": "Grafana",
+          "url": "https://47.83.14.140/prometheus/",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/icon-1i8ibb64czpe1eo5su3x1cv48xz.png"
+        },
+        {
+          "name": "华为云",
+          "url": "https://www.huaweicloud.com/",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/8001e5ugtjhj2s2w7fnsmq3c6ths3x.png"
+        },
+        {
+          "name": "ChatHub",
+          "url": "https://ai-chathub.ksord.com/chat",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/icon-1i0348skuf9m878vjar6sbx3027.png"
+        },
+        {
+          "name": "WPS 灵犀",
+          "url": "https://lingxi.wps.cn/",
+          "icon": "https://infinitypro-img.infinitynewtab.com/custom-icon/icon-1il2nrjvqy4oek0aaylifdob3mt.png"
+        }
+      ]
+    },
+    {
+      "name": "文件夹",
+      "bookmarks": [
+        {
+          "name": "500px",
+          "url": "https://500px.com/",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/ee908304d3c7def64adc6b3e2aaac4df.png"
+        },
+        {
+          "name": "Youtube",
+          "url": "https://youtube.com/",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/37d396f9975e494b10ac8696d64ebb2a.png"
+        }
+      ]
+    },
+    {
+      "name": "文件夹 2",
+      "bookmarks": [
+        {
+          "name": "天猫精选",
+          "url": "https://s.click.taobao.com/t?e=m%3D2%26s%3DV5ucSP%2F1kT4cQipKwQzePCperVdZeJviK7Vc7tFgwiFRAdhuF14FMRBynALhehQ4RitN3%2FurF3xNWm%2FATOfjswMAKinyMfntv%2FFgqkVH8133BMlVy3qlGE2srC8Mk09eQgZss1jm63jcHtRpEUy6RPalRWTdFmFpJPwiig1bxLMnyi1UQ%2F17I10hO9fBPG8oXH%2BQH9e66Y4%3D",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/2f301c86bb2d0efeec3d49930147157f.png"
+        },
+        {
+          "name": "哔哩哔哩 (゜-゜)つロ 干杯~-bilibili",
+          "url": "http://www.bilibili.com/",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/d8b62f4d64bda8800b1c788cd5ba3c68.png"
+        },
+        {
+          "name": "京东商城",
+          "url": "https://www.infinitynewtab.com/jd.pro.html",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/cee009549b352def723ba09d6da4b742.png"
+        },
+        {
+          "name": "爱淘宝",
+          "url": "https://ai.taobao.com/?pid=mm_50570328_39070332_145428725",
+          "icon": "https://infinityicon.infinitynewtab.com/user-share-icon/346647fb95fbac4d303c93fa0a4936d3.png"
+        }
+      ]
+    }
+  ]
+}

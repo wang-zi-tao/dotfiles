@@ -181,7 +181,7 @@ with builtins;
                   enable = mkOption {
                     type = bool;
                     default = false;
-                    description = "DeepSeek Harness 浏览器 GUI：dsh 只绑回环，由 Caddy basic_auth 保护后按独立端口暴露到公网";
+                    description = "DeepSeek Harness 浏览器 GUI：dsh 只绑回环，由 Caddy forward_auth（homepage 登录）保护后按独立端口暴露到公网";
                   };
                   port = mkOption {
                     type = port;
@@ -192,6 +192,18 @@ with builtins;
                     type = port;
                     default = 18080;
                     description = "dsh 自身监听端口，固定只绑 127.0.0.1";
+                  };
+                };
+                homepage = {
+                  enable = mkOption {
+                    type = bool;
+                    default = false;
+                    description = "个人浏览器主页：挂在公网 443 端口的 /homepage/ 下，同时给 dsh-web 提供 SSO";
+                  };
+                  bindPort = mkOption {
+                    type = port;
+                    default = 18081;
+                    description = "homepage 自身监听端口，固定只绑 127.0.0.1";
                   };
                 };
               };
@@ -232,6 +244,7 @@ with builtins;
     ./xpra.nix
     ./ai.nix
     ./dsh-web.nix
+    ./homepage.nix
   ];
   config = {
     boot.isContainer = nodeConfig.inContainer;
@@ -450,6 +463,7 @@ with builtins;
             OnedevServer.enable = true;
             atuin.enable = true;
             inVM = true;
+            homepage.enable = true;
             ssh.hostPublicKeys = [
               "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINN4tYEoQEGo3VcFANUevCtRoX98RVd0/tlu2zYz45fW"
             ];
@@ -458,6 +472,7 @@ with builtins;
             inVM = true;
             webssh.enable = true;
             dshWeb.enable = true;
+            homepage.enable = true;
             hindsight.enable = true;
             OnedevServer.enable = true;
             RustDeskServer.enable = true;

@@ -6,7 +6,7 @@
 }:
 # ── dsh-web：把 DeepSeek Harness 的浏览器 GUI 挂到公网 ──────────────────────────
 #
-# 为什么必须分两层（都是上游行为，别绕过）：
+# 分两层（都是上游行为，别绕过）：
 #
 #   1. dsh --profile web 只肯绑 127.0.0.1：--host 0.0.0.0 会被 CLI 直接拒绝，理由是
 #      那等于把远程代码执行暴露到网络。所以公网入口只能由反代提供。
@@ -16,19 +16,22 @@
 #      WebSocket 流都必须带上它。签名密钥持久在 $DSH_HOME/.credentials.yaml，所以进程
 #      重启后老 cookie 仍然有效，只有 token 每次都会变。
 #      但它没有「密码」概念，也没有任何注册入口——「不能注册」天然成立，「要密码」得外挂。
-#   3. 静态资源（JS/CSS、/plugins/* 的 bundle）和 /plugins/events 这条 SSE 通道是
-#      **不认证**的。所以「全部请求都必须先登录」只能靠 Caddy 的 basic_auth 兜住：
-#      本模块把它放在站点级，覆盖包括静态资源在内的每一个请求。
 #
-# 密码走 sops（dsh-web/password-hash，只放哈希——Caddy 不接受明文）：
-#   nix run nixpkgs#caddy -- hash-password --plaintext '<你的密码>'
-# 把产出的 $2a$14$… 填进 sops。本模块用 sops.templates 把它渲染成一段 Caddyfile
-# 片段，caddy 以 import 读入：哈希不进 nix store，也不需要任何运行期服务。
-# 换算法（--algorithm argon2id）时记得同步改下面的 hashAlgorithm，否则只会一直认证失败。
+# 外挂的登录改成了 SSO：站点级用 Caddy 的 forward_auth 调 homepage 的 /api/verify，
+# 由 homepage 的登录 Cookie 决定放行。这样同一浏览器只需在 https://<ip>/homepage/
+# 登录一次，dsh-web、homepage 以及以后接入的服务共用同一个会话（Cookie 是
+# host-only + Path=/，同一主机的不同端口天然共享）。
 #
-# 首次登录：token 每次启动都变，只能从日志里取。服务器上跑 dsh-web-login-url 拿到
-#   把 127.0.0.1 换成公网地址的完整 URL，浏览器打开一次换 cookie。此后在 cookie 有效期
-#   内（默认 30 天）以及任意次重启都不用再登，只需要过 Caddy 的密码。
+#   * forward_auth 覆盖包括静态资源在内的每一个请求（dsh 的静态资源与 /plugins/events
+#     本身不认证，必须由反代兜住）；
+#   * X-Original-URL 把用户原本要访问的完整 URL 传给 /api/verify，未登录时 homepage
+#     返回 302 到 /homepage/?next=…，登录后自动跳回来；
+#   * 仍保留独立端口而不是挂在 /homepage/ 子路径下：dsh 前端走绝对路径的 /api 与
+#     /plugins，挂子路径会 404。
+#
+# launch token 这一层仍然存在（登录 SSO 后 dsh 自己还要认 cookie）：首次登录用
+# dsh-web-login-url 从日志里取带 token 的 URL，浏览器打开一次换 dsh 的 cookie；
+# 之后 cookie 有效期内（默认 30 天）以及任意次重启都不用再取。
 let
   cfg = config.cluster;
   nodeConfig = cfg.nodes.${cfg.nodeName};
@@ -38,16 +41,10 @@ let
   publicIp = if networkConfig.publicIp!=null then builtins.toString networkConfig.publicIp else "127.0.0.1";
   publicPort = nodeConfig.dshWeb.port;
   bindPort = nodeConfig.dshWeb.bindPort;
+  homepagePort = nodeConfig.homepage.bindPort;
 
   home = "/var/lib/dsh";
   workspace = "${home}/workspace";
-
-  # basic_auth 的哈希算法，必须与 sops 里那份哈希的算法一致：
-  #   caddy hash-password（默认）产出 bcrypt；--algorithm argon2id 产出 argon2id。
-  # 不一致不会报错，只是永远认证失败（浏览器反复弹密码框）。
-  hashAlgorithm = "bcrypt";
-  # sops.templates 渲染出的 basic_auth 片段，由下面的 Caddyfile import 进去。
-  authFragment = config.sops.templates."dsh-web-basic-auth".path;
 
   loginUrl = pkgs.writeShellScriptBin "dsh-web-login-url" ''
     set -euo pipefail
@@ -69,7 +66,11 @@ in
       assertions = [
         {
           assertion = !nodeConfig.dshWeb.enable || sops-enable;
-          message = "cluster.dshWeb 需要 sops：登录密码哈希由 sops.secrets.dsh-web/password-hash 提供";
+          message = "cluster.dshWeb 需要 sops：DEEPSEEK_API_KEY 由 sops 模板 dsh-env 提供";
+        }
+        {
+          assertion = !nodeConfig.dshWeb.enable || nodeConfig.homepage.enable;
+          message = "dsh-web 的登录依赖 homepage 的 SSO：请在同一节点启用 cluster.nodes.<node>.homepage";
         }
       ];
     }
@@ -128,7 +129,7 @@ in
           RestartSec = 3;
 
           # ── 加固 ──────────────────────────────────────────────────────
-          # 这个 web 面等于「谁能过密码认证，谁就能在这台机器上执行代码」，所以把
+          # 这个 web 面等于「谁能过登录，谁就能在这台机器上执行代码」，所以把
           # 文件系统收紧到只剩 DSH_HOME 可写。要让 agent 操作别的目录（例如某个
           # 仓库），把路径追加进 ReadWritePaths；要用 nix 命令还得加 /nix/var/nix
           # （nix daemon 的 unix socket 需要写权限）。
@@ -140,16 +141,23 @@ in
         };
       };
 
-      # ── Caddy：公网入口 + 第一道锁 ──────────────────────────────────
+      # ── Caddy：公网入口 + SSO 第一道锁 ─────────────────────────────
       # 用独立端口而不是路径前缀：前端走绝对路径的 /api 与 /plugins，挂在子路径下
       # 会 404；而且同一 IP 的 443 站点上还住着 atuin/onedev/webssh，不该被这里的
-      # basic_auth 一起拦住。
+      # SSO 一起拦住。
       services.caddy = {
         enable = true;
         virtualHosts."https://${publicIp}:${toString publicPort}" = {
           extraConfig = ''
             tls internal
-            import ${authFragment}
+
+            # 未登录的请求交给 homepage：200 放行，302 则把浏览器送回登录页
+            # （forward_auth 会把非 2xx 响应原样透传给客户端）。
+            forward_auth 127.0.0.1:${toString homepagePort} {
+              uri /api/verify
+              header_up X-Original-URL https://{http.request.hostport}{http.request.uri}
+            }
+
             reverse_proxy 127.0.0.1:${toString bindPort} {
               # 必须把原始 Host（含端口）原样转给 dsh：
               #   * dsh 的 /api 围栏要求 Host ∈ {loopback} ∪ trustedHosts；
@@ -165,28 +173,6 @@ in
       networking.firewall.allowedTCPPorts = [ publicPort ];
 
       environment.systemPackages = [ loginUrl ];
-
-      # 哈希本身仍然声明成 secret：sops.placeholder 是由 sops.secrets 的键推导出来的，
-      # 模板里的占位符靠它才能换成真值。
-      sops.secrets."dsh-web/password-hash" = {
-        mode = "0400";
-      };
-
-      # 只含哈希的 Caddyfile 片段，caddy 在配置加载期 import 它。
-      # 渲染目录（/run/secrets/rendered）由 sops-install-secrets 以 0751 建立，即
-      # 其它用户可穿越，所以 owner=caddy + 0400 就够：caddy 读得到，别人读不到。
-      # 注意：片段为空或语法错误会让 caddy 整个起不来（同机其它站点一起挂）。
-      # 换哈希后如果网页一直弹密码框，先 systemctl status caddy 看配置有没有加载失败。
-      sops.templates."dsh-web-basic-auth" = {
-        content = ''
-          basic_auth ${hashAlgorithm} {
-            dsh ${config.sops.placeholder."dsh-web/password-hash"}
-          }
-        '';
-        owner = config.services.caddy.user;
-        mode = "0400";
-        restartUnits = [ "caddy.service" ];
-      };
     })
   ];
 }
