@@ -31,10 +31,6 @@ let
           type = str;
           default = "10.16.${toString nodeConfig.config.index}.0/24";
         };
-        clusterIp2 = mkOption {
-          type = str;
-          default = "192.168.17.${toString nodeConfig.config.index}";
-        };
         port = mkOption {
           type = nullOr ints.u16;
           default = null;
@@ -61,16 +57,9 @@ let
           default = [ ];
         };
       };
-    edgeOption = _: {
-      tunnel = mkOption {
-        type = bool;
-        default = false;
-      };
-    };
   };
   enabled = hasAttr hostname wireguardCluster;
   mkIfWireguard = mkIf enabled;
-  channelPort = peerConfig: peerConfig.index + 41000;
 in
 {
   options = {
@@ -87,7 +76,6 @@ in
   config = {
     networking.firewall.trustedInterfaces = mkIfWireguard [
       "wg0"
-      "wg1"
     ];
     lazyPackage = with pkgs; mkIfWireguard [ wireguard-tools ];
     networking.hosts = mkIfWireguard (
@@ -102,10 +90,6 @@ in
               {
                 name = nodeWireguard.config.clusterIp;
                 value = [ "${nodeName}.wg" ] ++ nodeWireguard.config.extraHostname;
-              }
-              {
-                name = nodeWireguard.config.clusterIp2;
-                value = [ "${nodeName}.wg1" ];
               }
             ]
           ) config.cluster.network.edges.${hostname}.peers
@@ -155,10 +139,10 @@ in
             {
               persistentKeepalive = if network.config.publicIp == null then 32 else 0;
               inherit (otherNodeWireguardConfig) publicKey;
+              # WireGuard 的 endpoint 由 cluster-node 在运行时改写：开启 wgTunnel 后
+              # 跨网段邻居会被指向 127.0.0.1:(peer.index + portBase)，走 h2 长连接。
               endpoint =
-                if edge.tunnel then
-                  "127.0.0.1:${toString (channelPort otherNodeWireguardConfig)}"
-                else if otherNodeNetworkConfig.publicIp != null then
+                if otherNodeNetworkConfig.publicIp != null then
                   "${otherNodeNetworkConfig.publicIp}:${toString otherNodeWireguardConfig.port}"
                 else if otherNodeNetworkConfig.localIp != null then
                   "${otherNodeNetworkConfig.localIp}:${toString otherNodeWireguardConfig.port}"
@@ -188,132 +172,5 @@ in
     sops.secrets."wg-shared-keys" = mkIfWireguard {
       sopsFile = config.cluster.keys.wireguard.sharedKeySops;
     };
-    environment.etc."wg_netmanager/peer.yaml" = mkIfWireguard {
-      text = lib.generators.toYAML { } {
-        wgInterface = "wg1";
-        wgIp = wireguard.config.clusterIp2;
-        name = network.config.hostname;
-        existingInterface = false;
-      };
-    };
-    environment.etc."wg_netmanager/network.yaml" = mkIfWireguard {
-      text = lib.generators.toYAML { } {
-        network = {
-          subnet = "192.168.17.0/24";
-        };
-        peers = concatLists (
-          mapAttrsToList (
-            name: wireguardNode:
-            let
-              networkNodeConfig = networkCluster.${name}.config;
-            in
-            optional (networkNodeConfig.publicIp != null) {
-              endPoint = "${networkNodeConfig.publicIp}:${toString (wireguardNode.config.port + 1)}";
-              # if networkNodeConfig.publicIp != null then
-              # "${networkNodeConfig.publicIp}:${toString (wireguardNode.config.port+1)}"
-              # else
-              # "${networkNodeConfig.localIp}:${toString (wireguardNode.config.port+1)}";
-              adminPort = 52343;
-              wgIp = wireguardNode.config.clusterIp2;
-            }
-          ) wireguardCluster
-        );
-      };
-    };
-    networking.firewall.allowedTCPPorts = mkIfWireguard (
-      [ 52343 ]
-      ++ concatLists (
-        mapAttrsToList (
-          otherNodeName: edge: (optional edge.tunnel (channelPort wireguardCluster.${otherNodeName}.config))
-        ) wireguard.peers
-      )
-    );
-    systemd.services = mkIfWireguard (
-      listToAttrs (
-        (optionals enabled [
-          (nameValuePair "wg-netmanager" {
-            enable = true;
-            description = "Wireguard network manager wg1";
-            wantedBy = [ "multi-user.target" ];
-            after = [ "network.target" ];
-            path = with pkgs; [
-              wg-netmanager
-              jq
-              wireguard-tools
-              iproute2
-            ];
-            script = ''
-              TMPFILE=$(mktemp /tmp/wg-XXXXX)
-              trap "rm -f $TMPFILE" EXIT
-              jq ".network += {\"sharedKey\": \"$(cat ${config.sops.secrets.wg-shared-keys.path})\"}" /etc/wg_netmanager/network.yaml > $TMPFILE
-              wg_netmanager ${
-                if (network.config.publicIp == null) then "-H" else "-w ${toString (wireguard.config.port + 1)}"
-              } -c $TMPFILE
-            '';
-            serviceConfig = {
-              Type = "simple";
-              Restart = "always";
-              ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
-              ExecStop = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
-              ReadWritePaths = [ "/tmp" ];
-            };
-            restartTriggers = [
-              "/etc/wg_netmanager/network.yaml"
-              "/etc/wg_netmanager/peer.yaml"
-            ];
-          })
-        ])
-        ++ (concatLists (
-          mapAttrsToList (
-            otherNodeName: value:
-            optional (value.tunnel && networkCluster.${otherNodeName}.config.publicIp != null) (
-              nameValuePair "wireguard-tunnel-client-${otherNodeName}" {
-                enable = true;
-                wantedBy = [ "multi-user.target" ];
-                before = [ "multi-user.target" ];
-                path = with pkgs; [
-                  busybox
-                  openssh
-                ];
-                serviceConfig = {
-                  Type = "simple";
-                  Restart = "always";
-                  RestartSec = "5s";
-                  ExecStart = "${pkgs.udp2raw}/bin/udp2raw --fix-gro -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -c -l127.0.0.1:${
-                    toString (channelPort wireguardCluster.${otherNodeName}.config)
-                  } -r ${
-                    networkCluster.${otherNodeName}.config.publicIp
-                  }:${toString (channelPort wireguard.config)} -a";
-                };
-              }
-            )
-          ) wireguard.peers
-        ))
-        ++ (concatLists (
-          mapAttrsToList (
-            otherNodeName: value:
-            optional (value.tunnel && network.config.publicIp != null) (
-              nameValuePair "wireguard-tunnel-server-${otherNodeName}" {
-                enable = true;
-                wantedBy = [ "multi-user.target" ];
-                before = [ "multi-user.target" ];
-                path = with pkgs; [
-                  busybox
-                  openssh
-                ];
-                serviceConfig = {
-                  Type = "simple";
-                  Restart = "always";
-                  RestartSec = "5s";
-                  ExecStart = "${pkgs.udp2raw}/bin/udp2raw --fix-gro -k qMQ9rUOA --raw-mode faketcp --cipher-mode xor --auth-mode simple -s -l0.0.0.0:${
-                    toString (channelPort wireguardCluster.${otherNodeName}.config)
-                  } -r 127.0.0.1:${builtins.toString (wireguard.config.port)} -a";
-                };
-              }
-            )
-          ) wireguard.peers
-        ))
-      )
-    );
   };
 }

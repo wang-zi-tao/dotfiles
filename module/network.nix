@@ -38,6 +38,10 @@ let
           type = bool;
           default = false;
         };
+        speed = mkOption {
+          type = nullOr int;
+          default = null;
+        };
       };
   };
 in

@@ -245,9 +245,11 @@ with builtins;
     ./ai.nix
     ./dsh-web.nix
     ./homepage.nix
+    ./cluster-node.nix
   ];
   config = {
     boot.isContainer = nodeConfig.inContainer;
+    services.cluster-node.enable = mkDefault true;
     cluster = {
       network =
         let
@@ -259,18 +261,22 @@ with builtins;
           nodes = {
             wangzi-nuc.config = desktop_config // {
               localIp = "192.168.32.1";
+              ips = [ "192.168.1.200" ];
             };
             wangzi-asus.config = desktop_config // {
-              localIp = "192.168.32.128";
+              localIp = "192.168.32.129";
+              ips = [ "192.168.1.229" ];
             };
             # huawei-ecs.config = {
             #   publicIp = "139.9.235.87";
             # };
             aliyun-hk.config = {
               publicIp = "47.83.14.140";
+              speed = 30;
             };
             aliyun-gz.config = {
               publicIp = "8.138.123.170";
+              speed = 200;
             };
             # aliyun-ecs.config = {
             #   publicIp = "116.62.23.116";
@@ -284,6 +290,11 @@ with builtins;
       wireguard = {
         nodes = {
           wangzi-asus.peers.wangzi-nuc = { };
+          # 这些跨网段链路不再需要 udp2raw：cluster-node 会自动用 HTTP/2 代理 wg 流量。
+          wangzi-asus.peers.aliyun-hk = { };
+          wangzi-nuc.peers.aliyun-hk = { };
+          wangzi-asus.peers.aliyun-gz = { };
+          wangzi-nuc.peers.aliyun-gz = { };
           wangzi-nuc.config = {
             index = 12;
             port = 16538;
@@ -296,19 +307,10 @@ with builtins;
             port = 16538;
             publicKey = "1O+by7g8ZKgNEy+SmWHRcX6QsIQvq4bjxBY9rm4v6CA=";
             gateway = "aliyun-gz";
-            extraHostname = [ "ollama.c.wg" "libvirt.c.wg" ];
-          };
-          wangzi-asus.peers.aliyun-hk = {
-            tunnel = true;
-          };
-          wangzi-nuc.peers.aliyun-hk = {
-            tunnel = true;
-          };
-          wangzi-asus.peers.aliyun-gz = {
-            tunnel = true;
-          };
-          wangzi-nuc.peers.aliyun-gz = {
-            tunnel = true;
+            extraHostname = [
+              "ollama.c.wg"
+              "libvirt.c.wg"
+            ];
           };
           # huawei-ecs.config = {
           #   index = 1;
@@ -322,13 +324,20 @@ with builtins;
             iptables.enable = true;
             gatewayServer = true;
             nat = "ens5";
-            extraHostname = [ "nextcloud.c.wg" "onedev.c.wg" ];
+            extraHostname = [
+              "nextcloud.c.wg"
+              "onedev.c.wg"
+            ];
           };
           aliyun-gz.config = {
             index = 3;
             port = 40287;
             publicKey = "tqeHWYqgoSVoMlREKDukgPZRrS5jbbIaZW19NUxZiF4=";
-            extraHostname = [ "dsh.c.wg" "hindsight.c.wg" "webssh.c.wg" ];
+            extraHostname = [
+              "dsh.c.wg"
+              "hindsight.c.wg"
+              "webssh.c.wg"
+            ];
           };
           # aliyun-ecs.config = {
           #   index = 3;
