@@ -5,8 +5,9 @@
  * date : {{_lua:os.date("%Y/%m/%d")_}}
  ************************************************************/
 
-#ifndef __JDE_{{_upper_file_}}_H__
-#define __JDE_{{_upper_file_}}_H__
+#ifndef __{{_variable_}}_{{_upper_file_}}_H__
+#define __{{_variable_}}_{{_upper_file_}}_H__
+#pragma once
 
 {{_cursor_}}
 
