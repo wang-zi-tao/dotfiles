@@ -15,17 +15,22 @@
  * @module dsh-lsp
  */
 
-import { isAbsolute, relative, resolve } from 'node:path'
-
+import { DiagnosticBroadcaster, type InjectableAgent } from './broadcast.js'
 import { searchCandidates } from './candidates.js'
 import { LspClient } from './client.js'
 import { resolveConfig } from './config.js'
-import { diagnosticsMessage, filterDiagnostics } from './diagnostics.js'
 import { indexProgressMessage, renderIndexProgress } from './progress.js'
-import { isFileUri, pathToFileUri, readLinePreview, renderLocations, toLspLocation, toSymbolEntry } from './protocol.js'
+import {
+  isFileUri,
+  isPathInside,
+  pathToFileUri,
+  readLinePreview,
+  renderLocations,
+  toLspLocation,
+  toSymbolEntry,
+} from './protocol.js'
 import { ServerRegistry } from './registry.js'
 import { findRoot, hasRootMarker } from './root.js'
-import { DiagnosticWatcher, type InjectableAgent } from './watch.js'
 import type { JsonSchemaNode, ToolExecution } from '@deepseek-ai/dsh-tools'
 import type { SymbolInformation, WorkspaceSymbol } from 'vscode-languageserver-protocol'
 import type {
@@ -113,19 +118,18 @@ function liveAgents(ctx: DshContext): unknown[] {
 }
 
 /**
- * Live agents whose session cwd lies inside `root`. A finished background
- * index is only useful to the sessions that query that root, and injecting the
- * notice into every session would interrupt unrelated turns.
+ * Live agents whose session cwd lies inside `root`: the sessions that query
+ * that tree, and therefore the only ones a finished background index or a
+ * diagnostics change there concerns. Injecting into every session would
+ * interrupt unrelated turns.
  */
 function agentsUnder(ctx: DshContext, root: string): InjectableAgent[] {
-  const normalizedRoot = resolve(root).toLowerCase()
   const out: InjectableAgent[] = []
   for (const candidate of liveAgents(ctx)) {
     const cwd = sessionCwd(candidate)
     if (!cwd) continue
     if (typeof (candidate as { inject?: unknown }).inject !== 'function') continue
-    const rel = relative(normalizedRoot, resolve(cwd).toLowerCase())
-    if (rel === '' || (!rel.startsWith('..') && !isAbsolute(rel))) out.push(candidate as InjectableAgent)
+    if (isPathInside(root, cwd)) out.push(candidate as InjectableAgent)
   }
   return out
 }
@@ -738,37 +742,33 @@ function mergeAbortSignals(...signals: Array<AbortSignal | undefined>): AbortSig
 }
 
 /**
- * Pull diagnostics for a just-written file (the transport used only when the
- * server advertises `diagnosticProvider`) and inject them into the calling
- * agent's next pre-step context via Agent.inject. The push transport is handled
- * by {@link DiagnosticWatcher} instead. Runs fire-and-forget off the write
- * result so a write never waits on the LSP. `signal` carries both the turn's
- * cancellation and the superseding write's abort, so a stale run never injects
- * after a newer edit. Fail-open: an aborted/superseded run logs at debug level;
- * an unexpected failure logs a warning but never throws.
+ * Pull one file's diagnostics (the transport used only when the server
+ * advertises `diagnosticProvider`) and hand them to the broadcaster, which
+ * diffs them against the file's last reported set and injects only the change.
+ * The push transport reaches the same broadcaster directly, so both transports
+ * converge on one per-file diff.
+ *
+ * Runs fire-and-forget off the write result so a write never waits on the LSP.
+ * `signal` carries both the turn's cancellation and the superseding write's
+ * abort, so a stale run never reports after a newer edit. Fail-open: an
+ * aborted/superseded run logs at debug level; an unexpected failure logs a
+ * warning but never throws.
  */
-async function runAsyncDiagnostics(
+async function runPullDiagnostics(
+  broadcaster: DiagnosticBroadcaster,
   registry: ServerRegistry,
-  config: ReturnType<typeof resolveConfig>,
   logger: Logger,
   exec: ToolExecution,
   filePath: string,
   signal: AbortSignal | undefined,
 ): Promise<void> {
   try {
-    const report = await registry.diagnosticsFor(filePath, cwdOf(exec), signal)
+    const cwd = cwdOf(exec)
+    const target = await registry.resolve(filePath, cwd, signal)
+    const report = await registry.diagnosticsFor(filePath, cwd, signal)
     if (report.note) logger.debug(`dsh-lsp: diagnostics for ${filePath}: ${report.note}`)
-    const entries = report.entries
     if (signal?.aborted) return
-    const relevant = filterDiagnostics(entries, config.diagnosticsMinSeverity)
-    if (relevant.length === 0) return
-    const agent = exec.agent
-    if (!agent || typeof agent.inject !== 'function') {
-      logger.debug('dsh-lsp: no injectable agent for ' + filePath + ' diagnostics')
-      return
-    }
-    agent.inject(diagnosticsMessage(filePath, relevant))
-    logger.info('dsh-lsp: injected ' + relevant.length + ' diagnostic(s) for ' + filePath + ' into agent ' + agent.id)
+    broadcaster.observe(target.spec.id, target.root, filePath, report.entries)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     if (signal?.aborted) {
@@ -785,18 +785,26 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
   const logger = makeLogger(ctx)
   const registry = new ServerRegistry(config, ctx.subprocess, logger)
 
-  // Diagnostics arrive as server pushes; the watcher turns the ones that answer
-  // a write into one injected context message. Subscribing before any server
-  // starts guarantees a push cannot slip past the forwarder.
-  const watcher = new DiagnosticWatcher({
+  // Diagnostics arrive as server pushes, at any time and for any file the
+  // server re-analyses — not only in answer to our own write. Every push is
+  // observed, diffed per file against that file's last report, and only the
+  // delta is injected into the agents rooted at that server. Subscribing before
+  // any server starts guarantees a push cannot slip past the forwarder.
+  const broadcaster = new DiagnosticBroadcaster({
     minSeverity: config.diagnosticsMinSeverity,
-    timeoutMs: config.diagnosticsTimeoutMs,
-    dedupeMs: config.diagnosticsDedupeMs,
+    flushMs: config.diagnosticsFlushMs,
     maxDiagnostics: config.maxDiagnostics,
-    injectUnwatched: config.diagnosticsOnAnyPublish,
     logger,
+    targetsFor: (_serverId, root) => (config.diagnosticsInject ? agentsUnder(ctx, root) : []),
   })
-  const published = registry.onPublishedDiagnostics((_serverId, record) => watcher.accept(record))
+  const published = registry.onPublishedDiagnostics((serverId, record) => {
+    const root = registry.clientById(serverId)?.root
+    if (!root) {
+      logger.debug('dsh-lsp: no running server for ' + serverId + ' diagnostics of ' + record.path)
+      return
+    }
+    broadcaster.accept(serverId, root, record)
+  })
 
   // A background index finishing is the one moment a previously empty
   // `workspaceSymbol` becomes answerable, and it happens outside any tool call:
@@ -878,7 +886,7 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
     return () => {
       published.dispose()
       progress.dispose()
-      watcher.abortAll()
+      broadcaster.dispose()
       for (const controller of diagnosticRuns.values()) controller.abort()
       // Detached teardown: a rejection here must never surface as an unhandled
       // rejection while the fiber is being disposed.
@@ -895,7 +903,7 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
       '代码库较大时, 优先使用 `lsp` 工具快速查找函数和类型的位置, 以及使用点.',
       '普通导航使用 search/read。当文本匹配不明确，或在变更前需要精确的定义、实现或引用时，使用 lsp。符号外的位置可能返回空结果。',
       '查 C++ 符号时 `filePath` 优先用 `.cpp`（编译单元在 compile_commands.json 中，命中更快更全）；`.h` 也能工作但依赖后台索引预热，命中略慢. ',
-      '读文件时 LSP 自动加载该文件; 写文件后语言服务器推送诊断, 结果会注入到你的上下文, 请据此修复问题.',
+      '读文件时 LSP 自动加载该文件; 之后语言服务器每次推送的诊断变化（新增/消失的 error、warning）都会持续注入到你的上下文, 请据此修复问题.',
       '语言服务器在会话启动时自动拉起（`/lsp status` 查看）; 自动启动不等于索引就绪——clangd 要等首次 didOpen 才激活工程索引, 后台索引建完后会注入一条「后台索引已完成」通知.',
       '`workspaceSymbol` 命中为空时插件会用 rg 收敛候选文件、解析后重查; 若结果带 "index still building" 说明后台索引仍在建, 稍后重试（完成时会收到通知）.',
       'dsh-lsp插件可迭代升级',
@@ -1019,13 +1027,12 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
   // File-access integration
   // ------------------------------------------------------------------
   // Synchronously didOpen files the AI reads (warm servers) so the document
-  // is queryable the moment the read result returns; after a write, obtain
-  // diagnostics and inject findings into the agent's next pre-step context.
-  // clangd only pushes (its pull request answers "method not found"), so the
-  // default path arms a push watch and refreshes the document; a server that
-  // advertises diagnosticProvider keeps the pull path. A superseding write by
-  // the same agent cancels the previous watch/run so stale findings never
-  // follow a newer edit.
+  // is queryable the moment the read result returns; after a write, hand the
+  // new text to the server. Diagnostics need no arming: every push already
+  // flows through the broadcaster, so this hook only refreshes the document
+  // (or pulls once, for a server that advertises diagnosticProvider) and lets
+  // the diff decide what the agent hears. A superseding write by the same agent
+  // cancels the previous pull so a stale answer never follows a newer edit.
   ctx.on('tools/post-execute', async (exec, result, next) => {
     try {
       const args = (exec.arguments ?? {}) as Record<string, unknown>
@@ -1041,23 +1048,22 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
             logger.debug('dsh-lsp: background open failed for ' + filePath + ': ' + (error instanceof Error ? error.message : String(error)))
           })
         }
-      } else if (config.diagnosticsOnWrite && (exec.name === 'write' || exec.name === 'edit')) {
+      } else if (exec.name === 'write' || exec.name === 'edit') {
         const agent = exec.agent
         // Key by session id, not file: a change to one file can break others,
-        // so every in-flight run for this agent must give way to the newest.
+        // so every in-flight pull for this agent must give way to the newest.
         const key = agent ? String(agent.id) : ''
-        // Supersede both transports: a pending push watch and a pull run.
-        watcher.abort(key)
         const previous = diagnosticRuns.get(key)
         if (previous) previous.abort()
 
         if (registry.diagnosticsMode(filePath) === 'pull') {
-          // Pull-capable server: request diagnostics and inject them directly.
+          // Pull-capable server: ask it, then fold the answer into the same
+          // per-file diff the push transport feeds.
           const controller = new AbortController()
           diagnosticRuns.set(key, controller)
-          void runAsyncDiagnostics(
+          void runPullDiagnostics(
+            broadcaster,
             registry,
-            config,
             logger,
             exec,
             filePath,
@@ -1065,15 +1071,12 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
           ).finally(() => {
             if (diagnosticRuns.get(key) === controller) diagnosticRuns.delete(key)
           })
-        } else if (agent && typeof agent.inject === 'function') {
-          // Push-only server (clangd): arm the watch *before* the refresh, so the
-          // push describing the new text finds a listener; the watcher injects.
-          watcher.arm(key, filePath, agent as unknown as InjectableAgent)
+        } else {
+          // Push-only server (clangd): send the new text; the push it answers
+          // with reaches the broadcaster like any other publish.
           void registry.refreshDocument(filePath, cwdOf(exec)).catch((error) => {
             logger.debug('dsh-lsp: diagnostics refresh failed for ' + filePath + ': ' + (error instanceof Error ? error.message : String(error)))
           })
-        } else {
-          logger.debug('dsh-lsp: no injectable agent for ' + filePath + ' diagnostics')
         }
       }
     } catch (error) {

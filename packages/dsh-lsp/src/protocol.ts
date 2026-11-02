@@ -7,7 +7,7 @@
  * path rules to a possibly-symlinked root.
  */
 
-import { isAbsolute, relative } from 'node:path'
+import { isAbsolute, relative, resolve } from 'node:path'
 import { readFileSync } from 'node:fs'
 
 import type { Diagnostic, Position, Range } from 'vscode-languageserver-protocol'
@@ -66,6 +66,19 @@ export function fromLspRange(range: Range): LspRange {
 export function isUriInside(uri: string, rootUri: string): boolean {
   if (!isFileUri(uri) || !isFileUri(rootUri)) return false
   return uri === rootUri || uri.startsWith(rootUri.endsWith('/') ? rootUri : rootUri + '/')
+}
+
+/**
+ * True when `path` is `root` or lies inside it.
+ *
+ * Compared on normalized absolute paths, lowercased so a Windows drive letter
+ * and casing differences cannot split one tree in two (the plugin already
+ * treats roots case-insensitively when targeting agent sessions).
+ */
+export function isPathInside(root: string, path: string): boolean {
+  const normalizedRoot = resolve(root).toLowerCase()
+  const rel = relative(normalizedRoot, resolve(path).toLowerCase())
+  return rel === '' || (!rel.startsWith('..') && !isAbsolute(rel))
 }
 
 /**

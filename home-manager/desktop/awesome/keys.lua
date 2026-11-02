@@ -237,4 +237,11 @@ client.connect_signal("request::default_mousebindings", function()
         end),
     })
 end)
-root.buttons(awful.util.table.join(awful.button({}, 4, last_tag), awful.button({}, 5, next_tag)))
+root.buttons(awful.util.table.join(
+    awful.button({}, 4, function()
+        awful.tag.viewprev()
+    end),
+    awful.button({}, 5, function()
+        awful.tag.viewnext()
+    end)
+))

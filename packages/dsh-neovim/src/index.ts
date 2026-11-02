@@ -318,11 +318,11 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
   /** Sessions that used a DAP tool; debugger events are injected only there. */
   const dapSessions = new Set<string>()
 
-  function inject(agent: Agent, prompt: string) {
+  function inject(agent: Agent, prompt: string, auto_start: boolean = false) {
     try {
       const message = createUserMessage({content: [{type: 'text', text: prompt}], source: {kind: name}});
-      if (agent.status === 'idle')
-        agent.followup(message);
+      if (auto_start)
+        agent.steer(message)
       else
         agent.inject(message);
     } catch (error) {
@@ -350,7 +350,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
       let prompt: string = a.prompt;
 
       for (const agent of ctx.agents.roots()) {
-        inject(agent, prompt)
+        inject(agent, prompt, true)
       }
     });
   };

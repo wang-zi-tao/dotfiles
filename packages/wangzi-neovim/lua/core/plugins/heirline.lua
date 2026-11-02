@@ -1,4 +1,4 @@
-﻿local function config()
+local function config()
   local heirline            = require "heirline"
   local heirline_components = require "heirline-components.all"
   local conditions          = require("heirline.conditions")
@@ -377,8 +377,8 @@
           -- Set it to the lualine section you want to use
           -- hl_group = "lualine_c_normal",
         })
-        value, success = pcall(trouble_symbols.get)
-        return value or ""
+        local ok, value = pcall(trouble_symbols.get)
+        return (ok and value) or ""
       end,
       condition = conditions.is_active,
     }

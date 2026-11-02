@@ -11,9 +11,9 @@ test('resolveConfig uses built-in servers when no override', () => {
   deepEqual(config.autoStartRoots, [])
   equal(config.diagnosticsMode, 'auto')
   equal(config.diagnosticsTimeoutMs, 15000)
-  equal(config.diagnosticsDedupeMs, 60000)
+  equal(config.diagnosticsFlushMs, 400)
   equal(config.maxDiagnostics, 50)
-  equal(config.diagnosticsOnAnyPublish, false)
+  equal(config.diagnosticsInject, true)
   const clangd = config.servers.find(s => s.id === 'clangd')!
   ok(clangd)
   equal(clangd.languageId, 'cpp')
@@ -64,18 +64,18 @@ test('resolveConfig normalizes extensions (lowercase, strip dot)', () => {
 test('resolveConfig defaults for file-access integration', () => {
   const config = resolveConfig({})
   equal(config.syncLoadOnRead, true)
-  equal(config.diagnosticsOnWrite, true)
+  equal(config.diagnosticsInject, true)
   equal(config.diagnosticsMinSeverity, 'warning')
 })
 
 test('resolveConfig parses file-access integration options', () => {
   const config = resolveConfig({
     syncLoadOnRead: false,
-    diagnosticsOnWrite: 'no',
+    diagnosticsInject: 'no',
     diagnosticsMinSeverity: 'error',
   })
   equal(config.syncLoadOnRead, false)
-  equal(config.diagnosticsOnWrite, false)
+  equal(config.diagnosticsInject, false)
   equal(config.diagnosticsMinSeverity, 'error')
 })
 
@@ -110,7 +110,8 @@ test('resolveConfig accepts the explicit auto-start and diagnostics pins', () =>
     diagnosticsMode: 'push',
     diagnosticsTimeoutMs: 500,
     maxDiagnostics: 5,
-    diagnosticsOnAnyPublish: 'yes',
+    diagnosticsInject: 'yes',
+    diagnosticsFlushMs: 0,
   })
   equal(config.autoStart, 'off')
   deepEqual(config.autoStartServers, ['clangd', 'rust-analyzer'])
@@ -118,7 +119,8 @@ test('resolveConfig accepts the explicit auto-start and diagnostics pins', () =>
   equal(config.diagnosticsMode, 'push')
   equal(config.diagnosticsTimeoutMs, 500)
   equal(config.maxDiagnostics, 5)
-  equal(config.diagnosticsOnAnyPublish, true)
+  equal(config.diagnosticsInject, true)
+  equal(config.diagnosticsFlushMs, 0)
 })
 
 function ok(value: unknown, message?: string): asserts value {

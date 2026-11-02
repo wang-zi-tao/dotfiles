@@ -65,9 +65,14 @@ function M.panel(screen)
     end)
     local volume_old
     local muted_old
+    local muted_int = false
+    watch("pamixer --get-mute", 1, function(_, stdout)
+        local state = (stdout or ""):gsub("%s+$", "")
+        muted_int = state == "true"
+    end)
     watch("pamixer --get-volume", 1, function(_, stdout)
         local volume_int = tonumber(stdout)
-        if volume_int ~= volume_old or muted_int ~= muted_old then
+        if volume_int and (volume_int ~= volume_old or muted_int ~= muted_old) then
             awesome.emit_signal("signal::volume", volume_int, muted_int)
             volume_old = volume_int
             muted_old = muted_int

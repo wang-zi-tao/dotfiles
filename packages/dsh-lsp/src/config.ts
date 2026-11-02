@@ -18,16 +18,15 @@ export const DEFAULT_MAX_RESULT_CHARS = 16000
 export const DEFAULT_TIMEOUT_MS = 60000
 export const DEFAULT_LOG_DIR = '~/.dsh/logs/dsh-lsp'
 export const DEFAULT_SYNC_LOAD_ON_READ = true
-export const DEFAULT_DIAGNOSTICS_ON_WRITE = true
+export const DEFAULT_DIAGNOSTICS_INJECT = true
 export const DEFAULT_DIAGNOSTICS_MIN_SEVERITY = 'warning'
 export const DEFAULT_AUTO_START: AutoStartMode = 'session'
 export const DEFAULT_AUTO_START_SERVERS: string[] = []
 export const DEFAULT_AUTO_START_ROOTS: string[] = []
 export const DEFAULT_DIAGNOSTICS_MODE: DiagnosticsMode = 'auto'
 export const DEFAULT_DIAGNOSTICS_TIMEOUT_MS = 15000
-export const DEFAULT_DIAGNOSTICS_DEDUPE_MS = 60000
+export const DEFAULT_DIAGNOSTICS_FLUSH_MS = 400
 export const DEFAULT_MAX_DIAGNOSTICS = 50
-export const DEFAULT_DIAGNOSTICS_ON_ANY_PUBLISH = false
 export const DEFAULT_SYMBOL_FALLBACK = true
 export const DEFAULT_SYMBOL_FALLBACK_MAX_CANDIDATES = 12
 export const DEFAULT_SYMBOL_FALLBACK_TIMEOUT_MS = 15000
@@ -203,12 +202,11 @@ export function resolveConfig(raw: Record<string, unknown> = {}): LspConfig {
   const autoStartRoots = normalizeStringList(raw.autoStartRoots)
   const diagnosticsMode = parseEnum<DiagnosticsMode>('diagnosticsMode', raw.diagnosticsMode, ['auto', 'push', 'pull', 'off'], DEFAULT_DIAGNOSTICS_MODE)
   const diagnosticsTimeoutMs = parseInteger('diagnosticsTimeoutMs', raw.diagnosticsTimeoutMs, DEFAULT_DIAGNOSTICS_TIMEOUT_MS, 100)
-  const diagnosticsDedupeMs = parseInteger('diagnosticsDedupeMs', raw.diagnosticsDedupeMs, DEFAULT_DIAGNOSTICS_DEDUPE_MS, 0)
+  const diagnosticsFlushMs = parseInteger('diagnosticsFlushMs', raw.diagnosticsFlushMs, DEFAULT_DIAGNOSTICS_FLUSH_MS, 0)
   const maxDiagnostics = parseInteger('maxDiagnostics', raw.maxDiagnostics, DEFAULT_MAX_DIAGNOSTICS, 1)
-  const diagnosticsOnAnyPublish = parseBoolean(raw.diagnosticsOnAnyPublish, DEFAULT_DIAGNOSTICS_ON_ANY_PUBLISH)
   const logDir = typeof raw.logDir === 'string' && raw.logDir.trim() !== '' ? raw.logDir.trim() : DEFAULT_LOG_DIR
   const syncLoadOnRead = parseBoolean(raw.syncLoadOnRead, DEFAULT_SYNC_LOAD_ON_READ)
-  const diagnosticsOnWrite = parseBoolean(raw.diagnosticsOnWrite, DEFAULT_DIAGNOSTICS_ON_WRITE)
+  const diagnosticsInject = parseBoolean(raw.diagnosticsInject, DEFAULT_DIAGNOSTICS_INJECT)
   const diagnosticsMinSeverity = parseSeverity(raw.diagnosticsMinSeverity, DEFAULT_DIAGNOSTICS_MIN_SEVERITY)
   const symbolFallback = parseBoolean(raw.symbolFallback, DEFAULT_SYMBOL_FALLBACK)
   const symbolFallbackMaxCandidates = parseInteger(
@@ -291,13 +289,12 @@ export function resolveConfig(raw: Record<string, unknown> = {}): LspConfig {
     logDir,
     servers,
     syncLoadOnRead,
-    diagnosticsOnWrite,
+    diagnosticsInject,
     diagnosticsMinSeverity,
     diagnosticsMode,
     diagnosticsTimeoutMs,
-    diagnosticsDedupeMs,
     maxDiagnostics,
-    diagnosticsOnAnyPublish,
+    diagnosticsFlushMs,
     symbolFallback,
     symbolFallbackMaxCandidates,
     symbolFallbackTimeoutMs,

@@ -115,7 +115,7 @@ export type DiagnosticSeverity = 'hint' | 'information' | 'warning' | 'error'
 /** When language servers are started without waiting for a query. */
 export type AutoStartMode = 'mount' | 'session' | 'off'
 
-/** How post-write diagnostics are obtained from a server. */
+/** How one file's diagnostics are obtained: pushed by the server or pulled from it. */
 export type DiagnosticsMode = 'auto' | 'push' | 'pull' | 'off'
 
 export interface LspConfig {
@@ -142,32 +142,33 @@ export interface LspConfig {
   servers: ServerSpec[]
   /** Sync-load the file into its LSP server when the AI reads it. */
   syncLoadOnRead: boolean
-  /** Async diagnostics + agent.inject after the AI writes a file. */
-  diagnosticsOnWrite: boolean
+  /**
+   * Continuously inject diagnostics changes. Every push a server makes is
+   * observed and diffed against that file's last report; only added / removed
+   * findings are injected, into every agent session rooted at that server.
+   */
+  diagnosticsInject: boolean
   /** Only diagnostics at or above this severity are injected. */
   diagnosticsMinSeverity: DiagnosticSeverity
   /**
-   * How diagnostics are obtained: `auto` keeps the pull request only when the
-   * server advertises it (clangd does not), `push`/`pull` pin one path, and
-   * `off` disables post-write diagnostics entirely.
+   * How one file's diagnostics are obtained: `auto` keeps the pull request only
+   * when the server advertises it (clangd does not, it pushes), `push`/`pull`
+   * pin one path, and `off` disables the post-write refresh entirely.
    */
   diagnosticsMode: DiagnosticsMode
   /**
-   * Upper bound on waiting for one push. The timeout only ends the wait: the
-   * server and its open documents are never aborted.
+   * Upper bound on waiting for one push during an on-demand `lsp diagnostics`
+   * query. The timeout only ends the wait: the server and its open documents
+   * are never aborted.
    */
   diagnosticsTimeoutMs: number
-  /** Window in which an identical finding set is injected only once. */
-  diagnosticsDedupeMs: number
-  /** Upper bound on injected diagnostics per push. */
+  /** Upper bound on diagnostics listed in one injected message. */
   maxDiagnostics: number
   /**
-   * Inject a push that arrives with no armed write watch, into the agent that
-   * most recently wrote that file. Off by default: a background re-publish
-   * (another file's edit invalidating this translation unit) would otherwise
-   * interrupt an unrelated turn.
+   * Coalescing window: pushes that arrive inside one window are folded into a
+   * single injected message (0 injects each flush immediately).
    */
-  diagnosticsOnAnyPublish: boolean
+  diagnosticsFlushMs: number
   /**
    * When `workspaceSymbol` finds nothing in the server's own index, converge
    * on candidate files, warm them, and retry the index query (slower, capped).

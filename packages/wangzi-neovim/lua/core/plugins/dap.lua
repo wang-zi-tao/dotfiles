@@ -223,6 +223,10 @@ local function init()
 
   local get_program = util.get_program
   local get_coredmp = util.get_coredmp
+  local get_remote_host = util.get_debug_ip
+  local function get_remote_pid()
+    return tonumber(util.cached_input_sync("remote_pid", "pid: ", "", ""))
+  end
 
   local vsdbg_symbolSearchPath = "srv*D:\\symbols*http://localhost:8001"
   -- local vsdbg_symbolSearchPath = "srv*http://localhost:8001"
@@ -313,9 +317,9 @@ local function init()
     vim.tbl_deep_extend("force", lldb_config, {
       name = "lldb remote attach",
       request = "attach",
-      processId = getPID,
+      processId = get_remote_pid,
       connect = {
-        host = getIp,
+        host = get_remote_host,
         port = 1234,
       }
       -- stopOnEntry = true,

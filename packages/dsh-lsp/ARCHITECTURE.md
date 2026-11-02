@@ -13,9 +13,9 @@
 | `src/client.ts` | `LspClient`：一个 server 子进程 + 一条 JSON-RPC 连接，initialize/shutdown 生命周期、注册 `publishDiagnostics` 通知并交给 inbox、capabilities 留存（pull 判定）、`ensureOpen`（didOpen 惰性打开文档）、`refreshDocument`（全量 didChange 同步磁盘内容）、各查询方法、`waitForDiagnostics`/`cachedDiagnostics`/`onPublish`；声明 `window.workDoneProgress`、应答 `window/workDoneProgress/create`、订阅 `$/progress` 折叠为 `IndexProgress` 并扇出给监听者；`warmDocuments` 并发预热一批文件 |
 | `src/registry.ts` | `ServerRegistry`：扩展名→server 独占路由、每 server 单实例缓存、`inFlight` 去重启动（并发调用共享一个子进程，且调用方的 abort 不会杀掉共享 server）、start/stop/restart、status、`onPublishedDiagnostics` 转发、`openFile`/`refreshDocument`/`diagnosticsFor`（按 push/pull/off 模式分派）、`diagnosticsMode`；`onIndexProgress`/`indexProgress` 进度转发（监听在 client 创建时就挂上，避免建完即结束的进度丢失） |
 | `src/inbox.ts` | `DiagnosticInbox`：推送式诊断的唯一落点——版本闸门（陈旧推送整条丢弃）、等待者（超时/取消结算为 `null`）、最近一次推送缓存、订阅分发 |
-| `src/watch.ts` | `DiagnosticWatcher`：写入→推送→注入的全部语义（登记先于刷新、空集不注入、去重窗口、同 agent 覆盖、超时仅丢弃监听） |
-| `src/diagnostics.ts` | 纯函数：严重级别过滤、诊断格式化、`agent.inject` 消息构造 |
-| `src/index.ts` | `apply`：注册 `lsp` 工具 + `/lsp` 命令 + 自动启动（挂载补漏 + `agent/created`）+ 推送订阅 + `tools/post-execute` 文件访问联动 + 后台索引完成通知注入 + `workspaceSymbol` 空结果候选兜底（`convergeSymbols`）+ 生命周期 disposer |
+| `src/broadcast.ts` | `DiagnosticBroadcaster`：推送→差分的全部语义——根目录剪枝、严重级别过滤、按文件多重集差分、合并窗口（`flushMs`）、按 `server+root` 找到目标 agent 并注入、已见集合有界（2048 文件，LRU 淘汰）、`dispose` 停表清状态。**注入不以写入为前提**：任何推送都参与差分 |
+| `src/diagnostics.ts` | 纯函数：严重级别过滤、诊断格式化、`diagnosticKey`、多重集差分 `diffDiagnostics`、`agent.inject` 变更消息构造 |
+| `src/index.ts` | `apply`：注册 `lsp` 工具 + `/lsp` 命令 + 自动启动（挂载补漏 + `agent/created`）+ 常驻推送订阅（`broadcaster.accept` → 差分 → 注入） + `tools/post-execute` 文件访问联动 + 后台索引完成通知注入 + `workspaceSymbol` 空结果候选兜底（`convergeSymbols`）+ 生命周期 disposer |
 
 ## 关键决策
 
@@ -33,13 +33,13 @@
 
 7. **文件访问联动**。监听 `tools/post-execute`（global）：
    - AI 用 `read` 读文件 → 服务器已热时同步 `didOpen`（读结果返回前文件即可查询）；冷服务器后台预热，绝不拖慢读取。
-   - AI 用 `write`/`edit` 写文件 → 异步 `refreshDocument`（全量 didChange）+ 拉取诊断，达到 `diagnosticsMinSeverity` 的结果经 `Agent.inject` 排入 agent 下一次 pre-step 上下文（不唤醒 idle driver）。
-   - 防过期污染：按 agent 的 session id 记录在途运行（改一个文件可能让其他文件出现报错，跨文件诊断互相牵连），新写入 abort 旧控制器（合并进诊断请求的 CancellationToken），只注入最新结果。
+   - AI 用 `write`/`edit` 写文件 → 异步 `refreshDocument`（全量 didChange），让服务器重解析；诊断注入**不依赖这个钩子**，它是常驻订阅（见决策 9）。
+   - 拉取式 server（声明 `diagnosticProvider`）仍按 agent 记录在途运行，新写入 abort 旧控制器（合并进诊断请求的 CancellationToken）；每次结果都交给 `broadcaster.observe` 参与差分，而不是直接注入。
    - 全部 fail-open：任何异常只写日志，绝不影响工具调用本身。
 
 8. **自动启动只负责「进程 + 握手」，不负责索引**。`agent/created` 取会话 cwd 起进程（串行监听器：异常会被吞掉，绝不拖垮 agent 创建），挂载时再用 `ctx.agents.list()` 对已存在会话补漏（覆盖 HMR 后不会再有 agent/created 的情况）；`findRoot` 之后必须 `hasRootMarker`，否则只有 `.git` 兜底的目录也会白起进程。启动路径不 await、失败只落 debug 日志；`registry` 的 `inFlight` 让自动启动、读钩子与查询共享同一次 spawn。
 
-9. **诊断走推送，超时只结束等待**。clangd 的 `textDocument/diagnostic` 回 `method not found`，所以主路径是 `textDocument/publishDiagnostics`：client 在 `connection.listen()` 后注册通知 → 版本闸门（低于本端最后发送版本者整条丢弃）→ `DiagnosticInbox` → `registry` 转发 → `DiagnosticWatcher` 在「有写入登记 + 达到 `diagnosticsMinSeverity` + 非重复」时 `agent.inject`（不唤醒 driver）。等待由 `diagnosticsTimeoutMs` 兜底，到期只结算为 `null`（`lsp diagnostics` 回退用最近一次推送）：**任何超时/取消都不 stop server、不 didClose**。`diagnosticsMode: auto` 仅在 server 声明 `diagnosticProvider` 时改走拉取路径。
+9. **诊断常驻订阅 + 差分注入**。clangd 的 `textDocument/diagnostic` 回 `method not found`，所以主路径是 `textDocument/publishDiagnostics`：client 在 `connection.listen()` 后注册通知 → 版本闸门（低于本端最后发送版本者整条丢弃）→ `DiagnosticInbox` → `registry` 转发 → `DiagnosticBroadcaster`。广播器**不挑时间**：每一条推送都参与观测（不再要求「刚写过这个文件」），只做根目录剪枝（`isPathInside`，跨 root 的推送不串台）+ `diagnosticsMinSeverity` 过滤，然后按文件与上一次已结算集合做**多重集差分**，把 `{added, removed}` 按 `server+root` 聚合并经合并窗口（`diagnosticsFlushMs`，默认 400ms，`0` 即立刻）结算，最后一次 `agent.inject` 发给该 root 下的所有会话（排入下一次 pre-step，不唤醒 driver）。差分让「同一结论重复推送」天然静音：没有变化就没有消息，这取代了旧的去重窗口。等待由 `diagnosticsTimeoutMs` 兜底，到期只结算为 `null`（`lsp diagnostics` 回退用最近一次推送）：**任何超时/取消都不 stop server、不 didClose**。`diagnosticsMode: auto` 仅在 server 声明 `diagnosticProvider` 时改走拉取路径（拉取结果同样汇入广播器）。
 
 10. **后台索引进度是客户端唯一能观测的就绪信号**。clangd 只在 client 声明 `window.workDoneProgress` 时才发 `$/progress`（token `backgroundIndexProgress`），且可能先发 `window/workDoneProgress/create` 请求等 null 应答；未声明则状态永久停在 Unsupported，一条通知都不发。插件因此：声明能力 → 应答 create → 折叠 `$/progress`（`Completed == Enqueued` 即完成）→ 完成时按 root 找该目录下的 agent，注入一条 `<dsh-lsp-index>`（每 `server+root` 只注入一次，去重表防重复）。这是「索引现在可以查询了」的唯一提示，因为 `workspace/symbol` 本身从不等待索引（`FindSymbols.cpp` 里 `if (!Index) return {}`）。
 
@@ -49,17 +49,18 @@
 
 ## 生命周期
 
-- `apply` → 注册工具/命令 + 自动启动 + 推送订阅 + `tools/post-execute` 监听 → `ctx.effect` 返回 disposer
+- `apply` → 注册工具/命令 + 自动启动 + 常驻推送订阅（`broadcaster.accept`）+ `tools/post-execute` 监听 → `ctx.effect` 返回 disposer
 - 查询 → `registry.resolve` → 懒 `client.start`（spawn + initialize）→ `ensureOpen` → request
 - 读文件 → `tools/post-execute` → 热服务器同步 `didOpen` / 冷服务器后台预热
-- 写文件 → `tools/post-execute` → push 模式：`watcher.arm` 后 `refreshDocument` → server 推送 → 过滤/去重 → `Agent.inject`（pull-capable server 保持原请求式路径；同一 agent 的新写入覆盖旧监听/旧运行）
+- 任意时刻 → server 推送 `publishDiagnostics` → 版本闸门 → inbox → registry → `broadcaster.observe`（根修剪 + 严重级过滤）→ 合并窗口结算 → 按文件差分 → 按 `server+root` 找 agent → `Agent.inject`（新增/消失）
+- 写文件 → `tools/post-execute` → push 模式只 `refreshDocument` 触发重解析；pull-capable server 走请求式路径，结果同样汇入广播器（同一 agent 的新写入覆盖旧运行）
 - 索引建完 → client `$/progress` → `foldIndexProgress` → registry 转发 → `index.ts` 订阅按 root 找 agent（`relative()` 判前缀）→ `Agent.inject`，同一 `server+root` 只注入一次
-- 卸载/HMR → `ctx.effect` disposer → 退订推送 + `watcher.abortAll` + abort 在途诊断 + `registry.stopAll` → 每 client `shutdown`/`exit`/`terminate`（树级，同步回收）
+- 卸载/HMR → `ctx.effect` disposer → 退订推送 + `broadcaster.dispose()`（停表、清已见集合）+ abort 在途诊断 + `registry.stopAll` → 每 client `shutdown`/`exit`/`terminate`（树级，同步回收）
 - 进程意外退出 → client 标记 `failed`，下次查询自动重建
 
 ## 测试
 
-- 纯函数单测（`node --test`，74 项全绿；本机沙箱禁 `spawn` 时改跑 `npx tsc -p tsconfig.test.json` + `node --test --test-isolation=none <build/test/*.test.js>` 同进程执行）：config 合并/冲突/禁用/枚举校验（含 clangd 参数不含 `--compile-commands-dir`、含 `--background-index`）、URI 往返、UTF-16 位置转换、根目录上溯与 `hasRootMarker`（临时目录 + 各 marker 组合）、诊断过滤/格式化/注入消息、`DiagnosticInbox`（投递/超时/取消/版本闸门/缓存/订阅/clear）、`DiagnosticWatcher`（注入/空集/严重级/超时/abort/覆盖/去重/截断/非本文件/未登记推送/跨 agent）、`ServerRegistry` 启动去重、`progress`（token 解析 / begin 重置 / report 计数与百分比 / clamp / end 完成 / 外来 token / 非法参数 / 渲染 / 注入文案）
+- 纯函数单测（`node --test`，74 项全绿；本机沙箱禁 `spawn` 时改跑 `npx tsc -p tsconfig.test.json` + `node --test --test-isolation=none <build/test/*.test.js>` 同进程执行）：config 合并/冲突/禁用/枚举校验（含 clangd 参数不含 `--compile-commands-dir`、含 `--background-index`）、URI 往返、UTF-16 位置转换、根目录上溯与 `hasRootMarker`（临时目录 + 各 marker 组合）、诊断过滤/格式化/注入消息、`DiagnosticInbox`（投递/超时/取消/版本闸门/缓存/订阅/clear）、`DiagnosticBroadcaster`（新增注入/无变化静音/消失上报/严重级变化=一增一减/多重集/低于阈值/多文件合并/定时器结算/根外丢弃/按 root 路由/无目标会话/截断与省略提示/dispose/单个 agent 抛错不影响其它/message 形状）、`ServerRegistry` 启动去重、`progress`（token 解析 / begin 重置 / report 计数与百分比 / clamp / end 完成 / 外来 token / 非法参数 / 渲染 / 注入文案）
 - 真实 LSP 端到端（临时工程 + 本机 clangd 17.0.6，脚本 `%TEMP%\dsh-lsp-e2e\e2e.mjs`）：挂载即自动启动（`/lsp status` 显示 running + pid，仅 rooted server 起）→ 模拟 AI 写坏文件 → 500ms 内收到注入的 `<dsh-lsp-diagnostics>`（真实 `Use of undeclared identifier`）→ 再次写入后 server 仍为同一 pid（超时/写入不会中止 server）。已通过。
 - 候选兜底端到端（临时工程 + clangd 17.0.6）：目标文件仅用 shell 写入、从未被 `didOpen`；`workspaceSymbol{query:"HiddenWidget"}` 首次索引 miss → `fallback: {used:true, strategy:"content", candidates:4, warmed:4, matched:4}` 并命中 `HiddenOwner.h:2:7`；同一次调用也验证了去掉 `--compile-commands-dir` 后同一 clangd 实例能按文件解析到该临时工程自己的 `compile_commands.json`。已通过。
 - 索引完成通知：真实 lua-language-server 后台索引建完后，本会话收到注入 `<dsh-lsp-index> 后台索引已完成 (lua-language-server, root=C:/dotfiles-copy)`。已通过。

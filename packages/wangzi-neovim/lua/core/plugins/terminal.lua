@@ -228,6 +228,37 @@ return {
         end,
         desc = "Terminal 0",
       },
+      {
+        "<leader>td",
+        function()
+          local dsh_cmd = { 'dsh', '--profile', 'tui' }
+          local snacks_terminal_opts = {
+            env = {
+              NVIM = vim.v.servername,
+            },
+            win = {
+              position = 'right',
+              enter = true,
+              width = 0.25,
+              winbar = "",
+              wo = {
+                number = false,
+                relativenumber = false,
+                winbar = "",
+              }
+            },
+          }
+          local nu_command = "with-env { NVIM: '" .. vim.v.servername .. "' } { dsh.cmd --profile tui }"
+          if vim.fn.has("win32") == 1 then
+            vim.cmd([[!wt -w 0 sp -s 0.25 nu -c ]] .. vim.fn.shellescape(nu_command))
+          else
+            vim.schedule(function()
+              require('snacks.terminal').toggle(dsh_cmd, snacks_terminal_opts)
+            end)
+          end
+        end,
+        desc = "Deepseek Harness",
+      },
     },
   },
 }

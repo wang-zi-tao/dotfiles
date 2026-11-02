@@ -19,13 +19,12 @@
         maxResultChars: 16000
         timeoutMs: 60000
         syncLoadOnRead: true
-        diagnosticsOnWrite: true
+        diagnosticsInject: true
         diagnosticsMinSeverity: warning
         diagnosticsMode: auto
         diagnosticsTimeoutMs: 15000
-        diagnosticsDedupeMs: 60000
+        diagnosticsFlushMs: 400
         maxDiagnostics: 50
-        diagnosticsOnAnyPublish: true
         # workspaceSymbol fallback: when the index answers nothing, converge on
         # candidate files with ripgrep, didOpen+parse them (which fills the
         # dynamic index), and query the index again.

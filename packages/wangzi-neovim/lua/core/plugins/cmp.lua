@@ -108,7 +108,7 @@ local function config()
             end, { "i", "s" }),
             ["<S-Tab>"] = cmp.mapping(function(fallback)
                 local luasnip = require("luasnip")
-                pcapll(function()
+                pcall(function()
                     if cmp.visible() then
                         cmp.select_prev_item()
                     elseif luasnip.jumpable(-1) then
@@ -158,7 +158,7 @@ local function config()
     cmp.setup.filetype("gitcommit", {
         sources = cmp.config.sources({
             { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
-            source,
+            source_buffer_options,
         }),
     })
 
