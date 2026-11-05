@@ -17,17 +17,20 @@
 - 调用explore agent来探索代码结构
 
 # 代码搜索方法（按优先级从高到低）
-- 已知精确名字, 但名字过于通用: LSP
+- 已知精确名字, 但名字过于通用, 同名符号过多: LSP
 - 已知部分名字: LSP 和 codegraph
 - 已知部分名字和代码目录: LSP 和 codegraph 和 grep
+- 已知位置的代码符号的使用点: LSP
+- 已知位置的虚函数或者接口的实现点: LSP
 - 未知精确名字: hindsight 和 VectorCode
 - 曾经考察过代码模块架构: hindsight 和 Obsidian
 - 未考察过的代码模块架构: 子代理考察模块结构, 最终写入笔记库和记忆
 - 兜底: grep
 
-### 1. 最高优先：LSP（dsh-lsp 插件）
-- **`workspaceSymbol`**: 全工作区搜符号，支持只给符号名一部分的模糊/子串匹配；参数 `filePath` + `query`（`line`/`character` 可省略）. 速度远快于全局grep查找, 不会搜索出无关结果
-- **`explore`（推荐，聚合查询）**: 一次调用同时返回 definition + typeDefinition + hover + implementation + references，效果等同 codegraph 的单符号多信息查询；需 `line` + `character`
+### 1. 最高优先：LSP（dsh-lsp 插件，工具名 `lsp_*`）
+- **`lsp_symbols`**: `scope:"workspace"` 全工作区搜符号，支持只给符号名一部分的模糊/子串匹配；参数 `filePath` + `query`（`line`/`character` 可省略）；`scope:"document"` 取当前文件大纲. 速度远快于全局grep查找, 不会搜索出无关结果
+- **`lsp_explore`（推荐，聚合查询）**: 一次调用同时返回 definition + typeDefinition + hover + implementation + references，效果等同 codegraph 的单符号多信息查询；需 `filePath` + `line` + `character`
+- 单点查询用 `lsp_definition` / `lsp_type_definition` / `lsp_implementation` / `lsp_references` / `lsp_hover`（都需 `filePath` + `line` + `character`）；`lsp_status` 只看 server 状态（只读，不会启动新进程）
   - **重要**: 查 C++ 符号时 `filePath` 优先用 `.cpp`（编译单元在 compile_commands.json 中，命中更快更全）；`.h` 也能工作但依赖后台索引预热，命中略慢
 
 ### 2. 最高优先：codegraph 代码静态索引
@@ -58,7 +61,7 @@
 - **绝对不用** 等价于grep工具的其他命令, 例如findstr和powershell的select-string命令, 性能比grep低
 
 # 代码检查
-- 优先使用lsp的diagnose诊断代码问题
+- 优先使用 `lsp_diagnostics` 诊断代码问题（`severity` 可按最低级别过滤）
 - 最终需要编译
 
 # 笔记库
@@ -79,21 +82,26 @@
 - 脚本文件: 推荐使用python/nodejs脚本文件, 代替shell脚本
 - 数据分析命令: 推荐使用nushell. 避免使用powershell
 - 日常终端命令: nushell > bash >> cmd > powershell
+- 脚本文件中, 尽量不要重定向输出
 
 # 经验总结
 **MUST** 每次执行任务后, 总结任务中的失败原因和成功经验, 并存储经验
+
 ## 失败经验类型
 - 工具或命令多次(>=3)调用失败
 - 任务多次(>=2)被要求返工
 - 事实与常识不符合
 - 事实与记忆不一致
+
 ## 成功经验类型
 - 跑通了一个复杂的工作流
 - 完成了复杂的研究任务
 - 重构代码, 让笔记或记忆中的代码结构发生变化
+
 ## 经验存储
 - 方法类经验适合使用`harness_refine`, 总结成skill
 - 事实类和经历经验适合 `hindsight_retain` 存入记忆
 - 如果经验总结内容过于复杂, 存入笔记库
 - 如果经验内容复杂, 且其信息分散在记忆库中, 则建立一个hindsight 知识页, 来方便检索
-- 如果是本机dsh插件(dsh-hindsight/dsh-lsp/dsh-neovim)或者脚本程序或者skill或者AGENTS.md的问题, 如果源码在本机上, 可以在用户同意后进行修复
+- 如果本机skill或者AGENTS.md的信息与事实不符, 可以进行修改
+- 如果是本机dsh插件(dsh-hindsight/dsh-lsp/dsh-neovim)或者脚本程序有问题, 可以在用户同意后进行修复

@@ -15,7 +15,8 @@
 | `src/inbox.ts` | `DiagnosticInbox`：推送式诊断的唯一落点——版本闸门（陈旧推送整条丢弃）、等待者（超时/取消结算为 `null`）、最近一次推送缓存、订阅分发 |
 | `src/broadcast.ts` | `DiagnosticBroadcaster`：推送→差分的全部语义——根目录剪枝、严重级别过滤、按文件多重集差分、合并窗口（`flushMs`）、按 `server+root` 找到目标 agent 并注入、已见集合有界（2048 文件，LRU 淘汰）、`dispose` 停表清状态。**注入不以写入为前提**：任何推送都参与差分 |
 | `src/diagnostics.ts` | 纯函数：严重级别过滤、诊断格式化、`diagnosticKey`、多重集差分 `diffDiagnostics`、`agent.inject` 变更消息构造 |
-| `src/index.ts` | `apply`：注册 `lsp` 工具 + `/lsp` 命令 + 自动启动（挂载补漏 + `agent/created`）+ 常驻推送订阅（`broadcaster.accept` → 差分 → 注入） + `tools/post-execute` 文件访问联动 + 后台索引完成通知注入 + `workspaceSymbol` 空结果候选兜底（`convergeSymbols`）+ 生命周期 disposer |
+| `src/tools.ts` | 模型面工具目录：`LSP_TOOLS` 九项（`name` / `operation` / `description` / `parameters` / `resultKind`），以及每个结果 kind 的输出 schema（`RESULT_SCHEMA_BY_KIND`、`outputSchemaFor`、status 的 `SERVER_STATUS_SCHEMA`）。纯数据 + 纯函数，不做 I/O |
+| `src/index.ts` | `apply`：按 `LSP_TOOLS` 注册 `lsp_*` 工具目录 + `/lsp` 命令 + 自动启动（挂载补漏 + `agent/created`）+ 常驻推送订阅（`broadcaster.accept` → 差分 → 注入） + `tools/post-execute` 文件访问联动 + 后台索引完成通知注入 + `workspaceSymbol` 空结果候选兜底（`convergeSymbols`）+ 生命周期 disposer |
 
 ## 关键决策
 
@@ -27,7 +28,7 @@
 
 4. **`didOpen` 是硬前提**。clangd 对未打开文档的 hover/typeDefinition/documentSymbol/diagnostics 返回 `trying to get AST for non-added document`。`ensureOpen` 在首次位置查询前把文件内容推给 server（惰性、常驻）。`didOpen` 同时是**工程索引唯一的激活触发器**：实测（临时工程，clangd 17.0.6）只起进程、compile_commands.json 与磁盘 `.idx` 齐备时，`workspace/symbol` 全程 0 命中、后台索引也不启动；打开 1 个文件后，整个工程（含从未打开的其它文件）的符号立即可查。
 
-5. **单工具 + 单命令**。工具面 = 1（`lsp`），满足「工具面精简、首轮只露核心」铁律；所有能力通过 `operation` 枚举路由，避免一堆独立工具污染工具目录与请求前缀。
+5. **工具面 = 一个 `lsp_*` 域：按意图拆开，而不是一个 `lsp` + `operation` 枚举**。早期实现是单工具 `lsp`，靠 `operation` 枚举路由九种语义，出发点是最小化工具目录。实际用起来这个形状在三处漏：① 一段描述要同时解释九种语义，模型得先记住枚举名再挑参数，描述越长越容易选错；② 参数语义错配——位置类操作强制 `line`/`character`，`workspaceSymbol` / `documentSymbol` / `diagnostics` 不需要，`scope` 只对符号查询有意义，单 schema 只能全做成可选，「该传的没传」于是从 schema 约束退化成运行时错误；③ 输出只能用一个宽 `oneOf`，结果里的 `kind` 判别对模型不可见。拆成九个 `lsp_*` 工具后：每个描述一句话、schema 只含该意图需要的字段、`required` 就是真实前置条件、工具名即意图（`lsp_references` 比 `operation:"findReferences"` 歧义更小）。代价是工具目录多八条，用统一 `lsp_` 前缀 + 一句话描述收束在同一个域内；`/lsp` 仍是唯一命令，进程控制不进工具面（`lsp_status` 只读，不启动 server）。
 
 6. **根目录查找独立于工作目录**。混合语言工程里 LSP 根 ≠ 会话 cwd；从被查文件向上找 marker（WPS 的 `compile_commands.json` 在 `D:\branch-master\wpsmain`，源文件可能在十几层之下）。
 
@@ -60,7 +61,7 @@
 
 ## 测试
 
-- 纯函数单测（`node --test`，74 项全绿；本机沙箱禁 `spawn` 时改跑 `npx tsc -p tsconfig.test.json` + `node --test --test-isolation=none <build/test/*.test.js>` 同进程执行）：config 合并/冲突/禁用/枚举校验（含 clangd 参数不含 `--compile-commands-dir`、含 `--background-index`）、URI 往返、UTF-16 位置转换、根目录上溯与 `hasRootMarker`（临时目录 + 各 marker 组合）、诊断过滤/格式化/注入消息、`DiagnosticInbox`（投递/超时/取消/版本闸门/缓存/订阅/clear）、`DiagnosticBroadcaster`（新增注入/无变化静音/消失上报/严重级变化=一增一减/多重集/低于阈值/多文件合并/定时器结算/根外丢弃/按 root 路由/无目标会话/截断与省略提示/dispose/单个 agent 抛错不影响其它/message 形状）、`ServerRegistry` 启动去重、`progress`（token 解析 / begin 重置 / report 计数与百分比 / clamp / end 完成 / 外来 token / 非法参数 / 渲染 / 注入文案）
+- 纯函数单测（`node --test`，111 项全绿；本机沙箱禁 `spawn` 时改跑 `npx tsc -p tsconfig.test.json` + `node --test --test-isolation=none <build/test/*.test.js>` 同进程执行）：config 合并/冲突/禁用/枚举校验（含 clangd 参数不含 `--compile-commands-dir`、含 `--background-index`）、URI 往返、UTF-16 位置转换、根目录上溯与 `hasRootMarker`（临时目录 + 各 marker 组合）、诊断过滤/格式化/注入消息、`DiagnosticInbox`（投递/超时/取消/版本闸门/缓存/订阅/clear）、`DiagnosticBroadcaster`（新增注入/无变化静音/消失上报/严重级变化=一增一减/多重集/低于阈值/多文件合并/定时器结算/根外丢弃/按 root 路由/无目标会话/截断与省略提示/dispose/单个 agent 抛错不影响其它/message 形状）、`ServerRegistry` 启动去重、`progress`（token 解析 / begin 重置 / report 计数与百分比 / clamp / end 完成 / 外来 token / 非法参数 / 渲染 / 注入文案）、`tools` 工具目录不变量（名字唯一且 `lsp_` 前缀 / 目录恰好覆盖九种 `QueryOperation`（`symbols` 展开为 document+workspace）/ 不再暴露 `operation` 参数 / 每个属性的 schema 有 description 且 `required ⊆ properties` / 位置类工具 required 恰为 `filePath+line+character` / `lsp_symbols` 的 scope 与 query、`lsp_diagnostics` 的 severity、`lsp_status` 无参 / `outputSchemaFor` 的 `ok` 与 `kind` 常量、status result 的 required 字段）
 - 真实 LSP 端到端（临时工程 + 本机 clangd 17.0.6，脚本 `%TEMP%\dsh-lsp-e2e\e2e.mjs`）：挂载即自动启动（`/lsp status` 显示 running + pid，仅 rooted server 起）→ 模拟 AI 写坏文件 → 500ms 内收到注入的 `<dsh-lsp-diagnostics>`（真实 `Use of undeclared identifier`）→ 再次写入后 server 仍为同一 pid（超时/写入不会中止 server）。已通过。
 - 候选兜底端到端（临时工程 + clangd 17.0.6）：目标文件仅用 shell 写入、从未被 `didOpen`；`workspaceSymbol{query:"HiddenWidget"}` 首次索引 miss → `fallback: {used:true, strategy:"content", candidates:4, warmed:4, matched:4}` 并命中 `HiddenOwner.h:2:7`；同一次调用也验证了去掉 `--compile-commands-dir` 后同一 clangd 实例能按文件解析到该临时工程自己的 `compile_commands.json`。已通过。
 - 索引完成通知：真实 lua-language-server 后台索引建完后，本会话收到注入 `<dsh-lsp-index> 后台索引已完成 (lua-language-server, root=C:/dotfiles-copy)`。已通过。

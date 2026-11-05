@@ -203,6 +203,8 @@ export interface QueryArgs {
   line?: number
   character?: number
   query?: string
+  /** Minimum severity for `diagnostics`; `all` (the default) keeps everything. */
+  severity?: DiagnosticSeverity | 'all'
 }
 
 /** 1-based UTF-16 cursor position (the tool's convention). */

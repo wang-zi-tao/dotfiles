@@ -12,7 +12,7 @@
 
 - insert:
     - id: lsp
-      name: 'dsh-lsp'
+      name: "dsh-lsp"
       config:
         autoStart: session
         maxLocations: 100
@@ -39,10 +39,12 @@
             # database to this one root. clangd's default (nearest
             # compile_commands.json above each file) is per-file correct.
             args:
-              - '--background-index'
-              - '--clang-tidy'
-              - '--log=error'
-            extensions: [c, cc, cpp, cxx, 'c++', h, hpp, hh, hxx, 'h++', inl]
+              - "--background-index"
+              - "--clang-tidy"
+              - "--log=error"
+              - "--pch-storage=disk"
+              - "--enable-config"
+            extensions: [c, cc, cpp, cxx, "c++", h, hpp, hh, hxx, "h++", inl]
             languageId: cpp
             rootMarkers:
               - compile_commands.json
@@ -68,7 +70,7 @@
               - go.work
           - id: pyright
             command: pyright
-            args: ['--stdio']
+            args: ["--stdio"]
             extensions: [py, pyi]
             languageId: python
             rootMarkers:
@@ -79,7 +81,7 @@
               - .python-version
           - id: typescript-language-server
             command: typescript-language-server
-            args: ['--stdio']
+            args: ["--stdio"]
             extensions: [ts, tsx, js, jsx, mjs, cjs]
             languageId: typescript
             rootMarkers:

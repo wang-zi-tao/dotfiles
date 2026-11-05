@@ -1,7 +1,7 @@
 {
   "name": "dsh-lsp",
   "version": "0.1.0",
-  "description": "LSP semantic code navigation for DeepSeek Harness: one lsp tool (definition/references/implementation/typeDefinition/hover/workspaceSymbol/documentSymbol/diagnostics + aggregated explore) and one /lsp command over managed clangd / rust-analyzer / gopls / pyright / ... language-server subprocesses.",
+  "description": "LSP semantic code navigation for DeepSeek Harness: an lsp_* tool set (explore / definition / type_definition / implementation / references / hover / symbols / diagnostics / status) plus one /lsp command over managed clangd / rust-analyzer / gopls / pyright / ... language-server subprocesses.",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

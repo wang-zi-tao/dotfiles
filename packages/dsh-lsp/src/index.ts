@@ -1,11 +1,11 @@
 /**
  * dsh-lsp — LSP semantic code navigation for DeepSeek Harness.
  *
- * A single model-facing `lsp` tool (definition / references / implementation
- * / typeDefinition / hover / workspaceSymbol / documentSymbol / diagnostics,
- * plus an aggregated `explore` that mirrors codegraph's one-call symbol
- * lookup) and one `/lsp` command for manual server control, over managed
- * language-server subprocesses.
+ * A small catalog of model-facing `lsp_*` tools — one per navigation intent
+ * (explore / definition / type definition / implementation / references /
+ * hover / symbols / diagnostics / status) rather than a single `lsp` tool
+ * routed by an `operation` enum — plus one `/lsp` command for manual server
+ * control, over managed language-server subprocesses.
  *
  * The plugin is self-contained and dependency-light: it imports only
  * `vscode-languageserver-protocol`, and consumes the harness through the same
@@ -19,6 +19,7 @@ import { DiagnosticBroadcaster, type InjectableAgent } from './broadcast.js'
 import { searchCandidates } from './candidates.js'
 import { LspClient } from './client.js'
 import { resolveConfig } from './config.js'
+import { filterDiagnostics } from './diagnostics.js'
 import { indexProgressMessage, renderIndexProgress } from './progress.js'
 import {
   isFileUri,
@@ -31,7 +32,8 @@ import {
 } from './protocol.js'
 import { ServerRegistry } from './registry.js'
 import { findRoot, hasRootMarker } from './root.js'
-import type { JsonSchemaNode, ToolExecution } from '@deepseek-ai/dsh-tools'
+import { LSP_TOOLS, outputSchemaFor } from './tools.js'
+import type { ToolExecution } from '@deepseek-ai/dsh-tools'
 import type { SymbolInformation, WorkspaceSymbol } from 'vscode-languageserver-protocol'
 import type {
   CommandInvocation,
@@ -43,7 +45,9 @@ import type {
   LspLocation,
   LspQueryResult,
   QueryArgs,
+  QueryOperation,
   ServerSpec,
+  ServerStatus,
   SubprocessRuntime,
   SymbolEntry,
   SymbolFallbackInfo,
@@ -347,9 +351,14 @@ async function runQuery(
     // `diagnosticsTimeoutMs`. On expiry the last cached push is used and a
     // note explains the gap; a timeout ends the wait, never the server.
     const report = await registry.diagnosticsFor(filePath, cwd, signal)
+    // `severity` only narrows the presentation: the server still reports
+    // everything it has, and the caller decides what is worth reading.
+    const entries = args.severity !== undefined && args.severity !== 'all'
+      ? filterDiagnostics(report.entries, args.severity)
+      : report.entries
     return {
       kind: 'diagnostics',
-      diagnostics: report.entries,
+      diagnostics: entries,
       ...(report.note ? { note: report.note } : {}),
     }
   }
@@ -561,168 +570,41 @@ function toStructuredResult(result: LspQueryResult): unknown {
   }
 }
 
-/** One flattened location in the structured projection. */
-const LOCATION_SCHEMA: JsonSchemaNode = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    path: { type: 'string', description: 'Workspace-relative path when inside the root, otherwise the absolute path.' },
-    line: { type: 'integer', description: '1-based line.' },
-    character: { type: 'integer', description: '1-based UTF-16 character.' },
-    preview: { type: 'string', description: 'Trimmed content of the line the range starts on; omitted when empty.' },
-  },
-  required: ['path', 'line', 'character'],
-}
-
-/** A null is meaningful for hover (no information available). */
-const NULLABLE_STRING_SCHEMA: JsonSchemaNode = {
-  oneOf: [{ type: 'string' }, { type: 'null' }],
-}
-
-const SYMBOL_SCHEMA: JsonSchemaNode = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    name: { type: 'string' },
-    kind: { type: 'string', description: 'Human-readable symbol kind (function, class, struct, ...).' },
-    containerName: { type: 'string' },
-    location: LOCATION_SCHEMA,
-  },
-  required: ['name', 'kind', 'location'],
-}
-
-const DIAGNOSTIC_SCHEMA: JsonSchemaNode = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    severity: { type: 'string', enum: ['hint', 'information', 'warning', 'error'] },
-    message: { type: 'string' },
-    range: {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        startLine: { type: 'integer' },
-        startCharacter: { type: 'integer' },
-        endLine: { type: 'integer' },
-        endCharacter: { type: 'integer' },
-      },
-      required: ['startLine', 'startCharacter', 'endLine', 'endCharacter'],
-    },
-    code: { type: 'string' },
-    source: { type: 'string' },
-  },
-  required: ['severity', 'message', 'range'],
-}
-
-/** The per-operation payload carried in `result`. */
-const RESULT_SCHEMA: JsonSchemaNode = {
-  oneOf: [
-    {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        kind: { type: 'string', const: 'locations' },
-        locations: { type: 'array', items: LOCATION_SCHEMA },
-        truncated: { type: 'boolean' },
-      },
-      required: ['kind', 'locations', 'truncated'],
-    },
-    {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        kind: { type: 'string', const: 'hover' },
-        hover: NULLABLE_STRING_SCHEMA,
-      },
-      required: ['kind', 'hover'],
-    },
-    {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        kind: { type: 'string', const: 'symbols' },
-        symbols: { type: 'array', items: SYMBOL_SCHEMA },
-        truncated: { type: 'boolean' },
-        fallback: {
-          type: 'object',
-          additionalProperties: false,
-          description: 'Present when the index answered nothing and the candidate fallback ran.',
-          properties: {
-            used: { type: 'boolean' },
-            strategy: { type: 'string', enum: ['name', 'content', 'none'] },
-            candidates: { type: 'integer', description: 'Candidate files the search returned.' },
-            warmed: { type: 'integer', description: 'Candidates parsed into the dynamic index.' },
-            matched: { type: 'integer', description: 'Candidates that matched before capping.' },
-            truncated: { type: 'boolean' },
-          },
-          required: ['used', 'strategy', 'candidates', 'warmed', 'matched', 'truncated'],
-        },
-        indexing: { type: 'string', description: 'Background index state when the answer was empty because the index was still building.' },
-      },
-      required: ['kind', 'symbols', 'truncated'],
-    },
-    {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        kind: { type: 'string', const: 'diagnostics' },
-        diagnostics: { type: 'array', items: DIAGNOSTIC_SCHEMA },
-        note: {
-          type: 'string',
-          description: 'Present when the answer is incomplete: a pull timed out or no push arrived in time.',
-        },
-      },
-      required: ['kind', 'diagnostics'],
-    },
-    {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        kind: { type: 'string', const: 'explore' },
-        symbolName: { type: 'string' },
-        hover: NULLABLE_STRING_SCHEMA,
-        definition: { type: 'array', items: LOCATION_SCHEMA },
-        typeDefinition: { type: 'array', items: LOCATION_SCHEMA },
-        implementation: { type: 'array', items: LOCATION_SCHEMA },
-        references: { type: 'array', items: LOCATION_SCHEMA },
-        truncated: { type: 'boolean' },
-      },
-      required: ['kind', 'symbolName', 'hover', 'definition', 'typeDefinition', 'implementation', 'references', 'truncated'],
-    },
-  ],
-}
-
 /**
- * Canonical tool output: a human `text` rendering plus the always-present
- * structured `result` projection, or an error envelope. The two branches are
- * disjoint (`ok` is a const), so exactly one matches any returned value.
+ * Render the status rows shared by `lsp_status` and `/lsp status`, so both
+ * surfaces describe a server the same way.
  */
-const OUTPUT_SCHEMA: JsonSchemaNode = {
-  oneOf: [
-    {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        ok: { type: 'boolean', const: true },
-        kind: { type: 'string', enum: ['locations', 'hover', 'symbols', 'diagnostics', 'explore'] },
-        text: { type: 'string' },
-        result: RESULT_SCHEMA,
-      },
-      required: ['ok', 'kind', 'text', 'result'],
-    },
-    {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        ok: { type: 'boolean', const: false },
-        kind: { type: 'string', const: 'error' },
-        text: { type: 'string' },
-      },
-      required: ['ok', 'kind', 'text'],
-    },
-  ],
+function renderServerRows(rows: ServerStatus[]): string {
+  if (rows.length === 0) return 'No LSP servers configured.'
+  const lines = rows.map(r => {
+    const root = r.root ?? '-'
+    const pid = r.pid ?? '-'
+    const err = r.error ? ` (${r.error})` : ''
+    const index = r.index ? `, index=${renderIndexProgress(r.index)}` : ''
+    return `- ${r.id}: ${r.state}${err}\n    languageId=${r.languageId}, extensions=[${r.extensions.join(', ')}], root=${root}, pid=${pid}${index}`
+  })
+  return `LSP servers:\n${lines.join('\n')}`
 }
 
+/** Structured projection of `lsp_status`; index progress flattens to text. */
+function statusResult(rows: ServerStatus[]): unknown {
+  return {
+    kind: 'status',
+    // Every field is coerced to its lossless-JSON form: a running server can
+    // still be missing a root or pid, and `undefined` would fail the harness
+    // output snapshot ("value is not lossless JSON").
+    servers: rows.map(r => ({
+      id: r.id,
+      languageId: r.languageId,
+      extensions: [...r.extensions],
+      state: r.state,
+      root: typeof r.root === 'string' ? r.root : null,
+      pid: typeof r.pid === 'number' && Number.isFinite(r.pid) ? r.pid : null,
+      error: typeof r.error === 'string' ? r.error : null,
+      ...(r.index ? { index: renderIndexProgress(r.index) } : {}),
+    })),
+  }
+}
 /**
  * Combine several AbortSignals into one that aborts when any source aborts.
  * Lets a write's diagnostics run observe both the caller's turn signal and
@@ -900,54 +782,62 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
     order: TOOL_SECTION_ORDER,
     text: [
       '# Language Server Protocol',
-      '代码库较大时, 优先使用 `lsp` 工具快速查找函数和类型的位置, 以及使用点.',
-      '普通导航使用 search/read。当文本匹配不明确，或在变更前需要精确的定义、实现或引用时，使用 lsp。符号外的位置可能返回空结果。',
-      '查 C++ 符号时 `filePath` 优先用 `.cpp`（编译单元在 compile_commands.json 中，命中更快更全）；`.h` 也能工作但依赖后台索引预热，命中略慢. ',
-      '读文件时 LSP 自动加载该文件; 之后语言服务器每次推送的诊断变化（新增/消失的 error、warning）都会持续注入到你的上下文, 请据此修复问题.',
       '语言服务器在会话启动时自动拉起（`/lsp status` 查看）; 自动启动不等于索引就绪——clangd 要等首次 didOpen 才激活工程索引, 后台索引建完后会注入一条「后台索引已完成」通知.',
-      '`workspaceSymbol` 命中为空时插件会用 rg 收敛候选文件、解析后重查; 若结果带 "index still building" 说明后台索引仍在建, 稍后重试（完成时会收到通知）.',
+      '已知精确位置（文件和行列）时按需要选工具:',
+      '- `lsp_explore`: 一次拿到定义 + 类型定义 + 悬停文档 + 实现 + 引用, 默认先用它.',
+      '- `lsp_definition` / `lsp_type_definition` / `lsp_implementation` / `lsp_references` / `lsp_hover`: 只需要其中一项时用对应窄工具; 变更符号前用 `lsp_references` 确认调用点.',
+      '- `lsp_symbols` (scope=workspace, query 模糊/部分名字): 只知道名字、不知道位置时先查全局符号; scope=document 取文件大纲. 命中为空时插件会用 rg 收敛候选文件、解析后重查, 结果带 fallback/indexing 说明.',
+      '- `lsp_diagnostics`: 按需取某文件的诊断; 平时读文件/改文件后的诊断变化会自动注入上下文, 请据此修复问题.',
+      '- `lsp_status`: 看 server 状态, 不会启动新 server (手动控制用 `/lsp`).',
+      '`filePath` 按扩展名选择 server; `line` 1-based, `character` 1-based UTF-16.',
+      '查 C++ 符号时 `filePath` 优先用 `.cpp`（编译单元在 compile_commands.json 中, 命中更快更全）; `.h` 也能工作但依赖后台索引预热, 命中略慢.',
+      '文本匹配不明确时优先用 `lsp_symbols` 而不是 grep; 普通导航仍用 search/read. 符号外的位置可能返回空结果.',
       'dsh-lsp插件可迭代升级',
     ].join('\n'),
   });
 
   // ------------------------------------------------------------------
-  // Model-facing tool
+  // Model-facing tools: one registration per catalog entry
   // ------------------------------------------------------------------
-  ctx.tools.register({
-    name: 'lsp',
-    description:
-      'Language-server code navigation. Query a symbol or file via operation: explore (one call: definition + type + hover + implementation + references), goToDefinition, findReferences, goToImplementation, typeDefinition, hover(get the signature and docs), workspaceSymbol (get the symbols in the project) (fuzzy/partial name), documentSymbol(get the symbols in the file), diagnostics. filePath selects the language server by extension; line/character are 1-based UTF-16 (required for position ops and workspaceSymbol per server routing). Use /lsp to control servers.',
-    parameters: {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        operation: {
-          type: 'string',
-          enum: ['explore', 'goToDefinition', 'findReferences', 'goToImplementation', 'typeDefinition', 'hover', 'workspaceSymbol', 'documentSymbol', 'diagnostics'],
-        },
-        filePath: { type: 'string', description: 'Absolute or workspace-relative source file path; its extension selects the server.' },
-        line: { type: 'integer', description: '1-based line of the cursor (position ops and workspaceSymbol).' },
-        character: { type: 'integer', description: '1-based UTF-16 character of the cursor.' },
-        query: { type: 'string', description: 'Symbol name for workspaceSymbol; supports partial/fuzzy names.' },
+  for (const spec of LSP_TOOLS) {
+    ctx.tools.register({
+      name: spec.name,
+      description: spec.description,
+      parameters: spec.parameters,
+      output: {
+        schema: outputSchemaFor(spec.resultKind),
+        render: (_args, value) => [{ type: 'text', text: String((value as { text?: string } | null)?.text ?? '') }],
       },
-      required: ['operation', 'filePath'],
-    },
-    output: {
-      schema: OUTPUT_SCHEMA,
-      render: (_args, value) => [{ type: 'text', text: String((value as { text?: string } | null)?.text ?? '') }],
-    },
-    async execute(rawArgs, exec) {
-      const args = rawArgs as unknown as QueryArgs
-      try {
-        const result = await runQuery(registry, args, config, exec, { subprocess: ctx.subprocess, logger })
-        const text = capText(renderResult(args, result, config), config.maxResultChars)
-        return { ok: true, kind: result.kind, text, result: toStructuredResult(result) }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        return { ok: false, kind: 'error', text: `lsp failed: ${message}` }
-      }
-    },
-  })
+      async execute(rawArgs, exec) {
+        try {
+          if (spec.operation === 'status') {
+            const rows = registry.status()
+            return { ok: true, kind: 'status', text: renderServerRows(rows), result: statusResult(rows) }
+          }
+          const raw = (rawArgs ?? {}) as Record<string, unknown>
+          const operation: QueryOperation = spec.operation === 'symbols'
+            ? (raw.scope === 'workspace' ? 'workspaceSymbol' : 'documentSymbol')
+            : spec.operation
+          const query = typeof raw.query === 'string' ? raw.query : undefined
+          if (operation === 'workspaceSymbol' && (query ?? '').trim() === '') {
+            throw new Error("'query' is required when scope is 'workspace'")
+          }
+          const args: QueryArgs = {
+            ...raw,
+            operation,
+            filePath: requireString(raw, 'filePath'),
+            ...(query !== undefined ? { query } : {}),
+          }
+          const result = await runQuery(registry, args, config, exec, { subprocess: ctx.subprocess, logger })
+          const text = capText(renderResult(args, result, config), config.maxResultChars)
+          return { ok: true, kind: result.kind, text, result: toStructuredResult(result) }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          return { ok: false, kind: 'error', text: `${spec.name} failed: ${message}` }
+        }
+      },
+    })
+  }
 
   // ------------------------------------------------------------------
   // /lsp command
@@ -967,16 +857,7 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
       try {
         switch (effectiveVerb) {
           case 'status': {
-            const rows = registry.status()
-            if (rows.length === 0) return { kind: 'success', text: 'No LSP servers configured.' }
-            const lines = rows.map(r => {
-              const root = r.root ?? '-'
-              const pid = r.pid ?? '-'
-              const err = r.error ? ` (${r.error})` : ''
-              const index = r.index ? `, index=${renderIndexProgress(r.index)}` : ''
-              return `- ${r.id}: ${r.state}${err}\n    languageId=${r.languageId}, extensions=[${r.extensions.join(', ')}], root=${root}, pid=${pid}${index}`
-            })
-            return { kind: 'success', text: `LSP servers:\n${lines.join('\n')}` }
+            return { kind: 'success', text: renderServerRows(registry.status()) }
           }
           case 'start': {
             const targets = ids.length > 0 ? ids : registry.servers.map(s => s.id)
