@@ -105,11 +105,14 @@ cluster-node-cli rescan        # 强制重新探测
 跨网段的 WireGuard 流量默认不再依赖 udp2raw，而是由 cluster-node 在多条 HTTP/2 长连接上自动代理：
 
 - **端口布局**：每个 peer 一个本地 UDP 端口 `127.0.0.1:(peer.index + portBase)`，`portBase` 默认 41000（沿用 udp2raw 时代的 `channelPort`）。
-- **什么时候代理**：路由图算完后，`Wan`（跨网段）邻居的 endpoint 被改写成 `127.0.0.1:<本地端口>`；
+- **什么时候代理**：路由图算完后，经隧道代理的邻居由发起方把 endpoint 改写成 `127.0.0.1:<本地端口>`；
   `Lan`（同网段）默认直连，`proxyLan = true` 才一起代理；`Inferred`（只能经 wg 集群地址发现，如云上的家宽节点）不代理，避免 wg-over-wg 绕圈。
-   另外 endpoint 只在「与该对端的隧道会话已经建立」之后才切到本地端口，发起方和响应方都要切：
-  响应方的 WireGuard 报文也要写进自己的隧道端口，由响应流送回对端。对端还是旧版本、会话建不起来时
-  保持真实地址，不会把本来能直连的链路打断。
+   另外 endpoint 只在「发起方与该对端的隧道会话已经建立」之后才切到自己的本地端口：
+  发起方的报文写进自己的通道端口，由请求流送到对端。**被动方（被连接的一侧）的 endpoint 保持为空**
+  （下发 `wg set ... endpoint 0.0.0.0:0`）：它不需要主动发包，收到经认证的隧道报文时 WireGuard 会自动
+  学习 endpoint，而这个地址正是本机通道 socket 的源端口，回程报文再由 HTTP/2 响应流送回发起方。
+  会话没建起来时发起方保持真实地址，不会把本来能直连的链路打断；内核里残留的隧道端口 endpoint
+  （旧版本或 udp2raw 时代留下的）在会话不存在时会被清掉，避免报文进黑洞。
 - **谁发起**：公网可达性优先——「本机无公网地址、对端有」时由本机发起（否则对端连不进 NAT 后面），
   「本机有公网地址、对端没有」时等对端连进来；两侧条件相同（都公网或都在 NAT 后）时由名字较小的一侧发起。
   同一条链路只会有一条会话——两侧都建会争抢同一个通道 socket 的读端，数据面会串包。
@@ -125,7 +128,7 @@ cluster-node-cli rescan        # 强制重新探测
   因此这里**只把每个直连 peer 自己的 clusterIp 分给它**，内核里原有的其他网段（`10.16.x.0/24` 这类 Nix 配置的网段）原样保留，
   本机不再做 WireGuard 层面的多跳中转（多跳只会展示在 CLI 路由表里做诊断）。邻居的网段用配置里的 `clusterIpRange` 兜底恢复，
   这样即使内核里被旧版本清空过，下一次刷新也会补回来。
-- **下发内核**：endpoint 改写写成 `wg set ... endpoint` 命令，`applyKernel` 为 true 时由 `sh -c` 执行（需要 `CAP_NET_ADMIN` 与 PATH 里的 `wg`）；否则只落到 `wg-plan.json`。
+- **下发内核**：endpoint 改写写成 `wg set ... endpoint` 命令（被动方清空时为 `endpoint 0.0.0.0:0`，`wg-plan.json` 里该 peer 不出现在 `endpoints` 中，即 null），`applyKernel` 为 true 时由 `sh -c` 执行（需要 `CAP_NET_ADMIN` 与 PATH 里的 `wg`）；否则只落到 `wg-plan.json`。
 
 ## 网络变化触发重扫（netwatch）
 
@@ -172,7 +175,7 @@ cluster-node-cli rescan        # 强制重新探测
 ## 本地验证
 ```bash
 cd packages/cluster-node
-cargo test                                   # 54 个单元测试
+cargo test                                   # 58 个单元测试
 # 起两个实例（各自一份 ssh host key 与配置）后：
 cluster-node-cli --socket /tmp/a.sock status
 cluster-node-cli --socket /tmp/a.sock rescan
@@ -187,7 +190,9 @@ a 从 c 转述的记录里学到 c--b 边并算出「b via c」的路由；把 b
 过期，路由变成「不可达」，也不会被 c 的持续转述复活。
 隧道会话确认的直连也已实测：让 b 的配置里 a 的地址不可达（b 探测不到 a），a 侧探测正常并建起隧道后，
 b 的 status 直连里出现 `a 192.168.16.12 rtt=0.00ms "tunnel"`、路由表 `a via=a`，`wg-plan.json` 里
-`allowedIps.a = [192.168.16.12]`、`endpoints.a = 127.0.0.1:44512`（b 自己的通道端口）。
+`allowedIps.a = [192.168.16.12]`，而 `endpoints` 里**没有** a——b 是被连接的一方，endpoint 留空由 WireGuard
+从收发的隧道报文里学习；发起方 a 的 `wg-plan.json` 则是 `endpoints.b = 127.0.0.1:44513`。
+内核里指向已不存在的隧道端口的残留 endpoint 会被下发 `wg set ... endpoint 0.0.0.0:0` 清掉。
 
 ## 路由与中转
 
@@ -210,6 +215,10 @@ b 的 status 直连里出现 `a 192.168.16.12 rtt=0.00ms "tunnel"`、路由表 `
   （对端在 NAT 后、配置里没有 `publicIp`），把对端判成不可达后清掉了它的 clusterIp。新版本会把隧道会话
   确认成直连（见上一节），升级到该版本即可；顺手检查 `wg show wg0 allowed-ips` 里每个直连 peer 是否都
   拿到了自己的 `/32`。
+- **`wg show wg0 endpoints` 里某个 peer 是 `0.0.0.0:0`（空）**：这是被动方的正常状态，不是配置遗漏。
+  只有发起方需要把 endpoint 指向自己的通道端口；被动方等着收报文，WireGuard 会在收到经认证的隧道报文时
+  自动学习到对端（学到的就是本机通道 socket 的源端口）。等两侧都跑起隧道后它自然会变成 `127.0.0.1:<端口>`；
+  若一直为空，检查该链路是不是谁都没发起（两侧都没公网地址时由名字较小的一侧发起）。
 - **路由变成单向 / 只发现部分节点**：先检查配置里的 `localIp` 是否已过期（DHCP 换地址很常见，
   真实网段地址与 `module/cluster.nix` 里写的对不上就会单向）。服务端按
   `localIp -> publicIp -> clusterIp`（经 WireGuard）顺序探测，最后一项是兜底：只要 WireGuard 通就能发现对端，

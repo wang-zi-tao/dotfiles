@@ -103,7 +103,7 @@ with lib;
       startInBackground = true;
     };
     services.kdeconnect = {
-      enable = true;
+      enable = false;
       indicator = true;
     };
     manual.html.enable = true;

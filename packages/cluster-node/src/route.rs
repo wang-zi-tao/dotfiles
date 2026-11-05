@@ -9,8 +9,12 @@ use petgraph::graph::{NodeIndex, UnGraph};
 use serde::{Deserialize, Serialize};
 
 use crate::auth::now_unix;
-use crate::config::Config;
+use crate::config::{Config, Node};
 use crate::topology::{LinkKind, Topology};
+
+/// 清空 endpoint 的写法：wg 接受 `endpoint 0.0.0.0:0`，效果是「没有 endpoint」，
+/// 之后由 WireGuard 在收到隧道报文时自动学习。
+const CLEARED_ENDPOINT: &str = "0.0.0.0:0";
 
 /// 单个目的节点的路由。
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -258,6 +262,9 @@ pub struct WgPlanInput<'a> {
     pub sessions: &'a BTreeSet<String>,
     /// 内核里每个 peer 当前的 allowed-ips（wg pubkey -> CIDR 列表）。
     pub existing_allowed_ips: &'a BTreeMap<String, Vec<String>>,
+    /// 内核里每个 peer 当前的 endpoint（wg pubkey -> "addr:port"）；只有和
+    /// 期望值不同才下发命令。None 表示未知，此时一律下发。
+    pub existing_endpoints: Option<&'a BTreeMap<String, String>>,
 }
 
 /// 根据路由表生成下发给 wg0 的计划。
@@ -377,31 +384,83 @@ pub fn wg_plan(
         }
     }
 
+    // endpoint：只有发起方（本机连出去的那一侧）需要显式指定隧道端口。被动方的
+    // WireGuard 会在收到隧道报文时自动学习 endpoint，所以必须留空——否则会话
+    // 还没建起来时，报文会被送进没人读的本地端口（黑洞）。
     let mut endpoints = BTreeMap::new();
-    for (peer, link) in topology.local_links().iter() {
-        let Some(port) = config.node(peer).and_then(|node| node.wg_port) else {
+    let links = topology.local_links();
+    let mut endpoint_peers: BTreeSet<String> = peers.clone();
+    endpoint_peers.extend(links.keys().cloned());
+    let existing_endpoints = input.existing_endpoints.cloned().unwrap_or_default();
+    for peer in &endpoint_peers {
+        let Some(node) = config.node(peer) else {
             continue;
         };
-        let proxy = crate::wgtunnel::should_proxy(&config.service.wg_tunnel, link.kind)
-            && input.sessions.contains(peer);
-        let endpoint = match input.tunnel_ports.get(peer) {
-            Some(local_port) if proxy => format!("127.0.0.1:{local_port}"),
-            _ => format!("{}:{port}", link.address),
+        let Some(wg_port) = node.wg_port else {
+            continue;
         };
-        endpoints.insert(peer.clone(), endpoint);
-    }
-
-    if config.service.manage_endpoints {
-        for peer in &peers {
-            let (Some(node), Some(endpoint)) = (config.node(peer), endpoints.get(peer)) else {
+        let link = links.get(peer);
+        let proxied = link.is_some_and(|link| {
+            crate::wgtunnel::should_proxy(&config.service.wg_tunnel, link.kind)
+        });
+        let current = node
+            .wg_public_key
+            .as_deref()
+            .and_then(|key| existing_endpoints.get(key))
+            .map(String::as_str);
+        let desired = if proxied && crate::wgtunnel::initiates(config, peer) {
+            match (input.sessions.contains(peer), input.tunnel_ports.get(peer)) {
+                (true, Some(local_port)) => Some(format!("127.0.0.1:{local_port}")),
+                // 会话没建起来（对端是旧版本 / 暂时连不上）：保持真实地址，
+                // 不打断本来还能直连的链路。
+                _ => link.map(|link| format!("{}:{wg_port}", link.address)),
+            }
+        } else if proxied && input.sessions.contains(peer) {
+            // 被动方且会话已经跑通：endpoint 留空，等 WireGuard 从收到的报文里学习。
+            None
+        } else if proxied {
+            // 被动方但会话还没建起来（对端是旧版本、暂时连不上）：有真实链路就保持真实
+            // 地址，不能盲清；内核里指向隧道端口的残留则要清掉，别让报文进黑洞。
+            if let Some(link) = link {
+                Some(format!("{}:{wg_port}", link.address))
+            } else if current.is_some_and(|endpoint| is_tunnel_endpoint(endpoint, node, config)) {
+                None
+            } else {
                 continue;
-            };
-            let Some(pubkey) = node.wg_public_key.as_deref() else {
-                continue;
-            };
-            commands.push(format!(
-                "wg set {interface} peer {pubkey} endpoint {endpoint} persistent-keepalive 32"
-            ));
+            }
+        } else if let Some(link) = link {
+            Some(format!("{}:{wg_port}", link.address))
+        } else if current.is_some_and(|endpoint| is_tunnel_endpoint(endpoint, node, config)) {
+            // 链路已经没了，内核里却还指着隧道端口：清掉，别让报文进黑洞。
+            None
+        } else {
+            continue;
+        };
+        let Some(pubkey) = node.wg_public_key.as_deref() else {
+            continue;
+        };
+        if !config.service.manage_endpoints {
+            if let Some(endpoint) = desired {
+                endpoints.insert(peer.clone(), endpoint);
+            }
+            continue;
+        }
+        match desired {
+            Some(endpoint) => {
+                if current != Some(endpoint.as_str()) {
+                    commands.push(format!(
+                        "wg set {interface} peer {pubkey} endpoint {endpoint} persistent-keepalive 32"
+                    ));
+                }
+                endpoints.insert(peer.clone(), endpoint);
+            }
+            None => {
+                if current.is_some_and(|endpoint| endpoint != CLEARED_ENDPOINT) {
+                    commands.push(format!(
+                        "wg set {interface} peer {pubkey} endpoint {CLEARED_ENDPOINT}"
+                    ));
+                }
+            }
         }
     }
     for ip in &routes {
@@ -423,12 +482,52 @@ pub fn wg_plan(
     }
 }
 
+/// 内核里的 endpoint 是否指向本机为该邻居绑定的隧道端口（旧版本或 udp2raw
+/// 时代的残留）：会话已经没了的时候要把这种 endpoint 清掉，否则报文进黑洞。
+fn is_tunnel_endpoint(endpoint: &str, node: &Node, config: &Config) -> bool {
+    let Some(index) = node.wg_index() else {
+        return false;
+    };
+    let Some(port) = index.checked_add(config.service.wg_tunnel.port_base) else {
+        return false;
+    };
+    endpoint == format!("127.0.0.1:{port}")
+}
+
 /// CIDR 是否指向某个集群节点的 clusterIp。
 fn is_cluster_address(cidr: &str, cluster_ips: &BTreeSet<std::net::Ipv4Addr>) -> bool {
     let addr = cidr.split('/').next().unwrap_or(cidr);
     addr.parse::<std::net::Ipv4Addr>()
         .map(|ip| cluster_ips.contains(&ip))
         .unwrap_or(false)
+}
+
+/// 读取内核里 wg 接口当前每个 peer 的 endpoint（wg pubkey -> "addr:port"）。
+pub async fn current_endpoints(interface: &str) -> BTreeMap<String, String> {
+    let output = tokio::process::Command::new("wg")
+        .args(["show", interface, "endpoints"])
+        .output()
+        .await;
+    let Ok(output) = output else {
+        return BTreeMap::new();
+    };
+    if !output.status.success() {
+        return BTreeMap::new();
+    }
+    let text = String::from_utf8_lossy(&output.stdout);
+    let mut map: BTreeMap<String, String> = BTreeMap::new();
+    for line in text.lines() {
+        let mut parts = line.split('\t');
+        let Some(pubkey) = parts.next().map(str::trim).filter(|key| !key.is_empty()) else {
+            continue;
+        };
+        let endpoint = parts.next().unwrap_or("").trim();
+        if endpoint.is_empty() || endpoint == "(none)" {
+            continue;
+        }
+        map.insert(pubkey.to_string(), endpoint.to_string());
+    }
+    map
 }
 
 /// 读取内核里 wg 接口当前每个 peer 的 allowed-ips。
@@ -647,6 +746,7 @@ mod tests {
             tunnel_ports: ports,
             sessions,
             existing_allowed_ips: existing,
+            existing_endpoints: None,
         }
     }
 
@@ -846,6 +946,150 @@ mod tests {
 
     fn no_existing() -> BTreeMap<String, Vec<String>> {
         BTreeMap::new()
+    }
+
+    fn no_ports() -> BTreeMap<String, u16> {
+        BTreeMap::new()
+    }
+
+    /// 同一个集群，但从 b 的视角看（self = b）。
+    fn wg_config_self_b() -> Config {
+        Config::parse(
+            r#"{
+                self: "b",
+                nodes: {
+                    a: { clusterIp: "192.168.16.12", wgPort: 16538, wgPublicKey: "pk-a" },
+                    b: { clusterIp: "192.168.16.13", wgPort: 16538, wgPublicKey: "pk-b" },
+                },
+                service: {
+                    wgTunnel: { enable: true, proxyLan: true },
+                    manageEndpoints: true
+                },
+            }"#,
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn passive_side_clears_tunnel_endpoint() {
+        // b 是「被连接」的一方：endpoint 必须留空，由 WireGuard 从隧道里收到
+        // 的报文学习；指到自己的隧道端口只会在会话没建起来时变黑洞。
+        let cfg = wg_config_self_b();
+        let mut topo = Topology::new("b");
+        assert!(topo.set_tunnel("a", "192.168.16.12".parse().unwrap(), 7788));
+        let table = compute(&cfg, &topo);
+        let ports = BTreeMap::from([("a".to_string(), 41012u16)]);
+        let sessions = BTreeSet::from(["a".to_string()]);
+        let existing = no_existing();
+        let endpoints = BTreeMap::from([("pk-a".to_string(), "127.0.0.1:41012".to_string())]);
+        let plan = wg_plan(
+            &cfg,
+            &topo,
+            &table,
+            &WgPlanInput {
+                tunnel_ports: &ports,
+                sessions: &sessions,
+                existing_allowed_ips: &existing,
+                existing_endpoints: Some(&endpoints),
+            },
+        );
+        assert!(plan
+            .commands
+            .iter()
+            .any(|c| c.contains("endpoint 0.0.0.0:0")));
+        assert!(!plan.endpoints.contains_key("a"));
+    }
+
+    #[test]
+    fn passive_side_keeps_real_endpoint_until_session() {
+        // 会话还没建起来时不能盲清：对端是旧版本、或者暂时连不上，此时真实地址
+        // 是唯一能用的出口；只有内核里指向隧道端口的残留才清。
+        let cfg = wg_config_self_b();
+        let mut topo = Topology::new("b");
+        topo.set_local(vec![Link {
+            peer: "a".to_string(),
+            address: "10.0.0.2".parse().unwrap(),
+            port: 7788,
+            rtt_ms: 5.0,
+            kind: LinkKind::Lan,
+        }]);
+        let table = compute(&cfg, &topo);
+        let ports = BTreeMap::from([("a".to_string(), 41012u16)]);
+        let sessions = BTreeSet::new();
+        let existing = no_existing();
+        let endpoints = BTreeMap::new();
+        let plan = wg_plan(
+            &cfg,
+            &topo,
+            &table,
+            &WgPlanInput {
+                tunnel_ports: &ports,
+                sessions: &sessions,
+                existing_allowed_ips: &existing,
+                existing_endpoints: Some(&endpoints),
+            },
+        );
+        assert_eq!(plan.endpoints["a"], "10.0.0.2:16538");
+        assert!(!plan
+            .commands
+            .iter()
+            .any(|c| c.contains("endpoint 0.0.0.0:0")));
+    }
+
+    #[test]
+    fn stale_tunnel_endpoint_is_cleared_when_link_is_gone() {
+        // 链路已经没了，内核里还指着隧道端口（旧版本/udp2raw 残留）：清掉。
+        let cfg = wg_config();
+        let topo = Topology::new("a");
+        let table = compute(&cfg, &topo);
+        let ports = no_ports();
+        let sessions = BTreeSet::new();
+        let existing = BTreeMap::from([("pk-b".to_string(), vec!["192.168.16.13/32".to_string()])]);
+        let endpoints = BTreeMap::from([("pk-b".to_string(), "127.0.0.1:41013".to_string())]);
+        let plan = wg_plan(
+            &cfg,
+            &topo,
+            &table,
+            &WgPlanInput {
+                tunnel_ports: &ports,
+                sessions: &sessions,
+                existing_allowed_ips: &existing,
+                existing_endpoints: Some(&endpoints),
+            },
+        );
+        assert!(plan
+            .commands
+            .iter()
+            .any(|c| c.contains("endpoint 0.0.0.0:0")));
+    }
+
+    #[test]
+    fn initiator_endpoint_is_not_rewritten_when_unchanged() {
+        let cfg = wg_config();
+        let mut topo = Topology::new("a");
+        topo.set_tunnel("b", "127.0.0.1".parse().unwrap(), 7788);
+        let table = compute(&cfg, &topo);
+        let ports = BTreeMap::from([("b".to_string(), 41013u16)]);
+        let sessions = BTreeSet::from(["b".to_string()]);
+        let existing = no_existing();
+        let endpoints = BTreeMap::from([("pk-b".to_string(), "127.0.0.1:41013".to_string())]);
+        let plan = wg_plan(
+            &cfg,
+            &topo,
+            &table,
+            &WgPlanInput {
+                tunnel_ports: &ports,
+                sessions: &sessions,
+                existing_allowed_ips: &existing,
+                existing_endpoints: Some(&endpoints),
+            },
+        );
+        assert!(
+            !plan.commands.iter().any(|c| c.contains("endpoint ")),
+            "endpoint 已经是期望值时不该重复下发: {:?}",
+            plan.commands
+        );
+        assert_eq!(plan.endpoints["b"], "127.0.0.1:41013");
     }
 
     #[test]

@@ -87,6 +87,31 @@ let
       }
     );
 
+  fetchNpmPackage =
+    {
+      fullname,
+      name,
+      version,
+      hash,
+    }:
+    stdenvNoCC.mkDerivation {
+      pname = name;
+      version = version;
+      src = fetchurl {
+        url = "https://registry.npmjs.org/${fullname}/-/${name}-${version}.tgz";
+        hash = hash;
+      };
+      dontConfigure = true;
+      dontBuild = true;
+      # 与其它 dsh 包保持同一布局：包根 = $out/lib
+      installPhase = ''
+        runHook preInstall
+        mkdir -p "$out/lib"
+        cp -r ./* "$out/lib/"
+        runHook postInstall
+      '';
+    };
+
   dsh-continual-harness = buildDshPnpmPackage rec {
     pname = "dsh-continual-harness";
     version = "v0.3.3";
@@ -98,22 +123,11 @@ let
     hash = "sha256-dZXm/Sg7R4EZYVXAy9Fq29guOLXy9HYn3zEjJ8sWuv0=";
   };
 
-  billion-context = stdenvNoCC.mkDerivation rec {
-    pname = "billion-context";
+  billion-context = fetchNpmPackage {
+    name = "billion-context";
+    fullname = "billion-context";
     version = "0.1.204";
-    src = fetchurl {
-      url = "https://registry.npmjs.org/billion-context/-/billion-context-${version}.tgz";
-      hash = "sha256-ftwWrlzk5e5oEw5wajEqm/QW1fDY4f3RuhZV+UXDLXU=";
-    };
-    dontConfigure = true;
-    dontBuild = true;
-    # 与其它 dsh 包保持同一布局：包根 = $out/lib
-    installPhase = ''
-      runHook preInstall
-      mkdir -p "$out/lib"
-      cp -r ./* "$out/lib/"
-      runHook postInstall
-    '';
+    hash = "sha256-ftwWrlzk5e5oEw5wajEqm/QW1fDY4f3RuhZV+UXDLXU=";
   };
 
   mcpPatch =

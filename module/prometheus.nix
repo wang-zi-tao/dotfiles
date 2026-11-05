@@ -1529,7 +1529,10 @@ in
   imports = [ ./wireguard.nix ];
   config = {
     sops.secrets = optionalAttrs nodeConfig.prometheus.server {
-      "prometheus/admin_password" = { };
+      "prometheus/admin_password" = {
+        owner = "grafana";
+        restartUnits = [ "grafana.service" ];
+      };
     };
     services.grafana = mkIf nodeConfig.prometheus.server {
       enable = true;
@@ -1541,13 +1544,8 @@ in
         };
         security = {
           secret_key = "SW2YcwTIb9zpOOhoPsMm";
-          adminPasswordFile = config.sops.secrets."prometheus/admin_password".path;
+          admin_password = "$__file{${config.sops.secrets."prometheus/admin_password".path}}";
           allow_embedding = true;
-        };
-        "auth.anonymous" = {
-          enabled = true;
-          org_name = "anonymous";
-          org_role = "Viewer";
         };
         feature_toggles = {
           enable = "displayAnonymousStats";

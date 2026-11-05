@@ -84,6 +84,7 @@
       # xiezuo
       # wpsoffice
       # qq
+      # wechat
 
       # libreoffice
       # gimp

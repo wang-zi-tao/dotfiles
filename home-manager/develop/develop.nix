@@ -56,6 +56,7 @@ in
   imports = [
     ./git.nix
     ./cpp.nix
+    ../terminal/dsh.nix
   ];
   programs.go = {
     enable = true;

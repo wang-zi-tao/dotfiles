@@ -39,8 +39,6 @@ let
           hostNames = [
             wgConfig.config.clusterIp
             "${node}.wg"
-            wgConfig.config.clusterIp2
-            "${node}.wg1"
           ];
         in
         lib.imap0 (index: publicKey: {
@@ -182,6 +180,7 @@ in
         [
           config.neovim.pkg
           nix
+          fuse
         ]
         ++ (builtins.map (
           pkg:

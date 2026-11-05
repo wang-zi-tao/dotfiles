@@ -172,6 +172,11 @@ in
         443
       ];
       environment.systemPackages = with pkgs; [ nss ];
+
+      security.pki.certificateFiles = [
+        ../certs/caddy-local-root-aliyun-hk.crt
+        ../certs/caddy-local-root-aliyun-gz.crt
+      ];
     }
   ];
 }

@@ -610,10 +610,12 @@ async fn wg_plan_for(state: &AppState, topo: &Topology, table: &RouteTable) -> r
     };
     let sessions = state.wg_sessions.lock().await.clone();
     let existing = route::current_allowed_ips(&state.config.service.wg_interface).await;
+    let existing_endpoints = route::current_endpoints(&state.config.service.wg_interface).await;
     let input = route::WgPlanInput {
         tunnel_ports: &ports,
         sessions: &sessions,
         existing_allowed_ips: &existing,
+        existing_endpoints: Some(&existing_endpoints),
     };
     route::wg_plan(&state.config, topo, table, &input)
 }
