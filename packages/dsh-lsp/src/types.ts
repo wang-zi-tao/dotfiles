@@ -145,9 +145,18 @@ export interface LspConfig {
   /**
    * Continuously inject diagnostics changes. Every push a server makes is
    * observed and diffed against that file's last report; only added / removed
-   * findings are injected, into every agent session rooted at that server.
+   * findings are injected into the agent sessions that qualify.
    */
   diagnosticsInject: boolean
+  /**
+   * Restrict injection to the files a session's own tools read or wrote. A
+   * re-analysed header republishes every translation unit that includes it;
+   * without this filter those reports page sessions that never opened them.
+   * Files no session has touched keep no baseline, so the first report after
+   * one of them is read or written arrives whole. Set false for the old
+   * broadcast-everything behaviour.
+   */
+  diagnosticsOnlyTouched: boolean
   /** Only diagnostics at or above this severity are injected. */
   diagnosticsMinSeverity: DiagnosticSeverity
   /**

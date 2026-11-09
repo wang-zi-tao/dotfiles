@@ -13,8 +13,12 @@
  *     they are coalesced over `flushMs` into one message per server+root;
  *   - a file's state is diffed as a multiset, so an unchanged re-publish
  *     injects nothing;
- *   - the message goes to every live agent rooted inside the server's root
- *     (`targetsFor`), not just the session that last wrote the file;
+ *   - a file is only news to a session whose tools actually read or wrote it
+ *     (`scope`, see touched.ts): re-analysing files nobody opened cannot page
+ *     a turn, and a file no session has touched keeps no baseline, so the first
+ *     report after someone opens it arrives whole;
+ *   - among the sessions that qualify, the message goes to every live agent
+ *     rooted inside the server's root (`targetsFor`);
  *   - injection uses `Agent.inject`, which queues the message for the agent's
  *     next pre-step and never wakes the driver.
  */
@@ -25,10 +29,10 @@ import {
   diffDiagnostics,
   diagnosticsChangeMessage,
   filterDiagnostics,
-  type DiagnosticsFileChange,
 } from './diagnostics.js'
 import { normalizePathKey, type PublishRecord } from './inbox.js'
 import { isPathInside, toDiagnosticEntries } from './protocol.js'
+import type { TouchedFileScope } from './touched.js'
 import type { DiagnosticEntry, DiagnosticSeverity, LoggerLike } from './types.js'
 
 /** The minimal agent surface the broadcaster needs (kept structural for testability). */
@@ -47,6 +51,14 @@ export interface DiagnosticBroadcasterOptions {
   logger: LoggerLike
   /** Live agents that should hear about a change reported under `root`. */
   targetsFor(serverId: string, root: string): readonly InjectableAgent[]
+  /**
+   * Which sessions may hear about a file. When set, a file is only diffed and
+   * injected for agents whose tools read or wrote it, and a file no target has
+   * touched keeps no baseline (so its first report arrives whole). Omitted
+   * keeps the pre-filter behaviour: every file is tracked and every target
+   * hears about it.
+   */
+  scope?: TouchedFileScope
 }
 
 /** One file whose latest reported diagnostics have not been flushed yet. */
@@ -58,11 +70,22 @@ interface PendingFile {
   entries: DiagnosticEntry[]
 }
 
-/** Changes for one server+root, injected as a single message. */
+/** One file's pending delta, tagged with the key the touched-file scope answers for. */
+interface PendingChange {
+  /** `normalizePathKey(path)` — the key `scope.includes` is asked about. */
+  pathKey: string
+  path: string
+  added: DiagnosticEntry[]
+  removed: DiagnosticEntry[]
+}
+
+/** Changes for one server+root, injected as one message per recipient. */
 interface ChangeGroup {
   serverId: string
   root: string
-  changes: DiagnosticsFileChange[]
+  /** Agents rooted here when the group was built (may be empty). */
+  targets: readonly InjectableAgent[]
+  changes: PendingChange[]
 }
 
 /** Bounded so a long session cannot grow the baseline table without limit. */
@@ -74,13 +97,13 @@ const MAX_TRACKED_FILES = 2048
  * disappeared is only news.
  */
 function capChanges(
-  changes: readonly DiagnosticsFileChange[],
+  changes: readonly PendingChange[],
   maxDiagnostics: number,
-): { changes: DiagnosticsFileChange[]; omitted: number } {
+): { changes: PendingChange[]; omitted: number } {
   const budget = Math.max(1, Math.floor(maxDiagnostics))
   let used = 0
   let omitted = 0
-  const capped: DiagnosticsFileChange[] = []
+  const capped: PendingChange[] = []
   for (const change of changes) {
     const added: DiagnosticEntry[] = []
     for (const entry of change.added) {
@@ -100,7 +123,9 @@ function capChanges(
         omitted += 1
       }
     }
-    if (added.length > 0 || removed.length > 0) capped.push({ path: change.path, added, removed })
+    if (added.length > 0 || removed.length > 0) {
+      capped.push({ pathKey: change.pathKey, path: change.path, added, removed })
+    }
   }
   return { changes: capped, omitted }
 }
@@ -166,13 +191,31 @@ export class DiagnosticBroadcaster {
       const key = file.serverId + '\u0000' + file.pathKey
       const previous = this.known.get(key) ?? []
       const diff = diffDiagnostics(previous, file.entries)
-      this.remember(key, file.entries)
-      if (diff.added.length === 0 && diff.removed.length === 0) continue
+      if (diff.added.length === 0 && diff.removed.length === 0) {
+        // Unchanged: nothing to report, so only refresh a baseline that exists.
+        if (file.entries.length > 0) this.remember(key, file.entries)
+        continue
+      }
+
       const groupKey = file.serverId + '\u0000' + file.root.toLowerCase()
-      const group = groups.get(groupKey)
-      const change: DiagnosticsFileChange = { path: file.path, added: diff.added, removed: diff.removed }
-      if (group) group.changes.push(change)
-      else groups.set(groupKey, { serverId: file.serverId, root: file.root, changes: [change] })
+      let group = groups.get(groupKey)
+      if (group === undefined) {
+        const targets = this.resolveTargets(file.serverId, file.root)
+        if (targets === undefined) continue
+        group = { serverId: file.serverId, root: file.root, targets, changes: [] }
+        groups.set(groupKey, group)
+      }
+
+      if (!group.targets.some(agent => this.reaches(agent.id, file.pathKey))) {
+        // No session this message could reach has the file in hand. Recording a
+        // baseline here would swallow the file's whole report once a session
+        // that did touch it is finally told about it, so only the scope-less
+        // (pre-filter) mode keeps tracking such a file.
+        if (this.options.scope === undefined) this.remember(key, file.entries)
+        continue
+      }
+      this.remember(key, file.entries)
+      group.changes.push({ pathKey: file.pathKey, path: file.path, added: diff.added, removed: diff.removed })
     }
 
     for (const group of groups.values()) this.inject(group)
@@ -190,42 +233,60 @@ export class DiagnosticBroadcaster {
   }
 
   private inject(group: ChangeGroup): void {
-    let targets: readonly InjectableAgent[]
-    try {
-      targets = this.options.targetsFor(group.serverId, group.root)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      this.options.logger.debug('dsh-lsp: diagnostics target resolution failed: ' + message)
-      return
-    }
-    if (targets.length === 0) {
+    if (group.targets.length === 0) {
       this.options.logger.debug(
         'dsh-lsp: no agent session rooted at ' + group.root + ' for ' + group.serverId + ' diagnostics',
       )
       return
     }
+    if (group.changes.length === 0) return
 
-    const { changes, omitted } = capChanges(group.changes, this.options.maxDiagnostics)
-    if (changes.length === 0) return
-    const message = diagnosticsChangeMessage(group.serverId, changes, omitted)
+    // Each recipient is told about the subset of these files its own tools
+    // touched, so two sessions in one root never read each other's files.
+    let delivered = 0
     let added = 0
     let removed = 0
-    for (const change of changes) {
-      added += change.added.length
-      removed += change.removed.length
-    }
-    for (const agent of targets) {
+    const files = new Set<string>()
+    for (const agent of group.targets) {
+      const visible = group.changes.filter(change => this.reaches(agent.id, change.pathKey))
+      if (visible.length === 0) continue
+      const { changes, omitted } = capChanges(visible, this.options.maxDiagnostics)
+      if (changes.length === 0) continue
       try {
-        agent.inject(message)
+        agent.inject(diagnosticsChangeMessage(group.serverId, changes, omitted))
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error)
         this.options.logger.debug('dsh-lsp: diagnostics injection into agent ' + agent.id + ' failed: ' + reason)
+        continue
+      }
+      delivered += 1
+      for (const change of changes) {
+        files.add(change.path)
+        added += change.added.length
+        removed += change.removed.length
       }
     }
+    if (delivered === 0) return
     this.options.logger.info(
-      'dsh-lsp: injected +' + added + ' / -' + removed + ' diagnostic(s) for ' + changes.length +
-      ' file(s) from ' + group.serverId + ' into ' + targets.length + ' agent(s)',
+      'dsh-lsp: injected +' + added + ' / -' + removed + ' diagnostic(s) for ' + files.size +
+      ' file(s) from ' + group.serverId + ' into ' + delivered + ' agent(s)',
     )
+  }
+
+  private resolveTargets(serverId: string, root: string): readonly InjectableAgent[] | undefined {
+    try {
+      return this.options.targetsFor(serverId, root)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      this.options.logger.debug('dsh-lsp: diagnostics target resolution failed: ' + message)
+      return undefined
+    }
+  }
+
+  /** Whether `agentId` may hear about this file (no scope: everyone may). */
+  private reaches(agentId: string, pathKey: string): boolean {
+    const scope = this.options.scope
+    return scope === undefined || scope.includes(agentId, pathKey)
   }
 
   private remember(key: string, entries: DiagnosticEntry[]): void {

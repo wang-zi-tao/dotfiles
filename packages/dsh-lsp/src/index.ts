@@ -27,12 +27,14 @@ import {
   pathToFileUri,
   readLinePreview,
   renderLocations,
+  toAbsolutePath,
   toLspLocation,
   toSymbolEntry,
 } from './protocol.js'
 import { ServerRegistry } from './registry.js'
 import { findRoot, hasRootMarker } from './root.js'
 import { LSP_TOOLS, outputSchemaFor } from './tools.js'
+import { TouchedFiles } from './touched.js'
 import type { ToolExecution } from '@deepseek-ai/dsh-tools'
 import type { SymbolInformation, WorkspaceSymbol } from 'vscode-languageserver-protocol'
 import type {
@@ -672,12 +674,21 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
   // observed, diffed per file against that file's last report, and only the
   // delta is injected into the agents rooted at that server. Subscribing before
   // any server starts guarantees a push cannot slip past the forwarder.
+  //
+  // The `touched` table narrows that delta to the files the receiving session's
+  // own tools read or wrote: re-analysing one header makes every translation
+  // unit that includes it republish, and those reports are not news to a
+  // session that never opened them. A file no session has touched keeps no
+  // baseline, so opening it later reports its findings whole instead of
+  // silently diffing against a list the model never saw.
+  const touched = new TouchedFiles()
   const broadcaster = new DiagnosticBroadcaster({
     minSeverity: config.diagnosticsMinSeverity,
     flushMs: config.diagnosticsFlushMs,
     maxDiagnostics: config.maxDiagnostics,
     logger,
     targetsFor: (_serverId, root) => (config.diagnosticsInject ? agentsUnder(ctx, root) : []),
+    scope: config.diagnosticsOnlyTouched ? touched : undefined,
   })
   const published = registry.onPublishedDiagnostics((serverId, record) => {
     const root = registry.clientById(serverId)?.root
@@ -769,6 +780,7 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
       published.dispose()
       progress.dispose()
       broadcaster.dispose()
+      touched.dispose()
       for (const controller of diagnosticRuns.values()) controller.abort()
       // Detached teardown: a rejection here must never surface as an unhandled
       // rejection while the fiber is being disposed.
@@ -787,7 +799,7 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
       '- `lsp_explore`: 一次拿到定义 + 类型定义 + 悬停文档 + 实现 + 引用, 默认先用它.',
       '- `lsp_definition` / `lsp_type_definition` / `lsp_implementation` / `lsp_references` / `lsp_hover`: 只需要其中一项时用对应窄工具; 变更符号前用 `lsp_references` 确认调用点.',
       '- `lsp_symbols` (scope=workspace, query 模糊/部分名字): 只知道名字、不知道位置时先查全局符号; scope=document 取文件大纲. 命中为空时插件会用 rg 收敛候选文件、解析后重查, 结果带 fallback/indexing 说明.',
-      '- `lsp_diagnostics`: 按需取某文件的诊断; 平时读文件/改文件后的诊断变化会自动注入上下文, 请据此修复问题.',
+      '- `lsp_diagnostics`: 按需取某文件的诊断; 本会话工具读过/改过的文件, 其诊断新增/消失会自动注入上下文(其余文件不注入), 请据此修复问题.',
       '- `lsp_status`: 看 server 状态, 不会启动新 server (手动控制用 `/lsp`).',
       '`filePath` 按扩展名选择 server; `line` 1-based, `character` 1-based UTF-16.',
       '查 C++ 符号时 `filePath` 优先用 `.cpp`（编译单元在 compile_commands.json 中, 命中更快更全）; `.h` 也能工作但依赖后台索引预热, 命中略慢.',
@@ -919,6 +931,12 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
       const args = (exec.arguments ?? {}) as Record<string, unknown>
       const filePath = typeof args.file_path === 'string' ? args.file_path.trim() : ''
       if (!filePath) return next()
+      // Record which session touched the file. The broadcast only delivers a
+      // file's delta to sessions whose tools opened it, so this record is what
+      // lets a read or an edit hear about the file it just changed.
+      if (config.diagnosticsOnlyTouched && exec.agent) {
+        touched.touch(String(exec.agent.id), toAbsolutePath(filePath, cwdOf(exec)))
+      }
       if (exec.name === 'read' && config.syncLoadOnRead) {
         if (registry.serverRunning(filePath)) {
           // Warm server: didOpen before the read result reaches the model.

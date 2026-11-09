@@ -166,6 +166,18 @@ export function isAbsolutePath(path: string): boolean {
 }
 
 /**
+ * Resolve a tool's `file_path` argument to an absolute path: absolute paths pass
+ * through, relative ones resolve against the session cwd (then the process
+ * cwd). The registry locates a server through this, and the touched-file table
+ * records the same result, so both agree with the absolute paths a server
+ * publishes in its diagnostics.
+ */
+export function toAbsolutePath(path: string, cwd?: string): string {
+  if (isAbsolute(path)) return path
+  return resolve(cwd && cwd.trim() !== '' ? resolve(cwd) : process.cwd(), path)
+}
+
+/**
  * Read one line's trimmed content from a file for a location preview. The
  * location carries an absolute `uri` (a `file:` URI) even when its model-facing
  * `path` is workspace-relative, so the preview resolves through the URI rather

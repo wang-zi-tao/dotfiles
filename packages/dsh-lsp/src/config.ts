@@ -19,6 +19,7 @@ export const DEFAULT_TIMEOUT_MS = 60000
 export const DEFAULT_LOG_DIR = '~/.dsh/logs/dsh-lsp'
 export const DEFAULT_SYNC_LOAD_ON_READ = true
 export const DEFAULT_DIAGNOSTICS_INJECT = true
+export const DEFAULT_DIAGNOSTICS_ONLY_TOUCHED = true
 export const DEFAULT_DIAGNOSTICS_MIN_SEVERITY = 'warning'
 export const DEFAULT_AUTO_START: AutoStartMode = 'session'
 export const DEFAULT_AUTO_START_SERVERS: string[] = []
@@ -207,6 +208,7 @@ export function resolveConfig(raw: Record<string, unknown> = {}): LspConfig {
   const logDir = typeof raw.logDir === 'string' && raw.logDir.trim() !== '' ? raw.logDir.trim() : DEFAULT_LOG_DIR
   const syncLoadOnRead = parseBoolean(raw.syncLoadOnRead, DEFAULT_SYNC_LOAD_ON_READ)
   const diagnosticsInject = parseBoolean(raw.diagnosticsInject, DEFAULT_DIAGNOSTICS_INJECT)
+  const diagnosticsOnlyTouched = parseBoolean(raw.diagnosticsOnlyTouched, DEFAULT_DIAGNOSTICS_ONLY_TOUCHED)
   const diagnosticsMinSeverity = parseSeverity(raw.diagnosticsMinSeverity, DEFAULT_DIAGNOSTICS_MIN_SEVERITY)
   const symbolFallback = parseBoolean(raw.symbolFallback, DEFAULT_SYMBOL_FALLBACK)
   const symbolFallbackMaxCandidates = parseInteger(
@@ -290,6 +292,7 @@ export function resolveConfig(raw: Record<string, unknown> = {}): LspConfig {
     servers,
     syncLoadOnRead,
     diagnosticsInject,
+    diagnosticsOnlyTouched,
     diagnosticsMinSeverity,
     diagnosticsMode,
     diagnosticsTimeoutMs,

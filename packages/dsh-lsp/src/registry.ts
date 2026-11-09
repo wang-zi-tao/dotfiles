@@ -17,13 +17,13 @@
  *     never the process.
  */
 
-import { extname, isAbsolute, resolve } from 'node:path'
+import { extname, resolve } from 'node:path'
 
 import { LspClient, type ProgressListener } from './client.js'
 import { isLspDeadlineError } from './deadline.js'
 import type { PublishRecord } from './inbox.js'
 import { RootResolver } from './root.js'
-import { toDiagnosticEntries } from './protocol.js'
+import { toAbsolutePath, toDiagnosticEntries } from './protocol.js'
 import type {
   DiagnosticEntry,
   DiagnosticsReport,
@@ -103,12 +103,6 @@ export class ServerRegistry {
     return spec
   }
 
-  private startDirFor(filePath: string, cwd: string | undefined): string {
-    if (isAbsolute(filePath)) return filePath
-    const base = cwd ? resolve(cwd) : process.cwd()
-    return resolve(base, filePath)
-  }
-
   /**
    * Start (or reuse) the client for `spec`, deduplicating concurrent callers.
    * The returned promise is shared: everyone awaiting the same start gets the
@@ -148,7 +142,7 @@ export class ServerRegistry {
   /** Resolve the server + client for a file, starting it lazily if needed. */
   async resolve(filePath: string, cwd: string | undefined, _signal?: AbortSignal): Promise<{ spec: ServerSpec; client: LspClient; root: string }> {
     const spec = this.serverForFile(filePath)
-    const startDir = this.startDirFor(filePath, cwd)
+    const startDir = toAbsolutePath(filePath, cwd)
     const client = await this.ensureStarted(spec, startDir)
     return { spec, client, root: client.root ?? startDir }
   }

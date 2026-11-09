@@ -14,6 +14,7 @@ test('resolveConfig uses built-in servers when no override', () => {
   equal(config.diagnosticsFlushMs, 400)
   equal(config.maxDiagnostics, 50)
   equal(config.diagnosticsInject, true)
+  equal(config.diagnosticsOnlyTouched, true)
   const clangd = config.servers.find(s => s.id === 'clangd')!
   ok(clangd)
   equal(clangd.languageId, 'cpp')
@@ -66,6 +67,12 @@ test('resolveConfig defaults for file-access integration', () => {
   equal(config.syncLoadOnRead, true)
   equal(config.diagnosticsInject, true)
   equal(config.diagnosticsMinSeverity, 'warning')
+  equal(config.diagnosticsOnlyTouched, true)
+})
+
+test('resolveConfig can restore broadcast-everything diagnostics', () => {
+  const config = resolveConfig({ diagnosticsOnlyTouched: false })
+  equal(config.diagnosticsOnlyTouched, false)
 })
 
 test('resolveConfig parses file-access integration options', () => {

@@ -2,6 +2,8 @@ import test from 'node:test'
 import { equal, ok } from 'node:assert/strict'
 
 import { DiagnosticBroadcaster, type DiagnosticBroadcasterOptions, type InjectableAgent } from '../src/broadcast.js'
+import { normalizePathKey } from '../src/inbox.js'
+import { TouchedFiles } from '../src/touched.js'
 import type { DiagnosticEntry, DiagnosticSeverity, LoggerLike } from '../src/types.js'
 
 const SERVER = 'clangd'
@@ -263,4 +265,112 @@ test('the injected message is a user-role notice', () => {
   ok(message.text.length > 0)
   equal(message.summary.includes(SERVER), true)
   broadcaster.dispose()
+})
+
+test('a file no session touched is not injected', () => {
+  const touched = new TouchedFiles()
+  const { broadcaster, agents } = makeHarness({ scope: touched })
+
+  broadcaster.observe(SERVER, ROOT, PATH_A, [entry('error', 'boom')])
+  broadcaster.flush()
+
+  equal(agents[0]!.messages.length, 0)
+})
+
+test('the first report of a newly touched file arrives whole', () => {
+  const touched = new TouchedFiles()
+  const { broadcaster, agents } = makeHarness({ scope: touched })
+  const entries = [entry('error', 'boom')]
+
+  // Reported before any tool opened it: dropped without recording a baseline.
+  broadcaster.observe(SERVER, ROOT, PATH_A, entries)
+  broadcaster.flush()
+  equal(agents[0]!.messages.length, 0)
+
+  touched.touch('agent-1', PATH_A)
+  broadcaster.observe(SERVER, ROOT, PATH_A, entries)
+  broadcaster.flush()
+
+  equal(agents[0]!.messages.length, 1)
+  const text = texts(agents[0]!)[0]!
+  equal(text.includes('  + [error] 1:1 boom'), true)
+  equal(text.includes('  - '), false)
+})
+
+test('only the session that touched the file is told', () => {
+  const a = makeAgent('agent-a')
+  const b = makeAgent('agent-b')
+  const touched = new TouchedFiles()
+  touched.touch('agent-a', PATH_A)
+  const { logger } = makeLogger()
+  const broadcaster = new DiagnosticBroadcaster({
+    minSeverity: 'warning',
+    flushMs: 0,
+    maxDiagnostics: 50,
+    logger,
+    targetsFor: () => [a, b],
+    scope: touched,
+  })
+
+  broadcaster.observe(SERVER, ROOT, PATH_A, [entry('error', 'boom')])
+  broadcaster.flush()
+
+  equal(a.messages.length, 1)
+  equal(b.messages.length, 0)
+  broadcaster.dispose()
+})
+
+test('each session hears only about its own files', () => {
+  const a = makeAgent('agent-a')
+  const b = makeAgent('agent-b')
+  const touched = new TouchedFiles()
+  touched.touch('agent-a', PATH_A)
+  touched.touch('agent-b', PATH_B)
+  const { logger } = makeLogger()
+  const broadcaster = new DiagnosticBroadcaster({
+    minSeverity: 'warning',
+    flushMs: 0,
+    maxDiagnostics: 50,
+    logger,
+    targetsFor: () => [a, b],
+    scope: touched,
+  })
+
+  broadcaster.observe(SERVER, ROOT, PATH_A, [entry('error', 'a')])
+  broadcaster.observe(SERVER, ROOT, PATH_B, [entry('error', 'b')])
+  broadcaster.flush()
+
+  equal(a.messages.length, 1)
+  equal(b.messages.length, 1)
+  equal(texts(a)[0]!.includes(PATH_A), true)
+  equal(texts(a)[0]!.includes(PATH_B), false)
+  equal(texts(b)[0]!.includes(PATH_B), true)
+  equal(texts(b)[0]!.includes(PATH_A), false)
+  broadcaster.dispose()
+})
+
+test('removals still reach the session that touched the file', () => {
+  const touched = new TouchedFiles()
+  touched.touch('agent-1', PATH_A)
+  const { broadcaster, agents } = makeHarness({ scope: touched })
+
+  broadcaster.observe(SERVER, ROOT, PATH_A, [entry('error', 'boom'), entry('warning', 'careful')])
+  broadcaster.flush()
+  broadcaster.observe(SERVER, ROOT, PATH_A, [entry('error', 'boom')])
+  broadcaster.flush()
+
+  equal(agents[0]!.messages.length, 2)
+  equal(texts(agents[0]!)[1]!.includes('  - [warning] 1:1 careful'), true)
+})
+
+test('scope matching ignores path casing', () => {
+  const touched = new TouchedFiles()
+  touched.touch('agent-1', 'C:\\PROJ\\SRC\\A.CPP')
+  const { broadcaster, agents } = makeHarness({ scope: touched })
+
+  broadcaster.observe(SERVER, ROOT, PATH_A, [entry('error', 'boom')])
+  broadcaster.flush()
+
+  equal(agents[0]!.messages.length, 1)
+  equal(normalizePathKey(PATH_A), normalizePathKey('C:\\PROJ\\SRC\\A.CPP'))
 })
