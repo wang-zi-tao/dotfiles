@@ -113,7 +113,7 @@ local function config()
     local servers = {
         "vimls",
         "pyright",
-        "jedi_language_server",
+        -- "jedi_language_server",
         -- "ruff",
         -- "rust_analyzer",
         "gopls",
