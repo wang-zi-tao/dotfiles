@@ -20,7 +20,7 @@ stdenvNoCC.mkDerivation rec {
   pnpmDeps = fetchPnpmDeps {
     pname = "${pname}-deps";
     src = src;
-    hash = "sha256-U7Gur8jl1Jngx/f0hknKZGrKJXLvvSP7S+lSk6yyfvM=";
+    hash = "sha256-S30IkrU81iSbHviFNxp5fR2z8yr9gr+17eIe65WlcQQ=";
     fetcherVersion = 4;
     nativeBuildInputs = [ git ];
   };

@@ -5,14 +5,17 @@
   config,
   ...
 }:
+let
+  dsh-home-config = pkgs.dsh-home.home-config-factory {
+    dsh-home = pkgs.dsh-home.override (old: {
+      enable_develop = config.dsh.develop;
+      enable_desktop = config.dsh.desktop;
+    });
+    lib = lib;
+  };
+in
 {
   config = {
-    home.file = pkgs.dsh-home.home-file-factory (
-      pkgs.dsh-home.override (old: {
-        enable_develop = config.dsh.develop;
-        enable_desktop = config.dsh.desktop;
-      })
-    );
 
     systemd.user.services.dsh = {
       Unit = {
@@ -30,17 +33,19 @@
       };
     };
 
-    home.packages = with pkgs; [
-      bubblewrap
+    home = dsh-home-config.home // {
+      packages = with pkgs; [
+        bubblewrap
 
-      (writeScriptBin "dsh" ''
-        #!${bash}/bin/bash
-        if [ -e /run/secrets/apikey/deepseek ]; then
-          export DEEPSEEK_API_KEY=$(cat /run/secrets/apikey/deepseek)
-        fi
-        export DSH_TUI_SKIP_UPDATE=1
-        exec ${dsh}/bin/dsh "$@"
-      '')
-    ];
+        (writeScriptBin "dsh" ''
+          #!${bash}/bin/bash
+          if [ -e /run/secrets/apikey/deepseek ]; then
+            export DEEPSEEK_API_KEY=$(cat /run/secrets/apikey/deepseek)
+          fi
+          export DSH_TUI_SKIP_UPDATE=1
+          exec ${dsh}/bin/dsh "$@"
+        '')
+      ];
+    };
   };
 }

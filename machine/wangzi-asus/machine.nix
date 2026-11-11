@@ -40,7 +40,6 @@ nixpkgs.lib.nixosSystem {
           };
           timeout = 1;
         };
-        boot.kernelPackages = pkgs.linuxKernel.packages.linux_7_1;
         boot.initrd.availableKernelModules = [
           "xhci_pci"
           "ahci"
@@ -121,7 +120,6 @@ nixpkgs.lib.nixosSystem {
           };
           ollama.package = pkgs.ollama-cuda;
         };
-
       }
     )
   ];

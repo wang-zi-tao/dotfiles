@@ -20,7 +20,8 @@ let
     '';
   };
   hindsight-port = 11438;
-  hindsight-host = "127.0.0.1";
+  hindsight-host = "0.0.0.0";
+  hindsight-control-plane-port = 11439;
   hindsight-url = "http://${hindsight-host}:${toString hindsight-port}";
 in
 {
@@ -39,17 +40,31 @@ in
           # HTTPS_PROXY = "http://aliyun-hk.wg:8889";
         };
       };
-
-      # services.chromadb = {
-      #   enable = true;
-      #   port = 11439;
-      # };
-
-      # services.nextjs-ollama-llm-ui = {
-      #   enable = true;
-      #   hostname = "0.0.0.0";
-      #   port = 11435;
-      # };
+    })
+    (lib.mkIf (!config.cluster.nodeConfig.ollama.enable) {
+      services.caddy =
+        let
+          fallbacks = builtins.concatStringsSep " " (
+            builtins.map (host: "http://${host}.wg:11434") (
+              builtins.filter (host: config.cluster.nodes.${host}.ollama.enable) (
+                builtins.attrNames config.cluster.nodes
+              )
+            )
+          );
+        in
+        {
+          enable = true;
+          virtualHosts."http://127.0.0.1:11434" = {
+            extraConfig = ''
+              reverse_proxy http://ollama.c.wg:11434 ${fallbacks} {
+                lb_policy first
+                lb_try_duration 30s
+                fail_duration 60s
+                lb_try_interval 1s
+              }
+            '';
+          };
+        };
     })
     (lib.mkIf config.cluster.nodeConfig.hermes.enable {
       services.hermes-agent =
@@ -200,6 +215,7 @@ in
         content = ''
           HINDSIGHT_API_LLM_API_KEY=${config.sops.placeholder."apikey/deepseek"}
           HINDSIGHT_API_TENANT_API_KEY=${config.sops.placeholder."hindsight/apikey"}
+          HINDSIGHT_CP_DATAPLANE_API_KEY=${config.sops.placeholder."hindsight/apikey"}
         '';
         mode = "0400";
         restartUnits = [ "hindsight.service" ];
@@ -219,6 +235,10 @@ in
         environment = {
           HOME = "/var/lib/hindsight";
           HF_ENDPOINT = "https://hf-mirror.com";
+          # The package ships without fastmcp (nixpkgs' fastmcp is broken against
+          # mcp 2.x), so MCP must stay off: hindsight 1.2.0 defaults it to on and
+          # would import fastmcp at startup and die. This server is REST-only.
+          HINDSIGHT_API_MCP_ENABLED = "false";
           HINDSIGHT_API_HOST = hindsight-host;
           HINDSIGHT_API_PORT = toString hindsight-port;
           HINDSIGHT_API_WORKER_ID = "hindsight";
@@ -226,6 +246,11 @@ in
           HINDSIGHT_API_LLM_MODEL = "deepseek-v4-flash";
           HINDSIGHT_API_TENANT_EXTENSION = "hindsight_api.extensions.builtin.tenant:ApiKeyTenantExtension";
           HINDSIGHT_API_DATABASE_URL = "postgresql://hindsight@/hindsight?host=/run/postgresql";
+          HINDSIGHT_API_EMBEDDINGS_PROVIDER = "openai";
+          HINDSIGHT_API_EMBEDDINGS_OPENAI_MODEL = "qwen3-embedding:0.6b";
+          HINDSIGHT_API_EMBEDDINGS_OPENAI_BASE_URL = "http://127.0.0.1:11434/v1";
+          HINDSIGHT_API_BASE_PATH = "/hindsight";
+          NEXT_PUBLIC_BASE_PATH = "/hindsight";
         };
         serviceConfig = {
           User = "hindsight";
@@ -242,6 +267,34 @@ in
           UMask = "0077";
         };
       };
+
+      systemd.services.hindsight-control-plane = {
+        wantedBy = [ "multi-user.target" ];
+        environment = {
+          HOME = "/var/lib/hindsight";
+        };
+        serviceConfig = {
+          EnvironmentFile = [ config.sops.templates."hindsight-env".path ];
+          User = "hindsight";
+          Group = "hindsight";
+          Restart = "always";
+          RestartSec = "5";
+          TimeoutStopSec = "30";
+          ReadWritePaths = [ "/var/lib/hindsight" ];
+          UMask = "0077";
+          ExecStart = ''
+            ${pkgs.nodejs}/bin/node \
+                ${pkgs.hindsight-control-plane}/lib/bin/cli.js \
+                --host ${hindsight-host} \
+                --port 11439 \
+                --api-url http://127.0.0.1:${builtins.toString hindsight-port}/hindsight
+          '';
+        };
+      };
+
+      environment.systemPackages = with pkgs; [
+        hindsight-api
+      ];
 
       # Point the hermes hindsight memory provider at this local service. The
       # config.json is rendered by sops-nix so its apiKey never appears in the
@@ -290,5 +343,42 @@ in
         mode = "0400";
       };
     }
+    (lib.mkIf (!config.cluster.nodeConfig.hindsight.enable) {
+      services.caddy =
+        let
+          fallbacks =
+            port:
+            builtins.concatStringsSep " " (
+              builtins.map (host: "http://${host}.wg:${builtins.toString port}") (
+                builtins.filter (host: config.cluster.nodes.${host}.hindsight.enable) (
+                  builtins.attrNames config.cluster.nodes
+                )
+              )
+            );
+        in
+        {
+          enable = true;
+          virtualHosts."http://127.0.0.1:${builtins.toString hindsight-port}" = {
+            extraConfig = ''
+              reverse_proxy http://hindsight.c.wg:${builtins.toString hindsight-port} ${fallbacks hindsight-port} {
+                lb_policy first
+                lb_try_duration 30s
+                fail_duration 60s
+                lb_try_interval 1s
+              }
+            '';
+          };
+          virtualHosts."http://127.0.0.1:${builtins.toString hindsight-control-plane-port}" = {
+            extraConfig = ''
+              reverse_proxy http://hindsight.c.wg:${builtins.toString hindsight-control-plane-port} ${fallbacks hindsight-control-plane-port} {
+                lb_policy first
+                lb_try_duration 30s
+                fail_duration 60s
+                lb_try_interval 1s
+              }
+            '';
+          };
+        };
+    })
   ];
 }

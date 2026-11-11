@@ -50,7 +50,8 @@ let
   publicIpOf = name: cfg.network.edges.${name}.config.publicIp;
   hasPublicIp = name: publicIpOf name != null;
 
-  nodeEntries = name:
+  nodeEntries =
+    name:
     let
       node = cfg.nodes.${name};
       ip = builtins.toString (publicIpOf name);

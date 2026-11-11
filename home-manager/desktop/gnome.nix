@@ -5,7 +5,7 @@
     gnomeExtensions.net-speed
     gnomeExtensions.gsconnect
     gnomeExtensions.blur-my-shell
-    gnomeExtensions.x11-gestures
+    # gnomeExtensions.x11-gestures
     gnomeExtensions.dash-to-dock
     gnomeExtensions.system-monitor
     touchegg

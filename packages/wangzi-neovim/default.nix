@@ -14,7 +14,6 @@
   enable-all ? true,
   enable-debuger ? enable-all && (pkgs.system == "x86_64-linux"),
   enable-markdown-preview ? false,
-  enable-tabnine ? enable-all && (pkgs.system == "x86_64-linux"),
 }:
 with pkgs.unstable;
 with pkgs.unstable.vimPlugins;
@@ -131,11 +130,6 @@ let
     opencode = opencode-nvim;
     copilot_vim = copilot-vim;
     codecompanion = codecompanion-nvim;
-    vectorcode = fetchgit {
-      url = "https://github.com/Davidyz/VectorCode";
-      rev = "810ad4188be9389578ff75b08dfd18c152141d82";
-      sha256 = "sha256-CznHsUYwqTWanRU548bAaFLaBm7YMwb5dwc9umPt/sk=";
-    };
     mcphub = fetchgit {
       url = "https://github.com/ravitemer/mcphub.nvim";
       rev = "9f3e1b80aab5cc24668117c2bd63ff701df774fb";
@@ -205,7 +199,6 @@ let
     cmp_nvim_lsp = cmp-nvim-lsp;
     cmp_buffer = cmp-buffer;
     cmp_path = cmp-path;
-    cmp_tabnine = if enable-tabnine then cmp-tabnine else false;
     cmp_spell = cmp-spell;
     cmp_cmdline = cmp-cmdline;
     cmp_cmdline_history = cmp-cmdline-history;

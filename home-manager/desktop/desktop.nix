@@ -148,13 +148,13 @@ with lib;
 
     programs.mcp = {
       servers = {
-        nuphus-mcp = {
-          command = "${pkgs.nuphus-mcp}/bin/nuphus-mcp";
-          args = [ "--confirm-write" ];
-        };
-        playwright = {
-          command = "${pkgs.playwright-mcp}/bin/playwright-mcp";
-        };
+        # nuphus-mcp = {
+        #   command = "${pkgs.nuphus-mcp}/bin/nuphus-mcp";
+        #   args = [ "--confirm-write" ];
+        # };
+        # playwright = {
+        #   command = "${pkgs.playwright-mcp}/bin/playwright-mcp";
+        # };
       };
     };
   };

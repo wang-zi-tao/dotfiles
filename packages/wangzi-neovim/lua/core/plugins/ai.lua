@@ -1,6 +1,3 @@
-local found_vectorcode_command = vim.fn.executable("vectorcode") ~= 0
-local enable_vectorcode = false
-
 local prompt_library = {
 }
 
@@ -319,46 +316,6 @@ local function config_codecompanion()
     },
     prompt_library = prompt_library,
     extensions = {
-      vectorcode = enable_vectorcode and {
-        ---@type VectorCode.CodeCompanion.ExtensionOpts
-        opts = {
-          tool_group = {
-            -- this will register a tool group called `@vectorcode_toolbox` that contains all 3 tools
-            enabled = true,
-            -- a list of extra tools that you want to include in `@vectorcode_toolbox`.
-            -- if you use @vectorcode_vectorise, it'll be very handy to include
-            -- `file_search` here.
-            extras = {},
-            collapse = false, -- whether the individual tools should be shown in the chat
-          },
-          tool_opts = {
-            ---@type VectorCode.CodeCompanion.ToolOpts
-            ["*"] = {},
-            ---@type VectorCode.CodeCompanion.LsToolOpts
-            ls = {},
-            ---@type VectorCode.CodeCompanion.VectoriseToolOpts
-            vectorise = {},
-            ---@type VectorCode.CodeCompanion.QueryToolOpts
-            query = {
-              max_num = { chunk = -1, document = -1 },
-              default_num = { chunk = 50, document = 10 },
-              include_stderr = false,
-              use_lsp = true,
-              no_duplicate = true,
-              chunk_mode = false,
-              ---@type VectorCode.CodeCompanion.SummariseOpts
-              summarise = {
-                ---@type boolean|(fun(chat: CodeCompanion.Chat, results: VectorCode.QueryResult[]):boolean)|nil
-                enabled = false,
-                adapter = nil,
-                query_augmented = true,
-              }
-            },
-            files_ls = {},
-            files_rm = {}
-          }
-        },
-      } or nil,
     }
   })
   require("telescope").load_extension("codecompanion")
@@ -387,8 +344,6 @@ local snacks_terminal_opts = {
 
 
 return {
-  found_vectorcode_command = found_vectorcode_command,
-  enable_vectorcode = enable_vectorcode,
   {
     "github/copilot.vim",
     dir = gen.copilot_vim,
@@ -420,56 +375,6 @@ return {
       "copilot.vim",
       "fidget_nvim",
       "mcphub",
-      {
-        "Davidyz/VectorCode",
-        dir = gen.vectorcode,
-        name = "vectorcode",
-        module = "vectorcode",
-        version = "*", -- optional, depending on whether you're on nightly or release
-        dependencies = { "plenary_nvim" },
-        enabled = enable_vectorcode,
-        config = function()
-          if not enable_vectorcode then
-            vim.notify("VectorCode command not found. Please install VectorCode.", vim.log.levels.INFO)
-            return
-          end
-
-          vim.api.nvim_create_autocmd("LspAttach", {
-            callback = function()
-              local bufnr = vim.api.nvim_get_current_buf()
-              local cacher = require("vectorcode.config").get_cacher_backend()
-              cacher.async_check("config", function()
-                cacher.register_buffer(
-                  bufnr,
-                  {
-                    n_query = 10,
-                  }
-                )
-              end, nil)
-            end,
-            desc = "Register buffer for VectorCode",
-          })
-          require("vectorcode").setup({
-            async_opts = {
-              debounce = 10,
-              events = { "BufWritePost", "InsertEnter", "BufReadPost" },
-              exclude_this = true,
-              n_query = 5,
-              notify = false,
-              query_cb = require("vectorcode.utils").make_surrounding_lines_cb(-1),
-              run_on_register = true,
-            },
-            async_backend = "lsp",
-            exclude_this = true,
-            n_query = 5,
-            notify = true,
-            timeout_ms = 5000,
-            on_setup = {
-              update = false,
-            }
-          })
-        end
-      }
     },
     config = config_codecompanion,
     cmd = { "CodeCompanion", "CodeCompanionActions", "CodeCompanionChat" },
@@ -528,52 +433,6 @@ return {
         },
       }
     end,
-  },
-  {
-    "Davidyz/VectorCode",
-    dir = gen.vectorcode,
-    name = "vectorcode",
-    module = "vectorcode",
-    enabled = enable_vectorcode,
-    version = "*", -- optional, depending on whether you're on nightly or release
-    -- enabled = false,
-    dependencies = { "plenary_nvim" },
-    config = function()
-      vim.api.nvim_create_autocmd("LspAttach", {
-        callback = function()
-          local bufnr = vim.api.nvim_get_current_buf()
-          local cacher = require("vectorcode.config").get_cacher_backend()
-          cacher.async_check("config", function()
-            cacher.register_buffer(
-              bufnr,
-              {
-                n_query = 10,
-              }
-            )
-          end, nil)
-        end,
-        desc = "Register buffer for VectorCode",
-      })
-      require("vectorcode").setup({
-        async_opts = {
-          debounce = 10,
-          events = { "BufWritePost", "InsertEnter", "BufReadPost" },
-          exclude_this = true,
-          n_query = 5,
-          notify = false,
-          query_cb = require("vectorcode.utils").make_surrounding_lines_cb(-1),
-          run_on_register = true,
-        },
-        async_backend = "lsp",
-        exclude_this = true,
-        n_query = 5,
-        notify = true,
-        timeout_ms = 32000,
-        on_setup = {
-          update = false,
-        }
-      })
-    end
   },
   {
     "ravitemer/mcphub.nvim",
@@ -654,7 +513,7 @@ return {
           local Job = require("plenary.job")
           local nu_command = "with-env { NVIM: '" .. vim.v.servername .. "' } { dsh.cmd --profile tui }"
           if vim.fn.has("win32") == 1 then
-            vim.cmd( [[!wt -w 0 sp -s 0.25 nu -c ]] .. vim.fn.shellescape(nu_command)  )
+            vim.cmd([[!wt -w 0 sp -s 0.25 nu -c ]] .. vim.fn.shellescape(nu_command))
           else
             vim.schedule(function()
               require('snacks.terminal').toggle(dsh_cmd, snacks_terminal_opts)

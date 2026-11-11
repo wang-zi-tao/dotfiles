@@ -1,6 +1,5 @@
 { pkgs, ... }:
 {
-  home.packages = [ pkgs.picom-pijulius ];
   services.picom = {
     enable = false;
     package = pkgs.picom-pijulius;

@@ -200,7 +200,6 @@ in
     renderdoc
 
     codegraph
-    vectorcode
 
     # unstable.tracy
 

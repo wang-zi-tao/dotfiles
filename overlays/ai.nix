@@ -77,6 +77,31 @@ let
     );
 in
 rec {
+  fetchNpmPackage =
+    {
+      fullname,
+      name,
+      version,
+      hash,
+    }:
+    pkgs.stdenvNoCC.mkDerivation {
+      pname = name;
+      version = version;
+      src = pkgs.fetchurl {
+        url = "https://registry.npmjs.org/${fullname}/-/${name}-${version}.tgz";
+        hash = hash;
+      };
+      dontConfigure = true;
+      dontBuild = true;
+      # 与其它 dsh 包保持同一布局：包根 = $out/lib
+      installPhase = ''
+        runHook preInstall
+        mkdir -p "$out/lib"
+        cp -r ./* "$out/lib/"
+        runHook postInstall
+      '';
+    };
+
   mcp-neovim-server = pkgs.buildNpmPackage {
     pname = "mcp-neovim-server";
     version = "9076bb";
@@ -203,9 +228,9 @@ rec {
     build-system = [ pkgs.python312Packages.setuptools ];
   };
 
-  # dsh = pkgs.llm-agents.dsh.override (oldAttr: {
-  #   nodejs = nodejsForDsh;
-  # });
+  dsh = pkgs.llm-agents.dsh.override (oldAttr: {
+    nodejs = nodejsForDsh;
+  });
 
   # dsh 的 node-addon-require-builtin 要在进程里用「精确字节匹配」找到 Node 内部的
   # `node::PrincipalRealm::builtin_module_require() const`（一个 this->field getter），
@@ -255,26 +280,31 @@ rec {
 
   # ── Hindsight memory server (https://github.com/vectorize-io/hindsight) ──
   # `hindsight-api` == `hindsight-api-slim` minus the provider SDKs we never use
-  # (claude-code/anthropic/cohere/bedrock/object-storage/file-parsing/flashrank/
+  # (claude-code/anthropic/cohere/github-copilot/bedrock/file-parsing/flashrank/
   # mlx/onnx are lazily imported and skipped), plus the local embeddings/reranker
-  # stack (torch + sentence-transformers). The database is a NixOS-managed
-  # PostgreSQL (see module/ai.nix) — pg0-embedded is deliberately omitted because
-  # its bundled postgres needs system libs/zoneinfo that aren't present on NixOS.
+  # stack (torch + sentence-transformers). obstore IS shipped: since 1.2.0
+  # engine/storage/base.py imports it at module level, so the server needs it.
+  # The database
+  # is a NixOS-managed PostgreSQL (see module/ai.nix) — pg0-embedded is
+  # deliberately omitted because its bundled postgres needs system libs/zoneinfo
+  # that aren't present on NixOS.
   hindsight-api = py.buildPythonPackage rec {
     pname = "hindsight-api-slim";
-    version = "0.9.1";
+    version = "1.2.0";
     pyproject = true;
     src = pkgs.fetchurl {
       # Exact URL (fetchPypi builds the wrong one: the sdist filename uses
       # underscores `hindsight_api_slim`, not the hyphenated project name).
-      url = "https://files.pythonhosted.org/packages/bd/98/e405ff40dde49769ca8f959f9ff452b28c28d34590da2c7ff016fd29d0ae/hindsight_api_slim-0.9.1.tar.gz";
-      hash = "sha256-4sw3i+r63JaoRughtYiUhHAWt5GS4a0O+zm4QgJlrR0=";
+      url = "https://files.pythonhosted.org/packages/d0/41/40ea82bc8d8a815cb2ed66da1473b248be2ee84e7f9fbf6ea152e813a896/hindsight_api_slim-1.2.0.tar.gz";
+      hash = "sha256-9BYZ0MOu5IvIEjhFEfTRuHPZuG7R6kufFqpqci4cY3M=";
     };
     build-system = [ py.hatchling ];
     # Nix hand-picks versions instead of pip-resolving, and we intentionally
     # dropped the lazily-imported provider SDKs, so reconcile the wheel's
     # Requires-Dist metadata with what is actually in the closure:
     #   - remove the SDKs we don't ship (and psycopg2-binary → we ship psycopg2),
+    #   - remove fastmcp: only the optional /mcp endpoint needs it, nixpkgs marks
+    #     its fastmcp as broken against mcp 2.x, and hindsight imports it lazily,
     #   - relax version pins that nixpkgs satisfies only approximately
     #     (greenlet<3.4 is an arm64-wheel-availability pin; litellm/otel floors
     #     are newer than nixpkgs but their APIs are compatible for our providers).
@@ -284,8 +314,15 @@ rec {
       "boto3"
       "claude-agent-sdk"
       "cohere"
+      # Only the MCP endpoint (/mcp) imports fastmcp, and only when the MCP
+      # server starts. nixpkgs' fastmcp 3.4.7 is broken against mcp 2.x
+      # ("ImportError: cannot import name 'McpError' from
+      # mcp.shared.exceptions"), so ship without it. hindsight 1.2.0 defaults
+      # HINDSIGHT_API_MCP_ENABLED=on, which imports fastmcp in server.py; the
+      # NixOS service sets it to false (module/ai.nix) — REST API is unaffected.
+      "fastmcp"
+      "github-copilot-sdk"
       "markitdown"
-      "obstore"
       "psycopg2-binary"
     ];
     dependencies = [
@@ -304,16 +341,13 @@ rec {
       py.python-multipart
       py.uvicorn
       py.fastapi-cli
-      py.fastmcp
       py.filelock
       py.google-auth
       py.google-genai
       py.greenlet
       py.json-repair
-      py.langchain-core
-      py.langchain-text-splitters
-      py.langsmith
       py.litellm
+      py.obstore
       py.openai
       py.opentelemetry-api
       py.opentelemetry-exporter-otlp-proto-http
@@ -332,10 +366,10 @@ rec {
       py.pyjwt
       py.python-dateutil
       py.python-dotenv
+      py.regex
       py.rich
       py.sqlalchemy
-      py.tiktoken
-      py.tornado
+      py."toktok-rs"
       py.typer
       py.urllib3
       py.uvloop
@@ -351,6 +385,13 @@ rec {
       py.transformers
     ];
     meta.mainProgram = "hindsight-api";
+  };
+
+  hindsight-control-plane = pkgs.fetchNpmPackage {
+    name = "hindsight-control-plane";
+    fullname = "@vectorize-io/hindsight-control-plane";
+    version = "1.2.1";
+    hash = "sha256-TlPq4bNvgZXz+I6r6lUSFhnR1fsBZt5pPlIuGecQWB8=";
   };
 
   mcp-nixos = pkgs.writeShellScriptBin "mcp-nixos" ''

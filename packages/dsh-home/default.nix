@@ -17,7 +17,6 @@
   writeScript,
   busybox,
   codegraph,
-  vectorcode,
   mcp-nixos,
   formats,
   cua-driver,
@@ -112,22 +111,18 @@ let
       '';
     };
 
-  dsh-continual-harness = buildDshPnpmPackage rec {
-    pname = "dsh-continual-harness";
-    version = "v0.3.3";
-    src = fetchgit {
-      url = "https://github.com/jasen215/dsh-continual-harness";
-      rev = version;
-      sha256 = "sha256-HEx21GTAYMFOZhdJMQr165l7Ay94MOH/UyF1YNz+U0M=";
-    };
-    hash = "sha256-dZXm/Sg7R4EZYVXAy9Fq29guOLXy9HYn3zEjJ8sWuv0=";
-  };
-
   billion-context = fetchNpmPackage {
     name = "billion-context";
     fullname = "billion-context";
     version = "0.1.204";
     hash = "sha256-ftwWrlzk5e5oEw5wajEqm/QW1fDY4f3RuhZV+UXDLXU=";
+  };
+
+  dsh-nushell = fetchNpmPackage {
+    name = "dsh-nushell-only";
+    fullname = "dsh-nushell-only";
+    version = "0.4.1";
+    hash = "sha256-hEnnWjqtmi1JUJ5rdN3lNSqC76KCbmE7PUmHBRadwfw=";
   };
 
   mcpPatch =
@@ -169,8 +164,8 @@ let
     dsh-hindsight
     dsh-lsp
     dsh-neovim
-    dsh-continual-harness
     billion-context
+    dsh-nushell
   ];
   extra_bundles = [
     "@deepseek-ai/dsh-experimental-agent-team-profile"
@@ -190,9 +185,6 @@ let
         "serve"
         "--mcp"
       ];
-    };
-    vectorcode = {
-      command = "${vectorcode}/bin/vectorcode-mcp-server";
     };
   };
 
@@ -245,7 +237,7 @@ let
       id = "hindsight";
       name = "dsh-hindsight";
       config = {
-        apiUrl = "http://127.0.0.1:11438";
+        apiUrl = "http://127.0.0.1:11438/hindsight";
         memoryMode = "hybrid";
         apiKey = "!!js process.getBuiltinModule('fs').readFileSync('/run/secrets/hindsight/apikey','utf8').trim()";
       };
@@ -329,7 +321,7 @@ let
           nativeBuildInputs = [ git ];
         }).overrideAttrs
           (old: {
-            installPhase = builtins.replaceStrings [ "--force" ] [ "" ] old.installPhase;
+            # installPhase = builtins.replaceStrings [ "--force" ] [ "" ] old.installPhase;
           });
 
       extra_bundles = lib.escapeShellArgs extra_bundles;
@@ -376,14 +368,14 @@ let
   profiles = builtins.map (profile: build-dsh-profile profile) [
     {
       name = "web";
-      hash = "sha256-bPQTKI4JCTkANYmQW7Nipt8eI3xz0oCSfl77qwD1Pvk=";
+      hash = "sha256-Mikm710Tkeo/OXzAqgXJvICR90/lR03uCGDocc/7PVQ=";
       plugins = plugins ++ [ ];
       src = ./web;
       extra_bundles = extra_bundles ++ [ "@deepseek-ai/dsh-web-app" ];
     }
     {
       name = "tui";
-      hash = "sha256-nj9CDtQRo8qxPxUzKjOWvuuEGsnQVZneA9zYpbAGTTs=";
+      hash = "sha256-VbJQ3AbvKFviIlS6kDcIBELybL8zBx1pJ2VZtm5NRsU=";
       plugins = plugins ++ [ ];
       src = ./tui;
       extra_bundles = extra_bundles;
@@ -436,9 +428,8 @@ let
 in
 dsh-home
 // rec {
-  home-file-factory =
-    dsh-home:
-    {
+  home-config-factory = { dsh-home, lib }: {
+    home.file = {
       ".dsh-tui/settings.json".source = "${dsh-home}/.dsh-tui/settings.json";
       ".dsh/profiles/node_modules".source = "${dsh}/lib/node_modules";
       ".dsh/AGENTS.md".source = "${dsh-home}/.dsh/AGENTS.md";
@@ -451,7 +442,6 @@ dsh-home
           name = profile.pname;
         in
         lib.attrsets.attrsToList {
-          ".dsh/profiles/${name}/package.json".source = "${dsh-home}/.dsh/profiles/${name}/package.json";
           ".dsh/profiles/${name}/pnpm-lock.yaml".source = "${dsh-home}/.dsh/profiles/${name}/pnpm-lock.yaml";
           ".dsh/profiles/${name}/pnpm-workspace.yaml".source =
             "${dsh-home}/.dsh/profiles/${name}/pnpm-workspace.yaml";
@@ -465,5 +455,14 @@ dsh-home
         }) (lib.attrNames (builtins.readDir "${profile}/lib/node_modules"))
       ) profiles
     );
-  home-file = home-file-factory dsh-home;
+    home.activation.dsh = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+      builtins.concatStringsSep "\n" (
+        builtins.map (profile: ''
+          cp -a -L --force ${dsh-home}/.dsh/profiles/${profile.pname}/package.json $HOME/.dsh/profiles/${profile.pname}/package.json
+          chmod +w $HOME/.dsh/profiles/${profile.pname}/package.json
+        '') profiles
+      )
+    );
+  };
+  home-config = home-config-factory dsh-home;
 }

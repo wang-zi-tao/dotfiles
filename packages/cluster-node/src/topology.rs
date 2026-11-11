@@ -5,10 +5,11 @@
 //!
 //! - **一个源只对自己那一端负责**：源 `s` 发布的边必须有一端是 `s`，
 //!   任何节点都不能替别人背书（所以转述别人的记录也不会污染图）。
-//! - **版本号**：`version` 是内容版本，只有「自己的直连结构」变化时才 +1；
+//! - **版本号只是内容标记**：`version` 是进程内的结构版本，只有「自己的直连
+//!   结构」变化时才 +1，重启后从 0 重新开始——所以它**不能**用来判新旧。
 //!   `generated_at` 是发布时刻，内容没变也会刷新，相当于心跳/存活证明。
 //! - **按信息源管理生命周期**：每条记录记在 `sources[source]` 下，用
-//!   `(version, generated_at)` 的字典序做更新判定；更旧的记录不会覆盖更新的。
+//!   `(generated_at, version)` 的字典序做更新判定；更旧的记录不会覆盖更新的。
 //! - **过期**：`generated_at` 超过 TTL 的记录直接丢弃——源不再发布就自然消失；
 //!   转述方刷新不了 `generated_at`，所以陈旧信息不会因为被反复转述而永生。
 //! - **合并**：所有活着的记录（本机实测 + 各源）按边合并成图；同一对节点
@@ -108,6 +109,7 @@ impl Edge {
 #[serde(rename_all = "camelCase")]
 pub struct SourceRecord {
     pub source: String,
+    /// 源进程内的结构版本，仅供诊断；跨重启不可比，不参与新旧判定。
     pub version: u64,
     pub generated_at: u64,
     #[serde(default)]
@@ -117,6 +119,7 @@ pub struct SourceRecord {
 /// 本地存下来的一份源记录。
 #[derive(Debug, Clone, Default)]
 pub struct StoredSource {
+    /// 源进程内的结构版本（诊断用，不参与新旧判定）。
     pub version: u64,
     pub generated_at: u64,
     /// 本机最后一次听到这条记录的时刻（诊断用）。
@@ -129,9 +132,9 @@ pub struct StoredSource {
 pub enum MergeOutcome {
     /// 新的源，第一次记录。
     Inserted,
-    /// 版本更新，整条替换。
+    /// 发布时刻（或同秒内的版本号）更新，整条替换。
     Updated,
-    /// 版本相同且发布时刻相同，只刷新接收时间（心跳）。
+    /// 发布时刻与版本都相同，只刷新接收时间（心跳）。
     Refreshed,
     /// 比手上的旧，丢弃。
     Stale,
@@ -328,7 +331,7 @@ impl Topology {
         records
     }
 
-    /// 按「信息源 + 版本号」合并一条记录。
+    /// 按「信息源」合并一条记录：同一源内以 (generated_at, version) 取新。
     ///
     /// 关键约束：记录只能包含以 `source` 为一端的边（谁也不能替别人背书）。
     /// 记录里可以提到本机（比如对端说「我和你能直连」），这些边会原样收下并
@@ -368,8 +371,16 @@ impl Topology {
                 MergeOutcome::Inserted
             }
             Some(current) => {
-                let incoming = (version, generated_at);
-                let known = (current.version, current.generated_at);
+                // 新旧顺序：先比发布时刻，再比版本号。
+                //
+                // 不能先比版本号：version 只是进程内计数器，节点一重启就从 0
+                // 重新开始，而邻居手里还存着重启前的高版本号。那样重启节点的
+                // 新记录会被一直判成 Stale，它实测的直连再也传播不出去（老记录
+                // 要等 TTL 过期才让位，期间还可能被反复转述）。generated_at 是
+                // 源自己的墙上时钟，跨重启依然单调，适合当主键；version 只在
+                // 同一秒内发布多条记录时用于区分先后。
+                let incoming = (generated_at, version);
+                let known = (current.generated_at, current.version);
                 match incoming.cmp(&known) {
                     Ordering::Greater => {
                         current.version = version;
@@ -574,7 +585,7 @@ mod tests {
     }
 
     #[test]
-    fn newer_version_wins_and_older_is_ignored() {
+    fn newer_record_wins_and_older_is_ignored() {
         let mut topo = Topology::new("a");
         assert_eq!(
             topo.apply_record(rec(
@@ -585,18 +596,18 @@ mod tests {
             )),
             MergeOutcome::Inserted
         );
-        // 旧版本（即使发布时刻更新）不能覆盖
+        // 发布时刻更早的记录（哪怕版本号更大）不能覆盖
         assert_eq!(
             topo.apply_record(rec(
                 "b",
-                1,
-                900,
+                9,
+                50,
                 vec![Edge::new("b", "d", 10.0, LinkKind::Lan)]
             )),
             MergeOutcome::Stale
         );
         assert_eq!(topo.sources["b"].version, 2);
-        // 新版本覆盖
+        // 发布时刻更新则整条替换
         assert_eq!(
             topo.apply_record(rec(
                 "b",
@@ -609,6 +620,77 @@ mod tests {
         let edges = topo.graph_edges_for_view();
         assert_eq!(edges.len(), 1);
         assert_eq!(edges[0].b, "d");
+    }
+
+    #[test]
+    fn restarted_source_with_reset_version_still_wins() {
+        // 节点重启后 self_version 从 0 重新开始，重启前邻居可能已经记到 v7。
+        // 版本号只是进程内计数器，不能跨重启比较：新记录必须靠发布时刻胜出，
+        // 否则重启节点实测的直连会被判成 Stale，永远传播不出去。
+        let mut topo = Topology::new("a");
+        topo.apply_record(rec(
+            "b",
+            7,
+            100,
+            vec![Edge::new("b", "c", 10.0, LinkKind::Lan)],
+        ));
+        assert_eq!(
+            topo.apply_record(rec(
+                "b",
+                1,
+                200,
+                vec![Edge::new("b", "d", 20.0, LinkKind::Lan)]
+            )),
+            MergeOutcome::Updated
+        );
+        assert_eq!(topo.sources["b"].version, 1);
+        assert_eq!(topo.sources["b"].generated_at, 200);
+        let edges = topo.graph_edges_for_view();
+        assert_eq!(edges.len(), 1);
+        assert_eq!(edges[0].key(), edge_key("b", "d"));
+        // 反过来：重启期间邻居手里那份旧的高版本记录更老，必须被丢弃。
+        assert_eq!(
+            topo.apply_record(rec(
+                "b",
+                7,
+                100,
+                vec![Edge::new("b", "c", 10.0, LinkKind::Lan)]
+            )),
+            MergeOutcome::Stale
+        );
+    }
+
+    #[test]
+    fn same_timestamp_uses_version_as_tiebreak() {
+        // 同一秒内连发两条（心跳 + 结构变化），版本号仍然能区分先后。
+        let mut topo = Topology::new("a");
+        assert_eq!(
+            topo.apply_record(rec(
+                "b",
+                1,
+                100,
+                vec![Edge::new("b", "c", 10.0, LinkKind::Lan)]
+            )),
+            MergeOutcome::Inserted
+        );
+        assert_eq!(
+            topo.apply_record(rec(
+                "b",
+                2,
+                100,
+                vec![Edge::new("b", "d", 10.0, LinkKind::Lan)]
+            )),
+            MergeOutcome::Updated
+        );
+        assert_eq!(
+            topo.apply_record(rec(
+                "b",
+                1,
+                100,
+                vec![Edge::new("b", "c", 10.0, LinkKind::Lan)]
+            )),
+            MergeOutcome::Stale
+        );
     }
 
     #[test]

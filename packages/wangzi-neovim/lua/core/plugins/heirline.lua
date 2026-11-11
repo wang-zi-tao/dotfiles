@@ -8,8 +8,6 @@
 
   local tokyonight_colors   = require("tokyonight.colors").setup({ style = "moon" })
 
-  local enable_vectorcode   = require("core.plugins.ai").enable_vectorcode
-
 
   local separator1 = { '', '' }
   local separator1_empty = { '', '' }
@@ -606,17 +604,6 @@
     end
   }
 
-  local function VectorCode(opts)
-    if enable_vectorcode then
-      return require("vectorcode.integrations").heirline({
-        show_job_count = true,
-        component_opts = opts,
-      })
-    else
-      return {}
-    end
-  end
-
 
   local function Nav(opts)
     local component = components.nav(opts)
@@ -697,7 +684,6 @@
     tabline_buffers(),
     components.fill(),
     {
-      enable_vectorcode and VectorCode({ hl = { fg = "gray" } }),
       components.virtual_env(),
       FileSize({ hl = { fg = "gray" } }),
       components.file_encoding({ hl = { fg = "gray" } }),

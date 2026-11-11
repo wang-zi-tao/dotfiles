@@ -155,14 +155,16 @@ in
         home.username = "dsh";
         home.homeDirectory = home;
         imports = [
-          ({ pkgs, lib, ... }: {
-            home.file = pkgs.dsh-home.home-file-factory (
-              pkgs.dsh-home.override (old: {
+          (
+            { pkgs, lib, ... }:
+            pkgs.dsh-home.home-config-factory {
+              dsh-home = pkgs.dsh-home.override (old: {
                 enable_develop = false;
                 enable_desktop = false;
-              })
-            );
-          })
+              });
+              lib = lib;
+            }
+          )
         ];
       };
     })

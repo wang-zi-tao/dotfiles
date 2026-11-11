@@ -53,7 +53,7 @@ nixos集群配置自动生成配置文件
 | `src/tls.rs` | rcgen 自签证书 + rustls 配置；对等连接 ALPN=h2 |
 | `src/peer.rs` | HTTP/2 客户端：连接池、keep-alive、带签名请求、流式请求 |
 | `src/probe.rs` | TCP 连通性/延迟探测、本机地址枚举、隧道目标白名单判断 |
-| `src/topology.rs` | 拓扑同步：每个节点只发布自己实测的直连（信息源 + 版本号），按源合并、按发布时刻过期 |
+| `src/topology.rs` | 拓扑同步：每个节点只发布自己实测的直连（信息源 + 发布时刻），按源合并、按发布时刻过期 |
 | `src/route.rs` | petgraph 无向图上的加权最短路（边权 = rtt + 1000/speed ms）、路由表、WireGuard 计划生成与下发 |
 | `src/dns.rs` | 最小 DNS 服务：按 hostnames.hosts 顺序返回第一个可联通节点 |
 | `src/tunnel.rs` | UDP over HTTP/2 双向流（一个 h2 流承载一个 UDP 会话） |
@@ -150,17 +150,21 @@ cluster-node-cli rescan        # 强制重新探测
 - **观测**：`cluster-node-cli status` 多一行「网络事件: 已因网络变化重新探测 N 次，最近: ...」，
   日志里则是「检测到网络变化，重新探测」+「网络变化触发的探测完成 direct=… edges=…」。
 
-## 拓扑同步：信息源 + 版本号（向量时钟）
+## 拓扑同步：信息源 + 发布时刻（向量时钟）
 
 节点之间同步的不是「一张图」，而是「每个节点对自己直连的那一段事实」，等价于一个按信息源分桶的
 向量时钟式分布式数据库：
 
 - **只说自己**：一条记录 = {source, version, generatedAt, edges}，edges 里每条边都必须有一端是
   source。谁也不能替别人背书，伪造/越权的边在接收时直接丢掉。
-- **版本只在结构变化时 +1**：对端集合、链路类型（Lan/Wan/Inferred）、对端地址任一变化才算「结构变化」，
-  version 加一；只有 RTT 抖动时不动 version，只刷新 generatedAt（当作心跳）。
-- **合并是 LWW**：按 source 分桶，比较 (version, generatedAt) 字典序，大者胜；完全相同则只更新接收时间
-  （表示「源还活着」）。比本地更旧的版本（Stale）直接忽略。
+- **version 只是内容标记，不参与判新旧**：对端集合、链路类型（Lan/Wan/Inferred）、对端地址任一变化
+  才算「结构变化」，version 加一；只有 RTT 抖动时不动 version，只刷新 generatedAt（当作心跳）。
+  它是进程内计数器，节点重启后从 0 重新开始，跨重启不可比，只能看不能比。
+- **合并是 LWW，主键是发布时刻**：按 source 分桶，比较 (generatedAt, version) 字典序，大者胜；
+  完全相同则只更新接收时间（表示「源还活着」）。比本地更旧的记录（Stale）直接忽略。
+  早先按 (version, generatedAt) 比，节点重启后 version 归零（首轮探测只到 1），邻居手里还存着重启前的
+  高版本号，新记录被判成 Stale，实测的直连再也传播不出去（要等旧记录按 TTL 过期才让位，重启期间还可能
+  被反复转述）。generatedAt 是源自己的墙上时钟，跨重启单调，才是可比的那一维。
 - **生命周期看发布时刻**：TTL 默认 max(gossipIntervalMs × 6, 60s)，用 now - generatedAt 判断，不看接收时间。
   转述方每轮都会把同一条记录再发一遍，若按接收时间续命，源下线后它的旧信息会被永久转述下去
   （实测过：中继节点会把已下线节点的记录一遍遍「复活」）。
@@ -175,7 +179,7 @@ cluster-node-cli rescan        # 强制重新探测
 ## 本地验证
 ```bash
 cd packages/cluster-node
-cargo test                                   # 58 个单元测试
+cargo test                                   # 60 个单元测试
 # 起两个实例（各自一份 ssh host key 与配置）后：
 cluster-node-cli --socket /tmp/a.sock status
 cluster-node-cli --socket /tmp/a.sock rescan

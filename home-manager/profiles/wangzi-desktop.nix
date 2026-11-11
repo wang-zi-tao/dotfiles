@@ -15,5 +15,5 @@
   home.username = "wangzi";
   home.homeDirectory = "/home/wangzi";
   neovim.full = true;
-  services.rustdesk.enable = true;
+  services.rustdesk.enable = false;
 }

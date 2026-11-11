@@ -14,12 +14,12 @@
 }:
 let
   pname = "dsh";
-  version = "v0.2.0-rc.2";
+  version = "v0.2.2-rc.1";
   src = fetchFromGitHub {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     rev = "dsh-${version}";
-    sha256 = "sha256-VUANHGBhUEgV/MC4Vart49fILOUN43WjfgU7ArPpuxM=";
+    sha256 = "sha256-qBDntSFrgy8Z1Xr7fvRgcj0gNbgbP9wtqlFGjZtkwkE=";
     leaveDotGit = true;
   };
 
@@ -48,7 +48,7 @@ let
       pname = "dsh-deps-${stdenvNoCC.system}";
       src = src;
       fetcherVersion = 4;
-      hash = "sha256-l+q7KENUblSgE/vE+vNtDl+bRMqTa61AFsu7/lTnS2U=";
+      hash = "";
       nativeBuildInputs = [
       ];
       prePnpmInstall = ''

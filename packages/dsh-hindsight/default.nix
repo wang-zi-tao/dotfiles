@@ -2,7 +2,6 @@
   lib,
   stdenvNoCC,
   nodejs,
-  typescript,
   dsh,
   fetchPnpmDeps,
   pnpmConfigHook,
@@ -19,13 +18,16 @@ stdenvNoCC.mkDerivation rec {
   pnpmDeps = fetchPnpmDeps {
     pname = "${pname}-deps";
     src = src;
-    hash = "sha256-+d2k/nChVqCAxYI9apZ+8s5bSc2Hfr4hk2qQ5TWpa0k=";
+    hash = "sha256-n4cMWyb2UmPInPrBIbvLGyaxt/Jpg2HZmWnSKstaC2I=";
     fetcherVersion = 4;
   };
 
+  # No nixpkgs `typescript` here on purpose: it is now the 7.x native port
+  # (tsgo), which does not pick up node_modules/@types the way the project's
+  # pinned 5.x does, so a bare `tsc` in checkPhase resolves to the wrong
+  # compiler. The TypeScript version is the devDependency from pnpm-lock.yaml.
   nativeBuildInputs = [
     nodejs
-    typescript
     pnpm
     pnpmConfigHook
     pnpmBuildHook
@@ -35,15 +37,10 @@ stdenvNoCC.mkDerivation rec {
     cp -rsf ${dsh}/lib/node_modules/@deepseek-ai/dsh/node_modules/ .
   '';
 
-  postConfig = ''
-    ls -l node_modules/
-    false
-  '';
-
   doCheck = true;
   checkPhase = ''
     runHook preCheck
-    tsc -p tsconfig.test.json
+    ./node_modules/.bin/tsc -p tsconfig.test.json
     node --test build/test/*.test.js
     runHook postCheck
   '';
@@ -66,7 +63,7 @@ stdenvNoCC.mkDerivation rec {
       start of each agent turn. Server address, bank id, budget and memory
       mode are configurable through the Cordis row config and HINDSIGHT_*
       environment variables. The package is written in TypeScript
-      and compiled with nixpkgs TypeScript.
+      and compiled with the project's pinned TypeScript.
     '';
     homepage = "https://hindsight.vectorize.io";
     license = licenses.mit;

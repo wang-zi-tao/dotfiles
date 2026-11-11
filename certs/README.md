@@ -32,3 +32,19 @@
 
     echo | openssl s_client -connect <公网IP>:443 -CAfile certs/<文件>.crt 2>/dev/null \
       | grep 'Verify return code'
+
+## 客户端（非 NixOS 的系统）
+
+`security.pki` 只影响 NixOS 节点自己。Windows / Android / OpenHarmony / macOS
+各有一套独立信任库，Linux 上装好了它们并不会跟着认，需要在各自系统里各导入一次。
+
+- **Windows**：管理员运行 `certs/windows/install-caddy-roots.ps1`（已内嵌上面两张 PEM）。
+  - `-EnableFirefox`：顺带写 Firefox 企业策略 `ImportEnterpriseRoots=1`（Firefox 自带 NSS，默认不读 Windows 根证书；
+    也可以在 `about:config` 手动把 `security.enterprise_roots.enabled` 设为 `true`）。
+  - `-Uninstall`：删除所有 Subject 含 `Caddy Local Authority` 的根证书。
+  - Chrome / Edge / Electron 应用走 Windows 根证书存储，导入后重启浏览器即可。
+- **根证书有效期约 10 年，导入一次即可**；Caddy 每 12 小时轮换的是叶子证书，不影响客户端信任。
+
+彻底免导入的办法是换成公共 CA 签发的证书（需要域名 + DNS-01 验证），
+这样 Windows / 手机等所有系统开箱即信任。
+

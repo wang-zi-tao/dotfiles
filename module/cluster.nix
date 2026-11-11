@@ -429,7 +429,6 @@ with builtins;
             container.enable = true;
             virtualisation.enable = true;
             buildNode.enable = true;
-            ollama.enable = true;
             # k3s.enable = true;
           };
           server_config = {
@@ -445,7 +444,6 @@ with builtins;
             users.wangzi = ../home-manager/profiles/wangzi-desktop.nix;
             # localIp = "192.168.32.1";
             wayland.enable = true;
-            hermes.enable = false;
             hindsight.enable = true;
             ssh.hostPublicKeys = [
               "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGCXhvbrseUepfs+/iWWaqieSUVLiP60wJsg1bklKRN4"
@@ -454,7 +452,7 @@ with builtins;
           wangzi-asus = desktop_config // {
             users.wangzi = ../home-manager/profiles/wangzi-asus.nix;
             wayland.enable = true;
-            hindsight.enable = true;
+            ollama.enable = true;
             ssh.hostPublicKeys = [
               "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICJpbG3rTbNEK5lUFpf+ePDAYyUIQsnBRxaiWr8OV1iu"
             ];
