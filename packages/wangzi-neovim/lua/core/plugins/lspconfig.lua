@@ -113,7 +113,7 @@ local function config()
     local servers = {
         "vimls",
         "pyright",
-        "jedi_language_server",
+        -- "jedi_language_server",
         -- "ruff",
         -- "rust_analyzer",
         "gopls",
@@ -363,8 +363,8 @@ return {
             {
                 "<leader>lf",
                 function()
-                    local hunks = require("gitsigns").get_hunks()
-                    if hunks ~= nil or #hunlks == 0 then
+                    local hunks = require("gitsigns").get_hunks(vim.api.nvim_get_current_buf())
+                    if hunks ~= nil and #hunks > 0 then
                         for range in require("core.utils").get_changed_ranges() do
                             vim.lsp.buf.format({ range = range })
                         end

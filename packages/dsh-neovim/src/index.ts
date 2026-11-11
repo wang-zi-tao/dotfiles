@@ -37,7 +37,7 @@ import {
   fmtThreads,
 } from './format.js'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
-import type { Context, Logger, ToolDefinition, ToolRunContext, ToolExecution, Agent } from './types.js'
+import type { Context, JsonSchemaNode, Logger, ToolDefinition, ToolRunContext, ToolExecution, Agent } from './types.js'
 
 export const name = 'dsh-neovim'
 export const inject = ['tools', 'commands', 'agents']
@@ -79,13 +79,229 @@ const OBJECT = (description: string): Record<string, unknown> => ({
   description,
 })
 
+// ---------------------------------------------------------------------------
+// Output schemas.
+//
+// dsh-tools enforces a strict JSON-Schema subset for tool outputs: one scalar
+// `type`, object `properties`/`required`, boolean `additionalProperties`,
+// array `items`, scalar `enum`/`const`, exact-one `oneOf`, and annotations.
+// Nullable values must be written as `oneOf: [<schema>, { type: 'null' }]`.
+// Lua-side objects are open (additionalProperties: true) because the bridge may
+// grow new fields; `required` only lists fields that are always present.
+// ---------------------------------------------------------------------------
+const outString = (description?: string): JsonSchemaNode =>
+  description === undefined ? { type: 'string' } : { type: 'string', description }
+const outInteger = (description?: string): JsonSchemaNode =>
+  description === undefined ? { type: 'integer' } : { type: 'integer', description }
+const outNumber = (description?: string): JsonSchemaNode =>
+  description === undefined ? { type: 'number' } : { type: 'number', description }
+const outBoolean = (description?: string): JsonSchemaNode =>
+  description === undefined ? { type: 'boolean' } : { type: 'boolean', description }
+const outArray = (items: JsonSchemaNode, description?: string): JsonSchemaNode =>
+  description === undefined ? { type: 'array', items } : { type: 'array', items, description }
+/** Object with declared properties; extra Lua-side fields stay allowed. */
+const outObject = (
+  properties: Record<string, JsonSchemaNode>,
+  required: string[] = [],
+  description?: string,
+): JsonSchemaNode => ({
+  type: 'object',
+  additionalProperties: true,
+  properties,
+  ...(required.length > 0 ? { required } : {}),
+  ...(description === undefined ? {} : { description }),
+})
+/** Object whose properties are not enumerated. */
+const outAnyObject = (description: string): JsonSchemaNode => ({
+  type: 'object',
+  additionalProperties: true,
+  description,
+})
+const OUT_NULL: JsonSchemaNode = { type: 'null' }
+const outNullable = (schema: JsonSchemaNode): JsonSchemaNode => ({ oneOf: [schema, OUT_NULL] })
+const OUT_TRUE: JsonSchemaNode = { type: 'boolean', const: true }
+const OUT_OK: JsonSchemaNode = outObject({ ok: OUT_TRUE }, ['ok'], '操作成功')
+const OUT_DAP_ERROR: JsonSchemaNode = {
+  oneOf: [outString(), outAnyObject('DAP 错误响应'), OUT_NULL],
+  description: '错误信息（字符串）或 DAP 错误响应',
+}
+
+const OUT_FRAME: JsonSchemaNode = outObject(
+  {
+    id: outInteger('帧 ID'),
+    name: outString('帧名'),
+    line: outInteger('行号'),
+    column: outInteger('列号'),
+    source: outString('源码路径（相对 cwd）'),
+    sourceLine: outString('源码行内容'),
+  },
+  ['id'],
+  'DAP 栈帧',
+)
+
+/** Step/continue result: only `status` is unconditional. */
+const OUT_STEP: JsonSchemaNode = outObject(
+  {
+    status: { type: 'string', enum: ['stopped', 'terminated', 'timeout'], description: '停止状态' },
+    reason: outString('停止原因'),
+    description: outString('停止描述'),
+    allThreadsStopped: outBoolean('是否所有线程都已停止'),
+    thread_id: outInteger('命中的线程 ID'),
+    frames: outArray(OUT_FRAME, '栈帧列表'),
+    error: OUT_DAP_ERROR,
+    totalFrames: outInteger('总帧数'),
+  },
+  ['status'],
+  '继续/步进后的停止状态',
+)
+
+const OUT_INSTRUCTION: JsonSchemaNode = outObject(
+  {
+    address: outString('指令地址'),
+    instructionBytes: outString('机器码字节'),
+    instruction: outString('反汇编文本'),
+    symbol: outString('解析出的符号'),
+  },
+  [],
+  '单条反汇编指令',
+)
+
+const OUT_U64: JsonSchemaNode = outObject(
+  { lo: outInteger('低 32 位'), hi: outInteger('高 32 位'), hex: outString('0x 十六进制') },
+  ['lo', 'hi', 'hex'],
+  '小端 u64 分组',
+)
+
+const OUT_MEMORY_SUCCESS: JsonSchemaNode = outObject(
+  {
+    ok: OUT_TRUE,
+    address: outString('内存地址'),
+    bytes: outString('原始字节'),
+    hex: outString('十六进制串'),
+    u32: outArray(outInteger(), '小端 u32 分组'),
+    u64: outArray(OUT_U64, '小端 u64 分组'),
+  },
+  ['ok', 'address', 'hex'],
+  '读取成功',
+)
+const OUT_MEMORY_FAILURE: JsonSchemaNode = outObject(
+  {
+    ok: { type: 'boolean', const: false },
+    address: outString('内存地址'),
+    error: outString('错误信息'),
+  },
+  ['ok', 'error'],
+  '读取失败',
+)
+const OUT_READ_MEMORY: JsonSchemaNode = { oneOf: [OUT_MEMORY_SUCCESS, OUT_MEMORY_FAILURE] }
+
+const OUT_SLOT_SUCCESS: JsonSchemaNode = outObject(
+  {
+    ok: OUT_TRUE,
+    rsp: outInteger('RSP 值'),
+    addr: outInteger('槽位地址'),
+    bytes: outString('原始字节'),
+    hex: outString('十六进制串'),
+    u32: outArray(outInteger(), '小端 u32 分组'),
+    u64: outArray(OUT_U64, '小端 u64 分组'),
+  },
+  ['ok', 'rsp', 'addr'],
+  '读取成功',
+)
+const OUT_SLOT_FAILURE: JsonSchemaNode = outObject(
+  {
+    ok: { type: 'boolean', const: false },
+    rsp: outInteger('RSP 值'),
+    addr: outInteger('槽位地址'),
+    error: outString('错误信息'),
+  },
+  ['ok', 'error'],
+  '读取失败',
+)
+const OUT_READ_STACK_SLOT: JsonSchemaNode = { oneOf: [OUT_SLOT_SUCCESS, OUT_SLOT_FAILURE] }
+
+const OUT_CHECK_HANG: JsonSchemaNode = outObject(
+  {
+    status: { type: 'string', enum: ['skipped', 'ok', 'hang'], description: '判定结果' },
+    pid: outInteger('目标进程 PID'),
+    cpu1: outNumber('第一次采样 CPU 秒数'),
+    cpu2: outNumber('第二次采样 CPU 秒数'),
+    delta: outNumber('两次采样的 CPU 增量秒数'),
+    responding1: outBoolean('第一次采样 Responding'),
+    responding2: outBoolean('第二次采样 Responding'),
+    note: outString('说明'),
+    hang: outObject({ pid: outInteger('目标进程 PID'), note: outString('说明') }, [], '死锁信息'),
+  },
+  ['status'],
+  '卡死检查结果',
+)
+
+const OUT_VAR_MAP: JsonSchemaNode = {
+  oneOf: [outAnyObject('变量名 → 值字符串的映射'), OUT_NULL],
+  description: '帧变量映射；找不到帧或请求失败时为 null',
+}
+
+const OUT_THREAD: JsonSchemaNode = outObject(
+  {
+    id: outInteger('线程 ID'),
+    name: outString('线程名'),
+    stopped: outBoolean('是否已停止'),
+  },
+  ['id'],
+  'DAP 线程',
+)
+
+const OUT_SESSION: JsonSchemaNode = outObject(
+  {
+    name: outString('会话名'),
+    id: outInteger('会话 ID'),
+    type: outString('适配器类型'),
+    root: outString('工作目录'),
+  },
+  [],
+  'DAP 调试会话',
+)
+
+const OUT_BREAKPOINT: JsonSchemaNode = outObject(
+  {
+    file: outString('文件路径'),
+    line: outInteger('行号'),
+    condition: outString('条件表达式'),
+    hitCondition: outString('命中次数条件'),
+    logMessage: outString('日志消息'),
+    verified: outBoolean('是否已验证'),
+    message: outString('验证信息'),
+  },
+  ['file', 'line'],
+  '断点',
+)
+
+const OUT_CONFIGURATION: JsonSchemaNode = outObject(
+  {
+    lang: outString('语言'),
+    name: outString('配置名'),
+    type: outString('适配器类型'),
+    request: outString('launch/attach'),
+    cwd: outString('工作目录'),
+  },
+  ['lang', 'name'],
+  '调试配置',
+)
+
+const OUT_DAP_RESPONSE: JsonSchemaNode = {
+  oneOf: [outAnyObject('DAP 响应体（结构由具体请求决定）'), OUT_NULL],
+  description: 'DAP 请求响应；无响应时为 null',
+}
+
 interface ToolSpec {
   name: string
   description: string
   parameters: Record<string, unknown>
-  /** Fetch the raw tool result; rendered via format unless output_json is set. */
+  /** JSON Schema (dsh-tools enforced subset) for this tool's canonical result. */
+  output: JsonSchemaNode
+  /** Fetch the raw tool result; rendered via format. */
   run(args: any, exec: ToolRunContext): Promise<unknown>
-  /** Render a raw result as human-readable markdown (used when output_json is false). */
+  /** Render a raw result as human-readable markdown. */
   format(result: any, args: any): string
 }
 
@@ -102,11 +318,11 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
   /** Sessions that used a DAP tool; debugger events are injected only there. */
   const dapSessions = new Set<string>()
 
-  function inject(agent: Agent, prompt: string) {
+  function inject(agent: Agent, prompt: string, auto_start: boolean = false) {
     try {
       const message = createUserMessage({content: [{type: 'text', text: prompt}], source: {kind: name}});
-      if (agent.status === 'idle')
-        agent.followup(message);
+      if (auto_start)
+        agent.steer(message)
       else
         agent.inject(message);
     } catch (error) {
@@ -134,7 +350,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
       let prompt: string = a.prompt;
 
       for (const agent of ctx.agents.roots()) {
-        inject(agent, prompt)
+        inject(agent, prompt, true)
       }
     });
   };
@@ -256,6 +472,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
   const specs: ToolSpec[] = [
     {
       name: 'nvim_command',
+      output: outNullable(outString('Vim 命令的输出文本')),
       description: "执行 Vim 命令",
       parameters: objectSchema({
         cmd: STRING("Vim 命令，如 'w'、'bp'、'set tabstop=4'"),
@@ -270,6 +487,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_lua_command',
+      output: OUT_OK,
       description: '在 Neovim 中执行 Lua 语句（无返回值，等价 `lua <cmd>`）。cmd 必须是语句：裸表达式（如 `1+1`、`vim.o.tabstop`）不是合法语句，请改用 nvim_lua_eval。',
       parameters: objectSchema({
         cmd: STRING('Lua 语句（非表达式），如 "vim.opt.tabstop = 4"；裸表达式请用 nvim_lua_eval'),
@@ -285,6 +503,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_lua_eval',
+      output: { description: 'Lua 表达式的任意 JSON 返回值（可为 null）' },
       description: '在 Neovim 中异步求值 Lua 表达式并返回结果。cmd 必须是 Lua 表达式：内部按 agent.run_async(function() return <cmd> end, ...) 求值. 多条语句请包成 (function() ... end)()，常用lua模块:[core.agent: 各种给agent提供的工具函数和集成式调试器辅助函数, dap: 调试器, overseer: 编译等运行器], 常用vim函数:[vim.inspect: lua值转字符串, vim.fn: 各种neovim内置函数]',
       parameters: objectSchema({
         cmd: STRING('Lua 表达式'),
@@ -299,6 +518,18 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_eval',
+      output: outObject(
+        {
+          result: outString('求值结果文本'),
+          type: outString('结果类型'),
+          variablesReference: outInteger('可展开的变量引用'),
+          namedVariables: outInteger('命名变量数'),
+          indexedVariables: outInteger('索引变量数'),
+          memoryReference: outString('内存引用'),
+        },
+        ['result'],
+        'DAP evaluate 响应',
+        ),
       description: '在当前调试会话中求值表达式',
       parameters: objectSchema({
         expr: STRING('要求值的表达式'),
@@ -316,6 +547,18 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_disasm',
+      output: outObject(
+        {
+          memory_reference: outString('反汇编起始地址'),
+          instruction_count: outInteger('请求的指令条数'),
+          instruction_offset: outInteger('起始偏移'),
+          pc_index: outInteger('PC 所在指令下标（1-based）'),
+          instructions: outArray(OUT_INSTRUCTION, '反汇编指令'),
+          lines: outArray(outString(), '预格式化的指令行'),
+        },
+        ['memory_reference', 'instruction_count', 'instruction_offset', 'lines'],
+        '反汇编结果',
+        ),
       description:
         '反汇编当前调试位置（围绕当前帧指令指针 PC 前后各 16 条指令），或用 memory_reference 反汇编任意地址的机器码',
       parameters: objectSchema({
@@ -334,6 +577,16 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_start',
+      output: outObject(
+        {
+          ok: OUT_TRUE,
+          lang: outString('语言'),
+          config_name: outString('配置名'),
+          config: outAnyObject('合并后的调试配置'),
+        },
+        ['ok', 'lang', 'config_name', 'config'],
+        '启动调试的结果',
+        ),
       description: '启动调试会话。自定义 config 字段会深度合并到预注册配置模板上，可覆盖 program、pid、args 等',
       parameters: objectSchema({
         config_name: STRING('预注册的调试配置名称'),
@@ -358,6 +611,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_continue',
+      output: OUT_STEP,
       description: '继续执行。协程阻塞等待命中断点后返回停止位置（vsdbg attach 会话的 continue 须带 threadId，缺省自动用 stopped_thread_id）',
       parameters: objectSchema({
         timeout_ms: INTEGER('等待命中的超时毫秒数（默认 30000）'),
@@ -368,6 +622,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_stop',
+      output: OUT_OK,
       description: '终止当前调试会话',
       parameters: objectSchema({}),
       async run() {
@@ -380,6 +635,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_step_into',
+      output: OUT_STEP,
       description: '步入当前函数。协程阻塞等待命中断点后返回停止位置',
       parameters: objectSchema({
         thread_id: INTEGER('线程 ID（可选，默认当前线程）'),
@@ -391,6 +647,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_step_over',
+      output: OUT_STEP,
       description: '步过当前行。协程阻塞等待命中断点后返回停止位置',
       parameters: objectSchema({
         thread_id: INTEGER('线程 ID（可选，默认当前线程）'),
@@ -402,6 +659,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_step_out',
+      output: OUT_STEP,
       description: '步出当前函数。协程阻塞等待命中断点后返回停止位置',
       parameters: objectSchema({
         thread_id: INTEGER('线程 ID（可选，默认当前线程）'),
@@ -412,6 +670,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_run_to_cursor',
+      output: OUT_STEP,
       description: '运行到当前光标位置。设临时断点→继续执行→命中后移除并返回停止状态',
       parameters: objectSchema({}),
       run: (_args, exec) => dapStep('dap_run_to_cursor', {}, exec),
@@ -419,6 +678,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_run_to_location',
+      output: OUT_STEP,
       description: '运行到指定 file:line。设临时断点→继续执行→命中后移除并返回停止状态',
       parameters: objectSchema({
         file: STRING('文件路径（省略则为当前缓冲区）'),
@@ -432,6 +692,16 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_get_stack',
+      output: outObject(
+        {
+          thread_id: outInteger('线程 ID'),
+          frames: outArray(OUT_FRAME, '栈帧列表'),
+          totalFrames: outInteger('总帧数'),
+          error: OUT_DAP_ERROR,
+        },
+        ['thread_id', 'totalFrames'],
+        '调用栈结果',
+        ),
       description: '获取当前调用栈',
       parameters: objectSchema({}),
       async run(_args, exec) {
@@ -443,6 +713,18 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_wait_stop',
+      output: outObject(
+        {
+          status: { type: 'string', enum: ['stopped', 'timeout', 'hang'], description: '等待结果' },
+          thread_id: outInteger('停止的线程 ID'),
+          stopped_thread_id: outInteger('会话记录的停止线程 ID'),
+          frame_name: outString('当前帧名'),
+          frame: OUT_FRAME,
+          hang: outObject({ pid: outInteger('目标进程 PID'), note: outString('说明') }, [], '死锁信息'),
+        },
+        ['status'],
+        '等待停止的结果',
+        ),
       description: '轮询等待调试会话停止（帧名变化 或 stopped_thread_id 变化），不依赖协程阻塞。vsdbg attach 会话 step 后 stackTrace 易被取消时使用；also_respond=true 时额外做 CPU 死锁检测',
       parameters: objectSchema({
         timeout_ms: INTEGER('超时毫秒数（默认 30000）'),
@@ -465,6 +747,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_frame_vars',
+      output: OUT_VAR_MAP,
       description: '一次调用内完成 stackTrace→定位帧→scopes→variables 收集帧变量（规避 vsdbg frameId 跨调用失效）。frame_match 按帧名子串匹配第一帧',
       parameters: objectSchema({
         thread_id: INTEGER('线程 ID'),
@@ -495,6 +778,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_read_register',
+      output: outNullable(outString('寄存器值（16 位 hex 无前缀时已补 0x）')),
       description: '读取寄存器值：scopes→Registers→CPU 分组→variables 展开查找寄存器（vsdbg evaluate 读寄存器受限时使用）。vsdbg 实测 f0 inline 帧（id 通常=1000）的 Registers 才精确，auto_inline 时读取失败自动经 stackTrace 找 f0 帧重试；返回值 16 位 hex 无 0x 前缀自动补 "0x"',
       parameters: objectSchema({
         frame_id: INTEGER('帧 ID（来自 stackTrace，如 nvim_dap_get_stack 的 frames[].id）；省略且 auto_inline 时自动找 f0 inline 帧'),
@@ -520,6 +804,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_read_memory',
+      output: OUT_READ_MEMORY,
       description: '读取目标进程内存（DAP readMemory：base64 解码 + 小端 u32/u64 + hex）。readMemory 绕过 vsdbg evaluate 读内存受限问题；auto_pause=true 时目标运行中会自动 pause 后重试',
       parameters: objectSchema({
         memory_reference: STRING('内存引用（十六进制 "0x..." 或十进制字符串；缺省用当前帧 instructionPointerReference）'),
@@ -546,6 +831,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_read_stack_slot',
+      output: OUT_READ_STACK_SLOT,
       description: '读取当前栈上参数槽位（读 RSP → RSP+offset → readMemory），绕过 vsdbg evaluate 限制。如 _CalcInterrupt 参数槽 [rsp+3C8h]=src / [rsp+3D0h]=dest（debug 版）',
       parameters: objectSchema({
         offset: INTEGER('相对 RSP 的字节偏移（默认 0）'),
@@ -569,6 +855,16 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_address_classify',
+      output: outObject(
+        {
+          kind: { type: 'string', enum: ['stack', 'heap', 'unknown'], description: '地址归属' },
+          delta: outInteger('与 RSP 的绝对差'),
+          rsp: outInteger('RSP 值'),
+          addr: outInteger('地址值'),
+        },
+        ['kind', 'delta'],
+        '地址归属判定结果',
+        ),
       description: '判定内存地址属于栈还是堆（|addr - RSP| < 1MB → stack，否则 heap）。用途：0x1D5D77 BTS 失败断点判别 RCX 堆/栈地址，区分首次失败（堆=有效现场）与回滚命中（栈=跳过）',
       parameters: objectSchema({
         addr: STRING('地址（十六进制 "0x..." 或十进制字符串）'),
@@ -588,6 +884,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_check_hang',
+      output: OUT_CHECK_HANG,
       description: '卡死检查（独立函数 M.dap_check_hang）：两次采样目标进程 CPU 无增长（delta < hang_delta，默认 0.01 秒）且 Responding=False 判定 status=hang。须在目标自由运行时调用（暂停时 CPU delta=0 是假象）。PID 缺省从 session.config 推断，无法确定返回 skipped',
       parameters: objectSchema({
         pid: INTEGER('目标进程 PID（缺省尝试从 session.config 推断）'),
@@ -610,6 +907,11 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_get_threads',
+      output: outObject(
+        { threads: outArray(OUT_THREAD, '线程列表') },
+        ['threads'],
+        '线程列表',
+        ),
       description: '获取所有线程',
       parameters: objectSchema({}),
       async run() {
@@ -619,6 +921,18 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_switch_thread',
+      output: outObject(
+        {
+          thread_id: outInteger('线程 ID'),
+          thread_name: outString('线程名'),
+          frame: OUT_FRAME,
+          frames: outArray(OUT_FRAME, '栈帧列表'),
+          totalFrames: outInteger('总帧数'),
+          error: OUT_DAP_ERROR,
+        },
+        ['thread_id', 'frames', 'totalFrames'],
+        '切换线程的结果',
+        ),
       description: '切换到指定线程',
       parameters: objectSchema({
         thread_id: INTEGER('线程 ID'),
@@ -633,6 +947,11 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_get_sessions',
+      output: outObject(
+        { sessions: outArray(OUT_SESSION, '调试会话列表') },
+        ['sessions'],
+        '调试会话列表',
+        ),
       description: '列出所有活跃调试会话',
       parameters: objectSchema({}),
       async run() {
@@ -642,6 +961,21 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_switch_session',
+      output: outObject(
+        {
+          session: outObject(
+            {
+              name: outString('会话名'),
+              id: outInteger('会话 ID'),
+              type: outString('适配器类型'),
+            },
+            ['name'],
+            '当前调试会话',
+            ),
+        },
+        ['session'],
+        '切换会话的结果',
+        ),
       description: '按名称切换调试会话',
       parameters: objectSchema({
         session_name: STRING('会话名称'),
@@ -657,6 +991,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_add_watch',
+      output: outObject({ expression: outString('监视表达式') }, ['expression'], '添加监视的结果'),
       description: '添加监视表达式到调试 UI',
       parameters: objectSchema({
         expr: STRING('监视表达式'),
@@ -670,6 +1005,15 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_add_breakpoint',
+      output: outObject(
+        {
+          file: outString('文件路径'),
+          line: outInteger('行号'),
+          condition: outString('条件表达式'),
+        },
+        ['file', 'line'],
+        '添加断点的结果',
+        ),
       description: '在 file:line 添加断点（支持条件、命中次数、日志）',
       parameters: objectSchema({
         file: STRING('文件路径（省略则为当前缓冲区）'),
@@ -691,6 +1035,26 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_add_function_breakpoint',
+      output: outObject(
+        {
+          breakpoints: outArray(
+            outObject(
+              {
+                id: outInteger('断点 ID'),
+                verified: outBoolean('是否已验证'),
+                message: outString('验证信息'),
+                line: outInteger('行号'),
+                source: outAnyObject('断点来源'),
+              },
+              [],
+              '函数断点',
+            ),
+            '函数断点列表',
+            ),
+        },
+        [],
+        'DAP setFunctionBreakpoints 响应',
+        ),
       description: '添加函数断点（按函数名，无需指定文件和行号）',
       parameters: objectSchema({
         func: STRING('函数名'),
@@ -710,6 +1074,11 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_toggle_breakpoint',
+      output: outObject(
+        { ok: OUT_TRUE, file: outString('文件路径'), line: outInteger('行号') },
+        ['ok', 'file', 'line'],
+        '切换断点的结果',
+        ),
       description: '切换断点（有则删、无则加）',
       parameters: objectSchema({
         file: STRING('文件路径（省略则为当前缓冲区）'),
@@ -729,6 +1098,11 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_remove_breakpoint',
+      output: outObject(
+        { removed: outBoolean('是否删除了断点'), file: outString('文件路径'), line: outInteger('行号') },
+        ['file', 'line'],
+        '删除断点的结果',
+        ),
       description: '删除指定位置的断点',
       parameters: objectSchema({
         file: STRING('文件路径（省略则为当前缓冲区）'),
@@ -744,6 +1118,11 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_list_breakpoints',
+      output: outObject(
+        { breakpoints: outArray(OUT_BREAKPOINT, '断点列表') },
+        ['breakpoints'],
+        '断点列表',
+        ),
       description: '列出所有断点及其属性',
       parameters: objectSchema({}),
       async run() {
@@ -753,6 +1132,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_clear_breakpoints',
+      output: OUT_OK,
       description: '清除所有断点',
       parameters: objectSchema({}),
       async run() {
@@ -765,6 +1145,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_request',
+      output: OUT_DAP_RESPONSE,
       description:
         '发送任意 DAP 请求到调试适配器。若请求不被支持，返回适配器能力列表；若参数错误，提示查询 DAP 协议文档。' +
         '常用命令: evaluate, stackTrace, threads, scopes, variables, disassemble, setBreakpoints, setFunctionBreakpoints, setExceptionBreakpoints, source, modules, loadedSources, goto, stepIn, stepOut, next, continue, pause, terminate, restart, initialize, launch, attach 等',
@@ -777,6 +1158,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
         return await dapCall(`agent.dap_request(args)`, { args })
       },
       format(result) {
+        if (result == null) return '(无响应体)'
         if (result.error) {
           let out = `**DAP 请求错误:** ${result.error}
 
@@ -804,6 +1186,11 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
     },
     {
       name: 'nvim_dap_get_configurations',
+      output: outObject(
+        { configurations: outArray(OUT_CONFIGURATION, '调试配置列表') },
+        ['configurations'],
+        '调试配置列表',
+        ),
       description: '列出可用的调试配置（可按语言筛选）',
       parameters: objectSchema({
         lang: STRING('按语言筛选（如 cpp、python），省略则列出全部'),
@@ -821,16 +1208,11 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
       description: spec.description,
       parameters: spec.parameters,
       output: {
-        schema: { description: '工具原始结果（任意 JSON 值）或 markdown 文本' },
-        render: (args, value) => {
-          const { output_json: wantJson, ...rest } = (args ?? {}) as Record<string, unknown>
-          const text = wantJson ? JSON.stringify(value, null, 2) : spec.format(value, rest)
-          return [{ type: 'text', text }]
-        },
+        schema: spec.output,
+        render: (args, value) => [{ type: 'text', text: spec.format(value, args) }],
       },
       async execute(args, exec) {
-        const { output_json, ...rest } = (args ?? {}) as Record<string, unknown>
-        let ret = await spec.run(rest, exec)
+        const ret = await spec.run(args, exec)
         return ret || null
       },
     }

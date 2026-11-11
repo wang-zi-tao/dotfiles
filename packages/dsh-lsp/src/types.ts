@@ -115,7 +115,7 @@ export type DiagnosticSeverity = 'hint' | 'information' | 'warning' | 'error'
 /** When language servers are started without waiting for a query. */
 export type AutoStartMode = 'mount' | 'session' | 'off'
 
-/** How post-write diagnostics are obtained from a server. */
+/** How one file's diagnostics are obtained: pushed by the server or pulled from it. */
 export type DiagnosticsMode = 'auto' | 'push' | 'pull' | 'off'
 
 export interface LspConfig {
@@ -132,38 +132,52 @@ export interface LspConfig {
   autoStartRoots: string[]
   maxLocations: number
   maxResultChars: number
+  /**
+   * Hard deadline for one LSP request and for the initialize handshake (ms).
+   * Expiry cancels that request (or the start) and never aborts the server.
+   */
   timeoutMs: number
   /** Directory where per-server stderr logs are written (absolute or ~-relative). */
   logDir: string
   servers: ServerSpec[]
   /** Sync-load the file into its LSP server when the AI reads it. */
   syncLoadOnRead: boolean
-  /** Async diagnostics + agent.inject after the AI writes a file. */
-  diagnosticsOnWrite: boolean
+  /**
+   * Continuously inject diagnostics changes. Every push a server makes is
+   * observed and diffed against that file's last report; only added / removed
+   * findings are injected into the agent sessions that qualify.
+   */
+  diagnosticsInject: boolean
+  /**
+   * Restrict injection to the files a session's own tools read or wrote. A
+   * re-analysed header republishes every translation unit that includes it;
+   * without this filter those reports page sessions that never opened them.
+   * Files no session has touched keep no baseline, so the first report after
+   * one of them is read or written arrives whole. Set false for the old
+   * broadcast-everything behaviour.
+   */
+  diagnosticsOnlyTouched: boolean
   /** Only diagnostics at or above this severity are injected. */
   diagnosticsMinSeverity: DiagnosticSeverity
   /**
-   * How diagnostics are obtained: `auto` keeps the pull request only when the
-   * server advertises it (clangd does not), `push`/`pull` pin one path, and
-   * `off` disables post-write diagnostics entirely.
+   * How one file's diagnostics are obtained: `auto` keeps the pull request only
+   * when the server advertises it (clangd does not, it pushes), `push`/`pull`
+   * pin one path, and `off` disables the post-write refresh entirely.
    */
   diagnosticsMode: DiagnosticsMode
   /**
-   * Upper bound on waiting for one push. The timeout only ends the wait: the
-   * server and its open documents are never aborted.
+   * Upper bound on waiting for one push during an on-demand `lsp diagnostics`
+   * query. The timeout only ends the wait: the server and its open documents
+   * are never aborted.
    */
   diagnosticsTimeoutMs: number
-  /** Window in which an identical finding set is injected only once. */
-  diagnosticsDedupeMs: number
-  /** Upper bound on injected diagnostics per push. */
+  /** Upper bound on diagnostics listed in one injected message. */
   maxDiagnostics: number
   /**
-   * Inject a push that arrives with no armed write watch, into the agent that
-   * most recently wrote that file. Off by default: a background re-publish
-   * (another file's edit invalidating this translation unit) would otherwise
-   * interrupt an unrelated turn.
+   * Coalescing window: pushes that arrive inside one window are folded into a
+   * single injected message (0 injects each flush immediately).
    */
-  diagnosticsOnAnyPublish: boolean
+  diagnosticsFlushMs: number
   /**
    * When `workspaceSymbol` finds nothing in the server's own index, converge
    * on candidate files, warm them, and retry the index query (slower, capped).
@@ -198,8 +212,8 @@ export interface QueryArgs {
   line?: number
   character?: number
   query?: string
-  /** When true, the result also carries a structured `json` projection. */
-  json?: boolean
+  /** Minimum severity for `diagnostics`; `all` (the default) keeps everything. */
+  severity?: DiagnosticSeverity | 'all'
 }
 
 /** 1-based UTF-16 cursor position (the tool's convention). */
@@ -267,6 +281,31 @@ export interface SymbolFallbackInfo {
   truncated: boolean
 }
 
+/**
+ * The last state of one `$/progress` stream reported by a server.
+ *
+ * clangd's background index reports itself this way (`backgroundIndexProgress`:
+ * begin → report → end). Keeping the last statement per token lets a query
+ * explain an empty answer while the index is still building, and lets the
+ * plugin announce the moment it becomes usable.
+ */
+export interface IndexProgress {
+  /** Progress token as chosen by the server (clangd: `backgroundIndexProgress`). */
+  token: string
+  /** `begin.title` (clangd: "indexing"). */
+  title: string
+  /** Last reported completeness, 0–100, or null before the first report. */
+  percentage: number | null
+  /** Translation units finished, parsed from the report's "completed/enqueued" message. */
+  completed: number | null
+  /** Translation units enqueued, parsed from the report's "completed/enqueued" message. */
+  enqueued: number | null
+  /** True once the server sent `end`: the queue drained and the index is usable. */
+  done: boolean
+  /** Epoch milliseconds of the last update. */
+  updatedAt: number
+}
+
 export interface DiagnosticEntry {
   severity: DiagnosticSeverity
   message: string
@@ -275,11 +314,29 @@ export interface DiagnosticEntry {
   source?: string
 }
 
+/**
+ * One diagnostics answer: the entries plus an optional note explaining why the
+ * answer may be incomplete (a pull timed out, no push arrived in time, ...).
+ */
+export interface DiagnosticsReport {
+  entries: DiagnosticEntry[]
+  note?: string
+}
+
 export type LspQueryResult =
   | { kind: 'locations'; locations: LspLocation[]; truncated: boolean }
   | { kind: 'hover'; hover: string | null }
-  | { kind: 'symbols'; symbols: SymbolEntry[]; truncated: boolean; fallback?: SymbolFallbackInfo }
-  | { kind: 'diagnostics'; diagnostics: DiagnosticEntry[] }
+  | {
+      kind: 'symbols'
+      symbols: SymbolEntry[]
+      truncated: boolean
+      /** Present when the server's own index answered nothing and the candidate fallback ran. */
+      fallback?: SymbolFallbackInfo
+      /** Present when the answer was empty while a background index was still building. */
+      indexing?: string
+    }
+  /** Present when the answer is incomplete (a timed-out pull, a missing push). */
+  | { kind: 'diagnostics'; diagnostics: DiagnosticEntry[]; note?: string }
   | { kind: 'explore'; explore: ExploreResult }
 
 export interface ExploreResult {
@@ -301,4 +358,6 @@ export interface ServerStatus {
   root: string | null
   pid: number | null
   error: string | null
+  /** Last background-index progress the server reported, if any. */
+  index?: IndexProgress | null
 }

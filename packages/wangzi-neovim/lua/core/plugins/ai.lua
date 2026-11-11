@@ -48,6 +48,7 @@ end
 
 local function codecompanion_fidget()
   local progress = require("fidget.progress")
+  local M = {}
 
   function M:init()
     local group = vim.api.nvim_create_augroup("CodeCompanionFidgetHooks", {})
@@ -323,7 +324,6 @@ local function config_codecompanion()
 end
 
 local opencode_cmd = { 'opencode', '-c', '--port' }
-local dsh_cmd = { 'dsh', '--profile', 'tui' }
 ---@type snacks.terminal.Opts
 local snacks_terminal_opts = {
   env = {
@@ -472,6 +472,7 @@ return {
     "nickjvandyke/opencode.nvim",
     name = "opencode",
     dir = gen.opencode,
+    enabled = false,
     keys = {
       {
         "<leader>ao",
@@ -506,21 +507,6 @@ return {
         expr = true,
         desc = "toggle OpenCode",
         mode = { "n", "x" }
-      },
-      {
-        "<leader>td",
-        function()
-          local Job = require("plenary.job")
-          local nu_command = "with-env { NVIM: '" .. vim.v.servername .. "' } { dsh.cmd --profile tui }"
-          if vim.fn.has("win32") == 1 then
-            vim.cmd([[!wt -w 0 sp -s 0.25 nu -c ]] .. vim.fn.shellescape(nu_command))
-          else
-            vim.schedule(function()
-              require('snacks.terminal').toggle(dsh_cmd, snacks_terminal_opts)
-            end)
-          end
-        end,
-        desc = "Deepseek Harness",
       },
     },
     config = function()

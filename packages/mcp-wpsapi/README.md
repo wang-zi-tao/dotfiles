@@ -79,3 +79,31 @@ eval_python(code="x * 2")           # 第二次 -> 84
 - 工具默认 `attach=True`：若 WPS/Office 已在运行则附加，否则新建实例。
 - COM 调用可能在模态对话框处挂起，`eval_python` 支持 `timeout` 参数防卡死。
 - 安全提示：`eval_python` 执行任意代码，仅应在受信任的本地环境中使用。
+
+## 排错
+
+### `PermissionError: [WinError 5] ... \Temp\gen_py`
+
+pywin32 在 `import win32com.client` 时会重建 `%TEMP%\gen_py` 下的类型库缓存并写 `dicts.dat`。当 `%TEMP%` 不可写（例如 DSH 的 Windows 沙箱拒绝在共享 Temp 根目录下新建条目）时，server 启动即失败：
+
+```
+File ".../win32com/client/gencache.py", line 172, in GetGeneratePath
+    os.makedirs(win32com.__gen_path__, exist_ok=True)
+PermissionError: [WinError 5] 拒绝访问。: 'C:\\Users\\<user>\\AppData\\Local\\Temp\\gen_py'
+```
+
+`mcp_wpsapi.com_cache` 在导入 `win32com.client` 之前把缓存改到第一个可写位置：
+
+1. `$MCP_WPSAPI_GEN_PATH`（显式覆盖，原样使用）
+2. 仓库内 `packages/mcp-wpsapi/.gen_py/<py-version>`（工作区内，沙箱下也可写）
+3. `%LOCALAPPDATA%\mcp-wpsapi\gen_py\<py-version>`
+4. pywin32 默认的 `%TEMP%\gen_py\<py-version>`
+
+需要固定缓存位置时设置环境变量，例如：
+
+```powershell
+$env:MCP_WPSAPI_GEN_PATH = "D:\cache\mcp-wpsapi-gen_py"
+mcp-wpsapi
+```
+
+缓存目录可随时删除，下次启动会重新生成（首次 `EnsureDispatch` 会慢一点）。

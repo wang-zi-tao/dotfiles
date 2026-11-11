@@ -7,7 +7,7 @@
  * path rules to a possibly-symlinked root.
  */
 
-import { isAbsolute, relative } from 'node:path'
+import { isAbsolute, relative, resolve } from 'node:path'
 import { readFileSync } from 'node:fs'
 
 import type { Diagnostic, Position, Range } from 'vscode-languageserver-protocol'
@@ -66,6 +66,19 @@ export function fromLspRange(range: Range): LspRange {
 export function isUriInside(uri: string, rootUri: string): boolean {
   if (!isFileUri(uri) || !isFileUri(rootUri)) return false
   return uri === rootUri || uri.startsWith(rootUri.endsWith('/') ? rootUri : rootUri + '/')
+}
+
+/**
+ * True when `path` is `root` or lies inside it.
+ *
+ * Compared on normalized absolute paths, lowercased so a Windows drive letter
+ * and casing differences cannot split one tree in two (the plugin already
+ * treats roots case-insensitively when targeting agent sessions).
+ */
+export function isPathInside(root: string, path: string): boolean {
+  const normalizedRoot = resolve(root).toLowerCase()
+  const rel = relative(normalizedRoot, resolve(path).toLowerCase())
+  return rel === '' || (!rel.startsWith('..') && !isAbsolute(rel))
 }
 
 /**
@@ -150,6 +163,18 @@ const SymbolKindName: Record<number, string> = {
 /** True when a value is an absolute filesystem path. */
 export function isAbsolutePath(path: string): boolean {
   return isAbsolute(path)
+}
+
+/**
+ * Resolve a tool's `file_path` argument to an absolute path: absolute paths pass
+ * through, relative ones resolve against the session cwd (then the process
+ * cwd). The registry locates a server through this, and the touched-file table
+ * records the same result, so both agree with the absolute paths a server
+ * publishes in its diagnostics.
+ */
+export function toAbsolutePath(path: string, cwd?: string): string {
+  if (isAbsolute(path)) return path
+  return resolve(cwd && cwd.trim() !== '' ? resolve(cwd) : process.cwd(), path)
 }
 
 /**

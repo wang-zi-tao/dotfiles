@@ -11,7 +11,7 @@
  */
 
 import type { Context, Logger } from '@deepseek-ai/cordis'
-import type { ToolDefinition, ToolRunContext, ToolExecution } from '@deepseek-ai/dsh-tools'
+import type { JsonSchemaNode, ToolDefinition, ToolRunContext, ToolExecution } from '@deepseek-ai/dsh-tools'
 import type { CommandDefinition, CommandInvocation, CommandResult } from '@deepseek-ai/dsh-commands'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { Session } from '@deepseek-ai/dsh-session'
@@ -20,6 +20,7 @@ import type { ContextFormed } from '@deepseek-ai/dsh-llm'
 export type {
   Context,
   Logger,
+  JsonSchemaNode,
   ToolDefinition,
   ToolRunContext,
   ToolExecution,

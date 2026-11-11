@@ -4,7 +4,7 @@ local function config()
     require("neo-tree").setup({
         close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
         popup_border_style = "",
-        enable_git_status = true,
+        enable_git_status = false,
         enable_diagnostics = true,
         open_files_do_not_replace_types = utils.file_type_blacklist, -- when opening files, do not use windows containing these filetypes or buftypes
         sort_case_insensitive = false,                               -- used when sorting files and directories in the tree
@@ -109,6 +109,7 @@ local function config()
                 }
             },
             mappings = {
+                ["g"] = "rg",
                 -- ["<space>"] = {
                 --   "toggle_node",
                 --   nowait = false, -- disable `nowait` if you have existing combos starting with this char that you want to use
@@ -165,6 +166,13 @@ local function config()
         },
         nesting_rules = {},
         filesystem = {
+            commands = {
+                rg = function(state)
+                    local node = state.tree:get_node()
+                    vim.print(node)
+                    -- vim.cmd("Telescope live_grep search_dirs=" .. (opts.args or "."))
+                end,
+            },
             bind_to_cwd = false,
             follow_current_file = { enabled = true },
             filtered_items = {

@@ -1,12 +1,12 @@
 local M = require("core.hotreload").init_module()
 M.bg = function(group, col)
-    cmd("hi " .. group .. " guibg=" .. col)
+    vim.cmd("hi " .. group .. " guibg=" .. col)
 end
 M.fg = function(group, col)
-    cmd("hi " .. group .. " guifg=" .. col)
+    vim.cmd("hi " .. group .. " guifg=" .. col)
 end
 M.fg_bg = function(group, fgcol, bgcol)
-    cmd("hi " .. group .. " guifg=" .. fgcol .. " guibg=" .. bgcol)
+    vim.cmd("hi " .. group .. " guifg=" .. fgcol .. " guibg=" .. bgcol)
 end
 
 M.colors = {

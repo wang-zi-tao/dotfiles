@@ -1901,7 +1901,7 @@ end)
 require("core.hotreload").effect("core.agent", function()
   vim.api.nvim_create_user_command("DshAsk", function(args)
     ---@type string
-    local prompt = args.args[1]
+    local prompt = args.args
     M.send_prompt(prompt)
   end, { nargs = 1 })
 

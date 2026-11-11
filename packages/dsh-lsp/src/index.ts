@@ -1,11 +1,11 @@
 /**
  * dsh-lsp — LSP semantic code navigation for DeepSeek Harness.
  *
- * A single model-facing `lsp` tool (definition / references / implementation
- * / typeDefinition / hover / workspaceSymbol / documentSymbol / diagnostics,
- * plus an aggregated `explore` that mirrors codegraph's one-call symbol
- * lookup) and one `/lsp` command for manual server control, over managed
- * language-server subprocesses.
+ * A small catalog of model-facing `lsp_*` tools — one per navigation intent
+ * (explore / definition / type definition / implementation / references /
+ * hover / symbols / diagnostics / status) rather than a single `lsp` tool
+ * routed by an `operation` enum — plus one `/lsp` command for manual server
+ * control, over managed language-server subprocesses.
  *
  * The plugin is self-contained and dependency-light: it imports only
  * `vscode-languageserver-protocol`, and consumes the harness through the same
@@ -15,24 +15,44 @@
  * @module dsh-lsp
  */
 
+import { DiagnosticBroadcaster, type InjectableAgent } from './broadcast.js'
+import { searchCandidates } from './candidates.js'
 import { LspClient } from './client.js'
 import { resolveConfig } from './config.js'
-import { diagnosticsMessage, filterDiagnostics } from './diagnostics.js'
-import { isFileUri, pathToFileUri, readLinePreview, renderLocations, toLspLocation, toSymbolEntry } from './protocol.js'
+import { filterDiagnostics } from './diagnostics.js'
+import { indexProgressMessage, renderIndexProgress } from './progress.js'
+import {
+  isFileUri,
+  isPathInside,
+  pathToFileUri,
+  readLinePreview,
+  renderLocations,
+  toAbsolutePath,
+  toLspLocation,
+  toSymbolEntry,
+} from './protocol.js'
 import { ServerRegistry } from './registry.js'
 import { findRoot, hasRootMarker } from './root.js'
-import { DiagnosticWatcher, type InjectableAgent } from './watch.js'
+import { LSP_TOOLS, outputSchemaFor } from './tools.js'
+import { TouchedFiles } from './touched.js'
 import type { ToolExecution } from '@deepseek-ai/dsh-tools'
+import type { SymbolInformation, WorkspaceSymbol } from 'vscode-languageserver-protocol'
 import type {
   CommandInvocation,
   CommandResult,
   DshContext,
   ExploreResult,
+  IndexProgress,
   Logger,
   LspLocation,
   LspQueryResult,
   QueryArgs,
+  QueryOperation,
+  ServerSpec,
+  ServerStatus,
+  SubprocessRuntime,
   SymbolEntry,
+  SymbolFallbackInfo,
   ToolRunContext,
 } from './types.js'
 
@@ -103,6 +123,23 @@ function liveAgents(ctx: DshContext): unknown[] {
   }
 }
 
+/**
+ * Live agents whose session cwd lies inside `root`: the sessions that query
+ * that tree, and therefore the only ones a finished background index or a
+ * diagnostics change there concerns. Injecting into every session would
+ * interrupt unrelated turns.
+ */
+function agentsUnder(ctx: DshContext, root: string): InjectableAgent[] {
+  const out: InjectableAgent[] = []
+  for (const candidate of liveAgents(ctx)) {
+    const cwd = sessionCwd(candidate)
+    if (!cwd) continue
+    if (typeof (candidate as { inject?: unknown }).inject !== 'function') continue
+    if (isPathInside(root, cwd)) out.push(candidate as InjectableAgent)
+  }
+  return out
+}
+
 function hoverToText(hover: { contents: unknown } | null | undefined): string | null {
   if (!hover) return null
   const contents = hover.contents
@@ -141,6 +178,100 @@ function renderSymbols(symbols: SymbolEntry[], maxLocations: number, withPreview
   return { text: lines.join('\n'), truncated }
 }
 
+/** What the symbol fallback needs beyond the LSP client itself. */
+interface FallbackDeps {
+  subprocess: SubprocessRuntime
+  logger: Logger
+}
+
+/**
+ * Overall ceiling for one fallback pass, expressed as a multiple of the
+ * per-search timeout: the name search, the content search and the warm-up
+ * retry each get one budget, and the whole pass aborts once they are spent.
+ */
+const FALLBACK_BUDGET_FACTOR = 3
+
+/** Map a raw LSP symbol list to the model-facing entry vocabulary. */
+function toSymbolEntries(
+  raw: Array<SymbolInformation | WorkspaceSymbol> | null | undefined,
+  rootUri: string,
+): SymbolEntry[] {
+  return (raw ?? []).map(sym => toSymbolEntry({
+    name: sym.name,
+    kind: sym.kind,
+    location: sym.location,
+    ...(sym.containerName ? { containerName: sym.containerName } : {}),
+  }, rootUri))
+}
+
+/**
+ * Fill an empty `workspace/symbol` answer by converging on candidate files,
+ * parsing them, and asking the index again.
+ *
+ * clangd answers `workspace/symbol` from its Dex index only and never waits for
+ * the background index, so a symbol whose file nobody opened is invisible
+ * until either the background index catches up or that file is parsed. The
+ * search costs one ripgrep pass; `warmDocuments` is what actually helps,
+ * because a parsed translation unit lands in the dynamic index immediately.
+ *
+ * Fail-open by construction: no candidates, an unusable search command, a
+ * failed parse, or a spent budget all return the empty answer plus a record of
+ * what was attempted, never an error.
+ */
+async function convergeSymbols(
+  deps: FallbackDeps,
+  client: LspClient,
+  spec: ServerSpec,
+  root: string,
+  filePath: string,
+  query: string,
+  config: ReturnType<typeof resolveConfig>,
+  signal: AbortSignal | undefined,
+): Promise<{ symbols: SymbolEntry[]; info: SymbolFallbackInfo }> {
+  const info: SymbolFallbackInfo = { used: true, strategy: 'none', candidates: 0, warmed: 0, matched: 0, truncated: false }
+  const controller = new AbortController()
+  const budgetMs = Math.max(1000, config.symbolFallbackTimeoutMs) * FALLBACK_BUDGET_FACTOR
+  const timer = setTimeout(() => controller.abort(), budgetMs)
+  const budget = mergeAbortSignals(signal, controller.signal)
+  try {
+    const found = await searchCandidates(deps.subprocess, deps.logger, {
+      root,
+      query,
+      extensions: spec.extensions,
+      maxCandidates: config.symbolFallbackMaxCandidates,
+      timeoutMs: config.symbolFallbackTimeoutMs,
+      command: config.fallbackSearchCommand,
+      signal: budget,
+    })
+    info.strategy = found.strategy
+    info.candidates = found.candidates.length
+    info.matched = found.matched
+    info.truncated = found.truncated
+    if (found.candidates.length === 0) return { symbols: [], info }
+
+    // Parsing is what registers a candidate in the server's dynamic index; the
+    // search alone changes nothing the server can see.
+    const warmed = await client.warmDocuments(found.candidates, { signal: budget })
+    info.warmed = warmed.length
+    if (warmed.length === 0) return { symbols: [], info }
+
+    const rootUri = pathToFileUri(root)
+    const symbols = toSymbolEntries(await client.workspaceSymbol(filePath, query, budget), rootUri)
+    deps.logger.debug(
+      'dsh-lsp: symbol fallback for "' + query + '": ' + found.strategy + ', ' +
+      warmed.length + '/' + found.candidates.length + ' candidate(s) parsed, index answers ' + symbols.length,
+    )
+    return { symbols, info }
+  } catch (error) {
+    deps.logger.debug(
+      'dsh-lsp: symbol fallback failed for "' + query + '": ' + (error instanceof Error ? error.message : String(error)),
+    )
+    return { symbols: [], info }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 /**
  * Run one LSP operation and return the canonical structured result.
  */
@@ -149,6 +280,7 @@ async function runQuery(
   args: QueryArgs,
   config: ReturnType<typeof resolveConfig>,
   exec: ToolRunContext | undefined,
+  deps: FallbackDeps,
 ): Promise<LspQueryResult> {
   const signal = exec?.signal
   const cwd = cwdOf(exec)
@@ -159,16 +291,31 @@ async function runQuery(
     // workspaceSymbol routes through the file's server; use the file path as
     // the server selector (per the AGENTS.md LSP guidance).
     const { spec, client, root } = await registry.resolve(filePath, cwd, signal)
-    const raw = await client.workspaceSymbol(filePath, query, signal)
     const rootUri = pathToFileUri(root)
-    const symbols: SymbolEntry[] = (raw ?? []).map(sym => toSymbolEntry({
-      name: sym.name,
-      kind: sym.kind,
-      location: sym.location,
-      ...(sym.containerName ? { containerName: sym.containerName } : {}),
-    }, rootUri))
+    let symbols = toSymbolEntries(await client.workspaceSymbol(filePath, query, signal), rootUri)
+
+    // An empty answer is not proof the symbol is absent: the query only sees the
+    // server's index, which may not have parsed the owning file yet. Converge on
+    // candidate files, parse them into the dynamic index, and ask again.
+    let fallback: SymbolFallbackInfo | undefined
+    if (symbols.length === 0 && query.trim() !== '' && config.symbolFallback) {
+      const converged = await convergeSymbols(deps, client, spec, root, filePath, query, config, signal)
+      symbols = converged.symbols
+      fallback = converged.info
+    }
+
     const rendered = renderSymbols(symbols, config.maxLocations)
-    return { kind: 'symbols', symbols, truncated: rendered.truncated }
+    // Still empty while the background index is building: say so, because the
+    // next query after it finishes can legitimately succeed.
+    const progress = client.indexProgress()
+    const indexing = symbols.length === 0 && progress !== null && !progress.done ? renderIndexProgress(progress) : undefined
+    return {
+      kind: 'symbols',
+      symbols,
+      truncated: rendered.truncated,
+      ...(fallback ? { fallback } : {}),
+      ...(indexing ? { indexing } : {}),
+    }
   }
 
   if (args.operation === 'documentSymbol') {
@@ -200,12 +347,22 @@ async function runQuery(
   }
 
   if (args.operation === 'diagnostics') {
-    // Push-aware: refresh the document and wait for the server's next push
-    // (bounded by diagnosticsTimeoutMs), falling back to the last cached push
-    // for a server that does not answer the pull request — clangd answers
-    // "method not found". The timeout ends the wait, never the server.
-    const diagnostics = await registry.diagnosticsFor(filePath, cwd, signal)
-    return { kind: 'diagnostics', diagnostics }
+    // Bounded on every transport, so a server that never answers cannot hang
+    // the tool: the pull request and the initialize handshake carry the
+    // config's `timeoutMs` as a hard deadline, and the push wait has
+    // `diagnosticsTimeoutMs`. On expiry the last cached push is used and a
+    // note explains the gap; a timeout ends the wait, never the server.
+    const report = await registry.diagnosticsFor(filePath, cwd, signal)
+    // `severity` only narrows the presentation: the server still reports
+    // everything it has, and the caller decides what is worth reading.
+    const entries = args.severity !== undefined && args.severity !== 'all'
+      ? filterDiagnostics(report.entries, args.severity)
+      : report.entries
+    return {
+      kind: 'diagnostics',
+      diagnostics: entries,
+      ...(report.note ? { note: report.note } : {}),
+    }
   }
 
   // Position-requiring operations.
@@ -313,12 +470,26 @@ function renderResult(args: QueryArgs, value: any, config: ReturnType<typeof res
       return value.hover ?? 'No hover information.'
     case 'symbols': {
       const rendered = renderSymbols(value.symbols, config.maxLocations, true)
-      return value.symbols.length === 0 ? 'No symbols.' : rendered.text
+      const body = value.symbols.length === 0 ? 'No symbols.' : rendered.text
+      const notes: string[] = []
+      const fallback = (value as { fallback?: SymbolFallbackInfo }).fallback
+      if (fallback) {
+        notes.push(
+          '(index miss → candidate fallback: ' + fallback.strategy + ', ' + fallback.candidates + ' candidate(s) found, ' +
+          fallback.warmed + ' parsed, ' + fallback.matched + ' matched' + (fallback.truncated ? ', capped' : '') + ')',
+        )
+      }
+      const indexing = (value as { indexing?: string }).indexing
+      if (indexing) notes.push('(' + indexing + ' — results may be incomplete; retry after the index completion notice)')
+      return notes.length === 0 ? body : body + '\n' + notes.join('\n')
     }
-    case 'diagnostics':
-      if (value.diagnostics.length === 0) return 'No diagnostics.'
-      return value.diagnostics.map((d: any) =>
-        `[${d.severity}] ${d.source ? d.source + ': ' : ''}${d.range.startLine}:${d.range.startCharacter} ${d.message}`).join('\n')
+    case 'diagnostics': {
+      const body = value.diagnostics.length === 0
+        ? 'No diagnostics.'
+        : value.diagnostics.map((d: any) =>
+          `[${d.severity}] ${d.source ? d.source + ': ' : ''}${d.range.startLine}:${d.range.startCharacter} ${d.message}`).join('\n')
+      return value.note ? `${body}\n(${value.note})` : body
+    }
     case 'explore': {
       const e = value.explore
       const lines: string[] = []
@@ -343,13 +514,13 @@ function capText(text: string, maxChars: number): string {
 }
 
 /**
- * Produce a stable JSON projection of a query result for programmatic
- * consumption (e.g. DSH's PTC mode, where a JS snippet post-processes the
- * tool output). Locations/symbols flatten to `{ path, line, character, preview }`
- * so a consumer never re-parses the human `text` form. All values are plain
- * JSON-serializable (no live objects).
+ * Produce a stable, plain-JSON projection of a query result. It is always
+ * carried as the tool's `result` field, so a consumer (e.g. a PTC snippet)
+ * can post-process the answer without re-parsing the human `text` form.
+ * Locations/symbols flatten to `{ path, line, character, preview }`; all
+ * values are JSON-serializable (no live objects).
  */
-function toJson(result: LspQueryResult): unknown {
+function toStructuredResult(result: LspQueryResult): unknown {
   const loc = (l: LspLocation) => {
     const preview = l.preview ?? readLinePreview(l)
     return {
@@ -374,9 +545,15 @@ function toJson(result: LspQueryResult): unknown {
           location: loc(s.location),
         })),
         truncated: result.truncated,
+        ...(result.fallback ? { fallback: result.fallback } : {}),
+        ...(result.indexing ? { indexing: result.indexing } : {}),
       }
     case 'diagnostics':
-      return { kind: 'diagnostics', diagnostics: result.diagnostics }
+      return {
+        kind: 'diagnostics',
+        diagnostics: result.diagnostics,
+        ...(result.note ? { note: result.note } : {}),
+      }
     case 'explore': {
       const e = result.explore
       return {
@@ -396,6 +573,41 @@ function toJson(result: LspQueryResult): unknown {
 }
 
 /**
+ * Render the status rows shared by `lsp_status` and `/lsp status`, so both
+ * surfaces describe a server the same way.
+ */
+function renderServerRows(rows: ServerStatus[]): string {
+  if (rows.length === 0) return 'No LSP servers configured.'
+  const lines = rows.map(r => {
+    const root = r.root ?? '-'
+    const pid = r.pid ?? '-'
+    const err = r.error ? ` (${r.error})` : ''
+    const index = r.index ? `, index=${renderIndexProgress(r.index)}` : ''
+    return `- ${r.id}: ${r.state}${err}\n    languageId=${r.languageId}, extensions=[${r.extensions.join(', ')}], root=${root}, pid=${pid}${index}`
+  })
+  return `LSP servers:\n${lines.join('\n')}`
+}
+
+/** Structured projection of `lsp_status`; index progress flattens to text. */
+function statusResult(rows: ServerStatus[]): unknown {
+  return {
+    kind: 'status',
+    // Every field is coerced to its lossless-JSON form: a running server can
+    // still be missing a root or pid, and `undefined` would fail the harness
+    // output snapshot ("value is not lossless JSON").
+    servers: rows.map(r => ({
+      id: r.id,
+      languageId: r.languageId,
+      extensions: [...r.extensions],
+      state: r.state,
+      root: typeof r.root === 'string' ? r.root : null,
+      pid: typeof r.pid === 'number' && Number.isFinite(r.pid) ? r.pid : null,
+      error: typeof r.error === 'string' ? r.error : null,
+      ...(r.index ? { index: renderIndexProgress(r.index) } : {}),
+    })),
+  }
+}
+/**
  * Combine several AbortSignals into one that aborts when any source aborts.
  * Lets a write's diagnostics run observe both the caller's turn signal and
  * the superseding controller that cancels a stale in-flight run.
@@ -414,35 +626,33 @@ function mergeAbortSignals(...signals: Array<AbortSignal | undefined>): AbortSig
 }
 
 /**
- * Pull diagnostics for a just-written file (the transport used only when the
- * server advertises `diagnosticProvider`) and inject them into the calling
- * agent's next pre-step context via Agent.inject. The push transport is handled
- * by {@link DiagnosticWatcher} instead. Runs fire-and-forget off the write
- * result so a write never waits on the LSP. `signal` carries both the turn's
- * cancellation and the superseding write's abort, so a stale run never injects
- * after a newer edit. Fail-open: an aborted/superseded run logs at debug level;
- * an unexpected failure logs a warning but never throws.
+ * Pull one file's diagnostics (the transport used only when the server
+ * advertises `diagnosticProvider`) and hand them to the broadcaster, which
+ * diffs them against the file's last reported set and injects only the change.
+ * The push transport reaches the same broadcaster directly, so both transports
+ * converge on one per-file diff.
+ *
+ * Runs fire-and-forget off the write result so a write never waits on the LSP.
+ * `signal` carries both the turn's cancellation and the superseding write's
+ * abort, so a stale run never reports after a newer edit. Fail-open: an
+ * aborted/superseded run logs at debug level; an unexpected failure logs a
+ * warning but never throws.
  */
-async function runAsyncDiagnostics(
+async function runPullDiagnostics(
+  broadcaster: DiagnosticBroadcaster,
   registry: ServerRegistry,
-  config: ReturnType<typeof resolveConfig>,
   logger: Logger,
   exec: ToolExecution,
   filePath: string,
   signal: AbortSignal | undefined,
 ): Promise<void> {
   try {
-    const entries = await registry.diagnosticsFor(filePath, cwdOf(exec), signal)
+    const cwd = cwdOf(exec)
+    const target = await registry.resolve(filePath, cwd, signal)
+    const report = await registry.diagnosticsFor(filePath, cwd, signal)
+    if (report.note) logger.debug(`dsh-lsp: diagnostics for ${filePath}: ${report.note}`)
     if (signal?.aborted) return
-    const relevant = filterDiagnostics(entries, config.diagnosticsMinSeverity)
-    if (relevant.length === 0) return
-    const agent = exec.agent
-    if (!agent || typeof agent.inject !== 'function') {
-      logger.debug('dsh-lsp: no injectable agent for ' + filePath + ' diagnostics')
-      return
-    }
-    agent.inject(diagnosticsMessage(filePath, relevant))
-    logger.info('dsh-lsp: injected ' + relevant.length + ' diagnostic(s) for ' + filePath + ' into agent ' + agent.id)
+    broadcaster.observe(target.spec.id, target.root, filePath, report.entries)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     if (signal?.aborted) {
@@ -459,18 +669,59 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
   const logger = makeLogger(ctx)
   const registry = new ServerRegistry(config, ctx.subprocess, logger)
 
-  // Diagnostics arrive as server pushes; the watcher turns the ones that answer
-  // a write into one injected context message. Subscribing before any server
-  // starts guarantees a push cannot slip past the forwarder.
-  const watcher = new DiagnosticWatcher({
+  // Diagnostics arrive as server pushes, at any time and for any file the
+  // server re-analyses — not only in answer to our own write. Every push is
+  // observed, diffed per file against that file's last report, and only the
+  // delta is injected into the agents rooted at that server. Subscribing before
+  // any server starts guarantees a push cannot slip past the forwarder.
+  //
+  // The `touched` table narrows that delta to the files the receiving session's
+  // own tools read or wrote: re-analysing one header makes every translation
+  // unit that includes it republish, and those reports are not news to a
+  // session that never opened them. A file no session has touched keeps no
+  // baseline, so opening it later reports its findings whole instead of
+  // silently diffing against a list the model never saw.
+  const touched = new TouchedFiles()
+  const broadcaster = new DiagnosticBroadcaster({
     minSeverity: config.diagnosticsMinSeverity,
-    timeoutMs: config.diagnosticsTimeoutMs,
-    dedupeMs: config.diagnosticsDedupeMs,
+    flushMs: config.diagnosticsFlushMs,
     maxDiagnostics: config.maxDiagnostics,
-    injectUnwatched: config.diagnosticsOnAnyPublish,
     logger,
+    targetsFor: (_serverId, root) => (config.diagnosticsInject ? agentsUnder(ctx, root) : []),
+    scope: config.diagnosticsOnlyTouched ? touched : undefined,
   })
-  const published = registry.onPublishedDiagnostics((_serverId, record) => watcher.accept(record))
+  const published = registry.onPublishedDiagnostics((serverId, record) => {
+    const root = registry.clientById(serverId)?.root
+    if (!root) {
+      logger.debug('dsh-lsp: no running server for ' + serverId + ' diagnostics of ' + record.path)
+      return
+    }
+    broadcaster.accept(serverId, root, record)
+  })
+
+  // A background index finishing is the one moment a previously empty
+  // `workspaceSymbol` becomes answerable, and it happens outside any tool call:
+  // nothing would tell the model its earlier "No symbols." was a timing
+  // artefact. Announce it once per server+root to the agents rooted there.
+  const announcedIndexes = new Set<string>()
+  const progress = registry.onIndexProgress((serverId, root, state) => {
+    if (!state.done) return
+    const key = serverId + '\u0000' + root.toLowerCase()
+    if (announcedIndexes.has(key)) return
+    const targets = agentsUnder(ctx, root)
+    if (targets.length === 0) return
+    announcedIndexes.add(key)
+    for (const agent of targets) {
+      try {
+        agent.inject(indexProgressMessage(serverId, root, state))
+        logger.info('dsh-lsp: announced ' + serverId + ' index completion (root=' + root + ') to agent ' + agent.id)
+      } catch (error) {
+        logger.debug(
+          'dsh-lsp: index notification failed for ' + serverId + ': ' + (error instanceof Error ? error.message : String(error)),
+        )
+      }
+    }
+  })
 
   // ------------------------------------------------------------------
   // Auto-start
@@ -527,7 +778,9 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
   const dispose = ctx.effect(() => {
     return () => {
       published.dispose()
-      watcher.abortAll()
+      progress.dispose()
+      broadcaster.dispose()
+      touched.dispose()
       for (const controller of diagnosticRuns.values()) controller.abort()
       // Detached teardown: a rejection here must never surface as an unhandled
       // rejection while the fiber is being disposed.
@@ -541,67 +794,62 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
     order: TOOL_SECTION_ORDER,
     text: [
       '# Language Server Protocol',
-      '代码库较大, 使用 `lsp` 工具进行代码导航.',
-      '查 C++ 符号时 `filePath` 优先用 `.cpp`（编译单元在 compile_commands.json 中，命中更快更全）；`.h` 也能工作但依赖后台索引预热，命中略慢. ',
-      '读文件时 LSP 自动加载该文件; 写文件后语言服务器推送诊断, 结果会注入到你的上下文, 请据此修复问题.',
-      '语言服务器在会话启动时自动拉起（`/lsp status` 查看）; 自动启动不等于索引就绪——clangd 要等首次打开文件才激活工程索引.',
+      '语言服务器在会话启动时自动拉起（`/lsp status` 查看）; 自动启动不等于索引就绪——clangd 要等首次 didOpen 才激活工程索引, 后台索引建完后会注入一条「后台索引已完成」通知.',
+      '已知精确位置（文件和行列）时按需要选工具:',
+      '- `lsp_explore`: 一次拿到定义 + 类型定义 + 悬停文档 + 实现 + 引用, 默认先用它.',
+      '- `lsp_definition` / `lsp_type_definition` / `lsp_implementation` / `lsp_references` / `lsp_hover`: 只需要其中一项时用对应窄工具; 变更符号前用 `lsp_references` 确认调用点.',
+      '- `lsp_symbols` (scope=workspace, query 模糊/部分名字): 只知道名字、不知道位置时先查全局符号; scope=document 取文件大纲. 命中为空时插件会用 rg 收敛候选文件、解析后重查, 结果带 fallback/indexing 说明.',
+      '- `lsp_diagnostics`: 按需取某文件的诊断; 本会话工具读过/改过的文件, 其诊断新增/消失会自动注入上下文(其余文件不注入), 请据此修复问题.',
+      '- `lsp_status`: 看 server 状态, 不会启动新 server (手动控制用 `/lsp`).',
+      '`filePath` 按扩展名选择 server; `line` 1-based, `character` 1-based UTF-16.',
+      '查 C++ 符号时 `filePath` 优先用 `.cpp`（编译单元在 compile_commands.json 中, 命中更快更全）; `.h` 也能工作但依赖后台索引预热, 命中略慢.',
+      '文本匹配不明确时优先用 `lsp_symbols` 而不是 grep; 普通导航仍用 search/read. 符号外的位置可能返回空结果.',
       'dsh-lsp插件可迭代升级',
     ].join('\n'),
   });
 
   // ------------------------------------------------------------------
-  // Model-facing tool
+  // Model-facing tools: one registration per catalog entry
   // ------------------------------------------------------------------
-  ctx.tools.register({
-    name: 'lsp',
-    description:
-      'Language-server code navigation. Query a symbol or file via operation: explore (one call: definition + type + hover + implementation + references), goToDefinition, findReferences, goToImplementation, typeDefinition, hover, workspaceSymbol (fuzzy/partial name), documentSymbol, diagnostics. filePath selects the language server by extension; line/character are 1-based UTF-16 (required for position ops and workspaceSymbol per server routing). Use /lsp to control servers.',
-    parameters: {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        operation: {
-          type: 'string',
-          enum: ['explore', 'goToDefinition', 'findReferences', 'goToImplementation', 'typeDefinition', 'hover', 'workspaceSymbol', 'documentSymbol', 'diagnostics'],
-        },
-        filePath: { type: 'string', description: 'Absolute or workspace-relative source file path; its extension selects the server.' },
-        line: { type: 'integer', description: '1-based line of the cursor (position ops and workspaceSymbol).' },
-        character: { type: 'integer', description: '1-based UTF-16 character of the cursor.' },
-        query: { type: 'string', description: 'Symbol name for workspaceSymbol; supports partial/fuzzy names.' },
-        json: { type: 'boolean', description: 'When true, also return a structured `json` projection (flattened {path,line,character,preview}) for programmatic/PTC consumption.' },
+  for (const spec of LSP_TOOLS) {
+    ctx.tools.register({
+      name: spec.name,
+      description: spec.description,
+      parameters: spec.parameters,
+      output: {
+        schema: outputSchemaFor(spec.resultKind),
+        render: (_args, value) => [{ type: 'text', text: String((value as { text?: string } | null)?.text ?? '') }],
       },
-      required: ['operation', 'filePath'],
-    },
-    output: {
-      schema: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          ok: { type: 'boolean' },
-          kind: { type: 'string' },
-          text: { type: 'string' },
-          json: { type: 'object', description: 'Structured result for programmatic (PTC/JS) consumption; locations/symbols flatten to {path,line,character,preview}.' },
-        },
-        required: ['ok', 'kind', 'text'],
-      },
-      render: (_args, value) => [{ type: 'text', text: String((value as { text?: string } | null)?.text ?? '') }],
-    },
-    async execute(rawArgs, exec) {
-      const args = rawArgs as unknown as QueryArgs
-      try {
-        const result = await runQuery(registry, args, config, exec)
-        const text = capText(renderResult(args, result, config), config.maxResultChars)
-        if (args.json === true) {
-          const json = toJson(result)
-          return { ok: true, kind: result.kind, text, json }
+      async execute(rawArgs, exec) {
+        try {
+          if (spec.operation === 'status') {
+            const rows = registry.status()
+            return { ok: true, kind: 'status', text: renderServerRows(rows), result: statusResult(rows) }
+          }
+          const raw = (rawArgs ?? {}) as Record<string, unknown>
+          const operation: QueryOperation = spec.operation === 'symbols'
+            ? (raw.scope === 'workspace' ? 'workspaceSymbol' : 'documentSymbol')
+            : spec.operation
+          const query = typeof raw.query === 'string' ? raw.query : undefined
+          if (operation === 'workspaceSymbol' && (query ?? '').trim() === '') {
+            throw new Error("'query' is required when scope is 'workspace'")
+          }
+          const args: QueryArgs = {
+            ...raw,
+            operation,
+            filePath: requireString(raw, 'filePath'),
+            ...(query !== undefined ? { query } : {}),
+          }
+          const result = await runQuery(registry, args, config, exec, { subprocess: ctx.subprocess, logger })
+          const text = capText(renderResult(args, result, config), config.maxResultChars)
+          return { ok: true, kind: result.kind, text, result: toStructuredResult(result) }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          return { ok: false, kind: 'error', text: `${spec.name} failed: ${message}` }
         }
-        return { ok: true, kind: result.kind, text }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        return { ok: false, kind: 'error', text: `lsp failed: ${message}` }
-      }
-    },
-  })
+      },
+    })
+  }
 
   // ------------------------------------------------------------------
   // /lsp command
@@ -621,15 +869,7 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
       try {
         switch (effectiveVerb) {
           case 'status': {
-            const rows = registry.status()
-            if (rows.length === 0) return { kind: 'success', text: 'No LSP servers configured.' }
-            const lines = rows.map(r => {
-              const root = r.root ?? '-'
-              const pid = r.pid ?? '-'
-              const err = r.error ? ` (${r.error})` : ''
-              return `- ${r.id}: ${r.state}${err}\n    languageId=${r.languageId}, extensions=[${r.extensions.join(', ')}], root=${root}, pid=${pid}`
-            })
-            return { kind: 'success', text: `LSP servers:\n${lines.join('\n')}` }
+            return { kind: 'success', text: renderServerRows(registry.status()) }
           }
           case 'start': {
             const targets = ids.length > 0 ? ids : registry.servers.map(s => s.id)
@@ -680,18 +920,23 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
   // File-access integration
   // ------------------------------------------------------------------
   // Synchronously didOpen files the AI reads (warm servers) so the document
-  // is queryable the moment the read result returns; after a write, obtain
-  // diagnostics and inject findings into the agent's next pre-step context.
-  // clangd only pushes (its pull request answers "method not found"), so the
-  // default path arms a push watch and refreshes the document; a server that
-  // advertises diagnosticProvider keeps the pull path. A superseding write by
-  // the same agent cancels the previous watch/run so stale findings never
-  // follow a newer edit.
+  // is queryable the moment the read result returns; after a write, hand the
+  // new text to the server. Diagnostics need no arming: every push already
+  // flows through the broadcaster, so this hook only refreshes the document
+  // (or pulls once, for a server that advertises diagnosticProvider) and lets
+  // the diff decide what the agent hears. A superseding write by the same agent
+  // cancels the previous pull so a stale answer never follows a newer edit.
   ctx.on('tools/post-execute', async (exec, result, next) => {
     try {
       const args = (exec.arguments ?? {}) as Record<string, unknown>
       const filePath = typeof args.file_path === 'string' ? args.file_path.trim() : ''
       if (!filePath) return next()
+      // Record which session touched the file. The broadcast only delivers a
+      // file's delta to sessions whose tools opened it, so this record is what
+      // lets a read or an edit hear about the file it just changed.
+      if (config.diagnosticsOnlyTouched && exec.agent) {
+        touched.touch(String(exec.agent.id), toAbsolutePath(filePath, cwdOf(exec)))
+      }
       if (exec.name === 'read' && config.syncLoadOnRead) {
         if (registry.serverRunning(filePath)) {
           // Warm server: didOpen before the read result reaches the model.
@@ -702,23 +947,22 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
             logger.debug('dsh-lsp: background open failed for ' + filePath + ': ' + (error instanceof Error ? error.message : String(error)))
           })
         }
-      } else if (config.diagnosticsOnWrite && (exec.name === 'write' || exec.name === 'edit')) {
+      } else if (exec.name === 'write' || exec.name === 'edit') {
         const agent = exec.agent
         // Key by session id, not file: a change to one file can break others,
-        // so every in-flight run for this agent must give way to the newest.
+        // so every in-flight pull for this agent must give way to the newest.
         const key = agent ? String(agent.id) : ''
-        // Supersede both transports: a pending push watch and a pull run.
-        watcher.abort(key)
         const previous = diagnosticRuns.get(key)
         if (previous) previous.abort()
 
         if (registry.diagnosticsMode(filePath) === 'pull') {
-          // Pull-capable server: request diagnostics and inject them directly.
+          // Pull-capable server: ask it, then fold the answer into the same
+          // per-file diff the push transport feeds.
           const controller = new AbortController()
           diagnosticRuns.set(key, controller)
-          void runAsyncDiagnostics(
+          void runPullDiagnostics(
+            broadcaster,
             registry,
-            config,
             logger,
             exec,
             filePath,
@@ -726,15 +970,12 @@ export function apply(ctx: DshContext, rawConfig: Record<string, unknown> = {}):
           ).finally(() => {
             if (diagnosticRuns.get(key) === controller) diagnosticRuns.delete(key)
           })
-        } else if (agent && typeof agent.inject === 'function') {
-          // Push-only server (clangd): arm the watch *before* the refresh, so the
-          // push describing the new text finds a listener; the watcher injects.
-          watcher.arm(key, filePath, agent as unknown as InjectableAgent)
+        } else {
+          // Push-only server (clangd): send the new text; the push it answers
+          // with reaches the broadcaster like any other publish.
           void registry.refreshDocument(filePath, cwdOf(exec)).catch((error) => {
             logger.debug('dsh-lsp: diagnostics refresh failed for ' + filePath + ': ' + (error instanceof Error ? error.message : String(error)))
           })
-        } else {
-          logger.debug('dsh-lsp: no injectable agent for ' + filePath + ' diagnostics')
         }
       }
     } catch (error) {

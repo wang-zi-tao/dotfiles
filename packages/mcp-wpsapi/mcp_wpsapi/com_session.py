@@ -15,7 +15,15 @@ import traceback
 from typing import Any, Callable, Dict, List, Optional
 
 import pythoncom
-import win32com.client
+
+from .com_cache import configure_gencache
+
+# pywin32 rebuilds its generated-wrapper cache as a side effect of importing
+# win32com.client; its default location (%TEMP%\gen_py) is read-only in the
+# DSH Windows sandbox, so point it somewhere writable first.
+configure_gencache()
+
+import win32com.client  # noqa: E402  (must follow configure_gencache())
 
 # app alias -> list of ProgIDs to try in order
 APP_PROGIDS: Dict[str, List[str]] = {

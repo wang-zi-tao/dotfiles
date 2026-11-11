@@ -13,7 +13,7 @@ importers:
         version: 0.1.7-rc.2(@deepseek-ai/cordis@4.0.4)
       neovim:
         specifier: ^5.3.0
-        version: 5.4.0
+        version: 5.5.0
     devDependencies:
       '@deepseek-ai/cordis':
         specifier: ^4.0.4
@@ -212,9 +212,9 @@ packages:
   '@deepseek-ai/schemastery@3.18.4':
     resolution: {integrity: sha512-SSXO6tYuyrIqKVbmOnIq0s+riUywYzouFMcnBluHF9n4KMo2G8HvEzhCYj6pj2617/glOjbJuVInJ9hfONsjkg==}
 
-  '@msgpack/msgpack@2.8.0':
-    resolution: {integrity: sha512-h9u4u/jiIRKbq25PM+zymTyW6bhTzELvOoUd+AvYriWOAKpLGnIamaET3pnHYoI5iYphAHBI4ayx0MehR+VVPQ==}
-    engines: {node: '>= 10'}
+  '@msgpack/msgpack@3.1.3':
+    resolution: {integrity: sha512-47XIizs9XZXvuJgoaJUIE2lFoID8ugvc0jzSHP+Ptfk8nTbnR8g788wv48N03Kx0UkAv559HWRQ3yzOgzlRNUA==}
+    engines: {node: '>= 18'}
 
   '@so-ric/colorspace@1.1.6':
     resolution: {integrity: sha512-/KiKkpHNOBgkFJwu9sh48LkHSMYGyuTcSFK/qMBdnOAlrRJzRSXAOFB5qwzaVQuDl8wAvHVMkaASQDReTahxuw==}
@@ -273,9 +273,9 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  neovim@5.4.0:
-    resolution: {integrity: sha512-95YXs6d5p8M0k8xrmJHQ9aVLv9ebpM3ZQnmTaSpbJtPSdxFaKq7szCP1Ou+S8K++rEsh7BvTPwqdtdlwQfT0pw==}
-    engines: {node: '>=10'}
+  neovim@5.5.0:
+    resolution: {integrity: sha512-B68xdr5OUwLuUgD73aDa3yCg10Lg7gqroIDrSadvDpCJFC52pOD22iOI+omzQi+sgixTl5UyOHqnAd73E5RlEA==}
+    engines: {node: '>=14'}
     hasBin: true
 
   one-time@1.0.0:
@@ -497,7 +497,7 @@ snapshots:
       '@deepseek-ai/cosmokit': 1.8.5
       '@standard-schema/spec': 1.1.0
 
-  '@msgpack/msgpack@2.8.0': {}
+  '@msgpack/msgpack@3.1.3': {}
 
   '@so-ric/colorspace@1.1.6':
     dependencies:
@@ -552,9 +552,9 @@ snapshots:
 
   ms@2.1.3: {}
 
-  neovim@5.4.0:
+  neovim@5.5.0:
     dependencies:
-      '@msgpack/msgpack': 2.8.0
+      '@msgpack/msgpack': 3.1.3
       winston: 3.15.0
 
   one-time@1.0.0:

@@ -58,7 +58,7 @@ wk.add({
             elseif filetype == "rust" then
                 vim.cmd [[RustLsp hover actions]]
             else
-                vim.lsp.buf.hover()
+                require("core.diagnostic").hover()
             end
         end,
         desc = "hover"
@@ -107,3 +107,21 @@ map("t", "<C-\\>", "<cmd>close<CR>")
 map("n", "Q", "<Nop>")
 
 map("n", "<C-t>", "<cmd>enew <CR>") -- new buffer
+
+-- 诊断跳转：跳转后用浮窗显示该行诊断全文，避免 virtual text 截断长消息
+local diagnostic = require("core.diagnostic")
+map("n", "]d", function()
+    diagnostic.jump(1)
+end, { desc = "Next Diagnostic" })
+map("n", "[d", function()
+    diagnostic.jump(-1)
+end, { desc = "Previous Diagnostic" })
+map("n", "]e", function()
+    diagnostic.jump(1, vim.diagnostic.severity.ERROR)
+end, { desc = "Next Error" })
+map("n", "[e", function()
+    diagnostic.jump(-1, vim.diagnostic.severity.ERROR)
+end, { desc = "Previous Error" })
+map("n", "ge", function()
+    diagnostic.jump(1, vim.diagnostic.severity.ERROR)
+end, { desc = "Next Error" })

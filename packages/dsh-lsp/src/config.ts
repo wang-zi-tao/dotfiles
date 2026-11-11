@@ -18,16 +18,16 @@ export const DEFAULT_MAX_RESULT_CHARS = 16000
 export const DEFAULT_TIMEOUT_MS = 60000
 export const DEFAULT_LOG_DIR = '~/.dsh/logs/dsh-lsp'
 export const DEFAULT_SYNC_LOAD_ON_READ = true
-export const DEFAULT_DIAGNOSTICS_ON_WRITE = true
+export const DEFAULT_DIAGNOSTICS_INJECT = true
+export const DEFAULT_DIAGNOSTICS_ONLY_TOUCHED = true
 export const DEFAULT_DIAGNOSTICS_MIN_SEVERITY = 'warning'
 export const DEFAULT_AUTO_START: AutoStartMode = 'session'
 export const DEFAULT_AUTO_START_SERVERS: string[] = []
 export const DEFAULT_AUTO_START_ROOTS: string[] = []
 export const DEFAULT_DIAGNOSTICS_MODE: DiagnosticsMode = 'auto'
 export const DEFAULT_DIAGNOSTICS_TIMEOUT_MS = 15000
-export const DEFAULT_DIAGNOSTICS_DEDUPE_MS = 60000
+export const DEFAULT_DIAGNOSTICS_FLUSH_MS = 400
 export const DEFAULT_MAX_DIAGNOSTICS = 50
-export const DEFAULT_DIAGNOSTICS_ON_ANY_PUBLISH = false
 export const DEFAULT_SYMBOL_FALLBACK = true
 export const DEFAULT_SYMBOL_FALLBACK_MAX_CANDIDATES = 12
 export const DEFAULT_SYMBOL_FALLBACK_TIMEOUT_MS = 15000
@@ -36,16 +36,22 @@ export const DEFAULT_FALLBACK_SEARCH_COMMAND = 'rg'
 /**
  * The built-in server table, optimized for C/C++ (clangd) and Rust
  * (rust-analyzer), with mainstream languages available for the mixed-language
- * case. The WPS clangd invocation mirrors the user's neovim lspconfig:
- * `--background-index` + `--compile-commands-dir=.` so the 264 MB
- * `D:\branch-master\wpsmain\compile_commands.json` is picked up from the
- * resolved project root.
+ * case. The clangd invocation is `--background-index` + `--clang-tidy`.
+ *
+ * Deliberately *no* `--compile-commands-dir=.`: that flag pins every
+ * compilation database to clangd's process cwd, which is one resolved root,
+ * so files from any other project served by the same client get a foreign or
+ * stale database — and then their translation units never enter the project
+ * index (the symptom is a `workspace/symbol` that always answers "No
+ * symbols." for those trees). clangd's default, walking up from each source
+ * file to the nearest `compile_commands.json`, is correct per file even when
+ * one process covers several projects.
  */
 export const BUILTIN_SERVERS: readonly ServerSpec[] = Object.freeze([
   {
     id: 'clangd',
     command: 'clangd',
-    args: ['--background-index', '--clang-tidy', '--compile-commands-dir=.', '--log=error'],
+    args: ['--background-index', '--clang-tidy', '--log=error'],
     extensions: ['c', 'cc', 'cpp', 'cxx', 'c++', 'h', 'hpp', 'hh', 'hxx', 'h++', 'inl'],
     languageId: 'cpp',
     rootMarkers: ['compile_commands.json', 'compile_flags.txt', '.clangd', 'wps_3rdparty_list.cmake'],
@@ -197,12 +203,12 @@ export function resolveConfig(raw: Record<string, unknown> = {}): LspConfig {
   const autoStartRoots = normalizeStringList(raw.autoStartRoots)
   const diagnosticsMode = parseEnum<DiagnosticsMode>('diagnosticsMode', raw.diagnosticsMode, ['auto', 'push', 'pull', 'off'], DEFAULT_DIAGNOSTICS_MODE)
   const diagnosticsTimeoutMs = parseInteger('diagnosticsTimeoutMs', raw.diagnosticsTimeoutMs, DEFAULT_DIAGNOSTICS_TIMEOUT_MS, 100)
-  const diagnosticsDedupeMs = parseInteger('diagnosticsDedupeMs', raw.diagnosticsDedupeMs, DEFAULT_DIAGNOSTICS_DEDUPE_MS, 0)
+  const diagnosticsFlushMs = parseInteger('diagnosticsFlushMs', raw.diagnosticsFlushMs, DEFAULT_DIAGNOSTICS_FLUSH_MS, 0)
   const maxDiagnostics = parseInteger('maxDiagnostics', raw.maxDiagnostics, DEFAULT_MAX_DIAGNOSTICS, 1)
-  const diagnosticsOnAnyPublish = parseBoolean(raw.diagnosticsOnAnyPublish, DEFAULT_DIAGNOSTICS_ON_ANY_PUBLISH)
   const logDir = typeof raw.logDir === 'string' && raw.logDir.trim() !== '' ? raw.logDir.trim() : DEFAULT_LOG_DIR
   const syncLoadOnRead = parseBoolean(raw.syncLoadOnRead, DEFAULT_SYNC_LOAD_ON_READ)
-  const diagnosticsOnWrite = parseBoolean(raw.diagnosticsOnWrite, DEFAULT_DIAGNOSTICS_ON_WRITE)
+  const diagnosticsInject = parseBoolean(raw.diagnosticsInject, DEFAULT_DIAGNOSTICS_INJECT)
+  const diagnosticsOnlyTouched = parseBoolean(raw.diagnosticsOnlyTouched, DEFAULT_DIAGNOSTICS_ONLY_TOUCHED)
   const diagnosticsMinSeverity = parseSeverity(raw.diagnosticsMinSeverity, DEFAULT_DIAGNOSTICS_MIN_SEVERITY)
   const symbolFallback = parseBoolean(raw.symbolFallback, DEFAULT_SYMBOL_FALLBACK)
   const symbolFallbackMaxCandidates = parseInteger(
@@ -285,13 +291,13 @@ export function resolveConfig(raw: Record<string, unknown> = {}): LspConfig {
     logDir,
     servers,
     syncLoadOnRead,
-    diagnosticsOnWrite,
+    diagnosticsInject,
+    diagnosticsOnlyTouched,
     diagnosticsMinSeverity,
     diagnosticsMode,
     diagnosticsTimeoutMs,
-    diagnosticsDedupeMs,
     maxDiagnostics,
-    diagnosticsOnAnyPublish,
+    diagnosticsFlushMs,
     symbolFallback,
     symbolFallbackMaxCandidates,
     symbolFallbackTimeoutMs,

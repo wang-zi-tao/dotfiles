@@ -17,14 +17,17 @@
  *     never the process.
  */
 
-import { extname, isAbsolute, resolve } from 'node:path'
+import { extname, resolve } from 'node:path'
 
-import { LspClient } from './client.js'
+import { LspClient, type ProgressListener } from './client.js'
+import { isLspDeadlineError } from './deadline.js'
 import type { PublishRecord } from './inbox.js'
 import { RootResolver } from './root.js'
-import { toDiagnosticEntries } from './protocol.js'
+import { toAbsolutePath, toDiagnosticEntries } from './protocol.js'
 import type {
   DiagnosticEntry,
+  DiagnosticsReport,
+  IndexProgress,
   LspConfig,
   LoggerLike,
   ServerSpec,
@@ -38,9 +41,27 @@ type Transports = 'push' | 'pull' | 'off'
 /** A listener receiving every `publishDiagnostics` a managed client accepts. */
 export type PublishListener = (serverId: string, record: PublishRecord) => void
 
+/**
+ * A listener receiving every tracked `$/progress` update, with the server and
+ * root that produced it (a server id alone is ambiguous once several roots are
+ * served by one id).
+ */
+export type IndexProgressListener = (serverId: string, root: string, progress: IndexProgress) => void
+
 function extensionOf(filePath: string): string {
   const ext = extname(filePath)
   return ext.startsWith('.') ? ext.slice(1).toLowerCase() : ext.toLowerCase()
+}
+
+/** Render a millisecond budget for a note ("15000ms"). */
+function budgetText(ms: number): string {
+  return `${Math.max(0, Math.round(ms))}ms`
+}
+
+/** Render the age of a cached push for a note ("12s ago" / "3m ago"). */
+function ageText(at: number): string {
+  const seconds = Math.max(0, Math.round((Date.now() - at) / 1000))
+  return seconds < 90 ? `${seconds}s ago` : `${Math.round(seconds / 60)}m ago`
 }
 
 export class ServerRegistry {
@@ -55,6 +76,7 @@ export class ServerRegistry {
   /** Starts in progress, keyed by server id: concurrent callers share one. */
   private readonly inFlight = new Map<string, Promise<LspClient>>()
   private readonly publishListeners = new Set<PublishListener>()
+  private readonly progressListeners = new Set<IndexProgressListener>()
 
   constructor(config: LspConfig, subprocess: SubprocessRuntime, logger: LoggerLike) {
     this.config = config
@@ -81,12 +103,6 @@ export class ServerRegistry {
     return spec
   }
 
-  private startDirFor(filePath: string, cwd: string | undefined): string {
-    if (isAbsolute(filePath)) return filePath
-    const base = cwd ? resolve(cwd) : process.cwd()
-    return resolve(base, filePath)
-  }
-
   /**
    * Start (or reuse) the client for `spec`, deduplicating concurrent callers.
    * The returned promise is shared: everyone awaiting the same start gets the
@@ -99,10 +115,13 @@ export class ServerRegistry {
     if (pending) return pending
 
     const root = this.roots.resolve(startDir, spec)
-    const fresh = new LspClient(spec, this.subprocess, this.logger, {}, this.config.logDir)
+    const fresh = new LspClient(spec, this.subprocess, this.logger, {}, this.config.logDir, this.config.timeoutMs)
     // The forwarder is attached at creation time: clients are built lazily, and
     // a push arriving between start() and a later subscription would be lost.
     fresh.onPublish(record => this.forwardPublish(spec.id, record))
+    // Same reason as the diagnostics forwarder: progress from a server that
+    // finishes building its index before anyone subscribes must not be lost.
+    fresh.onIndexProgress(progress => this.forwardProgress(spec.id, fresh.root ?? root, progress))
     this.clients.set(spec.id, fresh)
 
     const startPromise = fresh.start(root).then(
@@ -123,7 +142,7 @@ export class ServerRegistry {
   /** Resolve the server + client for a file, starting it lazily if needed. */
   async resolve(filePath: string, cwd: string | undefined, _signal?: AbortSignal): Promise<{ spec: ServerSpec; client: LspClient; root: string }> {
     const spec = this.serverForFile(filePath)
-    const startDir = this.startDirFor(filePath, cwd)
+    const startDir = toAbsolutePath(filePath, cwd)
     const client = await this.ensureStarted(spec, startDir)
     return { spec, client, root: client.root ?? startDir }
   }
@@ -203,6 +222,35 @@ export class ServerRegistry {
   }
 
   /**
+   * Subscribe to every tracked `$/progress` update from a managed client.
+   * Like the diagnostics subscription it outlives individual clients, so a
+   * listener registered at mount sees servers started later.
+   */
+  onIndexProgress(listener: IndexProgressListener): { dispose(): void } {
+    this.progressListeners.add(listener)
+    return {
+      dispose: () => {
+        this.progressListeners.delete(listener)
+      },
+    }
+  }
+
+  private forwardProgress(serverId: string, root: string, progress: IndexProgress): void {
+    for (const listener of [...this.progressListeners]) {
+      try {
+        listener(serverId, root, progress)
+      } catch (error) {
+        this.logger.debug(`dsh-lsp: progress listener failed: ${error instanceof Error ? error.message : String(error)}`)
+      }
+    }
+  }
+
+  /** Last background-index state of a server, if it reported one. */
+  indexProgress(id: string): IndexProgress | null {
+    return this.clients.get(id)?.indexProgress() ?? null
+  }
+
+  /**
    * Diagnostics for a just-written file.
    *
    * `push` (what clangd requires): refresh the document, then wait for the
@@ -212,23 +260,50 @@ export class ServerRegistry {
    * findings. Neither path aborts the server or closes a document.
    *
    * `pull`: the request/response path, only valid for a server that advertises
-   * `diagnosticProvider`.
+   * `diagnosticProvider`. The request carries the config's `timeoutMs` as a
+   * hard deadline; on expiry the last pushed set (if any) is returned with a
+   * note, because a server that never answers must not hang the tool.
+   *
+   * Both transports therefore terminate. The optional note records when the
+   * answer is incomplete, so an empty entry list is never silently mistaken
+   * for "clean" after a timeout.
    */
-  async diagnosticsFor(filePath: string, cwd: string | undefined, signal?: AbortSignal): Promise<DiagnosticEntry[]> {
-    const { client } = await this.resolve(filePath, cwd)
+  async diagnosticsFor(filePath: string, cwd: string | undefined, signal?: AbortSignal): Promise<DiagnosticsReport> {
+    const { spec, client } = await this.resolve(filePath, cwd)
     const mode = this.transportFor(client)
-    if (mode === 'off') return []
-    if (mode === 'pull') {
-      client.refreshDocument(filePath)
-      return toDiagnosticEntries(await client.diagnostics(filePath, signal))
-    }
+    if (mode === 'off') return { entries: [] }
     client.refreshDocument(filePath)
+
+    if (mode === 'pull') {
+      try {
+        const items = await client.diagnostics(filePath, signal, this.config.timeoutMs)
+        return { entries: toDiagnosticEntries(items) }
+      } catch (error) {
+        // A pull that outlived `timeoutMs` is not a server failure: the last
+        // pushed set (if any) is still the server's own answer for this file,
+        // so it is returned with a note instead of hanging or throwing.
+        if (!isLspDeadlineError(error)) throw error
+        const cached = client.cachedDiagnostics(filePath)
+        const budget = budgetText(error.timeoutMs)
+        const note = cached
+          ? `pull diagnostics timed out after ${budget} (${spec.id}); showing the last pushed set, received ${ageText(cached.at)}`
+          : `pull diagnostics timed out after ${budget} (${spec.id}); no pushed diagnostics are cached for this document`
+        this.logger.warn(`dsh-lsp: ${note} [${filePath}]`)
+        return { entries: toDiagnosticEntries(cached?.diagnostics), note }
+      }
+    }
+
     const pushed = await client.waitForDiagnostics(filePath, {
       timeoutMs: this.config.diagnosticsTimeoutMs,
       signal,
     })
-    if (pushed) return toDiagnosticEntries(pushed)
-    return toDiagnosticEntries(client.cachedDiagnostics(filePath)?.diagnostics)
+    if (pushed) return { entries: toDiagnosticEntries(pushed) }
+    const cached = client.cachedDiagnostics(filePath)
+    const budget = budgetText(this.config.diagnosticsTimeoutMs)
+    const note = cached
+      ? `no new push from ${spec.id} within ${budget}; showing the last pushed set, received ${ageText(cached.at)}`
+      : `no diagnostics push from ${spec.id} within ${budget}`
+    return { entries: toDiagnosticEntries(cached?.diagnostics), note }
   }
 
   /**
@@ -298,6 +373,7 @@ export class ServerRegistry {
         root: client ? client.root : null,
         pid: client ? client.pid : null,
         error: client ? client.error : null,
+        index: client ? client.indexProgress() : null,
       })
     }
     return out

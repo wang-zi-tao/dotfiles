@@ -38,11 +38,11 @@ local function config()
       end,
     },
     window = {
-      completion = {       -- rounded border; thin-style scrollbar
+      completion = { -- rounded border; thin-style scrollbar
         border = 'rounded',
         scrollbar = '║',
       },
-      documentation = {       -- no border; native-style scrollbar
+      documentation = { -- no border; native-style scrollbar
         border = "rounded",
         scrollbar = '',
         -- other options
@@ -87,7 +87,7 @@ local function config()
       ["<C-Space>"] = cmp.mapping.complete(),
       ["<C-e>"] = cmp.mapping.abort(),
       -- ["<A-y>"] = require('minuet').make_cmp_map(),
-      ["<CR>"] = cmp.mapping.confirm({ select = true }),       -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+      ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
       ["<C-y>"] = require('minuet').make_cmp_map(),
       ["<Tab>"] = cmp.mapping(function(fallback)
         local luasnip = require("luasnip")
@@ -121,7 +121,7 @@ local function config()
     }),
     sources = cmp.config.sources({
       { name = "nvim_lsp" },
-      { name = "luasnip" },       -- For luasnip users.
+      { name = "luasnip" }, -- For luasnip users.
       { name = "nvim_lua" },
       -- { name = "cmp_tabnine" },
       { name = "spell" },
@@ -157,7 +157,7 @@ local function config()
   -- Set configuration for specific filetype.
   cmp.setup.filetype("gitcommit", {
     sources = cmp.config.sources({
-      { name = "cmp_git" },       -- You can specify the `cmp_git` source if you were installed it.
+      { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
       source,
     }),
   })
@@ -292,8 +292,8 @@ return {
       config = function()
         require("cmp").register_source("zsh", require("cmp_zsh").new())
         require("cmp_zsh").setup({
-          zshrc = true,                                -- Source the zshrc (adding all custom completions). default: false
-          filetypes = { "deoledit", "zsh" },           -- Filetypes to enable cmp_zsh source. default: {"*"}
+          zshrc = true,                      -- Source the zshrc (adding all custom completions). default: false
+          filetypes = { "deoledit", "zsh" }, -- Filetypes to enable cmp_zsh source. default: {"*"}
         })
       end,
     },
