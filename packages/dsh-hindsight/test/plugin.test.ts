@@ -193,6 +193,43 @@ function fakeFetch(calls: FetchCall[], seed: FakeMentalModel[] = []): typeof glo
     if (target.endsWith('/reflect')) {
       return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({ text: 'Reflected answer' }) } as Response
     }
+    if (target.includes('/knowledge-base/tree')) {
+      return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({
+        roots: [{
+          id: 'kf-wpsmain', kind: 'folder', name: 'wpsmain', parent_id: 'kf-root', description: '', tags: [],
+          children: [
+            {
+              id: 'kp-component', kind: 'page', name: 'Component map', parent_id: 'kf-wpsmain',
+              mental_model_id: 'mm-component', description: '为仓库 wpsmain 产出组件地图：列出核心模块、职责、依赖和改动的入口。这一句很长很长很长很长很长很长很长很长很长很长',
+              tags: ['project:wpsmain', 'knowledge:component'], is_stale: true,
+            },
+            {
+              id: 'kp-conventions', kind: 'page', name: 'Conventions', parent_id: 'kf-wpsmain',
+              mental_model_id: 'mm-conventions', description: '产出编码与构建约定：命名、格式化、构建命令和测试流程。',
+              tags: ['project:wpsmain', 'knowledge:convention'], is_stale: false,
+            },
+          ],
+        }],
+      }) } as Response
+    }
+    if (target.includes('/knowledge-base/search')) {
+      return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({
+        results: [{
+          id: 'kp-component', name: 'Component map', mental_model_id: 'mm-component',
+          source_query: '组件地图', snippet: '- 模块地图 TL;DR：kso 是外壳，et 是表格内核', score: 12.5,
+          updated_at: '2026-11-10T00:00:00Z',
+        }],
+      }) } as Response
+    }
+    if (target.includes('/knowledge-base/pages/')) {
+      const pageId = decodeURIComponent(target.split('/').pop()!)
+      const name = pageId === 'kp-component' ? 'Component map' : 'Conventions'
+      const body = '# ' + name + '\n' + 'x'.repeat(2000)
+      return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({
+        id: pageId, name, type: 'knowledge-page', description: 'source query', tags: [], timestamp: '2026-11-10T00:00:00Z',
+        body, markdown: body,
+      }) } as Response
+    }
     if (target.endsWith('/version')) {
       return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({ version: '0.6.1' }) } as Response
     }
@@ -328,8 +365,10 @@ test('plugin registers hooks, tools, and retains on turn/end (realistic events)'
     assert.ok(section)
     assert.ok(!section!.text.includes('automatically injected as runtime context before a turn'),
       'old text should be gone')
-    assert.ok(section!.text.includes('Hindsight reflect API'),
-      'new text should mention reflect')
+    assert.ok(section!.text.includes('pull-based'),
+      'new text should describe pull-based memory')
+    assert.ok(section!.text.includes('hindsight_list_pages'),
+      'new text should advertise the knowledge page tools')
   } finally {
     globalThis.fetch = originalFetch
   }
@@ -567,12 +606,16 @@ test('each session (agent) gets its own mental-model injection', withCleanEnv(as
     const run = async (agent: any) => {
       await preStepListener({ agent, messages: mkMsg(1), turn: 1, step: 1 }, async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'c' }] }))
     }
+    // Wait on the mental-model injection itself: the page roster also injects
+    // messages, so a bare length check can pass too early.
+    const mentalTexts = () => injectedMessages
+      .map((m: any) => String(m.content?.[0]?.text ?? ''))
+      .filter(text => text.includes('hindsight-mental-model'))
     await run(mkAgent('session-A'))
-    await waitFor(() => injectedMessages.length >= 1)
+    await waitFor(() => mentalTexts().length >= 1)
     await run(mkAgent('session-B'))
-    await waitFor(() => injectedMessages.length >= 2)
-    const mentalInjections = injectedMessages.filter((m: any) => String(m.content?.[0]?.text ?? '').includes('hindsight-mental-model'))
-    assert.equal(mentalInjections.length, 2, 'each session receives its own injection')
+    await waitFor(() => mentalTexts().length >= 2)
+    assert.equal(mentalTexts().length, 2, 'each session receives its own injection')
   } finally {
     globalThis.fetch = originalFetch
   }
@@ -974,6 +1017,237 @@ test('an existing mental model is re-scoped to the session cwd tag', withCleanEn
       0,
       'an already-scoped model is not patched again',
     )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+// ----- E: knowledge pages (read-only pull surface) -----
+
+test('knowledge page tools are registered only when enabled', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  apply(ctx as unknown as Context, {
+    apiUrl: 'http://hindsight.test',
+    bankId: 'test-bank',
+    timeoutMs: 1000,
+    autoRecall: false,
+    autoRetain: false,
+    autoMentalModel: false,
+  })
+  const names = ctx.tools.registered.map(def => def.name)
+  for (const expected of ['hindsight_list_pages', 'hindsight_search_pages', 'hindsight_read_page']) {
+    assert.ok(names.includes(expected), expected + ' should be registered')
+  }
+
+  const off = fakeCtx()
+  apply(off as unknown as Context, {
+    apiUrl: 'http://hindsight.test',
+    bankId: 'test-bank',
+    timeoutMs: 1000,
+    autoRecall: false,
+    autoRetain: false,
+    autoMentalModel: false,
+    knowledgePagesEnabled: false,
+  })
+  const offNames = off.tools.registered.map(def => def.name)
+  assert.ok(!offNames.includes('hindsight_list_pages'), 'pages tools are not registered when disabled')
+  assert.ok(offNames.includes('hindsight_recall'), 'memory tools stay available')
+}))
+
+test('hindsight_list_pages returns a trimmed roster', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: false,
+      autoRetain: false,
+      autoMentalModel: false,
+    })
+    const tool = ctx.tools.registered.find(def => def.name === 'hindsight_list_pages')
+    assert.ok(tool, 'hindsight_list_pages should be registered')
+
+    const result = await tool!.execute({}, {} as unknown as ToolRunContext) as any
+    assert.equal(result.count, 2)
+    assert.deepEqual(result.pages.map((p: any) => p.name), ['Component map', 'Conventions'])
+    assert.equal(result.pages[0].folder, 'wpsmain')
+    assert.equal(result.pages[0].pageId, 'kp-component')
+    assert.equal(result.pages[0].stale, true)
+    assert.ok(result.pages[0].summary.length <= 81, 'summary is capped to one short line')
+    assert.ok(result.pages[0].summary.startsWith('组件地图：'), 'summary keeps the descriptive clause')
+    assert.ok(result.pages[1].summary.startsWith('编码与构建约定：'), 'the bare 产出 prefix is stripped')
+
+    const treeCall = calls.find(call => call.url.includes('/knowledge-base/tree'))
+    assert.ok(treeCall, 'expected a tree request')
+    assert.ok(treeCall!.url.endsWith('/v1/default/banks/test-bank/knowledge-base/tree'))
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('hindsight_read_page resolves by name and enforces maxChars', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: false,
+      autoRetain: false,
+      autoMentalModel: false,
+    })
+    const tool = ctx.tools.registered.find(def => def.name === 'hindsight_read_page')
+    assert.ok(tool, 'hindsight_read_page should be registered')
+
+    const result = await tool!.execute(
+      {page: 'component', maxChars: 500},
+      {} as unknown as ToolRunContext,
+    ) as any
+    assert.equal(result.name, 'Component map')
+    assert.equal(result.pageId, 'kp-component')
+    assert.equal(result.folder, 'wpsmain')
+    assert.equal(result.truncated, true)
+    assert.ok(result.body.length <= 520, 'body respects maxChars')
+    assert.ok(result.body.startsWith('# Component map'))
+
+    // An ambiguous reference fails with candidate names instead of guessing.
+    await assert.rejects(
+      () => tool!.execute({page: 'nope'}, {} as unknown as ToolRunContext),
+      /no page matches "nope"/,
+    )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('hindsight_search_pages returns compact hits', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: false,
+      autoRetain: false,
+      autoMentalModel: false,
+      pageSearchLimit: 2,
+    })
+    const tool = ctx.tools.registered.find(def => def.name === 'hindsight_search_pages')
+    assert.ok(tool)
+
+    const result = await tool!.execute({query: '模块'}, {} as unknown as ToolRunContext) as any
+    assert.equal(result.count, 1)
+    assert.equal(result.results[0].name, 'Component map')
+    assert.ok(result.results[0].snippet.includes('kso'))
+
+    const searchCall = calls.find(call => call.url.includes('/knowledge-base/search'))
+    assert.ok(searchCall, 'expected a search request')
+    assert.ok(searchCall!.url.includes('q='))
+    assert.ok(searchCall!.url.includes('limit=2'))
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('pre-step injects the knowledge-page roster once per window', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: false,
+      autoRetain: false,
+      autoMentalModel: false,
+      knowledgePagesEnabled: true,
+      pageRosterRefreshEveryTurns: 10,
+    })
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener)
+
+    const injected: any[] = []
+    const agent = {
+      id: 'agent-pages',
+      session: { header: { cwd: 'D:\\repo\\app', origin: 'user' } },
+      inject: (msg: any) => injected.push(msg),
+    }
+    const step = (turn: number) => preStepListener!(
+      {agent, messages: [{source: {kind: 'user'}, content: [{type: 'text', text: 'hi'}]}], turn, step: 1},
+      async () => ({kind: 'enter', messages: [{role: 'system', content: 'ctx'}]}),
+    )
+    const rosterTexts = () => injected
+      .map((m: any) => String(m.content?.[0]?.text ?? ''))
+      .filter(text => text.includes('hindsight-knowledge-pages'))
+
+    await step(1)
+    await waitFor(() => rosterTexts().length >= 1)
+    assert.ok(rosterTexts()[0]!.includes('Component map'), 'roster lists page names')
+    assert.ok(rosterTexts()[0]!.includes('wpsmain'), 'roster lists folders')
+    assert.ok(rosterTexts()[0]!.includes('组件地图：'), 'roster uses the one-line summary')
+
+    // Same window: no second roster.
+    await step(5)
+    await new Promise(resolve => setTimeout(resolve, 150))
+    assert.equal(rosterTexts().length, 1, 'roster is not re-injected inside the window')
+
+    // Next window: refreshed.
+    await step(11)
+    await waitFor(() => rosterTexts().length >= 2)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('autoRecallOnce injects recall only once per agent', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: true,
+      autoRecallOnce: true,
+      autoRetain: false,
+      autoMentalModel: false,
+      knowledgePagesEnabled: false,
+      recallTimeoutMs: 2000,
+    })
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener)
+
+    const injected: any[] = []
+    const agent = {id: 'agent-once', inject: (msg: any) => injected.push(msg)}
+    const step = (turn: number) => preStepListener!(
+      {agent, messages: [{source: {kind: 'user'}, content: [{type: 'text', text: 'q'}]}], turn, step: 1},
+      async () => ({kind: 'enter', messages: [{role: 'system', content: 'ctx'}]}),
+    )
+    const recallTexts = () => injected
+      .map((m: any) => String(m.content?.[0]?.text ?? ''))
+      .filter(text => text.includes('hindsight-recall'))
+
+    await step(1)
+    await waitFor(() => recallTexts().length >= 1)
+    await step(2)
+    await new Promise(resolve => setTimeout(resolve, 200))
+
+    assert.equal(calls.filter(call => call.url.endsWith('/memories/recall')).length, 1, 'recall is not re-run every turn')
+    assert.equal(recallTexts().length, 1, 'recall is injected once per session')
   } finally {
     globalThis.fetch = originalFetch
   }

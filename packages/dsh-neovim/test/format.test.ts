@@ -4,7 +4,7 @@
 
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { fmtDisasm, fmtSwitchThread } from '../src/format.js'
+import { fmtDisasm, fmtPause, fmtSwitchThread } from '../src/format.js'
 
 const SAMPLE = {
   pc_index: 2,
@@ -44,6 +44,49 @@ test('fmtDisasm has no ► marker when pc_index is absent', () => {
 test('fmtDisasm returns "(no disassembly)" for empty instruction list', () => {
   assert.equal(fmtDisasm({ instructions: [] }), '(no disassembly)')
   assert.equal(fmtDisasm({}), '(no disassembly)')
+})
+
+test('fmtPause renders the stop state after a pause request', () => {
+  const out = fmtPause({
+    status: 'stopped',
+    reason: 'pause',
+    paused_thread_id: 1234,
+    thread_id: 1234,
+    totalFrames: 42,
+    frames: [
+      { name: 'foo', source: './a.cpp', line: 10 },
+      { name: 'bar', line: 99 },
+    ],
+  })
+  assert.equal(out.split('\n')[0], '## 调试器已暂停 (pause)')
+  assert.ok(out.includes('**pause 线程:** 1234'))
+  assert.ok(out.includes('**原因:** pause'))
+  assert.ok(out.includes('Thread: 1234 (top 2 of 42 frames)'))
+  assert.ok(out.includes('\n- 0. foo'))
+})
+
+test('fmtPause reports an already-paused session without a pause request', () => {
+  const out = fmtPause({ status: 'stopped', already: true, reason: 'already stopped', thread_id: 9, frames: [] })
+  assert.equal(out.split('\n')[0], '## 会话已处于暂停状态（未发送 pause）')
+  assert.ok(!out.includes('pause 线程'))
+  assert.ok(out.includes('Thread: 9'))
+  assert.ok(out.includes('(no frames)'))
+})
+
+test('fmtPause explains a timeout instead of claiming the target is paused', () => {
+  const out = fmtPause({
+    status: 'timeout',
+    paused_thread_id: 5,
+    error: 'pause timeout: no stop event within 30000ms',
+  })
+  assert.equal(out.split('\n')[0], '## 等待暂停事件超时')
+  assert.ok(out.includes('**pause 线程:** 5'))
+  assert.ok(out.includes('nvim_dap_wait_stop'))
+})
+
+test('fmtPause reports a terminated target and tolerates a null result', () => {
+  assert.equal(fmtPause({ status: 'terminated' }), '调试目标已退出')
+  assert.equal(fmtPause(null), '(no response)')
 })
 
 test('fmtSwitchThread lists the new thread and its frames', () => {

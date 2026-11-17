@@ -31,6 +31,7 @@ import {
   fmtBreakpoints,
   fmtConfigs,
   fmtDisasm,
+  fmtPause,
   fmtSessions,
   fmtStack,
   fmtSwitchThread,
@@ -153,6 +154,24 @@ const OUT_STEP: JsonSchemaNode = outObject(
   },
   ['status'],
   '继续/步进后的停止状态',
+)
+
+/** Pause result: the stop state after a pause request, plus the thread that was asked to pause. */
+const OUT_PAUSE: JsonSchemaNode = outObject(
+  {
+    status: { type: 'string', enum: ['stopped', 'terminated', 'timeout'], description: '暂停结果' },
+    reason: outString('停止原因'),
+    description: outString('停止描述'),
+    allThreadsStopped: outBoolean('是否所有线程都已停止'),
+    thread_id: outInteger('命中的线程 ID'),
+    paused_thread_id: outInteger('发送 pause 请求的线程 ID'),
+    already: outBoolean('会话本就处于暂停状态，未发送 pause 请求'),
+    frames: outArray(OUT_FRAME, '栈帧列表'),
+    error: OUT_DAP_ERROR,
+    totalFrames: outInteger('总帧数'),
+  },
+  ['status'],
+  '暂停后的停止状态',
 )
 
 const OUT_INSTRUCTION: JsonSchemaNode = outObject(
@@ -619,6 +638,22 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
       }),
       run: (args, exec) => dapStep('dap_continue', args, exec),
       format: (result) => fmtStep('continue', result),
+    },
+    {
+      name: 'nvim_dap_pause',
+      output: OUT_PAUSE,
+      description:
+        '暂停运行中的调试目标（DAP pause 请求）。协程阻塞等待 event_stopped，返回暂停后的停止位置；' +
+        '会话本就处于暂停状态时直接返回当前停止位置而不重复发送（force=true 强制发送）。' +
+        'pause 请求必须带 threadId：缺省取 threads 列表的第一个线程，vsdbg 多线程 attach 时建议先用 nvim_dap_get_threads 查看并显式指定 thread_id。' +
+        '适配器若不发 event_stopped，会在 timeout_ms 后返回 status=timeout（此时目标可能已暂停，可用 nvim_dap_get_stack / nvim_dap_wait_stop 复核）',
+      parameters: objectSchema({
+        thread_id: INTEGER('要暂停的线程 ID（缺省取 threads 列表第一个线程）'),
+        timeout_ms: INTEGER('等待停止事件的超时毫秒数（默认 30000）'),
+        force: BOOLEAN('会话已暂停时仍发送 pause 请求（默认 false，直接返回当前停止位置）'),
+      }),
+      run: (args, exec) => dapStep('dap_pause', args, exec),
+      format: (result) => fmtPause(result),
     },
     {
       name: 'nvim_dap_stop',

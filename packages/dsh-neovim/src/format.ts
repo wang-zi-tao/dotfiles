@@ -29,6 +29,27 @@ export function fmtStack(data: any): string {
   return out;
 }
 
+/**
+ * Render a pause result. A pause that found the session already stopped, one that
+ * timed out waiting for the adapter's stopped event, and a terminated target each
+ * mean something different to the reader, so they get their own headings.
+ */
+export function fmtPause(data: any): string {
+  if (!data) return '(no response)'
+  if (data.status === 'terminated') return '调试目标已退出'
+  if (data.status === 'timeout') {
+    let out = '## 等待暂停事件超时\n'
+    out += `**pause 线程:** ${data.paused_thread_id ?? '?'}\n`
+    out += `**原因:** ${data.error || 'no stop event'}\n`
+    return out + '目标可能已暂停但适配器未发 event_stopped；可用 nvim_dap_get_stack / nvim_dap_wait_stop 复核'
+  }
+  const tid = data.thread_id ?? data.paused_thread_id
+  let out = data.already ? '## 会话已处于暂停状态（未发送 pause）\n' : '## 调试器已暂停 (pause)\n'
+  if (!data.already && data.paused_thread_id != null) out += `**pause 线程:** ${data.paused_thread_id}\n`
+  if (data.reason) out += `**原因:** ${data.reason}\n`
+  return out + fmtStack({ frames: data.frames || [], thread_id: tid, totalFrames: data.totalFrames })
+}
+
 /** Render a thread switch: the newly current thread plus its top frames. */
 export function fmtSwitchThread(data: any): string {
   const frames: any[] = data.frames || (data.frame ? [data.frame] : [])

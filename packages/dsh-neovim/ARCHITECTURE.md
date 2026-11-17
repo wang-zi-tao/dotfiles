@@ -8,7 +8,7 @@
 | `src/config.ts` | 配置解析：`resolveConfig`（行 config → `{ socket, luaModule }`）+ `resolveSocket`（显式 → `$NVIM_LISTEN_ADDRESS` → `$NVIM` → 平台默认） |
 | `src/format.ts` | 纯函数 markdown 渲染：栈帧/调用栈（`location` 拼写已修正）/断点/配置/会话/线程表格 |
 | `src/neovim.ts` | `Neovim` 客户端封装（neovim 包）：聚合通知订阅、`command`/`lua`/`luaEval`/`luaAsyncEval`（`run_async` 协程桥 + `async_task_finish` 通知）、断开检测与 pending 任务结算、`probeSocket` 探活 |
-| `src/index.ts` | `apply`：懒连接生命周期 + DAP 事件注入 + 25 个工具注册 + `tools/result` 写后重载 + `/neovim` 命令 |
+| `src/index.ts` | `apply`：懒连接生命周期 + DAP 事件注入 + 26 个工具注册 + `tools/result` 写后重载 + `/neovim` 命令 |
 
 ## 与源插件（OpenCode `neovim-api`）的映射
 
@@ -32,13 +32,15 @@
 
 4. **`luaAsyncEval` 挂起治理**。源实现中 `commandOutput` 失败时 Promise 永不 settle；DSH 版把失败路由到 task 的 reject，并在 `disconnect` 时结算全部 pending task，避免工具调用永久挂起。
 
-5. **工具面 1:1 保留**。25 个工具名、参数、返回文案与源插件一致（模型习惯/提示词即行为）；仅 `localtion` 拼写修正为 `location`。`output.schema` 均为 `{ type:'string' }`，canonical value 即 markdown 文本，Code Mode 无需解析散文取 id。
+5. **工具面 1:1 保留 + 一处扩展**。源插件 25 个工具的名称、参数、返回文案保持一致（模型习惯/提示词即行为）；仅 `localtion` 拼写修正为 `location`。相对源插件新增 `nvim_dap_pause`（第 26 个）：源插件没有暂停能力，而 WPS/vsdbg attach 工作流需要「让运行中的目标停下来」再读现场。`output.schema` 均为 `{ type:'string' }`，canonical value 即 markdown 文本，Code Mode 无需解析散文取 id。
 
-6. **零 harness 包依赖**。仅运行时依赖 `neovim`；harness 面全部结构契约（仿 dsh-hindsight / dsh-lsp），cordis 无 peerDependency 身份问题。
+6. **Lua 桥等待逻辑修复**（`core.agent`，与工具面无关但影响所有会等待停止事件的工具）。nvim-dap 的 `dap.listeners.after[event]` 回调签名是 `listener(session, body)`，且 waiter 实际在 `M.waitAny` 的内层协程里 yield。原实现用 `function(body)` 接收（拿到的是 session）并 `coroutine.resume(外层协程, body, true)`：外层协程从 `waitAny` 的 yield 处被直接唤醒，`(i, body, succ)` 三元组错位——`i` 变成 event body、`stopped_body` 变成 `true`，命中停止事件后报 `attempt to index local 'stopped_body' (a boolean value)`。现改为 `function(_, body)` 并唤醒 waiter 所在的协程（`waiter_co`），动作发送失败时用 `cancel()` 摘监听不唤醒；顺带在等待结束后摘掉未命中的监听，避免每次动作泄漏一个监听/协程。
+
+7. **零 harness 包依赖**。仅运行时依赖 `neovim`；harness 面全部结构契约（仿 dsh-hindsight / dsh-lsp），cordis 无 peerDependency 身份问题。
 
 ## 生命周期
 
-- `apply` → `resolveConfig` → 注册 25 工具 + `/neovim` 命令 + `tools/result` 观察者（均为注册即 effect，卸载自动清理）→ 后台 `ensureNvim()` 探测（失败仅日志）
+- `apply` → `resolveConfig` → 注册 26 工具 + `/neovim` 命令 + `tools/result` 观察者（均为注册即 effect，卸载自动清理）→ 后台 `ensureNvim()` 探测（失败仅日志）
 - 工具调用 → `ensureNvim()`（无连接则 connect：probe → attach → `dap_subscribe` → subscribe `dap_pause`/`event_terminated`/`event_exited`）→ RPC/luaAsyncEval → 返回字符串
 - nvim 断开 → `Neovim._disconnected = true` + pending task 全 reject → 下次调用重连重建订阅
 - 宿主卸载 → 无资源需主动回收（socket 随 client 断开；neovim 包无优雅关闭句柄，`/neovim reconnect` 强制换新）

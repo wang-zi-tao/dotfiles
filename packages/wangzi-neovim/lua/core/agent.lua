@@ -58,7 +58,7 @@ end
 ---@param channel_id integer
 ---@param event string
 ---@param key? string
----@return fun(): T|nil, boolean
+---@return fun(): T|nil, boolean, fun() -- waiter, cancel
 function M.install_dap_listener(channel_id, event, key)
   local dap = require("dap")
   if key == nil then
@@ -67,13 +67,24 @@ function M.install_dap_listener(channel_id, event, key)
 
   local done = false
   local co = coroutine.running()
+  -- waiter 实际在 M.waitAny 的内层协程里 yield：必须唤醒 waiter 所在协程。
+  -- 若唤醒外层 co，M.waitAny 的 yield 会直接返回 (body, true)，导致 (i, body, succ) 三元组错位
+  -- （历史 bug：step_into/over/out、continue 命中停止事件后拿到的 i 是 event body，stopped_body 成了 true）。
+  local waiter_co
+
+  local function wake(target, ...)
+    if target and coroutine.status(target) == "suspended" then
+      coroutine.resume(target, ...)
+    end
+  end
 
   local dispose;
   dispose = M.effect(channel_id, function()
-    dap.listeners.after[event][key] = function(body)
+    -- nvim-dap 的 after 监听签名是 listener(session, body)
+    dap.listeners.after[event][key] = function(_, body)
       if not done then
-        coroutine.resume(co, body, true)
         done = true
+        wake(waiter_co or co, body, true)
       end
       dispose()
     end
@@ -81,15 +92,25 @@ function M.install_dap_listener(channel_id, event, key)
     return function()
       dap.listeners.after[event][key] = nil
       if not done then
-        coroutine.resume(co, nil, false)
         done = true
+        wake(waiter_co or co, nil, false)
       end
     end
   end)
 
-  return function()
-    return coroutine.yield()
+  --- 放弃等待：摘掉监听但不唤醒协程（用于动作发送失败时的清理路径）
+  local function cancel()
+    if done then
+      return
+    end
+    done = true
+    dispose()
   end
+
+  return function()
+    waiter_co = coroutine.running()
+    return coroutine.yield()
+  end, cancel
 end
 
 ---@param ... fun(): ...
@@ -514,6 +535,68 @@ function M.dap_continue(opts)
   end, opts)
 end
 
+--- 暂停运行中的调试目标（DAP "pause" 请求）。
+---
+--- 协程阻塞等待 event_stopped，返回暂停后的停止位置；已暂停的会话直接返回当前停止状态
+--- （对已停止的线程重复 pause 只会白等超时，故默认不发请求，force=true 可强制发送）。
+--- DAP pause 必须带 threadId（nvim-dap 无 threadId 时会弹 UI 选线程，agent 侧无法使用），
+--- 缺省取 "threads" 响应的第一个线程；vsdbg 多线程 attach 建议先用 nvim_dap_get_threads
+--- 查看线程并显式指定 thread_id。
+---@param opts? {timeout_ms?: integer, thread_id?: integer, force?: boolean}
+---@return table {status: string, reason?: string, already?: boolean, paused_thread_id?: integer, thread_id?: number, frames?: table[], error?: any, totalFrames?: integer}
+function M.dap_pause(opts)
+  opts = opts or {}
+  local session = M.get_session()
+
+  -- 已暂停且未显式指定线程：pause 无事可做，直接回当前停止位置
+  if session.stopped_thread_id and not opts.thread_id and not opts.force then
+    local tid = session.stopped_thread_id
+    local frames, total, err = M.build_frames(session, tid, 4)
+    return M.clean_table({
+      status = "stopped",
+      reason = "already stopped",
+      description = "session is already paused; pass force=true to send a pause request anyway",
+      already = true,
+      thread_id = tid,
+      frames = frames,
+      error = err,
+      totalFrames = total,
+    })
+  end
+
+  -- force 且会话已暂停时，直接对当前停止线程发 pause（省一次 threads 往返，也更符合"再暂停一次"的意图）
+  local tid = opts.thread_id
+  if not tid and opts.force then
+    tid = session.stopped_thread_id
+  end
+  if not tid then
+    local err, resp = session:request("threads", {})
+    if err or not resp then
+      error("pause failed: cannot list threads: " .. vim.inspect(err))
+    end
+    for _, thread in ipairs(resp.threads or {}) do
+      if thread.id then
+        tid = thread.id
+        break
+      end
+    end
+    if not tid then
+      error("pause failed: no thread id in threads response")
+    end
+  end
+
+  -- M.action_and_wait 定义在下方「步进 + 等待停止」小节，Lua 运行时按名解析
+  local result = M.action_and_wait(session, function()
+    local err = session:request("pause", { threadId = tid })
+    if err then
+      error("pause error: " .. vim.inspect(err))
+    end
+  end, opts.timeout_ms, "pause")
+
+  result.paused_thread_id = tid
+  return result
+end
+
 --- 停止调试
 ---@return table
 function M.dap_stop()
@@ -524,32 +607,32 @@ end
 
 -- ── 步进 + 等待停止 ──
 
---- 执行步进并等待命中断点或退出，返回停止时的状态信息。
---- 使用 coroutine.yield() 挂起，由 event_stopped/event_terminated 监听器通过 coroutine.resume() 唤醒。
----@param step_fn function
----@param opts? {timeout_ms?: integer} -- 等待停止的超时毫秒数（默认 30000）
----@return table {status: string, reason?: string, thread_id?: number, frames?: table[], error?: dap.ErrorResponse, totalFrames?: integer}
-function M.step_and_wait(step_fn, opts)
-  opts = opts or {}
-  local timeout_ms = opts.timeout_ms or 30000
+--- 发送调试动作并等待停止事件，返回停止时的状态信息。
+--- 使用 coroutine.yield() 挂起，由 event_stopped/event_terminated 监听器通过 coroutine.resume() 唤醒；
+--- 动作发送失败（抛错）时先摘掉两个监听再抛出，避免监听器泄漏。
+---@param session dap.Session
+---@param action_fn fun() 发送动作（continue/pause/step 等）
+---@param timeout_ms? integer -- 等待停止事件的超时毫秒数（默认 30000）
+---@param label? string -- 超时文案前缀（默认 "step"）
+---@return table {status: string, reason?: string, thread_id?: number, frames?: table[], error?: any, totalFrames?: integer}
+function M.action_and_wait(session, action_fn, timeout_ms, label)
+  timeout_ms = timeout_ms or 30000
+  label = label or "step"
 
-  local dap = require("dap")
-  local session = dap.session()
-  if not session then
-    error("no debug session")
-  end
-  if not session.stopped_thread_id then
-    error("session is not stopped")
-  end
-
-  local stop_waiter = M.install_dap_listener(0, "event_stopped")
-  local terminated_waiter = M.install_dap_listener(0, "event_terminated")
+  local stop_waiter, cancel_stop = M.install_dap_listener(0, "event_stopped")
+  local terminated_waiter, cancel_terminated = M.install_dap_listener(0, "event_terminated")
 
   M.disableSessionEvent[session.id] = true
-  step_fn()
+  local ok, action_err = pcall(action_fn)
   M.disableSessionEvent[session.id] = false
 
-  local i, stopped_body, succ = M.waitAny(function()
+  if not ok then
+    cancel_stop()
+    cancel_terminated()
+    error(action_err)
+  end
+
+  local i, stopped_body = M.waitAny(function()
     return stop_waiter()
   end, function()
     return terminated_waiter()
@@ -562,12 +645,16 @@ function M.step_and_wait(step_fn, opts)
     return nil, false
   end)
 
+  -- 只有一个监听会命中：命中后摘掉另一个，避免每次动作都留下一个永不唤醒的监听/协程
   if i == 2 then
+    cancel_stop()
     return { status = "terminated" }
   elseif i == 3 then
-    return { status = "timeout", error = string.format("step timeout: no stop event within %dms", timeout_ms) }
-  else
+    cancel_stop()
+    cancel_terminated()
+    return { status = "timeout", error = string.format("%s timeout: no stop event within %dms", label, timeout_ms) }
   end
+  cancel_terminated()
 
   local tid = stopped_body.threadId or session.stopped_thread_id
   if not tid then
@@ -585,6 +672,24 @@ function M.step_and_wait(step_fn, opts)
     error = err,
     totalFrames = total,
   }
+end
+
+--- 执行步进并等待命中断点或退出，返回停止时的状态信息。
+---@param step_fn function
+---@param opts? {timeout_ms?: integer} -- 等待停止的超时毫秒数（默认 30000）
+---@return table {status: string, reason?: string, thread_id?: number, frames?: table[], error?: any, totalFrames?: integer}
+function M.step_and_wait(step_fn, opts)
+  opts = opts or {}
+  local dap = require("dap")
+  local session = dap.session()
+  if not session then
+    error("no debug session")
+  end
+  if not session.stopped_thread_id then
+    error("session is not stopped")
+  end
+
+  return M.action_and_wait(session, step_fn, opts.timeout_ms, "step")
 end
 
 --- 进入函数（协程等待命中断点，返回停止位置信息）

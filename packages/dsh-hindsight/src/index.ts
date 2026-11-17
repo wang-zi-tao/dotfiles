@@ -23,7 +23,14 @@
 import {DEFAULTS, cwdTag, resolveConfig} from './config.js';
 import type {HindsightConfig} from './config.js';
 import {HindsightClient} from './client.js';
-import type {MentalModel, RecallResult, RetainItem, RetainResponse} from './client.js';
+import type {
+  KnowledgePage,
+  KnowledgePageNode,
+  MentalModel,
+  RecallResult,
+  RetainItem,
+  RetainResponse,
+} from './client.js';
 import {buildTurnRecord, buildTurnRecordsFromEvents} from './transcript.js';
 import type {TurnRecord} from './transcript.js';
 import {installFileLogger} from './logger.js';
@@ -43,12 +50,12 @@ import type {ContextFormed} from '@deepseek-ai/dsh-llm';
  */
 declare module '@deepseek-ai/dsh-llm' {
   interface MessageSourceMap {
-    'dsh-hindsight': { kind: 'dsh-hindsight' } & ContextFormed;
+    'dsh-hindsight': {kind: 'dsh-hindsight';} & ContextFormed;
   }
 }
 
 export const name = 'dsh-hindsight';
-export const inject = ['tools', 'systemPrompt', 'commands','sessionPersistence'];
+export const inject = ['tools', 'systemPrompt', 'commands', 'sessionPersistence'];
 export {DEFAULTS, cwdTag, resolveConfig};
 export type {HindsightConfig};
 export {HindsightClient} from './client.js';
@@ -528,6 +535,225 @@ function toolDefinitions(client: HindsightClient, config: HindsightConfig): Tool
     },
   });
 
+  // Read-only knowledge-page tools. DSH has no MCP-style readOnlyHint; the
+  // descriptions state it and the renderers return only the useful text so a
+  // read costs its content, not a JSON envelope. The agent is expected to
+  // list/search first and read only the pages it needs (pull, not push).
+  if (config.knowledgePagesEnabled) {
+    definitions.push({
+      name: 'hindsight_list_pages',
+      description:
+        'List the curated Hindsight knowledge pages for the active bank (read-only). '
+        + 'Returns each page name, folder and a one-line summary. Start here when you need standing project knowledge; '
+        + 'then read only the pages that matter with hindsight_read_page.',
+      parameters: {type: 'object', additionalProperties: false, properties: {}},
+      output: {
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            ok: {type: 'boolean'},
+            message: {type: 'string'},
+            bankId: {type: 'string'},
+            count: {type: 'integer'},
+            pages: {
+              type: 'array',
+              items: {
+                type: 'object',
+                additionalProperties: false,
+                properties: {
+                  name: {type: 'string'},
+                  pageId: {type: 'string'},
+                  folder: {type: 'string'},
+                  summary: {type: 'string'},
+                  stale: {type: 'boolean'},
+                },
+                required: ['name', 'pageId'],
+              },
+            },
+          },
+          required: ['ok', 'message', 'bankId', 'count', 'pages'],
+        },
+        render: (_args, value) => [{type: 'text', text: knowledgePagesValueToText(value)}],
+      },
+      async execute(_args, exec) {
+        const entries = await fetchKnowledgePages(client, config, exec?.signal);
+        if (!entries) {
+          throw new Error(`hindsight_list_pages failed: cannot reach the knowledge base at ${config.apiUrl}`);
+        }
+        const pages = entries.map(({page, folder}) => ({
+          name: page.name,
+          pageId: page.id,
+          folder,
+          summary: knowledgePageSummary(page),
+          stale: page.is_stale === true,
+        }));
+        return {
+          ok: true,
+          message: pages.length
+            ? `Knowledge pages (${pages.length}) in bank '${config.bankId}'.`
+            : `No knowledge pages in bank '${config.bankId}'.`,
+          bankId: config.bankId,
+          count: pages.length,
+          pages,
+        };
+      },
+    });
+
+    definitions.push({
+      name: 'hindsight_search_pages',
+      description:
+        'Search the curated Hindsight knowledge pages by text (read-only). '
+        + 'Hybrid keyword+semantic search over page bodies; returns small snippets. '
+        + 'Use it when you know what you are looking for; use hindsight_list_pages when you do not.',
+      parameters: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          query: {type: 'string', description: 'What to search for in page bodies.'},
+          limit: {type: 'integer', description: 'Maximum page hits (defaults to the configured page search limit).'},
+        },
+        required: ['query'],
+      },
+      output: {
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            ok: {type: 'boolean'},
+            message: {type: 'string'},
+            bankId: {type: 'string'},
+            count: {type: 'integer'},
+            results: {
+              type: 'array',
+              items: {
+                type: 'object',
+                additionalProperties: false,
+                properties: {
+                  pageId: {type: 'string'},
+                  name: {type: 'string'},
+                  snippet: {type: 'string'},
+                  score: {type: 'number'},
+                  updatedAt: {type: 'string'},
+                },
+                required: ['pageId', 'name'],
+              },
+            },
+          },
+          required: ['ok', 'message', 'bankId', 'count', 'results'],
+        },
+        render: (_args, value) => [{type: 'text', text: knowledgePageSearchValueToText(value)}],
+      },
+      async execute(args, exec) {
+        const query = requireString(args, 'query');
+        const limit = optionalInteger(args, 'limit', config.pageSearchLimit, 1) ?? config.pageSearchLimit;
+        try {
+          const response = await client.searchKnowledgePages({
+            bankId: config.bankId,
+            query,
+            limit,
+            signal: exec?.signal,
+            timeoutMs: config.timeoutMs,
+          });
+          const results = (Array.isArray(response.results) ? response.results : []).map(hit => ({
+            pageId: String(hit.id ?? ''),
+            name: String(hit.name ?? ''),
+            snippet: truncateText(String(hit.snippet ?? ''), 320),
+            score: typeof hit.score === 'number' ? hit.score : 0,
+            updatedAt: String(hit.updated_at ?? ''),
+          }));
+          return {
+            ok: true,
+            message: results.length
+              ? `Found ${results.length} knowledge page(s) matching ${JSON.stringify(query)}.`
+              : `No knowledge page matches ${JSON.stringify(query)}.`,
+            bankId: config.bankId,
+            count: results.length,
+            results,
+          };
+        } catch (error) {
+          throw new Error(`hindsight_search_pages failed: ${error instanceof Error ? error.message : error}`, {cause: error});
+        }
+      },
+    });
+
+    definitions.push({
+      name: 'hindsight_read_page',
+      description:
+        'Read one curated Hindsight knowledge page (read-only). '
+        + 'Accepts a page name (exact or unique substring) or a page id. '
+        + 'The body is generated from memory and can be long (up to a few thousand chars); '
+        + 'read only the pages a task actually needs, and use maxChars to keep it small.',
+      parameters: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          page: {type: 'string', description: "Page name (exact or unique substring) or page id ('kp-...')."},
+          maxChars: {type: 'integer', description: 'Body character cap (defaults to the configured page read limit).'},
+        },
+        required: ['page'],
+      },
+      output: {
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            ok: {type: 'boolean'},
+            message: {type: 'string'},
+            bankId: {type: 'string'},
+            name: {type: 'string'},
+            pageId: {type: 'string'},
+            folder: {type: 'string'},
+            stale: {type: 'boolean'},
+            truncated: {type: 'boolean'},
+            body: {type: 'string'},
+            updatedAt: {type: 'string'},
+          },
+          required: ['ok', 'message', 'bankId', 'name', 'pageId', 'body'],
+        },
+        render: (_args, value) => [{type: 'text', text: String((value as {body?: JsonValue;} | null)?.body ?? '')}],
+      },
+      async execute(args, exec) {
+        const ref = requireString(args, 'page');
+        const maxChars = optionalInteger(args, 'maxChars', config.pageReadMaxChars, 200) ?? config.pageReadMaxChars;
+        const entries = await fetchKnowledgePages(client, config, exec?.signal);
+        if (!entries) {
+          throw new Error(`hindsight_read_page failed: cannot reach the knowledge base at ${config.apiUrl}`);
+        }
+        const resolved = resolveKnowledgePage(entries, ref);
+        if (!resolved.entry) {
+          const hint = resolved.candidates && resolved.candidates.length
+            ? ` Candidates: ${resolved.candidates.join('; ')}.`
+            : ' Call hindsight_list_pages to see the available pages.';
+          throw new Error(`hindsight_read_page: no page matches ${JSON.stringify(ref)}.${hint}`);
+        }
+        let page: KnowledgePage;
+        try {
+          page = await client.getKnowledgePage(config.bankId, resolved.entry.page.id, {
+            signal: exec?.signal,
+            timeoutMs: config.timeoutMs,
+          });
+        } catch (error) {
+          throw new Error(`hindsight_read_page failed: ${error instanceof Error ? error.message : error}`, {cause: error});
+        }
+        const raw = String(page.body ?? page.markdown ?? '');
+        const clipped = clip(raw, maxChars);
+        return {
+          ok: true,
+          message: `Read knowledge page '${page.name}' (${raw.length} chars).`,
+          bankId: config.bankId,
+          name: String(page.name ?? resolved.entry.page.name),
+          pageId: resolved.entry.page.id,
+          folder: resolved.entry.folder,
+          stale: resolved.entry.page.is_stale === true,
+          truncated: clipped !== raw,
+          body: clipped,
+          updatedAt: String(page.timestamp ?? resolved.entry.page.timestamp ?? ''),
+        };
+      },
+    });
+  }
+
   if (config.statusToolEnabled) {
     definitions.push({
       name: 'hindsight_status',
@@ -617,6 +843,140 @@ function clip(text: string, maxChars: number): string {
   return `${text.slice(0, maxChars - 20)}\n…[truncated]`;
 }
 
+/** Shorten text for a one-line summary without the generic clip marker. */
+function truncateText(text: string, maxChars: number): string {
+  const value = text.trim();
+  if (maxChars <= 0 || value.length <= maxChars) return value;
+  return `${value.slice(0, Math.max(1, maxChars - 1))}…`;
+}
+
+interface KnowledgePageEntry {
+  page: KnowledgePageNode;
+  folder: string;
+}
+
+/** Flatten a knowledge-page tree into pages, carrying their folder path. */
+function flattenKnowledgePages(
+  nodes: readonly KnowledgePageNode[] | undefined,
+  folder = '',
+  out: KnowledgePageEntry[] = [],
+): KnowledgePageEntry[] {
+  for (const node of nodes ?? []) {
+    if (node.kind === 'folder') {
+      const path = folder ? `${folder}/${node.name}` : node.name;
+      flattenKnowledgePages(node.children, path, out);
+    } else {
+      out.push({page: node, folder});
+    }
+  }
+  return out;
+}
+
+/**
+ * One-line summary of a page. The server stores the full source query in
+ * `description`, whose first sentence is the most descriptive part.
+ */
+function knowledgePageSummary(node: KnowledgePageNode, maxChars = 80): string {
+  const raw = String(node.description ?? '').trim();
+  if (!raw) return '';
+  // The server stores the whole source_query here, including its "输出要求"
+  // block. Keep the first paragraph, drop the "为仓库 X 产出" preamble, and
+  // fall back to the whole paragraph when the first sentence is so short it
+  // does not tell the agent whether the page is relevant.
+  const firstParagraph = (raw.split(/\n\s*\n|\n输出要求/)[0] ?? raw).trim();
+  const cleaned = firstParagraph
+    .replace(/^为仓库\s+\S+\s+产出\s*/, '')
+    .replace(/^产出\s+\S+\s+/, '')
+    .replace(/^产出\s*/, '')
+    .replace(/^的\s*/, '')
+    .trim();
+  const firstSentence = (cleaned.split(/[。;]/)[0] ?? cleaned).trim();
+  const summary = firstSentence.length >= 12 ? firstSentence : cleaned;
+  return truncateText(summary || firstParagraph || raw, maxChars);
+}
+
+/** Render the compact page roster injected at session start. */
+function knowledgePageRoster(entries: KnowledgePageEntry[], config: HindsightConfig): string {
+  const lines = entries.map(({page, folder}) => {
+    const summary = knowledgePageSummary(page);
+    const where = folder ? `  (${folder})` : '';
+    return summary ? `- ${page.name}${where} — ${summary}` : `- ${page.name}${where}`;
+  });
+  const head = `Knowledge pages (${entries.length}, bank ${config.bankId}) — curated and read-only; pull one when it is relevant:`;
+  const tail = 'hindsight_read_page({page:"<name or id>"}) reads one; '
+    + 'hindsight_search_pages({query}) searches page bodies. '
+    + 'Prefer the smallest source that answers the question; do not read every page.';
+  return clip([head, ...lines, tail].join('\n'), config.pageRosterMaxChars);
+}
+
+const PAGE_REQUEST_TIMEOUT_MS = 8000;
+
+/** Fetch and flatten the knowledge-page tree. Fail-open: undefined on error/timeout. */
+async function fetchKnowledgePages(
+  client: HindsightClient,
+  config: HindsightConfig,
+  signal?: AbortSignal,
+): Promise<KnowledgePageEntry[] | undefined> {
+  try {
+    const tree = await Promise.race([
+      client.knowledgePageTree({bankId: config.bankId, signal, timeoutMs: config.timeoutMs}),
+      sleep(PAGE_REQUEST_TIMEOUT_MS).then(() => undefined),
+    ]);
+    if (!tree) return undefined;
+    return flattenKnowledgePages(tree.roots);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Resolve a page reference as a page id, a name, or a unique name substring.
+ * Returns candidates when the reference is ambiguous or unknown.
+ */
+function resolveKnowledgePage(
+  entries: KnowledgePageEntry[],
+  ref: string,
+): {entry?: KnowledgePageEntry; candidates?: string[];} {
+  const needle = ref.trim();
+  if (!needle) return {candidates: []};
+  if (needle.startsWith('kp-') || needle.startsWith('kf-')) {
+    const byId = entries.find(item => item.page.id === needle);
+    return byId ? {entry: byId} : {candidates: []};
+  }
+  const exact = entries.filter(item => item.page.name === needle);
+  if (exact.length === 1) return {entry: exact[0]!};
+  if (exact.length > 1) return {candidates: exact.map(item => item.page.name)};
+  const lower = needle.toLowerCase();
+  const partial = entries.filter(item => item.page.name.toLowerCase().includes(lower));
+  if (partial.length === 1) return {entry: partial[0]!};
+  return {candidates: partial.map(item => item.page.name)};
+}
+
+/** Compact text for hindsight_list_pages. */
+function knowledgePagesValueToText(value: JsonValue): string {
+  const record = (value ?? {}) as {message?: JsonValue; pages?: Array<Record<string, JsonValue>>;} | null;
+  const lines = [String(record?.message ?? '')];
+  for (const page of record?.pages ?? []) {
+    const parts = [`- ${String(page.name ?? '')}`];
+    if (page.folder) parts.push(`(${String(page.folder)})`);
+    if (page.summary) parts.push(`— ${String(page.summary)}`);
+    parts.push(`  [${String(page.pageId ?? '')}]`);
+    lines.push(parts.join(' '));
+  }
+  return lines.filter(Boolean).join('\n');
+}
+
+/** Compact text for hindsight_search_pages. */
+function knowledgePageSearchValueToText(value: JsonValue): string {
+  const record = (value ?? {}) as {message?: JsonValue; results?: Array<Record<string, JsonValue>>;} | null;
+  const lines = [String(record?.message ?? '')];
+  for (const hit of record?.results ?? []) {
+    lines.push(`- ${String(hit.name ?? '')} [${String(hit.pageId ?? '')}]`);
+    if (hit.snippet) lines.push(`  ${String(hit.snippet)}`);
+  }
+  return lines.filter(Boolean).join('\n');
+}
+
 /** Extract the first user text from pre-step messages. */
 function extractUserQuery(messages: readonly UserMessage[]): string {
   for (const msg of messages) {
@@ -689,6 +1049,18 @@ function mentalModelMessage(name: string, content: string): UserMessage {
   };
 }
 
+/** Build a user-role knowledge-page roster message for injection. */
+function knowledgePagesMessage(text: string): UserMessage {
+  const preamble = '<hindsight-knowledge-pages>\n# Hindsight Knowledge Pages (roster)\n\n';
+  const footer = '\n</hindsight-knowledge-pages>';
+  return {
+    id: (`hindsight-pages-${Date.now()}-${++memoryMessageSeq}`) as UserMessage['id'],
+    role: 'user',
+    content: [{type: 'text', text: `${preamble}${text}${footer}`}],
+    source: {kind: 'dsh-hindsight', form: 'recall'},
+  };
+}
+
 /** Format recall results as a compact bulleted text block for injection. */
 function recallResultsToText(results: RecallResult[]): string {
   const lines: string[] = [];
@@ -715,18 +1087,20 @@ async function recallAndInject(
   query: string,
   signal: AbortSignal | undefined,
   deps: {client: HindsightClient; config: HindsightConfig; logger: Logger;},
-): Promise<void> {
+): Promise<boolean> {
   const results = await recallWithTimeout(deps.client, deps.config, query, signal);
-  if (!results) return;
+  if (!results) return false;
   try {
     if (typeof agent.inject !== 'function') {
       deps.logger.warn('hindsight: agent.inject is unavailable, recall not injected');
-      return;
+      return false;
     }
     agent.inject(memoryMessage(recallResultsToText(results)));
     deps.logger.info(`hindsight recall injected for agent ${agent.id}`);
+    return true;
   } catch (error) {
     deps.logger.warn(`hindsight recall injection failed: ${String(error)}`);
+    return false;
   }
 }
 
@@ -920,6 +1294,43 @@ async function mentalModelsAndInject(
   }
 }
 
+
+/**
+ * Background: inject the compact knowledge-page roster at session start and
+ * refresh it every N user turns. The roster is a map, not content: it lets the
+ * agent know which pages exist so it can pull one deliberately, instead of the
+ * plugin pushing page bodies into every turn. Fail-open.
+ */
+async function knowledgePagesAndInject(
+  agent: Agent,
+  turn: number,
+  signal: AbortSignal | undefined,
+  deps: {
+    client: HindsightClient;
+    config: HindsightConfig;
+    rosterTurns: Map<string, number>;
+    logger: Logger;
+  },
+): Promise<void> {
+  if (!deps.config.knowledgePagesEnabled || !deps.config.injectPageRoster) return;
+  const every = deps.config.pageRosterRefreshEveryTurns;
+  const last = deps.rosterTurns.get(agent.id);
+  if (last !== undefined && (every <= 0 || turn - last < every)) return;
+  const entries = await fetchKnowledgePages(deps.client, deps.config, signal);
+  if (!entries || entries.length === 0) return;
+  try {
+    if (typeof agent.inject !== 'function') {
+      deps.logger.warn('hindsight: agent.inject is unavailable, page roster not injected');
+      return;
+    }
+    agent.inject(knowledgePagesMessage(knowledgePageRoster(entries, deps.config)));
+    deps.rosterTurns.set(agent.id, turn);
+    deps.logger.info(`hindsight page roster injected (${entries.length} pages) for agent ${agent.id}`);
+  } catch (error) {
+    deps.logger.warn(`hindsight page roster injection failed: ${String(error)}`);
+  }
+}
+
 /**
  * Compose the pre-step decision without blocking the agent on recall: the
  * decision is returned unchanged, and {@link recallAndInject} is scheduled
@@ -932,9 +1343,22 @@ async function preStepDecision(
   turn: number,
   signal: AbortSignal | undefined,
   next: () => Promise<PreStepDecision>,
-  deps: {client: HindsightClient; config: HindsightConfig; injectedTurns: Set<string>; creatingMentalModels: Map<string, Promise<MentalModel | undefined>>; injectedMentalModels: Set<string>; logger: Logger;},
+  deps: {
+    client: HindsightClient;
+    config: HindsightConfig;
+    injectedTurns: Set<string>;
+    creatingMentalModels: Map<string, Promise<MentalModel | undefined>>;
+    injectedMentalModels: Set<string>;
+    recallInjectedAgents: Set<string>;
+    rosterTurns: Map<string, number>;
+    logger: Logger;
+  },
 ): Promise<PreStepDecision> {
-  if ((!deps.config.autoRecall && !deps.config.autoMentalModel) || deps.config.memoryMode === 'tools') return next();
+  const pagesEnabled = deps.config.knowledgePagesEnabled;
+  if (
+    (!deps.config.autoRecall && !deps.config.autoMentalModel && !pagesEnabled)
+    || deps.config.memoryMode === 'tools'
+  ) return next();
   const decision = await next();
   if (decision.kind !== 'enter') return decision;
   if (decision.messages.length === 0) return decision;
@@ -943,8 +1367,21 @@ async function preStepDecision(
   if (deps.config.skipSubagents && agent.session.header.origin === 'subagent') return decision;
   const query = extractUserQuery(messages);
   deps.injectedTurns.add(key);
-  if (deps.config.autoRecall && query) void recallAndInject(agent, query, signal, deps);
+  // Pull, don't push: with autoRecallOnce (the default) the first user turn of
+  // a session gets one recall injection; later turns use the recall tool. The
+  // 0.9.x benchmarks showed per-turn memory injection can hurt focus.
+  const recallDue = deps.config.autoRecall
+    && !!query
+    && (!deps.config.autoRecallOnce || !deps.recallInjectedAgents.has(agent.id));
+  if (recallDue) {
+    void recallAndInject(agent, query, signal, deps)
+      .then(injected => {
+        if (injected) deps.recallInjectedAgents.add(agent.id);
+      })
+      .catch(() => {});
+  }
   if (deps.config.autoMentalModel) void mentalModelsAndInject(agent, signal, deps);
+  if (pagesEnabled) void knowledgePagesAndInject(agent, turn, signal, deps);
   return decision;
 }
 
@@ -974,6 +1411,10 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
   const disposedSessions = new Set<string>();
   const creatingMentalModels = new Map<string, Promise<MentalModel | undefined>>();
   const injectedMentalModels = new Set<string>();
+  // autoRecallOnce: agents that already received their one recall injection.
+  const recallInjectedAgents = new Set<string>();
+  // agent id -> the turn its page roster was last injected on.
+  const rosterTurns = new Map<string, number>();
 
   function stateFor(sessionId: string): SessionState {
     let state = states.get(sessionId);
@@ -1085,6 +1526,8 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
     for (const key of injectedTurns) {
       if (key.startsWith(String(session.id) + ':')) injectedTurns.delete(key);
     }
+    recallInjectedAgents.delete(String(session.id));
+    rosterTurns.delete(String(session.id));
     const state = states.get(String(session.id));
     states.delete(String(session.id));
     if (!state || state.buffer.length === 0 || !config.autoRetain) return;
@@ -1118,15 +1561,37 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
     const statusLine = config.statusToolEnabled
       ? 'Use hindsight_status to verify the server connection and active bank.'
       : '';
+    const pageLines = config.knowledgePagesEnabled
+      ? [
+        'Curated knowledge pages (read-only, generated from memory): hindsight_list_pages -> hindsight_search_pages -> hindsight_read_page.'
+        + ' A page roster (names + one-line summaries) is injected at session start;'
+        + ' use it to decide what to look up, then read only the pages a task needs — bodies are long.',
+      ]
+      : [];
     ctx.systemPrompt.section({
       name: 'hindsight:memory',
       order: TOOL_SECTION_ORDER,
       text: [
         '# Hindsight Memory',
         `Active. Bank: ${config.bankId}; recall budget: ${config.budget}.`,
-        'Relevant long-term memories are synthesized by the Hindsight reflect API and injected into your context at the start of relevant turns.',
-        'Use hindsight_recall to search memories, hindsight_reflect to synthesize an answer across memories, and hindsight_retain to store information.',
+        'Long-term memory is pull-based: query it when it helps instead of relying on it being pushed into every turn.',
+        ...pageLines,
+        'Use hindsight_recall to search raw memories, hindsight_reflect to synthesize across memories, and hindsight_retain to store information.',
         ...(statusLine ? [statusLine] : []),
+        `
+## 知识页读取协议
+
+1. 开工前看名册（已在上下文里，不要重复拉取）。名册里没有相关页 → 直接干活，
+   不要为了"确认没有"去搜索。
+2. 需要背景时：search_knowledge_pages(query = 任务里的名词, limit = 2)。
+   只读命中页的前 40 行（TL;DR 段）；不够再读全文。
+3. 每页每会话只读一次。
+4. 一次任务最多读 2 页全文。要读第 3 页，先说明"现有两页缺了什么"。
+5. 问"为什么这么设计" → Key decisions；问"模块/调用关系" → Component map；
+   问"怎么写/怎么测/命名" → Conventions；问"精确值/某次事故/某人偏好" → recall。
+6. 页与代码冲突：以代码为准。任务结束时 ingest 一条 Correction 页
+   （标题 'Correction: <topic>'，正文三段：原说法 / 现事实 / 证据）。
+7. 引用页内容时署名： From Hindsight memory(<page>): ...`
       ].join('\n'),
     });
   }
@@ -1141,6 +1606,8 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
       injectedTurns,
       creatingMentalModels,
       injectedMentalModels,
+      recallInjectedAgents,
+      rosterTurns,
       logger,
     }),
     {global: true});
@@ -1180,8 +1647,8 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
             createdAt: String(s.header.createdAt),
           }));
           if (sessions.length === 0) return {kind: 'success', text: 'No importable sessions found.'};
-          const lines = sessions.map(s => `  ${s.id}  (cwd: ${s.cwd}, created: ${s.createdAt})`);
-          return {kind: 'success', text: `Found ${sessions.length} session(s):\n${lines.join('\n')}`};
+          const lines = sessions.map(s => `  ${s.id}(cwd: ${s.cwd}, created: ${s.createdAt})`);
+          return {kind: 'success', text: `Found ${sessions.length} session(s): \n${lines.join('\n')}`};
         }
 
         // Import mode.
@@ -1214,7 +1681,7 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
             content: record.text,
             timestamp: record.startedAt,
             context: `imported session ${sessionId} turn ${record.turn}`,
-            document_id: `${sessionId}-turn-${record.turn}`,
+            document_id: `${sessionId} - turn - ${record.turn}`,
             update_mode: 'replace',
             metadata: {
               source: 'dsh-hindsight',
@@ -1223,7 +1690,7 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
               messageCount: String(record.messages.length),
               importedAt: new Date().toISOString(),
             },
-            tags: mergeTags(config.retainTags, [`session:${sessionId}`]),
+            tags: mergeTags(config.retainTags, [`session: ${sessionId}`]),
           };
           try {
             await retainAndWait(client, config, {
@@ -1232,7 +1699,7 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
             });
             retained++;
           } catch (error) {
-            logFailure(logger, `hindsight-import retain turn ${record.turn}`, error);
+            logFailure(logger, `hindsight -import retain turn ${record.turn}`, error);
           }
         }
         const skipped = limited.length - retained;
@@ -1248,10 +1715,10 @@ export function apply(ctx: Context, rawConfig: HindsightConfig | Record<string, 
   });
 
   // Model-facing tools are intentionally global (shared bank). `memoryMode:
-  // context` hides them entirely; `tools` keeps tools but disables auto-recall.
-  if (config.memoryMode !== 'context') {
-    for (const definition of toolDefinitions(client, config)) {
-      ctx.tools.register(definition);
-    }
-  }
-}
+        // context` hides them entirely; `tools` keeps tools but disables auto-recall.
+        if (config.memoryMode !== 'context') {
+          for (const definition of toolDefinitions(client, config)) {
+            ctx.tools.register(definition);
+          }
+        }
+      }

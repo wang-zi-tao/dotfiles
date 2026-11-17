@@ -77,6 +77,29 @@ export interface HindsightConfig {
   mentalModelTimeoutMs: number
   mentalModelRequestTimeoutMs: number
   mentalModelPollIntervalMs: number
+
+  /**
+   * Knowledge pages are curated, source-backed pages backed by mental models.
+   * When enabled, the plugin exposes read-only page tools and injects a page
+   * roster at session start instead of pushing page content every turn.
+   */
+  knowledgePagesEnabled: boolean
+  /** Inject the page roster (name + one-line summary) into the first user turn. */
+  injectPageRoster: boolean
+  /** Re-inject the roster every N user turns (0 disables periodic refresh). */
+  pageRosterRefreshEveryTurns: number
+  /** Hard cap for the rendered roster text. */
+  pageRosterMaxChars: number
+  /** Default number of page hits returned by hindsight_search_pages. */
+  pageSearchLimit: number
+  /** Default body cap for hindsight_read_page. */
+  pageReadMaxChars: number
+  /**
+   * Inject recalled memories only on the first user turn of a session and
+   * let the agent pull later (official 0.9.x guidance: per-turn push hurts
+   * focus). Set false to restore per-turn recall injection.
+   */
+  autoRecallOnce: boolean
 }
 
 export const DEFAULT_API_URL = 'https://api.hindsight.vectorize.io'
@@ -134,6 +157,14 @@ export const DEFAULTS: Readonly<HindsightConfig> = Object.freeze({
   mentalModelTimeoutMs: 120000,
   mentalModelRequestTimeoutMs: 10000,
   mentalModelPollIntervalMs: 3000,
+
+  knowledgePagesEnabled: true,
+  injectPageRoster: true,
+  pageRosterRefreshEveryTurns: 10,
+  pageRosterMaxChars: 1200,
+  pageSearchLimit: 3,
+  pageReadMaxChars: 8000,
+  autoRecallOnce: true,
 })
 
 const BUDGETS = new Set<string>(['low', 'mid', 'high'])
@@ -188,6 +219,13 @@ const ALIASES: Record<string, string> = {
   mental_model_timeout_ms: 'mentalModelTimeoutMs',
   mental_model_request_timeout_ms: 'mentalModelRequestTimeoutMs',
   mental_model_poll_interval_ms: 'mentalModelPollIntervalMs',
+  knowledge_pages_enabled: 'knowledgePagesEnabled',
+  inject_page_roster: 'injectPageRoster',
+  page_roster_refresh_every_turns: 'pageRosterRefreshEveryTurns',
+  page_roster_max_chars: 'pageRosterMaxChars',
+  page_search_limit: 'pageSearchLimit',
+  page_read_max_chars: 'pageReadMaxChars',
+  auto_recall_once: 'autoRecallOnce',
 }
 
 const BOOLEAN_KEYS = new Set<keyof HindsightConfig>([
@@ -200,6 +238,9 @@ const BOOLEAN_KEYS = new Set<keyof HindsightConfig>([
   'statusToolEnabled',
   'autoMentalModel',
   'mentalModelAutoCreate',
+  'knowledgePagesEnabled',
+  'injectPageRoster',
+  'autoRecallOnce',
 ])
 
 const INTEGER_KEYS: Partial<Record<keyof HindsightConfig, number>> = {
@@ -215,6 +256,10 @@ const INTEGER_KEYS: Partial<Record<keyof HindsightConfig, number>> = {
   mentalModelTimeoutMs: 1,
   mentalModelRequestTimeoutMs: 1,
   mentalModelPollIntervalMs: 100,
+  pageRosterRefreshEveryTurns: 0,
+  pageRosterMaxChars: 200,
+  pageSearchLimit: 1,
+  pageReadMaxChars: 500,
 }
 
 function fail(message: string): never {

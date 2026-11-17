@@ -5,17 +5,24 @@ Hindsight long-term memory plugin for [DeepSeek Harness](https://github.com/deep
 
 - **automatic retention** — completed turns are extracted from the dsh session
   event log and sent to the Hindsight bank in the background;
-- **automatic recall** — on each `agent/pre-step` the Hindsight recall API
-  fetches relevant memories in the background and queues the result via
-  `agent.inject()` for the next step boundary (fail-open, non-blocking, with a
-  configurable timeout);
+- **automatic recall, pull-first** — the first user turn of a session gets one
+  background recall whose result is queued via `agent.inject()` for the next
+  step boundary (fail-open, non-blocking, timeout-bounded). Later turns use the
+  `hindsight_recall` tool: Hindsight's 0.9.x benchmarks showed that pushing
+  memories into every prompt costs focus, so injection is capped by
+  `autoRecallOnce` (set it to `false` for the old per-turn behaviour);
+- **knowledge pages, pull-only** — a roster of the bank's curated pages (name,
+  folder, one-line summary; never bodies) is injected at session start and
+  refreshed every `pageRosterRefreshEveryTurns` turns. The page tools fetch
+  content on demand: `hindsight_list_pages` → `hindsight_search_pages` →
+  `hindsight_read_page`;
 - **mental-model injection** — on each `agent/pre-step` the plugin looks up
   the user-preference mental model and a per-project mental model (keyed by the
   session cwd), auto-creates either when it is missing, and injects the current
   content via `agent.inject()` when it has changed. No truncation; refresh is
   left to the server (delta mode by default);
 - **explicit tools** — `hindsight_retain`, `hindsight_recall`,
-  `hindsight_reflect`, and `hindsight_status`;
+  `hindsight_reflect`, `hindsight_status`, and the three read-only page tools;
 - **slash command** — `/hindsight-import` imports turns from a historical dsh
   session into the memory bank (list sessions with no arguments);
 - **configurable endpoint and bank** — via the Cordis row config and
@@ -131,6 +138,9 @@ back to the plugin defaults.
     retainCwdTagPrefix: 'cwd:'
 
     autoRecall: true
+    # Only the first user turn of a session injects recall; later turns pull it
+    # with hindsight_recall. Set false for per-turn injection.
+    autoRecallOnce: true
     recallTimeoutMs: 6000
     recallMaxTokens: 4096
     recallMaxInputChars: 800
@@ -157,6 +167,15 @@ back to the plugin defaults.
     mentalModelTimeoutMs: 120000
     mentalModelRequestTimeoutMs: 10000
     mentalModelPollIntervalMs: 3000
+
+    # Read-only knowledge pages. Only the roster (names + one-line summaries)
+    # is injected; bodies are fetched by the page tools when a task needs them.
+    knowledgePagesEnabled: true
+    injectPageRoster: true
+    pageRosterRefreshEveryTurns: 10
+    pageRosterMaxChars: 1200
+    pageSearchLimit: 3
+    pageReadMaxChars: 8000
 ```
 
 Prefer `HINDSIGHT_API_KEY` over putting credentials in YAML.
@@ -220,6 +239,34 @@ is preserved until the server's next scoped refresh.
 | `hindsight_recall` | Semantic/keyword/entity-graph search over the bank |
 | `hindsight_reflect` | LLM synthesis across stored memories |
 | `hindsight_status` | Check the server, API version, and active bank |
+| `hindsight_list_pages` | Read-only roster of curated knowledge pages (name, folder, one-line summary) |
+| `hindsight_search_pages` | Read-only BM25+vector search over page bodies; returns snippets, not full pages |
+| `hindsight_read_page` | Read one page by name, unique name substring or `kp-...` id; `maxChars` caps the body |
+
+## Knowledge pages
+
+Hindsight *knowledge pages* are curated, server-generated documents (component
+maps, conventions, decisions) whose bodies are synthesized from memories and
+refreshed on a schedule. They are the right source when a task needs standing
+project knowledge rather than one remembered fact.
+
+The plugin treats them as **pull, not push**. The reasoning is empirical:
+Hindsight's 0.9.0 benchmark (61 sde-bench tasks) found that injecting recalled
+corrections into every prompt made agents *worse* (1.06 vs 0.97 corrections per
+task), and final success dropped from 0.85 to 0.36 with per-turn injection.
+Page bodies are the most expensive memory in the bank — a single page can be
+4 KB — so the plugin only ever:
+
+1. injects the roster at session start (default cap 1 200 chars, ~150 tokens for
+   five pages) and on the first turn after every `pageRosterRefreshEveryTurns`
+   turns;
+2. leaves page selection to the agent: list → search → read one page;
+3. caps what a read returns (`pageReadMaxChars`, agent-overridable per call).
+
+If the roster alone is not enough to locate a page, the agent falls back to the
+memory tools rather than reading the tree, because the tree endpoint repeats the
+full `source_query` of each page and costs thousands of tokens — the plugin
+trims `description` to one sentence for the roster and never injects the tree.
 
 ## Slash commands
 
@@ -231,9 +278,9 @@ is preserved until the server's next scoped refresh.
 
 | Hook | Use |
 | --- | --- |
-| `ctx.tools.register` | Register the four model-facing tools |
+| `ctx.tools.register` | Register the model-facing memory and page tools |
 | `ctx.commands.register` | Register the `/hindsight-import` slash command |
-| `agent/pre-step` (`{ global: true }`) | Schedule background recall and mental-model fetch, and queue the synthesized memory via `agent.inject()` for the next step boundary (non-blocking) |
+| `agent/pre-step` (`{ global: true }`) | Schedule the one-shot background recall, the mental-model fetch, and (every N turns) the page-roster fetch; all results are queued via `agent.inject()` for the next step boundary (non-blocking) |
 | `session/event` (`turn/end`, `{ global: true }`) | Buffer/retain completed turns |
 | `session/disposed` (`{ global: true }`) | Best-effort flush of buffered turns and state cleanup |
 

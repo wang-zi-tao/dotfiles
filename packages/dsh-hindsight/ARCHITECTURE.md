@@ -40,6 +40,8 @@ agent/pre-step (global: true)
   └─ await next() → default decision with runtime context
   └─ extractUserQuery from payload.messages
   └─ schedule recallAndInject (fire-and-forget, non-blocking)
+       ├─ gated by autoRecallOnce: only the agent's first user turn injects
+       │  (recallInjectedAgents keyed by agent.id); later turns use the tool
        ├─ recallWithTimeout (fail-open, async)
        └─ agent.inject(memoryMessage) → claimed at next step boundary
   └─ schedule mentalModelsAndInject (fire-and-forget, non-blocking)
@@ -50,6 +52,13 @@ agent/pre-step (global: true)
        │    └─ getMentalModel → content
        ├─ skip when already injected for this session (agent.id:want.key)
        └─ agent.inject(mentalModelMessage) → claimed at next step boundary
+  └─ schedule knowledgePagesAndInject (fire-and-forget, non-blocking)
+       ├─ skip until pageRosterRefreshEveryTurns turns have passed
+       │  (rosterTurns keyed by agent.id)
+       ├─ GET /knowledge-base/tree → flatten pages, trim each description
+       │  to one sentence (the raw field repeats the whole source_query)
+       └─ agent.inject(knowledgePagesMessage(roster))
+            → names + summaries only; bodies are never pushed
 ```
 
 Retention happens off the reply path. If retain fails, the buffered record is
@@ -75,8 +84,11 @@ stay independent across sessions.
 | get mental model | `GET /v1/default/banks/{bank_id}/mental-models/{id}` |
 | create mental model | `POST /v1/default/banks/{bank_id}/mental-models` |
 | update mental model | `PATCH /v1/default/banks/{bank_id}/mental-models/{id}` |
+| knowledge-page tree | `GET /v1/default/banks/{bank_id}/knowledge-base/tree` |
+| knowledge-page search | `GET /v1/default/banks/{bank_id}/knowledge-base/search?q=&limit=` |
+| knowledge page | `GET /v1/default/banks/{bank_id}/knowledge-base/pages/{id}` |
 
-## Why recall is injected at agent/pre-step (reflect, asynchronously)
+## Why recall is injected at agent/pre-step (once, asynchronously)
 
 Rather than caching a recall result at `turn/end` and reading it synchronously
 in a `systemPrompt.context` provider (the Hermes model), dsh-hindsight uses the
@@ -85,17 +97,48 @@ Cordis `agent/pre-step` hook. The hook:
 1. calls `next()` to obtain the default pre-step decision (which includes the
    runtime context snapshot);
 2. extracts the first user query from the step's claimed messages;
-3. schedules a **background** Hindsight **reflect** (LLM synthesis) with a
-   timeout — without awaiting it, so the agent never waits on the memory fetch;
-4. when the reflection returns, queues the result as a user-role message via
+3. schedules a **background** Hindsight **recall** with a timeout — without
+   awaiting it, so the agent never waits on the memory fetch;
+4. when the recall returns, queues the result as a user-role message via
    `agent.inject()`, which the driver claims at the nearest later step
    boundary (an idle agent leaves it pending for the next follow-up).
 
-This avoids a synchronous cache entirely and guarantees every step gets a fresh
-reflection without blocking the turn. The hook is fail-open: timeouts, reflect
-errors, and an unavailable `agent.inject` never block a turn. Per-turn dedup
-(`injectedTurns` set by `agent.id:turn`) prevents duplicate reflect
-scheduling on sub-steps.
+Injection is **pull-first**, not per-turn. Hindsight's own 0.9.0 benchmark (61
+sde-bench tasks) measured *more* corrections per task with per-prompt memory
+injection (1.06 vs 0.97) and a large success drop (Claude Code 0.85 → 0.36), so
+the plugin injects recall once per agent/session (`autoRecallOnce`, default
+true) and leaves later retrieval to the `hindsight_recall` tool. Set it to
+`false` to restore per-turn injection.
+
+The hook is fail-open: timeouts, recall errors, and an unavailable
+`agent.inject` never block a turn. Per-turn dedup (`injectedTurns` set by
+`agent.id:turn`) prevents duplicate scheduling on sub-steps.
+
+## Knowledge pages (pull-only)
+
+Hindsight knowledge pages are server-generated, source-backed documents
+(component maps, conventions, decisions). The tree endpoint returns each page's
+full `source_query` in `description` — 300–400 chars per page, so a naive
+roster costs thousands of tokens. The plugin therefore:
+
+- trims each description to its first paragraph and one short sentence
+  (`knowledgePageSummary`), turning five pages into a ~700-char roster;
+- injects that roster at session start and again only every
+  `pageRosterRefreshEveryTurns` turns (`rosterTurns` per agent), capped by
+  `pageRosterMaxChars`;
+- never injects page bodies. Bodies are fetched only by the three read-only
+  tools: `hindsight_list_pages` (roster), `hindsight_search_pages` (page-level
+  BM25+vector search, snippets), `hindsight_read_page` (one page, clipped to
+  `pageReadMaxChars` and optionally to a per-call `maxChars`);
+- resolves a page reference by `kp-...` id, exact name, or unique name
+  substring; an ambiguous reference errors with the candidate names rather than
+  guessing.
+
+The important asymmetry: the roster is pushed (small, cheap, solves "the agent
+does not know a page exists"), while bodies are pulled (large, only when the
+task needs them). Search snippets are the page's opening text, so a page's
+first lines must carry the conclusions — the page-generation contract writes a
+TL;DR first for exactly this reason.
 
 ## Mental-model injection (auto-create + inject)
 

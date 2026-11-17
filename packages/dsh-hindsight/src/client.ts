@@ -150,6 +150,65 @@ export interface UpdateMentalModelOptions {
   timeoutMs?: number
 }
 
+export interface KnowledgePageNode {
+  id: string
+  kind?: 'folder' | 'page'
+  name: string
+  parent_id?: string | null
+  mental_model_id?: string | null
+  managed?: boolean
+  /** For a page node the server stores the full source query here. */
+  description?: string | null
+  tags?: string[]
+  timestamp?: string
+  is_stale?: boolean | null
+  children?: KnowledgePageNode[]
+}
+
+export interface KnowledgePageTreeResponse {
+  roots: KnowledgePageNode[]
+}
+
+export interface KnowledgePageSearchHit {
+  id: string
+  name: string
+  mental_model_id?: string | null
+  source_query?: string
+  snippet?: string
+  score?: number
+  updated_at?: string
+}
+
+export interface KnowledgePageSearchResponse {
+  results: KnowledgePageSearchHit[]
+}
+
+/** A single knowledge page. The generated body lives in `body` (and `markdown`). */
+export interface KnowledgePage {
+  id: string
+  name: string
+  type?: string
+  description?: string | null
+  tags?: string[]
+  timestamp?: string
+  body?: string | null
+  markdown?: string | null
+}
+
+export interface ListKnowledgePagesOptions {
+  bankId: string
+  signal?: AbortSignal
+  timeoutMs?: number
+}
+
+export interface SearchKnowledgePagesOptions {
+  bankId: string
+  query: string
+  limit?: number
+  signal?: AbortSignal
+  timeoutMs?: number
+}
+
 export interface HindsightClientOptions {
   apiUrl: string
   apiKey?: string | null
@@ -353,6 +412,32 @@ export class HindsightClient {
     return this.request(
       `/v1/default/banks/${encodeURIComponent(options.bankId)}/mental-models/${encodeURIComponent(options.id)}`,
       { method: 'PATCH', body, signal: options.signal, timeoutMs: options.timeoutMs },
+    )
+  }
+
+  /** Full knowledge-page tree for a bank (folders and pages). */
+  async knowledgePageTree(options: ListKnowledgePagesOptions): Promise<KnowledgePageTreeResponse> {
+    return this.request(`/v1/default/banks/${encodeURIComponent(options.bankId)}/knowledge-base/tree`, {
+      method: 'GET',
+      signal: options.signal,
+      timeoutMs: options.timeoutMs,
+    })
+  }
+
+  /** Hybrid (BM25 + vector) search across knowledge pages. */
+  async searchKnowledgePages(options: SearchKnowledgePagesOptions): Promise<KnowledgePageSearchResponse> {
+    const limit = options.limit ?? 3
+    return this.request(
+      `/v1/default/banks/${encodeURIComponent(options.bankId)}/knowledge-base/search?q=${encodeURIComponent(options.query)}&limit=${encodeURIComponent(String(limit))}`,
+      { method: 'GET', signal: options.signal, timeoutMs: options.timeoutMs },
+    )
+  }
+
+  /** One knowledge page, including its generated body. */
+  async getKnowledgePage(bankId: string, pageId: string, options: { signal?: AbortSignal; timeoutMs?: number } = {}): Promise<KnowledgePage> {
+    return this.request(
+      `/v1/default/banks/${encodeURIComponent(bankId)}/knowledge-base/pages/${encodeURIComponent(pageId)}`,
+      { method: 'GET', signal: options.signal, timeoutMs: options.timeoutMs },
     )
   }
 }

@@ -9,7 +9,7 @@ Neovim 桥接插件（DeepSeek Harness）：通过 RPC socket 连接本机 Neovi
   - `nvim_lua_command` — 执行 Lua 语句（无返回值）
   - `nvim_lua_eval` — 求值 Lua 表达式并返回 JSON 结果
 - **nvim-dap 调试工具集**（`nvim_dap_*`，经用户 Neovim 配置里的 `core.agent` Lua 桥）：
-  - 会话控制：`nvim_dap_start`（深度合并配置覆盖）、`nvim_dap_continue`、`nvim_dap_stop`、`nvim_dap_get_sessions`、`nvim_dap_switch_session`
+  - 会话控制：`nvim_dap_start`（深度合并配置覆盖）、`nvim_dap_continue`、`nvim_dap_pause`（暂停运行中的目标，已暂停时直接回当前停止位置，`force=true` 强制再发 pause）、`nvim_dap_stop`、`nvim_dap_get_sessions`、`nvim_dap_switch_session`
   - 单步：`nvim_dap_step_into` / `step_over` / `step_out` / `run_to_cursor` / `run_to_location`（协程阻塞等待命中断点后返回停止位置）
   - 状态：`nvim_dap_get_stack` / `nvim_dap_get_threads` / `nvim_dap_switch_thread` / `nvim_dap_eval` / `nvim_dap_add_watch`
   - 断点：`nvim_dap_add_breakpoint` / `toggle_breakpoint` / `remove_breakpoint` / `list_breakpoints` / `clear_breakpoints`（支持条件、命中次数、日志断点）
