@@ -1,10 +1,11 @@
 import test from 'node:test'
 import { doesNotThrow, equal, match, ok, rejects } from 'node:assert/strict'
 import { resolve } from 'node:path'
+import { PassThrough, Writable } from 'node:stream'
 
 import { LspClient } from '../src/client.js'
 import { isLspDeadlineError } from '../src/deadline.js'
-import type { LoggerLike, ServerSpec, SubprocessRuntime } from '../src/types.js'
+import type { LoggerLike, ServerSpec, SubprocessHandle, SubprocessRuntime } from '../src/types.js'
 
 const logger = {
   debug: () => {},
@@ -275,4 +276,50 @@ test('stop() terminates even when the server never answers shutdown', async () =
   const elapsed = Date.now() - started
   equal(client.state, 'stopped')
   ok(elapsed < 3000, 'stop() took ' + elapsed + 'ms')
+})
+/**
+ * The real transport, not a stub: a subprocess handle whose stdin is already
+ * destroyed, so the very first JSON-RPC write (the initialize request) fails
+ * with `ERR_STREAM_DESTROYED` — the crash from the field, where a language
+ * server died mid-handshake and the next write killed the harness with
+ * "fatal load failure: Error [ERR_STREAM_DESTROYED]: Cannot call write after a
+ * stream was destroyed".
+ *
+ * vscode-jsonrpc rejects the request *and* rethrows inside a dropped async
+ * executor, which surfaces as an unhandled rejection. The guarded writer makes
+ * the write resolve and ends the session instead, so the request fails with a
+ * catchable error and the process survives.
+ */
+test('a server whose stdin is already destroyed fails start without an unhandled rejection', async () => {
+  const stdin = new Writable({
+    write(_chunk, _encoding, done) {
+      done()
+    },
+  })
+  stdin.destroy()
+  const handle = {
+    pid: 4242,
+    stdin,
+    stdout: new PassThrough(),
+    stderr: undefined,
+    done: new Promise<{ exitCode: number | null; signal: string | null }>(() => {}),
+    terminate: () => {},
+    waitForExit: async () => false,
+  } as unknown as SubprocessHandle
+  const runtime = { spawn: () => handle } as unknown as SubprocessRuntime
+  const client = new LspClient(spec, runtime, logger, {}, undefined, 500)
+
+  const unhandled = await unhandledWhile(async () => {
+    const error = await failure(client.start(resolve(process.cwd())))
+    match(
+      (error as Error).message,
+      /write failed|stdin is closed|disposed|Cannot call write/,
+    )
+  })
+
+  equal(unhandled.length, 0)
+  equal(client.state, 'failed')
+  // The dead session refuses further work: the registry drops it and respawns
+  // on the next query instead of writing into the broken pipe again.
+  await rejects(() => client.definition(document, 1, 1), /is not running/)
 })

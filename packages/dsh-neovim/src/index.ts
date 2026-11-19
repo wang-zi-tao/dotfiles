@@ -38,7 +38,7 @@ import {
   fmtThreads,
 } from './format.js'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
-import type { Context, JsonSchemaNode, Logger, ToolDefinition, ToolRunContext, ToolExecution, Agent } from './types.js'
+import type { Context, JsonSchemaNode, Logger, ToolDefinition, ToolRunContext, ToolExecution, Agent, CommandResult } from './types.js'
 
 export const name = 'dsh-neovim'
 export const inject = ['tools', 'commands', 'agents']
@@ -333,6 +333,18 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
   // ------------------------------------------------------------------
   let nvim: Neovim | null = null
   let connectPromise: Promise<Neovim | null> | null = null
+  /**
+   * RPC address pinned by `/neovim connect <path>`. It outranks the resolved
+   * config / environment address so a manual choice also survives the
+   * automatic reconnects the tools perform on demand; `/neovim connect`
+   * without a path clears the pin again.
+   */
+  let socketOverride: string | null = null
+
+  /** RPC address for new connections: the manual pin wins, then config/env. */
+  function effectiveSocket(): string | null {
+    return socketOverride ?? resolveSocket(config)
+  }
 
   /** Sessions that used a DAP tool; debugger events are injected only there. */
   const dapSessions = new Set<string>()
@@ -414,7 +426,7 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
   }
 
   async function connect(): Promise<Neovim | null> {
-    const socket = resolveSocket(config)
+    const socket = effectiveSocket()
     if (!socket) {
       logger.warn('no neovim socket address configured (set config.socket, $NVIM_LISTEN_ADDRESS or $NVIM)')
       return null
@@ -429,11 +441,20 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
       const nv = tryConnectNvim(socket, config.luaModule)
       if (!nv) return null
       // Touches the wire; re-subscribes debugger events on every reconnect.
-      ctx.effect(()=>{
-        subscribeNvim(nv)
-        subscribeDap(nv)
-        return ()=>{
-          nv.close()
+      // Both subscriptions and the dispose are fire-and-forget on purpose: a
+      // socket that dies mid-handshake must not surface as an unhandled
+      // rejection and take the host process down.
+      ctx.effect(() => {
+        subscribeNvim(nv).catch((error) => {
+          logger.warn(`neovim subscribe failed: ${errText(error)}`)
+        })
+        subscribeDap(nv).catch((error) => {
+          logger.warn(`neovim dap subscribe failed: ${errText(error)}`)
+        })
+        return () => {
+          nv.close().catch((error) => {
+            logger.debug(`neovim close failed: ${errText(error)}`)
+          })
         }
       });
       return nv
@@ -1272,23 +1293,74 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
   // ------------------------------------------------------------------
   // /neovim command
   // ------------------------------------------------------------------
+  /**
+   * Drop the current client and any in-flight connect attempt. `close()` is
+   * fire-and-forget: it first runs a Lua `on_dispose` round-trip, and a
+   * half-dead peer must not stall the command handler.
+   */
+  function detachNvim(): void {
+    const old = nvim
+    nvim = null
+    connectPromise = null
+    if (!old) return
+    old.close().catch((error) => {
+      logger.debug(`neovim close failed: ${errText(error)}`)
+    })
+  }
+
+  /**
+   * `/neovim connect [path]` — pin the bridge to an explicit RPC address, or
+   * (without a path) drop the pin and fall back to config / environment
+   * resolution. A new address is probed before the current connection is
+   * dropped, so a typo never leaves the bridge detached from a live Neovim;
+   * if the attach still fails the previous pin is restored.
+   */
+  async function connectViaOverride(path: string): Promise<CommandResult> {
+    const previous = socketOverride
+    socketOverride = path === '' ? null : path
+    const socket = effectiveSocket()
+    if (!socket) {
+      socketOverride = previous
+      return {
+        kind: 'error',
+        text:
+          'no Neovim RPC address: pass one (`/neovim connect <path>`) or set ' +
+          'config.socket / $NVIM_LISTEN_ADDRESS / $NVIM',
+      }
+    }
+    if (path !== '' && !(await probeSocket(socket))) {
+      socketOverride = previous
+      return { kind: 'error', text: `no Neovim RPC listener at ${socket}` }
+    }
+    detachNvim()
+    try {
+      const nv = await ensureNvim()
+      return { kind: 'success', text: `connected to ${socket}, channel ${await nv.channelId()}` }
+    } catch (error) {
+      socketOverride = previous
+      return { kind: 'error', text: `connect to ${socket} failed: ${errText(error)}` }
+    }
+  }
+
   ctx.commands.register({
     name: 'neovim',
-    description: 'Inspect or reconnect the Neovim bridge: status | reconnect',
-    input: { hint: 'status | reconnect' },
+    description: 'Inspect or point the Neovim bridge: status | reconnect | connect [path]',
+    input: { hint: 'status | reconnect | connect [path]' },
     async handler(invocation) {
       const raw = invocation.rawInput.trim()
       const [verb, ...rest] = raw.split(/\s+/).filter(Boolean)
       const effectiveVerb = verb === undefined || verb === '' ? 'status' : verb
-      if (rest.length > 0) {
-        return { kind: 'error', text: `/neovim ${effectiveVerb} takes no arguments` }
-      }
       try {
         switch (effectiveVerb) {
           case 'status': {
-            const socket = resolveSocket(config)
+            if (rest.length > 0) {
+              return { kind: 'error', text: '/neovim status takes no arguments' }
+            }
+            const socket = effectiveSocket()
             const connected = nvim !== null && !nvim.disconnected
-            let text = `Neovim bridge:\n- socket: ${socket ?? '(unset)'}\n- connected: ${connected}`
+            const mode = socketOverride === null ? 'auto (config / env)' : 'manual (/neovim connect)'
+            let text =
+              `Neovim bridge:\n- socket: ${socket ?? '(unset)'}\n- mode: ${mode}\n- connected: ${connected}`
             if (connected && nvim) {
               try {
                 text += `\n- channel: ${await nvim.channelId()}`
@@ -1300,12 +1372,25 @@ export function apply(ctx: Context, rawConfig: Record<string, unknown> = {}): vo
             return { kind: 'success', text }
           }
           case 'reconnect': {
-            nvim = null
+            if (rest.length > 0) {
+              return { kind: 'error', text: '/neovim reconnect takes no arguments' }
+            }
+            detachNvim()
             const nv = await ensureNvim()
-            return { kind: 'success', text: `reconnected, channel ${await nv.channelId()}` }
+            return {
+              kind: 'success',
+              text: `reconnected to ${effectiveSocket() ?? '(unset)'}, channel ${await nv.channelId()}`,
+            }
+          }
+          case 'connect': {
+            // The path is joined so Windows socket names containing spaces work.
+            return await connectViaOverride(rest.join(' ').trim())
           }
           default:
-            return { kind: 'error', text: `unknown /neovim subcommand '${effectiveVerb}'; expected status | reconnect` }
+            return {
+              kind: 'error',
+              text: `unknown /neovim subcommand '${effectiveVerb}'; expected status | reconnect | connect [path]`,
+            }
         }
       } catch (error) {
         return { kind: 'error', text: `/neovim failed: ${errText(error)}` }

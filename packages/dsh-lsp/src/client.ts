@@ -9,7 +9,7 @@
  * request type is the type-safe `vscode-languageserver-protocol` constant.
  */
 
-import { createProtocolConnection } from 'vscode-languageserver-protocol/node'
+import { StreamMessageReader, StreamMessageWriter, createProtocolConnection } from 'vscode-languageserver-protocol/node'
 import {
   DefinitionRequest,
   DidChangeTextDocumentNotification,
@@ -51,6 +51,12 @@ import { DiagnosticInbox, type PublishRecord } from './inbox.js'
 import { foldIndexProgress, progressToken, type ProgressParamsLike } from './progress.js'
 import { fileUriToPath, pathToFileUri, toLspPosition } from './protocol.js'
 import type { IndexProgress, LoggerLike, ServerSpec, SubprocessHandle, SubprocessRuntime } from './types.js'
+import { guardMessageWriter } from './writer.js'
+
+/** Render an unknown thrown value for a log line. */
+function errorText(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
 
 export type LspClientState = 'stopped' | 'starting' | 'running' | 'failed'
 
@@ -198,7 +204,19 @@ export class LspClient {
         throw new Error('server stdio did not expose piped streams')
       }
 
-      const connection = createProtocolConnection(handle.stdout, handle.stdin)
+      // The writer is guarded: a failed write (the server died, or its pipes
+      // were torn down) must not reject inside vscode-jsonrpc's request
+      // wrapper, which rethrows in a dropped async executor and would surface
+      // as an unhandled rejection — fatal to the harness process. The wrapper
+      // reports the failure here instead, where the session is ended cleanly.
+      const connection = createProtocolConnection(
+        new StreamMessageReader(handle.stdout),
+        guardMessageWriter(
+          new StreamMessageWriter(handle.stdin),
+          (error) => this.handleWriterFailure(error),
+          (message, error) => this.logger.debug(`${message}: ${errorText(error)}`),
+        ),
+      )
       this.connection = connection
       connection.listen()
 
@@ -270,11 +288,14 @@ export class LspClient {
       this.state = 'failed'
       this.error = err instanceof Error ? err.message : String(err)
       this.logger.warn(`dsh-lsp: failed to start ${this.spec.id}: ${this.error}`)
-      // Best-effort cleanup of a half-started process.
+      // Best-effort cleanup of a half-started process and its transport.
+      this.disposeConnection()
       try {
         this.handle?.terminate()
-      } catch {
-        /* ignore */
+      } catch (cleanupError) {
+        // The original start failure is what gets rethrown; log the cleanup
+        // failure instead of hiding it.
+        this.logger.debug(`dsh-lsp: ${this.spec.id} terminate after start failure failed: ${errorText(cleanupError)}`)
       }
       throw err
     }
@@ -337,6 +358,15 @@ export class LspClient {
     if (!this.connection || !this.initialized || this.state !== 'running') {
       throw new Error(`server '${this.spec.id}' is not running`)
     }
+    // A server that has died (or whose pipes were torn down) leaves the
+    // protocol connection object usable but unwritable. Committing to a write
+    // on it would fail asynchronously, after the caller handed the request
+    // off, so refuse up front and end the session here instead.
+    const stdin = this.handle?.stdin
+    if (stdin && (stdin.destroyed || stdin.writableEnded)) {
+      this.handleWriterFailure(new Error('server stdin is closed'))
+      throw new Error(`server '${this.spec.id}' is not running`)
+    }
     return this.connection
   }
 
@@ -369,17 +399,48 @@ export class LspClient {
    */
   private noteWriteFailure(what: string, err: unknown): void {
     const message = err instanceof Error ? err.message : String(err)
-    if (this.state !== 'running') {
+    // 'starting' counts too: a server that dies during the initialize
+    // handshake fails its writes the same way a running one does.
+    if (this.state !== 'running' && this.state !== 'starting') {
       this.logger.debug(`dsh-lsp: ${this.spec.id} ${what} failed while ${this.state}: ${message}`)
       return
     }
     this.state = 'failed'
     this.error = `${what} failed: ${message}`
     this.logger.warn(`dsh-lsp: ${this.spec.id} ${what} failed: ${message}`)
+    // A session whose pipe is gone can never answer: dispose the transport so
+    // requests already in flight reject now, with a catchable error, instead
+    // of waiting out their deadlines.
+    this.disposeConnection()
     try {
       this.handle?.terminate()
-    } catch {
-      /* ignore */
+    } catch (err) {
+      // The pipe is already gone; a failed reap must not hide the original
+      // write failure. Log it so a stuck process is still traceable.
+      this.logger.debug(`dsh-lsp: ${this.spec.id} terminate after write failure failed: ${errorText(err)}`)
+    }
+  }
+
+  /**
+   * The guarded writer (see src/writer.ts) could not deliver a message: the
+   * server died, or its pipes were torn down under an in-flight write. Ends the
+   * session here instead of letting the rejection escape into the harness's
+   * fail-loud `unhandledRejection` handler, which exits the whole process
+   * (`fatal load failure: ... Cannot call write after a stream was destroyed`).
+   */
+  private handleWriterFailure(err: unknown): void {
+    this.noteWriteFailure('write', err)
+  }
+
+  /** Dispose the protocol connection, tolerating an already-dead one. */
+  private disposeConnection(): void {
+    const connection = this.connection as (ProtocolConnection & { dispose?: () => void }) | null
+    try {
+      connection?.dispose?.()
+    } catch (err) {
+      // Disposing an already-dead transport is expected; log at debug so a
+      // genuinely broken connection is still diagnosable.
+      this.logger.debug(`dsh-lsp: ${this.spec.id} connection dispose failed: ${errorText(err)}`)
     }
   }
 
@@ -758,13 +819,15 @@ export class LspClient {
     }
     try {
       this.connection?.dispose()
-    } catch {
-      /* ignore */
+    } catch (disposeError) {
+      // Teardown is best-effort, but a failing dispose is still a signal worth
+      // keeping: log it at debug rather than swallowing it silently.
+      this.logger.debug(`dsh-lsp: ${this.spec.id} connection dispose failed during stop: ${errorText(disposeError)}`)
     }
     try {
       this.handle?.terminate()
-    } catch {
-      /* ignore */
+    } catch (terminateError) {
+      this.logger.debug(`dsh-lsp: ${this.spec.id} terminate failed during stop: ${errorText(terminateError)}`)
     }
     this.connection = null
     this.handle = null

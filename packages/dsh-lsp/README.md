@@ -51,6 +51,13 @@ npm run build
 
 行 `config` 里可覆盖 `servers`（内置表为缺省）、`autoStart`（`mount` / `session` / `off`，默认 `session`）、`autoStartServers`（参与自动启动的 id，空 = 全部 enabled）、`autoStartRoots`、`maxLocations`、`maxResultChars`、`timeoutMs`（单次 LSP 请求与 initialize 握手的硬上限，默认 `60000`；超时只取消该请求，不中止 server）、`syncLoadOnRead`（读文件时同步加载到 LSP，默认 `true`）、`diagnosticsInject`（是否把诊断变化注入 agent 上下文，默认 `true`；关掉即只留 `lsp_diagnostics` 的按需诊断）、`diagnosticsOnlyTouched`（只把诊断注入给「本会话工具读过/改过该文件」的会话，默认 `true`；`false` 恢复发给该 server root 下所有会话）、`diagnosticsMinSeverity`（注入的最低严重级别：`error` / `warning` / `information` / `hint`，默认 `warning`）、`diagnosticsMode`（`auto` / `push` / `pull` / `off`，默认 `auto`）、`diagnosticsTimeoutMs`（等一次推送的上限，默认 `15000`；**超时只结束等待，绝不中止 server**）、`diagnosticsFlushMs`（诊断变更合并窗口，默认 `400`；`0` = 每次推送立即结算）、`maxDiagnostics`（单条注入消息的诊断上限，默认 `50`）、`symbolFallback`（`workspaceSymbol` 空结果时是否收敛候选文件兜底，默认 `true`）、`symbolFallbackMaxCandidates`（最多预热多少个候选，默认 `12`）、`symbolFallbackTimeoutMs`（单次候选搜索预算，默认 `15000`）、`fallbackSearchCommand`（收敛用的搜索命令，默认 `rg`）。`servers` 按 id 覆盖内置项；`enabled: false` 用纯 id 即可禁用某个内置 server；重复扩展名、缺失 command/extensions/languageId、非法 `autoStart`/`diagnosticsMode` 会在加载期抛错（挂载审计会暴露）。
 
+## 健壮性
+
+语言服务器进程崩溃或被外部杀掉时，其 stdin 可能先于 JSON-RPC 连接销毁。写端因此统一经 `guardMessageWriter`
+把写失败降级为「标记该 server 为 failed + 关闭连接 + 终止子进程」，而不是让 `ERR_STREAM_DESTROYED` 变成
+unhandledRejection 拖垮 dsh 主进程；下一次查询会自动重建 server。整个过程都落日志：session 结束时 `warn`（含失败原因），
+清理期（terminate / dispose 再失败、处理器自身抛错）`debug`，便于事后定位是哪个 server 的哪条管道先死。
+
 ## 约束
 
 - 只读查询：不做 rename / format / code-action（涉及写权限与预览，另立工具）

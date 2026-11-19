@@ -17,48 +17,17 @@
 - 调用explore agent来探索代码结构
 
 # 代码搜索方法（按优先级从高到低）
-- 已知精确名字, 但名字过于通用, 同名符号过多: LSP
-- 已知部分名字: LSP 和 codegraph
-- 已知部分名字和代码目录: LSP 和 codegraph 和 grep
-- 已知位置的代码符号的使用点: LSP
-- 已知位置的虚函数或者接口的实现点: LSP
-- 未知精确名字: hindsight 和 VectorCode
-- 曾经考察过代码模块架构: hindsight 和 Obsidian
-- 未考察过的代码模块架构: 子代理考察模块结构, 最终写入笔记库和记忆
-- 兜底: grep
-
-### 1. 最高优先：LSP（dsh-lsp 插件，工具名 `lsp_*`）
-- **`lsp_symbols`**: `scope:"workspace"` 全工作区搜符号，支持只给符号名一部分的模糊/子串匹配；参数 `filePath` + `query`（`line`/`character` 可省略）；`scope:"document"` 取当前文件大纲. 速度远快于全局grep查找, 不会搜索出无关结果
-- **`lsp_explore`（推荐，聚合查询）**: 一次调用同时返回 definition + typeDefinition + hover + implementation + references，效果等同 codegraph 的单符号多信息查询；需 `filePath` + `line` + `character`
-- 单点查询用 `lsp_definition` / `lsp_type_definition` / `lsp_implementation` / `lsp_references` / `lsp_hover`（都需 `filePath` + `line` + `character`）；`lsp_status` 只看 server 状态（只读，不会启动新进程）
-  - **重要**: 查 C++ 符号时 `filePath` 优先用 `.cpp`（编译单元在 compile_commands.json 中，命中更快更全）；`.h` 也能工作但依赖后台索引预热，命中略慢
-
-### 2. 最高优先：codegraph 代码静态索引
-- 搜索类型和函数的速度最快
-- 搜索具体函数和调用关系
-- 使用`mcp__codegraph__codegraph_node({symbol:"符号名"})`查询单个符号
-
-### 3. 高优先：hindsight 搜索记忆
-- 搜索过往会话和记忆中存储的信息
-- 使用`hindsight_recall({query:"..."})`搜索记忆
-- 使用`hindsight_reflect({query:"..."})`进行复杂查询
-
-### 4. 中优先：obsidian 笔记库
-- 快速了解模块，搜索笔记库中记录的关键模块 UML 图
-
-### 5. 中优先：VectorCode 代码rag
-- 适合语义搜索，找到功能相似的代码
-- 使用`tools["mcp__vectorcode-mcp-server__query"]({n_query:4,query_messages:["关键词1","关键词2"]})`通过多个关键词按 API 含义模糊搜索
-- 不需要使用vectorcode-mcp-server_ls来获取vectorcode工作状态. 这个一工具调用结果通常是错误的
-
-### 6. 中优先：explore agent
-- 使用 explore agent 进行代码库探索
-- 适合需要深入搜索的场景
-
-### 7. 最后手段：grep / astgrep
-- **尽量不用** grep 搜索整个仓库. wps仓库尺寸超过10GB, grep搜索效率低, 且可能会搜索出大量无关结果.
-- **尽量** 使用grep时指定目录范围
-- **绝对不用** 等价于grep工具的其他命令, 例如findstr和powershell的select-string命令, 性能比grep低
+- 已知精确名字, 但名字过于通用, 同名符号过多: lsp_symbols, lsp_references
+- 已知精确位置，但是是代码重的隐藏信息（例如推导的类型）：lsp_type_definition
+- 已知部分名字, 且名字不够通用 => lsp_symbols 和 grep(特定目录内搜索)
+- 已知部分名字和代码目录 => lsp_symbols 和 grep(特定目录内搜索)
+- 宏和其他特殊语法干扰grep搜索 => lsp工具
+- 已知位置的代码符号的使用点 => lsp_references
+- 已知位置的虚函数或者接口的实现点 => lsp_implementation
+- 未知精确名字 => hindsight 和 VectorCode
+- 曾经考察过代码模块架构 => hindsight 和 Obsidian
+- 未考察过的代码模块架构 => 子代理考察模块结构, 最终写入笔记库和记忆
+- 兜底: grep(全工作空间搜索较慢)
 
 # 代码检查
 - 优先使用 `lsp_diagnostics` 诊断代码问题（`severity` 可按最低级别过滤）
@@ -69,8 +38,9 @@
 - 笔记库中有大量的代码关系, 关键调用栈, uml图, 以及代码分析结果等信息, 可以帮助快速理解和导航代码。
 
 # 并行工具调用
-- **SHOULD** 根据任务使用并行式工具调用. 如果确定性不够, 并发度控制在6以下. 
-- **MUST** 如果工具列表中有`run_code`, 且需要并行工具调用, 使用`run_code`内的`Promise.all()`并发执行工具函数
+- **SHOULD** 根据任务使用并行式工具调用. 
+- **MUST** 避免非常多步骤数的串行式调用工具
+- **MUST** 如果使用`run_code`, 且需要并行工具调用, 使用`run_code`内的`Promise.all()`并发执行工具函数
 
 # 临时文件管理
 - 项目的临时文件根目录: .temp
@@ -81,8 +51,9 @@
 # shell
 - 脚本文件: 推荐使用python/nodejs脚本文件, 代替shell脚本
 - 数据分析命令: 推荐使用nushell. 避免使用powershell
-- 日常终端命令: nushell > bash >> cmd > powershell
-- 脚本文件中, 尽量不要重定向输出
+
+> [!IMPORTANT]
+> 请用nushell语法调用bash工具和pwsh工具
 
 # 经验总结
 **MUST** 每次执行任务后, 总结任务中的失败原因和成功经验, 并存储经验
@@ -96,12 +67,45 @@
 ## 成功经验类型
 - 跑通了一个复杂的工作流
 - 完成了复杂的研究任务
-- 重构代码, 让笔记或记忆中的代码结构发生变化
+- 重构代码, 导致代码模块结构发生较大变化
+
+## 常用知识类经验
+- 高频率出现的代码，包括常用类型和常用函数
+    - 用一个知识页存储. 或者建立一个skill, 或者在笔记库中新增一个markdown文件
+    - 知识页描述或者skill描述中要包含功能和使用场景
 
 ## 经验存储
-- 方法类经验适合使用`harness_refine`, 总结成skill
-- 事实类和经历经验适合 `hindsight_retain` 存入记忆
-- 如果经验总结内容过于复杂, 存入笔记库
-- 如果经验内容复杂, 且其信息分散在记忆库中, 则建立一个hindsight 知识页, 来方便检索
-- 如果本机skill或者AGENTS.md的信息与事实不符, 可以进行修改
-- 如果是本机dsh插件(dsh-hindsight/dsh-lsp/dsh-neovim)或者脚本程序有问题, 可以在用户同意后进行修复
+- 方法类和工作流程经验 => `hindsight_capture_initiative`生成知识页
+- 关于代码中的常用知识 =>  `hindsight_capture_initiative`生成知识页
+- 事实类和经历经验 =>  `hindsight_retain` 存入记忆
+- 如果经验总结内容过于复杂 => 存入笔记库
+- 如果经验内容复杂, 且其信息分散在记忆库中 => `hindsight_capture_initiative`生成知识页
+- 如果本机skill或者AGENTS.md的信息与事实不符 =>  可以进行修改skill或者AGENTS.md
+- 如果是本机dsh插件(dsh-hindsight/dsh-lsp/dsh-neovim)或者脚本程序有问题,  => 用户同意后进行修复
+
+# 用户
+## 简介
+- 资深C++开发工程师
+- 精通Rust语言
+- 熟悉haskell/java/typescript/python/lua
+- 熟悉多种编程语言
+## 编程偏好
+- 静态强类型
+- 写动态脚本语言也时也倾向于用静态类型, 比如TypeScript
+- 喜欢函数式编程风格
+- 优先复用现有代码和库
+- 异步优先
+- 不抛弃报错信息
+
+### Rust编程偏好
+- 喜欢零成本抽象
+- 不过度使用智能指针
+- 不用RefCell
+- 使用过程宏和声明宏
+- 避免出现无效状态
+
+### C++编程偏好
+- 控制修改的影响面
+- 优先用智能指针
+- 优先用现代化C++写法
+- 移动语言优先

@@ -16,7 +16,10 @@ Neovim 桥接插件（DeepSeek Harness）：通过 RPC socket 连接本机 Neovi
   - 配置：`nvim_dap_get_configurations`（可按语言筛选）
 - **调试事件注入**：订阅 `dap_pause` / `event_terminated` / `event_exited`，格式化为 `<dap-event>` 上下文，`agent.inject()` 给所有使用过 DAP 工具的会话（下一次模型请求可见）
 - **写后重载**：`tools/result` 观察 `write` / `edit` 工具，成功后通知 Neovim `reload_file`
-- **`/neovim` 命令**：`status` 查看 socket / 连接 / 频道 / 追踪会话数；`reconnect` 强制重连
+- **`/neovim` 命令**：
+  - `status` — 查看 socket / 地址来源（自动或手动覆盖）/ 连接 / 频道 / 追踪会话数
+  - `reconnect` — 按当前有效地址强制重连
+  - `connect <path>` — 手动连接到指定 RPC 地址（Windows 管道名或 Unix socket 路径）；`connect` 不带路径则清除手动覆盖、回到配置/环境解析
 - **懒连接 + 自愈**：插件加载不阻塞宿主；每次工具调用按需重连，Neovim 重启后自动恢复
 
 ## 安装（Windows 本地）
@@ -41,6 +44,9 @@ npm run build
 | `socket` | `''`（环境解析） | 显式 RPC 地址；为空时按 `$NVIM_LISTEN_ADDRESS` → `$NVIM` → `\\.\pipe\nvim`（win32）→ `$XDG_RUNTIME_DIR/nvim.$USER` 解析 |
 | `luaModule` | `core.agent` | 承载调试桥函数的 Lua 模块（`dap_subscribe` / `dap_*` / `reload_file` / `run_async`） |
 
+`/neovim connect <path>` 设置的地址只存在于宿主进程内存，优先级高于 `socket` 与环境变量；
+此后工具调用的按需重连都沿用该地址。重启 profile 后回到配置解析。
+
 ## 前置条件
 
 - 本机 Neovim 需以 `--listen <地址>`（或设置 `$NVIM_LISTEN_ADDRESS` / `$NVIM`）启动，例如 `nvim --listen \\.\pipe\nvim`
@@ -51,6 +57,8 @@ npm run build
 ```powershell
 npm test
 ```
+
+`test/command.test.ts` 用最小 fake Cordis context 驱动 `/neovim` handler（`status` / `connect` / `reconnect` / 未知子命令 / 多余参数），socket 指向不存在的管道，不触碰真实 Neovim。
 
 `test/neovim.test.ts`（node:test）自启动一个 `nvim --embed --clean` 子进程并通过其 stdio（msgpack-rpc）连接，验证 command / eval / luaEval / luaAsyncEval（含错误传播），结束后关闭连接并终止子进程。不依赖任何外部 Neovim 实例或监听地址；`nvim` 不在 PATH 时全部干净跳过（exit 0）。`luaAsyncEval` 依赖的 `core.agent` 模块由测试自行注入最小 `run_async` stub（同步 pcall + `async_task_finish` 通知）。
 
