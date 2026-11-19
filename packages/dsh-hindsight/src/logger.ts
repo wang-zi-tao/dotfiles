@@ -107,14 +107,20 @@ export function installFileLogger(ctx: Context, logDir: string, logger: Logger):
   }
   // levels.default=3 (DEBUG) captures every severity; per-name overrides can
   // be layered on top by other exporters without affecting this sink.
+  let writeFailures = 0
   service.exporter({
     levels: { default: 3 },
     export(message: Message): void {
       try {
         const line = `${new Date(message.ts).toISOString()} [${message.type}] ${message.name}: ${formatLogMessage(message)}\n`
         appendFileSync(file, line, 'utf8')
-      } catch {
-        // Never let logging break the plugin; drop the line.
+      } catch (error) {
+        // Never let logging break the plugin. Report the first failure once so a
+        // broken sink (disk full, permissions) is not completely invisible.
+        writeFailures += 1
+        if (writeFailures === 1) {
+          console.error(`hindsight: cannot write log file ${file}: ${(error as Error)?.message ?? String(error)}`)
+        }
       }
     },
   })

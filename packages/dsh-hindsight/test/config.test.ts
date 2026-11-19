@@ -13,6 +13,24 @@ test('resolveConfig applies defaults', () => {
   assert.equal(config.timeoutMs, 120000)
 })
 
+// Project mental models are off by default: project knowledge lives in the
+// knowledge pages, and a per-project model would push a second copy of it into
+// every session. The user-preference model stays on.
+test('project mental models are disabled and never auto-refreshed by default', () => {
+  const config = resolveConfig({}, emptyEnv)
+  assert.equal(config.mentalModelProjectEnabled, false)
+  assert.equal(config.mentalModelProjectAutoRefresh, false)
+  assert.equal(resolveConfig({ mental_model_project_enabled: true }, emptyEnv).mentalModelProjectEnabled, true)
+  assert.equal(
+    resolveConfig({}, { HINDSIGHT_MENTAL_MODEL_PROJECT_ENABLED: '1' }).mentalModelProjectEnabled,
+    true,
+  )
+  assert.equal(
+    resolveConfig({}, { HINDSIGHT_MENTAL_MODEL_PROJECT_AUTO_REFRESH: 'true' }).mentalModelProjectAutoRefresh,
+    true,
+  )
+})
+
 test('resolveConfig accepts snake_case aliases and env overrides', () => {
   const config = resolveConfig(
     { api_url: 'http://127.0.0.1:8888', bank_id: 'work', recall_budget: 'low' },

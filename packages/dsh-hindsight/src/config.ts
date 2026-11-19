@@ -14,6 +14,12 @@
 
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import {
+  INITIATIVE_FOLDER_NAME,
+  INITIATIVE_PAGE_MAX_TOKENS,
+  INITIATIVE_REFRESH_CRON,
+  INITIATIVE_TIER_TAG,
+} from './client.js'
 
 export type MemoryMode = 'hybrid' | 'context' | 'tools'
 export type RecallBudget = 'low' | 'mid' | 'high'
@@ -79,6 +85,20 @@ export interface HindsightConfig {
   mentalModelPollIntervalMs: number
 
   /**
+   * Whether the per-project mental model is created and injected. Off by
+   * default: a project model duplicates what knowledge pages already cover and
+   * costs one reflect per project, so project-level knowledge lives in pages.
+   * The user-preference model is unaffected by this switch.
+   */
+  mentalModelProjectEnabled: boolean
+  /**
+   * Whether a project mental model refreshes itself (after consolidation or on
+   * its cron). Off by default: project models are manual-refresh only, so a
+   * stale model does not silently burn a reflect on every consolidation.
+   */
+  mentalModelProjectAutoRefresh: boolean
+
+  /**
    * Knowledge pages are curated, source-backed pages backed by mental models.
    * When enabled, the plugin exposes read-only page tools and injects a page
    * roster at session start instead of pushing page content every turn.
@@ -94,6 +114,25 @@ export interface HindsightConfig {
   pageSearchLimit: number
   /** Default body cap for hindsight_read_page. */
   pageReadMaxChars: number
+
+  /**
+   * Write side of knowledge pages: let the agent open an initiative page after
+   * a plan is approved. Only meaningful while `knowledgePagesEnabled` is true.
+   */
+  knowledgePageCaptureEnabled: boolean
+  /** Folder new initiative pages are filed under; created on demand. */
+  initiativeFolder: string
+  /** Tag written to both an initiative page and its markers (the page scope). */
+  initiativeTierTag: string
+  /** Token cap for the generated body of an initiative page. */
+  initiativePageMaxTokens: number
+  /**
+   * Refresh cron template for initiative pages. `H` is expanded per bank+page
+   * on the client because the server only accepts a literal 5-field cron.
+   */
+  initiativeRefreshCron: string
+  /** Extra tags written to both the initiative page and its markers. */
+  initiativeTags: string[]
   /**
    * Inject recalled memories only on the first user turn of a session and
    * let the agent pull later (official 0.9.x guidance: per-turn push hurts
@@ -115,7 +154,11 @@ export const DEFAULTS: Readonly<HindsightConfig> = Object.freeze({
   statusToolEnabled: true,
 
   autoRecall: true,
-  recallTimeoutMs: 6000,
+  // Soft threshold, not a hard cutoff: a real bank's recall is LLM-backed and
+  // measured 12.6–14.8s (budget/type-independent). At 6s every injection was
+  // silently dropped; the call now keeps waiting up to `timeoutMs` and logs a
+  // warning when it passes this value.
+  recallTimeoutMs: 20000,
   recallMaxInputChars: 800,
   recallMaxTokens: 4096,
   // Retained memories are classified as 'experience'; restricting the default to
@@ -157,6 +200,11 @@ export const DEFAULTS: Readonly<HindsightConfig> = Object.freeze({
   mentalModelTimeoutMs: 120000,
   mentalModelRequestTimeoutMs: 10000,
   mentalModelPollIntervalMs: 3000,
+  // Project knowledge is covered by knowledge pages; keep the per-project
+  // mental model off unless explicitly enabled.
+  mentalModelProjectEnabled: false,
+  // Even when enabled, a project model never refreshes on its own.
+  mentalModelProjectAutoRefresh: false,
 
   knowledgePagesEnabled: true,
   injectPageRoster: true,
@@ -165,6 +213,13 @@ export const DEFAULTS: Readonly<HindsightConfig> = Object.freeze({
   pageSearchLimit: 3,
   pageReadMaxChars: 8000,
   autoRecallOnce: true,
+
+  knowledgePageCaptureEnabled: true,
+  initiativeFolder: INITIATIVE_FOLDER_NAME,
+  initiativeTierTag: INITIATIVE_TIER_TAG,
+  initiativePageMaxTokens: INITIATIVE_PAGE_MAX_TOKENS,
+  initiativeRefreshCron: INITIATIVE_REFRESH_CRON,
+  initiativeTags: [],
 })
 
 const BUDGETS = new Set<string>(['low', 'mid', 'high'])
@@ -219,6 +274,8 @@ const ALIASES: Record<string, string> = {
   mental_model_timeout_ms: 'mentalModelTimeoutMs',
   mental_model_request_timeout_ms: 'mentalModelRequestTimeoutMs',
   mental_model_poll_interval_ms: 'mentalModelPollIntervalMs',
+  mental_model_project_enabled: 'mentalModelProjectEnabled',
+  mental_model_project_auto_refresh: 'mentalModelProjectAutoRefresh',
   knowledge_pages_enabled: 'knowledgePagesEnabled',
   inject_page_roster: 'injectPageRoster',
   page_roster_refresh_every_turns: 'pageRosterRefreshEveryTurns',
@@ -226,6 +283,12 @@ const ALIASES: Record<string, string> = {
   page_search_limit: 'pageSearchLimit',
   page_read_max_chars: 'pageReadMaxChars',
   auto_recall_once: 'autoRecallOnce',
+  knowledge_page_capture_enabled: 'knowledgePageCaptureEnabled',
+  initiative_folder: 'initiativeFolder',
+  initiative_tier_tag: 'initiativeTierTag',
+  initiative_page_max_tokens: 'initiativePageMaxTokens',
+  initiative_refresh_cron: 'initiativeRefreshCron',
+  initiative_tags: 'initiativeTags',
 }
 
 const BOOLEAN_KEYS = new Set<keyof HindsightConfig>([
@@ -238,9 +301,12 @@ const BOOLEAN_KEYS = new Set<keyof HindsightConfig>([
   'statusToolEnabled',
   'autoMentalModel',
   'mentalModelAutoCreate',
+  'mentalModelProjectEnabled',
+  'mentalModelProjectAutoRefresh',
   'knowledgePagesEnabled',
   'injectPageRoster',
   'autoRecallOnce',
+  'knowledgePageCaptureEnabled',
 ])
 
 const INTEGER_KEYS: Partial<Record<keyof HindsightConfig, number>> = {
@@ -260,6 +326,7 @@ const INTEGER_KEYS: Partial<Record<keyof HindsightConfig, number>> = {
   pageRosterMaxChars: 200,
   pageSearchLimit: 1,
   pageReadMaxChars: 500,
+  initiativePageMaxTokens: 256,
 }
 
 function fail(message: string): never {
@@ -365,6 +432,11 @@ export function resolveConfig(raw: RawConfig = {}, env: NodeJS.ProcessEnv = proc
     ['mentalModelMaxTokens', env.HINDSIGHT_MENTAL_MODEL_MAX_TOKENS],
     ['mentalModelRefreshMode', env.HINDSIGHT_MENTAL_MODEL_REFRESH_MODE],
     ['mentalModelAutoCreate', env.HINDSIGHT_MENTAL_MODEL_AUTO_CREATE],
+    ['mentalModelProjectEnabled', env.HINDSIGHT_MENTAL_MODEL_PROJECT_ENABLED],
+    ['mentalModelProjectAutoRefresh', env.HINDSIGHT_MENTAL_MODEL_PROJECT_AUTO_REFRESH],
+    ['knowledgePageCaptureEnabled', env.HINDSIGHT_INITIATIVE_CAPTURE],
+    ['initiativeFolder', env.HINDSIGHT_INITIATIVE_FOLDER],
+    ['initiativeRefreshCron', env.HINDSIGHT_INITIATIVE_REFRESH_CRON],
   ]
   for (const [key, value] of envOverrides) {
     if (value) config[key] = value
@@ -420,6 +492,16 @@ export function resolveConfig(raw: RawConfig = {}, env: NodeJS.ProcessEnv = proc
   result.logDir = draft.logDir == null || draft.logDir === '' ? '' : String(draft.logDir).trim()
   result.retainTurnKinds = normalizeStringList(result.retainTurnKinds)
   if (result.retainTurnKinds.length === 0) fail('retainTurnKinds must not be empty')
+
+  result.initiativeFolder = String(result.initiativeFolder ?? '').trim()
+  if (!result.initiativeFolder) fail('initiativeFolder must not be empty')
+  result.initiativeTierTag = String(result.initiativeTierTag ?? '').trim()
+  if (!result.initiativeTierTag) fail('initiativeTierTag must not be empty')
+  result.initiativeRefreshCron = String(result.initiativeRefreshCron ?? '').trim()
+  if (result.initiativeRefreshCron.split(/\s+/).filter(Boolean).length !== 5) {
+    fail(`invalid initiativeRefreshCron ${JSON.stringify(result.initiativeRefreshCron)}; expected 5 fields`)
+  }
+  result.initiativeTags = normalizeTags(result.initiativeTags)
 
   return result
 }

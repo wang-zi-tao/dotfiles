@@ -42,7 +42,8 @@ agent/pre-step (global: true)
   └─ schedule recallAndInject (fire-and-forget, non-blocking)
        ├─ gated by autoRecallOnce: only the agent's first user turn injects
        │  (recallInjectedAgents keyed by agent.id); later turns use the tool
-       ├─ recallWithTimeout (fail-open, async)
+       ├─ recallWithTimeout (fail-open, soft timeout: logs a slow-call
+       │  warning and keeps waiting up to config.timeoutMs)
        └─ agent.inject(memoryMessage) → claimed at next step boundary
   └─ schedule mentalModelsAndInject (fire-and-forget, non-blocking)
        ├─ for each wanted model (user + project from session cwd)
@@ -87,6 +88,8 @@ stay independent across sessions.
 | knowledge-page tree | `GET /v1/default/banks/{bank_id}/knowledge-base/tree` |
 | knowledge-page search | `GET /v1/default/banks/{bank_id}/knowledge-base/search?q=&limit=` |
 | knowledge page | `GET /v1/default/banks/{bank_id}/knowledge-base/pages/{id}` |
+| create knowledge folder | `POST /v1/default/banks/{bank_id}/knowledge-base/folders` |
+| create knowledge page | `POST /v1/default/banks/{bank_id}/knowledge-base/pages` |
 
 ## Why recall is injected at agent/pre-step (once, asynchronously)
 
@@ -97,8 +100,10 @@ Cordis `agent/pre-step` hook. The hook:
 1. calls `next()` to obtain the default pre-step decision (which includes the
    runtime context snapshot);
 2. extracts the first user query from the step's claimed messages;
-3. schedules a **background** Hindsight **recall** with a timeout — without
-   awaiting it, so the agent never waits on the memory fetch;
+3. schedules a **background** Hindsight **recall** — without awaiting it, so
+   the agent never waits on the memory fetch. The timeout is *soft*: after
+   `recallTimeoutMs` the plugin logs a warning and keeps waiting, because a
+   large bank routinely needs 10–15 s to answer;
 4. when the recall returns, queues the result as a user-role message via
    `agent.inject()`, which the driver claims at the nearest later step
    boundary (an idle agent leaves it pending for the next follow-up).
@@ -111,7 +116,10 @@ true) and leaves later retrieval to the `hindsight_recall` tool. Set it to
 `false` to restore per-turn injection.
 
 The hook is fail-open: timeouts, recall errors, and an unavailable
-`agent.inject` never block a turn. Per-turn dedup (`injectedTurns` set by
+`agent.inject` never block a turn. Failures are not silent, though — the
+recall path (and the mental-model / page-roster paths) reports through
+`logFailure`, which prints the `Error.cause` chain so a `fetch failed` does not
+hide the connection error underneath. Per-turn dedup (`injectedTurns` set by
 `agent.id:turn`) prevents duplicate scheduling on sub-steps.
 
 ## Knowledge pages (pull-only)
@@ -140,16 +148,49 @@ task needs them). Search snippets are the page's opening text, so a page's
 first lines must carry the conclusions — the page-generation contract writes a
 TL;DR first for exactly this reason.
 
+### Initiative pages (write side)
+
+The server has no capture endpoint: `hindsight_capture_initiative` is the same
+three-request composition as `@vectorize-io/hindsight-coding-agents` 0.8.7
+(`HindsightClient.captureInitiative`): ensure the `Initiatives` folder (tree
+lookup, case-insensitive, created only when missing, fail-open), create the page
+(`name = title`, fixed `source_query`, `parent_id`, `knowledge:feature-work`
+tier tag, `max_tokens`, trigger), then retain a marker document that links the
+page: `document_id = initiative-marker-<page>[-update]`,
+`context = initiative marker for [[page:<id>]]`, `metadata.relatedPageId`.
+
+Only `context` survives into page synthesis: reflect/recall results strip
+`metadata`, and tags are a set filter, not an identity channel. The 0.8.7 client
+writes `relatedPageId:<id>` into tags only on a path that requires a
+client-supplied page id (`kp-<32hex>`), and the 1.2.0 `CreatePageRequest` has
+no `page_id` field, so that channel is unavailable here.
+
+An update (`relates_to_page_id`) never creates a page: it writes
+`initiative-marker-<page>-update` and leaves the existing body to refresh on its
+own schedule. The page body is always server-generated from memories carrying
+the page's tags — the agent contributes the intent marker, never the text.
+
+The trigger is fixed to `mode: delta`, `tags_match: all_strict`,
+`fact_types: [world, experience, observation]` and a per-page cron. Cron
+templates (`H * * * *`, `H(lo-hi)` supported) are expanded client-side by
+`expandCronHash` because the server validates a literal five-field cron and
+rejects `H` with a 400; the hash input is `bank + index + field` so a page's
+minute is stable across re-creations.
+
 ## Mental-model injection (auto-create + inject)
 
-On `agent/pre-step` the plugin also ensures two curated mental models exist
-and injects their current content — at most once per session:
+On `agent/pre-step` the plugin also ensures the curated mental models exist and
+injects their current content — at most once per session:
 
 - **user model** — `source_query = mentalModelUserQuery` (default `用户偏好`);
-  auto-created with id `user_advise` when missing;
+  auto-created with id `user_advise` when missing. Always on with
+  `autoMentalModel`.
 - **project model** — one per session cwd; `source_query` is
   `mentalModelProjectQueryTemplate` with `{cwd}` replaced by
-  `agent.session.header.cwd` (skipped when the session has no cwd).
+  `agent.session.header.cwd` (skipped when the session has no cwd or when
+  `mentalModelProjectEnabled` is false, which is the default: the knowledge
+  pages already carry project knowledge, and a second per-project model
+  duplicated it in every session's first turn).
 
 The mental-models endpoints are distinct from recall: they return the
 pre-synthesized standing answer (a plain database read on the server, ~ms),
@@ -163,11 +204,27 @@ server-side refresh, not by re-injection. The user requested no truncation, so
 full content is injected.
 
 Auto-created models use `mentalModelRefreshMode` (default `delta`) and
-`refresh_after_consolidation: true`, so the server keeps them current
-incrementally after each consolidation. Missing models are created
+`refresh_after_consolidation: <autoRefresh>` — true for the user model, false
+for a project model unless `mentalModelProjectAutoRefresh` is set. Missing
+models are created
 asynchronously and polled via `/operations/{operation_id}` until the
 background reflect completes (`mentalModelTimeoutMs` cap, fail-open on
 timeout/error). In-flight creations are deduplicated per wanted key.
+
+### Muting stale project models
+
+A project model created by an older version keeps
+`refresh_after_consolidation: true`, so the server would run a full LLM reflect
+after every consolidation forever — for content nothing reads any more, since
+project models are no longer injected. `muteProjectModelAutoRefresh` runs one
+sweep per process (before the first seed attempt): list the models, take the
+ones whose tags start with `retainCwdTagPrefix`, fetch each (the list endpoint
+returns no trigger), and `PATCH` those still auto-refreshing to
+`{mode, refresh_after_consolidation: false, refresh_cron: null}`. The PATCH is
+a field merge on the server: tags, content and fact types survive. Models
+without a cwd tag (the user model) and knowledge-page backed models
+(`project:*` / `knowledge:*` tags) are never touched. Fail-open, one-shot: a
+failure logs and is retried on the next process start, never on every turn.
 
 ### Scope tags (why a model can silently read nothing)
 
@@ -189,17 +246,21 @@ The plugin's contract is therefore:
 - the cwd is never normalised (case, trailing separator): model identity is
   derived from the same raw string, and normalising one side only would break
   the match;
-- a *found* model is reconciled before injection: `reconcileMentalModelTags`
+- a *found* model is reconciled before injection: `reconcileMentalModel`
   PATCHes `tags` only when the wanted scope is non-empty and differs from the
   model's, leaving the stored content intact until the next scoped refresh. An
-  empty wanted scope means "leave the scope alone", never "clear it".
+  empty wanted scope means "leave the scope alone", never "clear it". The same
+  PATCH carries `{mode, refresh_after_consolidation: false, refresh_cron: null}`
+  when the caller wants the model muted (project models by default), so tags and
+  trigger state never disagree.
 
 Because the patch changes only the scope, adopting this on an existing bank
 requires backfilling `cwd` tags onto previously retained documents — otherwise
 the re-scoped models have nothing in scope to read.
 
 Like recall, the whole path is fire-and-forget and fail-open: the decision
-is returned before any memory work, and errors only log.
+is returned before any memory work, and errors are logged (with their
+`cause` chain) rather than thrown.
 
 ## Configuration ownership
 

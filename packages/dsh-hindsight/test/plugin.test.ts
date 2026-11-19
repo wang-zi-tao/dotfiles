@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DEFAULTS, resolveConfig, apply, inject, name } from '../src/index.js'
+import { expandCronHash } from '../src/client.js'
 import type { ToolDefinition } from '../src/index.js'
 import type { Context } from '@deepseek-ai/cordis'
 import type { ToolRunContext } from '@deepseek-ai/dsh-tools'
@@ -36,6 +37,9 @@ const envKeys = [
   'HINDSIGHT_RETAIN_CWD_TAG_PREFIX',
   'HINDSIGHT_RECALL_TAGS',
   'HINDSIGHT_RECALL_TYPES',
+  'HINDSIGHT_INITIATIVE_CAPTURE',
+  'HINDSIGHT_INITIATIVE_FOLDER',
+  'HINDSIGHT_INITIATIVE_REFRESH_CRON',
 ]
 
 function withCleanEnv(run: () => Promise<void>): () => Promise<void> {
@@ -171,14 +175,21 @@ interface FakeMentalModel {
   source_query: string
   content: string | null
   tags: string[]
+  trigger?: Record<string, unknown>
 }
 
 function fakeFetch(calls: FetchCall[], seed: FakeMentalModel[] = []): typeof globalThis.fetch {
-  const store: { mentalModels: FakeMentalModel[] } = {
+  const store: {
+    mentalModels: FakeMentalModel[]
+    folders: Array<Record<string, unknown>>
+    pages: Array<Record<string, unknown>>
+  } = {
     mentalModels: [
       { id: 'user_advise', name: '用户偏好', source_query: '用户偏好', content: '## 用户偏好\n- 喜欢函数式编程', tags: [] },
       ...seed,
     ],
+    folders: [],
+    pages: [],
   }
   return (async (url: RequestInfo | URL, init: RequestInit = {}) => {
     const target = String(url)
@@ -194,8 +205,12 @@ function fakeFetch(calls: FetchCall[], seed: FakeMentalModel[] = []): typeof glo
       return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({ text: 'Reflected answer' }) } as Response
     }
     if (target.includes('/knowledge-base/tree')) {
+      const created = store.folders.map(folder => ({
+        ...folder,
+        children: store.pages.filter(page => page.parent_id === folder.id),
+      }));
       return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({
-        roots: [{
+        roots: [...created, {
           id: 'kf-wpsmain', kind: 'folder', name: 'wpsmain', parent_id: 'kf-root', description: '', tags: [],
           children: [
             {
@@ -211,6 +226,24 @@ function fakeFetch(calls: FetchCall[], seed: FakeMentalModel[] = []): typeof glo
           ],
         }],
       }) } as Response
+    }
+    if (target.endsWith('/knowledge-base/folders') && init.method === 'POST') {
+      const folder = {
+        id: 'kf-initiatives', kind: 'folder', name: String(body?.name ?? ''),
+        parent_id: body?.parent_id ?? null, children: [],
+      };
+      store.folders.push(folder);
+      return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify(folder) } as Response;
+    }
+    if (target.endsWith('/knowledge-base/pages') && init.method === 'POST') {
+      const page = {
+        id: 'kp-new', kind: 'page', name: String(body?.name ?? ''),
+        parent_id: body?.parent_id ?? null, mental_model_id: 'mm-new',
+        description: String(body?.source_query ?? ''),
+        tags: Array.isArray(body?.tags) ? body!.tags : [], is_stale: false,
+      };
+      store.pages.push(page);
+      return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({ page_id: 'kp-new', mental_model_id: 'mm-new', operation_id: 'op-page' }) } as Response;
     }
     if (target.includes('/knowledge-base/search')) {
       return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({
@@ -238,6 +271,9 @@ function fakeFetch(calls: FetchCall[], seed: FakeMentalModel[] = []): typeof glo
       const mm = store.mentalModels.find(m => m.id === id)
       if (!mm) return { ok: false, status: 404, statusText: 'not found', text: async () => JSON.stringify({ detail: 'not found' }) } as Response
       if (Array.isArray(body?.tags)) mm.tags = (body!.tags as unknown[]).map(String)
+      if (body?.trigger && typeof body.trigger === 'object') {
+        mm.trigger = {...(mm.trigger ?? {}), ...(body.trigger as Record<string, unknown>)}
+      }
       return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify(mm) } as Response
     }
     if (/\/mental-models\/[^\/]+$/.test(target) && init.method === 'GET') {
@@ -258,6 +294,9 @@ function fakeFetch(calls: FetchCall[], seed: FakeMentalModel[] = []): typeof glo
         // the model is fetched after the operation finishes.
         content: '## ' + String(body?.name ?? '') + '\n- 模拟生成内容',
         tags: Array.isArray(body?.tags) ? (body!.tags as unknown[]).map(String) : [],
+        ...(body?.trigger && typeof body.trigger === 'object'
+          ? {trigger: body.trigger as Record<string, unknown>}
+          : {}),
       }
       store.mentalModels.push(created)
       return { ok: true, status: 200, statusText: '', text: async () => JSON.stringify({ mental_model_id: created.id, operation_id: 'op-1' }) } as Response
@@ -289,9 +328,9 @@ test('resolveConfig default retainDocumentId is null (not string "null")', () =>
   assert.equal(resolveConfig({ retainDocumentId: 'my-doc' }, {}).retainDocumentId, 'my-doc')
 })
 
-test('resolveConfig recallTimeoutMs default is 6000', () => {
+test('resolveConfig recallTimeoutMs default is the soft 20s threshold', () => {
   const c = resolveConfig({}, {})
-  assert.equal(c.recallTimeoutMs, 6000)
+  assert.equal(c.recallTimeoutMs, 20000)
   assert.equal(resolveConfig({ recallTimeoutMs: 1000 }, {}).recallTimeoutMs, 1000)
 })
 
@@ -473,9 +512,121 @@ test('agent/pre-step does not schedule recall twice for the same agent+turn', wi
 }))
 
 
+// ----- Recall diagnostics: slow calls and failures must be observable -----
+
+test('recall slower than recallTimeoutMs still injects and logs a slow-call warning', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const logs: string[] = []
+  ;(ctx as any).logger = () => ({
+    debug() {},
+    info() {},
+    warn: (message: string) => logs.push(message),
+    error() {},
+  })
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = (async (input: unknown) => {
+    const url = String(input)
+    if (url.endsWith('/memories/recall')) {
+      // Respond well past recallTimeoutMs but inside the client timeout.
+      await new Promise(resolve => setTimeout(resolve, 300))
+      return {
+        ok: true,
+        status: 200,
+        statusText: '',
+        text: async () => JSON.stringify({ results: [{ id: 'm1', text: 'Memory 1', type: 'observation' }] }),
+      } as Response
+    }
+    return { ok: false, status: 404, statusText: 'not found', text: async () => '{}' } as Response
+  }) as unknown as typeof globalThis.fetch
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 2000,
+      autoRecall: true,
+      recallTimeoutMs: 100,
+      autoRetain: false,
+      autoMentalModel: false,
+      knowledgePagesEnabled: false,
+    })
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener)
+
+    const injected: any[] = []
+    const decision = await preStepListener(
+      {
+        agent: { id: 'agent-slow', inject: (msg: any) => injected.push(msg) },
+        messages: [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'slow query' }] }],
+        turn: 1,
+        step: 1,
+      },
+      async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'ctx' }] }),
+    )
+    assert.equal(decision.messages.length, 1, 'pre-step must not block on a slow recall')
+
+    await waitFor(() => injected.length >= 1, 3000)
+    assert.ok(String(injected[0].content[0].text).includes('Memory 1'))
+    assert.ok(logs.some(line => line.includes('recall is slow')), 'a slow recall must be logged')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('a failing recall is logged and never breaks the pre-step', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const logs: string[] = []
+  ;(ctx as any).logger = () => ({
+    debug() {},
+    info() {},
+    warn: (message: string) => logs.push(message),
+    error() {},
+  })
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = (async () => {
+    throw new Error('network down')
+  }) as unknown as typeof globalThis.fetch
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 2000,
+      autoRecall: true,
+      recallTimeoutMs: 5000,
+      autoRetain: false,
+      autoMentalModel: false,
+      knowledgePagesEnabled: false,
+    })
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener)
+
+    const injected: any[] = []
+    const decision = await preStepListener(
+      {
+        agent: { id: 'agent-fail', inject: (msg: any) => injected.push(msg) },
+        messages: [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'query' }] }],
+        turn: 1,
+        step: 1,
+      },
+      async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'ctx' }] }),
+    )
+    assert.equal(decision.kind, 'enter')
+
+    await waitFor(() => logs.some(line => line.includes('hindsight recall failed')), 3000)
+    assert.equal(injected.length, 0, 'nothing is injected when recall fails')
+    assert.ok(
+      logs.some(line => line.includes('network down')),
+      'the underlying error must reach the log',
+    )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
 // ----- D: mental model injection in agent/pre-step -----
 
-test('agent/pre-step injects user + project mental models (auto-create when missing)', withCleanEnv(async () => {
+// Project mental models are off by default: knowledge pages carry project
+// knowledge, so pushing a per-project model would double the context cost.
+test('agent/pre-step injects only the user mental model by default', withCleanEnv(async () => {
   const ctx = fakeCtx()
   const calls: FetchCall[] = []
   const originalFetch = globalThis.fetch
@@ -510,16 +661,75 @@ test('agent/pre-step injects user + project mental models (auto-create when miss
     )
     assert.equal(decision.kind, 'enter', 'decision must not block on mental models')
 
-    // User model already exists (store has user_advise); project model is auto-created.
-    await waitFor(() => injectedMessages.length >= 2, 3000)
+    // Only the user model (already in the store) is injected.
+    await waitFor(() => injectedMessages.length >= 1, 3000)
+    await new Promise(resolve => setTimeout(resolve, 200))
     const mentalTexts = injectedMessages.map((m: any) => String(m.content?.[0]?.text ?? ''))
     const userInjected = mentalTexts.find(t => t.includes('hindsight-mental-model') && t.includes('用户偏好'))
     assert.ok(userInjected, 'user mental model should be injected')
     assert.ok(userInjected!.includes('喜欢函数式编程'), 'user mental model content should be injected')
-    const projectInjected = mentalTexts.find(t => t.includes('hindsight-mental-model') && t.includes('项目'))
-    assert.ok(projectInjected, 'project mental model should be injected')
+    assert.equal(
+      mentalTexts.filter(t => t.includes('hindsight-mental-model')).length,
+      1,
+      'the project mental model must not be injected unless mentalModelProjectEnabled is on',
+    )
 
-    // A create request for the project model was issued (auto-create on missing).
+    // No project model is created and nothing is patched (no cwd model exists).
+    assert.equal(
+      calls.find(call => call.url.endsWith('/mental-models') && call.init.method === 'POST'),
+      undefined,
+      'project models are not auto-created while mentalModelProjectEnabled is off',
+    )
+    assert.equal(
+      calls.find(call => call.url.includes('/mental-models/') && call.init.method === 'PATCH'),
+      undefined,
+      'there is no cwd-tagged model to mute',
+    )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('mentalModelProjectEnabled injects the project model with auto-refresh off', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: true,
+      recallTimeoutMs: 5000,
+      autoMentalModel: true,
+      mentalModelUserQuery: '用户偏好',
+      mentalModelProjectQueryTemplate: '项目 {cwd} 的\n- 概述\n- 项目架构',
+      mentalModelAutoCreate: true,
+      mentalModelProjectEnabled: true,
+      mentalModelTimeoutMs: 2000,
+      mentalModelPollIntervalMs: 100,
+    })
+
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener, 'agent/pre-step listener should be registered')
+
+    const injectedMessages: any[] = []
+    const agent = {
+      id: 'agent-mm-enabled',
+      session: { header: { cwd: 'D:\\repo\\proj', origin: 'user' } },
+      inject: (msg: any) => injectedMessages.push(msg),
+    }
+    await preStepListener(
+      { agent, messages: [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'Continue the work' }] }], turn: 1, step: 1 },
+      async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'ctx' }] }),
+    )
+
+    await waitFor(() => injectedMessages.length >= 2, 3000)
+    const mentalTexts = injectedMessages.map((m: any) => String(m.content?.[0]?.text ?? ''))
+    assert.ok(mentalTexts.some(t => t.includes('hindsight-mental-model') && t.includes('用户偏好')), 'user model injected')
+    assert.ok(mentalTexts.some(t => t.includes('hindsight-mental-model') && t.includes('项目')), 'project model injected when enabled')
+
     const createCall = calls.find(call => call.url.endsWith('/mental-models') && call.init.method === 'POST')
     assert.ok(createCall, 'expected a mental-model create request for the missing project model')
     const createBody = JSON.parse(String(createCall!.init.body)) as {
@@ -530,9 +740,84 @@ test('agent/pre-step injects user + project mental models (auto-create when miss
     }
     assert.match(createBody.source_query, /项目 D:\\repo\\proj 的/)
     assert.equal(createBody.trigger.mode, 'delta', 'auto-created models should use the configured refresh mode (delta)')
-    assert.equal(createBody.trigger.refresh_after_consolidation, true, 'auto-created models refresh after consolidation')
+    assert.equal(
+      createBody.trigger.refresh_after_consolidation,
+      false,
+      'a project model is created without auto-refresh (mentalModelProjectAutoRefresh defaults to false)',
+    )
+    assert.equal(createBody.trigger.refresh_cron, null, 'no refresh cron is scheduled for a project model')
     assert.deepEqual(createBody.tags, ['cwd:D:\\repo\\proj'], 'the project model is scoped by the session cwd tag')
     assert.equal(createBody.trigger.tags_match, 'all_strict', 'a tagged model must exclude untagged memories')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('an existing project mental model is muted and not injected by default', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls, [{
+    id: 'mm-proj',
+    name: '项目 D:\\repo\\proj',
+    source_query: '项目 D:\\repo\\proj 的概述',
+    content: '## 项目 D:\\repo\\proj\n- 旧的项目模型正文',
+    tags: ['cwd:D:\\repo\\proj'],
+    trigger: { mode: 'delta', refresh_after_consolidation: true, refresh_cron: null },
+  }])
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: false,
+      autoMentalModel: true,
+      mentalModelUserQuery: '用户偏好',
+      mentalModelProjectQueryTemplate: '项目 {cwd} 的\n- 概述',
+      mentalModelAutoCreate: true,
+      mentalModelTimeoutMs: 2000,
+      mentalModelPollIntervalMs: 100,
+    })
+
+    const preStepListener = ctx.listeners.get('agent/pre-step')?.[0] as PreStepListener | undefined
+    assert.ok(preStepListener, 'agent/pre-step listener should be registered')
+
+    const injectedMessages: any[] = []
+    const agent = {
+      id: 'agent-mm-mute',
+      session: { header: { cwd: 'D:\\repo\\proj', origin: 'user' } },
+      inject: (msg: any) => injectedMessages.push(msg),
+    }
+    await preStepListener(
+      { agent, messages: [{ source: { kind: 'user' }, content: [{ type: 'text', text: 'Continue the work' }] }], turn: 1, step: 1 },
+      async () => ({ kind: 'enter', messages: [{ role: 'system', content: 'ctx' }] }),
+    )
+
+    await waitFor(
+      () => calls.some(call => call.url.includes('/mental-models/mm-proj') && call.init.method === 'PATCH'),
+      3000,
+    )
+    const patchCall = calls.find(call => call.url.includes('/mental-models/mm-proj') && call.init.method === 'PATCH')!
+    const patchBody = JSON.parse(String(patchCall.init.body)) as { trigger: Record<string, unknown> }
+    assert.equal(
+      patchBody.trigger.refresh_after_consolidation,
+      false,
+      'the existing project model must stop refreshing after consolidation',
+    )
+    assert.equal(patchBody.trigger.refresh_cron, null, 'no refresh cron remains on the muted project model')
+    assert.equal(
+      calls.find(call => call.url.endsWith('/mental-models') && call.init.method === 'POST'),
+      undefined,
+      'the existing model is reused, not re-created',
+    )
+
+    await new Promise(resolve => setTimeout(resolve, 200))
+    const mentalTexts = injectedMessages.map((m: any) => String(m.content?.[0]?.text ?? ''))
+    assert.ok(mentalTexts.some(t => t.includes('用户偏好')), 'the user model is still injected')
+    assert.ok(
+      !mentalTexts.some(t => t.includes('旧的项目模型正文')),
+      'the muted project model is not injected',
+    )
   } finally {
     globalThis.fetch = originalFetch
   }
@@ -974,6 +1259,7 @@ test('an existing mental model is re-scoped to the session cwd tag', withCleanEn
       autoMentalModel: true,
       mentalModelProjectQueryTemplate: '项目 {cwd} 的\n- 概述',
       mentalModelAutoCreate: true,
+      mentalModelProjectEnabled: true,
       mentalModelTimeoutMs: 2000,
       mentalModelPollIntervalMs: 100,
     })
@@ -994,7 +1280,12 @@ test('an existing mental model is re-scoped to the session cwd tag', withCleanEn
 
     const patchCall = calls.find(c => c.url.endsWith('/mental-models/mm-legacy') && c.init.method === 'PATCH')
     assert.ok(patchCall, 'an untagged legacy model should be patched with the cwd tag')
-    assert.deepEqual(JSON.parse(String(patchCall!.init.body)), { tags: ['cwd:C:\\work\\app'] })
+    assert.deepEqual(JSON.parse(String(patchCall!.init.body)), {
+      tags: ['cwd:C:\\work\\app'],
+      // Project models default to no auto-refresh, so the same patch also
+      // silences the legacy model's consolidation refresh.
+      trigger: { mode: 'delta', refresh_after_consolidation: false, refresh_cron: null },
+    })
 
     // The model is not re-created and its content is still injected.
     assert.ok(!calls.some(c => c.url.endsWith('/mental-models') && c.init.method === 'POST'))
@@ -1125,6 +1416,166 @@ test('hindsight_read_page resolves by name and enforces maxChars', withCleanEnv(
   } finally {
     globalThis.fetch = originalFetch
   }
+}))
+
+test('hindsight_capture_initiative creates one page and its marker', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: false,
+      autoRetain: false,
+      autoMentalModel: false,
+    })
+    const tool = ctx.tools.registered.find(def => def.name === 'hindsight_capture_initiative')
+    assert.ok(tool, 'hindsight_capture_initiative should be registered')
+
+    const result = await tool!.execute(
+      {title: 'Knowledge page capture', summary: 'Add the write side so initiatives get a page.'},
+      {} as unknown as ToolRunContext,
+    ) as any
+    assert.equal(result.ok, true)
+    assert.equal(result.pageId, 'kp-new')
+    assert.equal(result.created, true)
+    assert.equal(result.markerDocumentId, 'initiative-marker-kp-new')
+
+    const folderCall = calls.find(call => call.url.endsWith('/knowledge-base/folders'))
+    assert.ok(folderCall, 'expected a folder create request')
+    assert.deepEqual(JSON.parse(String(folderCall!.init.body)), {name: 'Initiatives'})
+
+    const pageCall = calls.find(call => call.url.endsWith('/knowledge-base/pages'))
+    assert.ok(pageCall, 'expected a page create request')
+    const pageBody = JSON.parse(String(pageCall!.init.body)) as any
+    assert.equal(pageBody.name, 'Knowledge page capture')
+    assert.match(pageBody.source_query, /"Knowledge page capture" initiative/)
+    assert.equal(pageBody.parent_id, 'kf-initiatives')
+    assert.deepEqual(pageBody.tags, ['knowledge:feature-work'])
+    assert.equal(pageBody.max_tokens, 4096)
+    assert.equal(pageBody.trigger.mode, 'delta')
+    assert.equal(pageBody.trigger.tags_match, 'all_strict')
+    assert.deepEqual(pageBody.trigger.fact_types, ['world', 'experience', 'observation'])
+    assert.match(pageBody.trigger.refresh_cron, /^\d+ \* \* \* \*$/)
+
+    const markerCall = calls.find(call => call.url.endsWith('/memories'))
+    assert.ok(markerCall, 'expected a marker retain request')
+    const markerBody = JSON.parse(String(markerCall!.init.body)) as any
+    const item = markerBody.items[0]
+    assert.equal(item.document_id, 'initiative-marker-kp-new')
+    assert.equal(item.context, 'initiative marker for [[page:kp-new]]')
+    assert.equal(item.metadata.relatedPageId, 'kp-new')
+    assert.equal(item.content, 'New initiative: Knowledge page capture. Add the write side so initiatives get a page.')
+    assert.deepEqual(item.tags, ['knowledge:feature-work'])
+    assert.equal(markerBody.async, true)
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('hindsight_capture_initiative reuses the folder and updates in place', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  const calls: FetchCall[] = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = fakeFetch(calls)
+  try {
+    apply(ctx as unknown as Context, {
+      apiUrl: 'http://hindsight.test',
+      bankId: 'test-bank',
+      timeoutMs: 1000,
+      autoRecall: false,
+      autoRetain: false,
+      autoMentalModel: false,
+    })
+    const tool = ctx.tools.registered.find(def => def.name === 'hindsight_capture_initiative')
+    assert.ok(tool, 'hindsight_capture_initiative should be registered')
+
+    await tool!.execute(
+      {title: 'First plan', summary: 'Initial intent.'},
+      {} as unknown as ToolRunContext,
+    )
+    const updated = await tool!.execute(
+      {title: 'First plan', summary: 'Scope narrowed to the write side.', relates_to_page_id: 'kp-component'},
+      {} as unknown as ToolRunContext,
+    ) as any
+
+    assert.equal(updated.created, false)
+    assert.equal(updated.pageId, 'kp-component')
+    assert.equal(updated.markerDocumentId, 'initiative-marker-kp-component-update')
+
+    const folderPosts = calls.filter(call => call.url.endsWith('/knowledge-base/folders'))
+    assert.equal(folderPosts.length, 1, 'an existing Initiatives folder is not created twice')
+    const pagePosts = calls.filter(call => call.url.endsWith('/knowledge-base/pages') && call.init.method === 'POST')
+    assert.equal(pagePosts.length, 1, 'an update never creates a second page')
+
+    const markers = calls.filter(call => call.url.endsWith('/memories'))
+    assert.equal(markers.length, 2)
+    const updateBody = JSON.parse(String(markers[1]!.init.body)) as any
+    assert.equal(updateBody.items[0].content, 'Update to an existing initiative: First plan. Scope narrowed to the write side.')
+    assert.equal(updateBody.items[0].document_id, 'initiative-marker-kp-component-update')
+    assert.equal(updateBody.items[0].metadata.relatedPageId, 'kp-component')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+}))
+
+test('hindsight_capture_initiative is hidden when capture is disabled', withCleanEnv(async () => {
+  const ctx = fakeCtx()
+  apply(ctx as unknown as Context, {
+    apiUrl: 'http://hindsight.test',
+    bankId: 'test-bank',
+    timeoutMs: 1000,
+    autoRecall: false,
+    autoRetain: false,
+    autoMentalModel: false,
+    knowledgePageCaptureEnabled: false,
+  })
+  const names = ctx.tools.registered.map(def => def.name)
+  assert.ok(!names.includes('hindsight_capture_initiative'))
+  assert.ok(names.includes('hindsight_read_page'), 'read tools stay available')
+}))
+
+test('expandCronHash expands H into a concrete five-field cron', () => {
+  const cron = expandCronHash('H * * * *', 'test-bank\0Initiatives')
+  assert.match(cron, /^\d+ \* \* \* \*$/)
+  const minute = Number(cron.split(' ')[0])
+  assert.ok(minute >= 0 && minute <= 59, 'the minute is inside the field range')
+  assert.equal(expandCronHash('H * * * *', 'same seed'), expandCronHash('H * * * *', 'same seed'))
+  assert.equal(expandCronHash('15 * * * *', 'seed'), '15 * * * *')
+  const ranged = Number(expandCronHash('H(10-20) * * * *', 'seed').split(' ')[0])
+  assert.ok(ranged >= 10 && ranged <= 20, 'H(lo-hi) stays inside the range')
+  assert.throws(() => expandCronHash('H * * *', 'seed'), /invalid cron template/)
+  assert.throws(() => expandCronHash('H * * * * *', 'seed'), /invalid cron template/)
+})
+
+test('resolveConfig exposes initiative capture defaults and aliases', withCleanEnv(async () => {
+  const c = resolveConfig({}, {})
+  assert.equal(c.knowledgePageCaptureEnabled, true)
+  assert.equal(c.initiativeFolder, 'Initiatives')
+  assert.equal(c.initiativeTierTag, 'knowledge:feature-work')
+  assert.equal(c.initiativePageMaxTokens, 4096)
+  assert.equal(c.initiativeRefreshCron, 'H * * * *')
+  assert.deepEqual(c.initiativeTags, [])
+
+  const aliased = resolveConfig({
+    knowledge_page_capture_enabled: false,
+    initiative_folder: 'Feature work',
+    initiative_page_max_tokens: 2048,
+    initiative_tags: ['team:agent'],
+  }, {})
+  assert.equal(aliased.knowledgePageCaptureEnabled, false)
+  assert.equal(aliased.initiativeFolder, 'Feature work')
+  assert.equal(aliased.initiativePageMaxTokens, 2048)
+  assert.deepEqual(aliased.initiativeTags, ['team:agent'])
+
+  process.env.HINDSIGHT_INITIATIVE_CAPTURE = 'off'
+  process.env.HINDSIGHT_INITIATIVE_FOLDER = 'Work'
+  const fromEnv = resolveConfig({}, process.env)
+  assert.equal(fromEnv.knowledgePageCaptureEnabled, false)
+  assert.equal(fromEnv.initiativeFolder, 'Work')
 }))
 
 test('hindsight_search_pages returns compact hits', withCleanEnv(async () => {
